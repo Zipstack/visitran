@@ -1,0 +1,36 @@
+/* Visitran AI Header Styles */
+
+.chat-ai-header-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-ai-header {
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ai-title-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.token-balance-tag {
+  margin-left: 8px;
+  font-size: 12px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.token-warning-alert {
+  margin: 0;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+}

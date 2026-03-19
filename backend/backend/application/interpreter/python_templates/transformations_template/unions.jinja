@@ -1,0 +1,16 @@
+{# The below code is for union transformation #}
+# Processing union statements
+# The transformation ID is {{ transformation_id }}
+self.save_table_columns(transformation_id="{{ transformation_id }}", table_obj=source_table)
+try:
+    {%- for union_statement in union_statements %}
+    {{union_statement}}
+    {%- endfor %}
+except IbisTypeError as error:
+    match = re.search(r"Column '(\w+)'", error.__str__())
+    if match:
+        raise ColumnNotExist(column_name=match.group(1), model_name=MODEL_NAME, transformation_name="merge") from error
+    raise TransformationFailed(transformation_name="merge", model_name=MODEL_NAME, error_message=str(error)) from error
+except Exception as error:
+    raise TransformationFailed(transformation_name="merge", model_name=MODEL_NAME, error_message=str(error)) from error
+self.save_table_columns(transformation_id="{{ transformation_id }}_transformed", table_obj=source_table)

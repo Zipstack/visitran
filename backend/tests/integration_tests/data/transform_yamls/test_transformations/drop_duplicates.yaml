@@ -1,0 +1,16 @@
+destination:
+  table_name: drop_duplicates
+presentation:
+  columns:
+    - '*'
+  sort:
+    - column: id
+      order_by: ASC
+source:
+  materialization: TABLE
+  table_name: employee
+transform:
+  distinct:
+    - profession
+  union:
+    ignore_duplicate: false

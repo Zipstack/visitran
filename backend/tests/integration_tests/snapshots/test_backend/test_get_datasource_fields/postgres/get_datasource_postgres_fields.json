@@ -1,0 +1,51 @@
+{
+  "datasource_name": "postgres",
+  "datasource_fields": [
+    "host",
+    "port",
+    "user",
+    "passw",
+    "dbname",
+    "schema"
+  ],
+  "datasource_field_details": [
+    {
+      "helptext": "host (hostname for the instance)",
+      "type": "text",
+      "is_required": true,
+      "label": "host"
+    },
+    {
+      "helptext": "port",
+      "type": "number",
+      "default": 5432,
+      "label": "port"
+    },
+    {
+      "helptext": "user (dev username)",
+      "type": "text",
+      "is_required": true,
+      "label": "user"
+    },
+    {
+      "helptext": "password (dev password)",
+      "type": "password",
+      "hide_input": true,
+      "label": "passw",
+      "is_required": true
+    },
+    {
+      "helptext": "dbname (default database that visitran will build objects in)",
+      "type": "text",
+      "is_required": true,
+      "label": "dbname"
+    },
+    {
+      "helptext": "schema (default schema that visitran will build objects in)",
+      "type": "text",
+      "is_required": true,
+      "label": "schema"
+    }
+  ],
+  "is_schema_exists": true
+}

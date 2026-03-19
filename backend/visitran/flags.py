@@ -1,0 +1,12 @@
+# Global CLI commands
+WRITE_JSON = None
+USE_COLORS = True
+DEBUG = False
+LOG_FORMAT = "text"
+LOG_CACHE_EVENTS = None
+QUIET = None
+NO_PRINT = None
+CACHE_SELECTED_ONLY = None
+LOG_PATH = None
+TARGET = "dev"
+PRINTER_WIDTH = 80

@@ -1,0 +1,575 @@
+{
+  "model_name": "store_manager_locations",
+  "model_data": {
+    "source": {
+      "schema_name": "raw",
+      "table_name": "store",
+      "materialization": "TABLE"
+    },
+    "model": {
+      "schema_name": "dev",
+      "table_name": "store_manager_locations"
+    },
+    "presentation": {
+      "hidden_columns": [
+        "*"
+      ]
+    },
+    "transform": {
+      "join-149fca66-ed2c-40a2-b936-fb17d5e51777": {
+        "type": "join",
+        "join": {
+          "tables": [
+            {
+              "joined_table": {
+                "schema_name": "raw",
+                "table_name": "staff"
+              },
+              "type": "Left",
+              "criteria": [
+                {
+                  "condition": {
+                    "lhs": {
+                      "type": "COLUMN",
+                      "column": {
+                        "schema_name": "raw",
+                        "table_name": "store",
+                        "column_name": "manager_staff_id",
+                        "data_type": "Number"
+                      }
+                    },
+                    "operator": "EQ",
+                    "rhs": {
+                      "type": "COLUMN",
+                      "column": {
+                        "schema_name": "raw",
+                        "table_name": "staff",
+                        "column_name": "staff_id",
+                        "data_type": "Number"
+                      },
+                      "value": [
+                        ""
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "joined_table": {
+                "schema_name": "raw",
+                "table_name": "address"
+              },
+              "type": "Left",
+              "criteria": [
+                {
+                  "condition": {
+                    "lhs": {
+                      "type": "COLUMN",
+                      "column": {
+                        "schema_name": "raw",
+                        "table_name": "store",
+                        "column_name": "address_id",
+                        "data_type": "Number"
+                      }
+                    },
+                    "operator": "EQ",
+                    "rhs": {
+                      "type": "COLUMN",
+                      "column": {
+                        "schema_name": "raw",
+                        "table_name": "address",
+                        "column_name": "address_id",
+                        "data_type": "Number"
+                      },
+                      "value": [
+                        ""
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "joined_table": {
+                "schema_name": "raw",
+                "table_name": "city"
+              },
+              "type": "Left",
+              "criteria": [
+                {
+                  "condition": {
+                    "lhs": {
+                      "type": "COLUMN",
+                      "column": {
+                        "schema_name": "raw",
+                        "table_name": "address",
+                        "column_name": "city_id",
+                        "data_type": "Number"
+                      }
+                    },
+                    "operator": "EQ",
+                    "rhs": {
+                      "type": "COLUMN",
+                      "column": {
+                        "schema_name": "raw",
+                        "table_name": "city",
+                        "column_name": "city_id",
+                        "data_type": "Number"
+                      },
+                      "value": [
+                        ""
+                      ]
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "joined_table": {
+                "schema_name": "raw",
+                "table_name": "country"
+              },
+              "type": "Left",
+              "criteria": [
+                {
+                  "condition": {
+                    "lhs": {
+                      "type": "COLUMN",
+                      "column": {
+                        "schema_name": "raw",
+                        "table_name": "city",
+                        "column_name": "country_id",
+                        "data_type": "Number"
+                      }
+                    },
+                    "operator": "EQ",
+                    "rhs": {
+                      "type": "COLUMN",
+                      "column": {
+                        "schema_name": "raw",
+                        "table_name": "country",
+                        "column_name": "country_id",
+                        "data_type": "Number"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "rename_column-8cc37a0c-018e-419c-9b19-a5782e7ed869": {
+        "type": "rename_column",
+        "rename_column": {
+          "mappings": [
+            {
+              "old_name": "first_name",
+              "new_name": "manager_first_name",
+              "original_name": "first_name"
+            },
+            {
+              "old_name": "last_name",
+              "new_name": "manager_last_name",
+              "original_name": "last_name"
+            }
+          ]
+        }
+      }
+    },
+    "transform_order": [
+      "join-149fca66-ed2c-40a2-b936-fb17d5e51777",
+      "rename_column-8cc37a0c-018e-419c-9b19-a5782e7ed869"
+    ]
+  },
+  "dependent_models": [
+    {
+      "status": "joins",
+      "model_data": {
+        "column_names": [
+          "store_id",
+          "manager_staff_id",
+          "address_id",
+          "last_update",
+          "staff_id",
+          "first_name",
+          "last_name",
+          "staff_address_id",
+          "email",
+          "staff_store_id",
+          "active",
+          "username",
+          "password",
+          "staff_last_update",
+          "address_address_id",
+          "address",
+          "address2",
+          "district",
+          "city_id",
+          "postal_code",
+          "phone",
+          "location",
+          "address_last_update",
+          "city_city_id",
+          "city",
+          "country_id",
+          "city_last_update",
+          "country_country_id",
+          "country",
+          "country_last_update"
+        ],
+        "column_description": {
+          "store_id": {
+            "column_name": "store_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "manager_staff_id": {
+            "column_name": "manager_staff_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "address_id": {
+            "column_name": "address_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "last_update": {
+            "column_name": "last_update",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          },
+          "staff_id": {
+            "column_name": "staff_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "first_name": {
+            "column_name": "first_name",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "last_name": {
+            "column_name": "last_name",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "staff_address_id": {
+            "column_name": "staff_address_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "email": {
+            "column_name": "email",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "staff_store_id": {
+            "column_name": "staff_store_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "active": {
+            "column_name": "active",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "username": {
+            "column_name": "username",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "password": {
+            "column_name": "password",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "staff_last_update": {
+            "column_name": "staff_last_update",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          },
+          "address_address_id": {
+            "column_name": "address_address_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "address": {
+            "column_name": "address",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "address2": {
+            "column_name": "address2",
+            "column_dbtype": "float64",
+            "nullable": true
+          },
+          "district": {
+            "column_name": "district",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "city_id": {
+            "column_name": "city_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "postal_code": {
+            "column_name": "postal_code",
+            "column_dbtype": "float64",
+            "nullable": true
+          },
+          "phone": {
+            "column_name": "phone",
+            "column_dbtype": "float64",
+            "nullable": true
+          },
+          "location": {
+            "column_name": "location",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "address_last_update": {
+            "column_name": "address_last_update",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          },
+          "city_city_id": {
+            "column_name": "city_city_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "city": {
+            "column_name": "city",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "country_id": {
+            "column_name": "country_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "city_last_update": {
+            "column_name": "city_last_update",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          },
+          "country_country_id": {
+            "column_name": "country_country_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "country": {
+            "column_name": "country",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "country_last_update": {
+            "column_name": "country_last_update",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          }
+        }
+      },
+      "transformation_id": "join-149fca66-ed2c-40a2-b936-fb17d5e51777"
+    },
+    {
+      "status": "rename",
+      "model_data": {
+        "column_names": [
+          "store_id",
+          "manager_staff_id",
+          "address_id",
+          "last_update",
+          "staff_id",
+          "manager_first_name",
+          "manager_last_name",
+          "staff_address_id",
+          "email",
+          "staff_store_id",
+          "active",
+          "username",
+          "password",
+          "staff_last_update",
+          "address_address_id",
+          "address",
+          "address2",
+          "district",
+          "city_id",
+          "postal_code",
+          "phone",
+          "location",
+          "address_last_update",
+          "city_city_id",
+          "city",
+          "country_id",
+          "city_last_update",
+          "country_country_id",
+          "country",
+          "country_last_update"
+        ],
+        "column_description": {
+          "store_id": {
+            "column_name": "store_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "manager_staff_id": {
+            "column_name": "manager_staff_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "address_id": {
+            "column_name": "address_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "last_update": {
+            "column_name": "last_update",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          },
+          "staff_id": {
+            "column_name": "staff_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "manager_first_name": {
+            "column_name": "manager_first_name",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "manager_last_name": {
+            "column_name": "manager_last_name",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "staff_address_id": {
+            "column_name": "staff_address_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "email": {
+            "column_name": "email",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "staff_store_id": {
+            "column_name": "staff_store_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "active": {
+            "column_name": "active",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "username": {
+            "column_name": "username",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "password": {
+            "column_name": "password",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "staff_last_update": {
+            "column_name": "staff_last_update",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          },
+          "address_address_id": {
+            "column_name": "address_address_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "address": {
+            "column_name": "address",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "address2": {
+            "column_name": "address2",
+            "column_dbtype": "float64",
+            "nullable": true
+          },
+          "district": {
+            "column_name": "district",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "city_id": {
+            "column_name": "city_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "postal_code": {
+            "column_name": "postal_code",
+            "column_dbtype": "float64",
+            "nullable": true
+          },
+          "phone": {
+            "column_name": "phone",
+            "column_dbtype": "float64",
+            "nullable": true
+          },
+          "location": {
+            "column_name": "location",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "address_last_update": {
+            "column_name": "address_last_update",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          },
+          "city_city_id": {
+            "column_name": "city_city_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "city": {
+            "column_name": "city",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "country_id": {
+            "column_name": "country_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "city_last_update": {
+            "column_name": "city_last_update",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          },
+          "country_country_id": {
+            "column_name": "country_country_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "country": {
+            "column_name": "country",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "country_last_update": {
+            "column_name": "country_last_update",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          }
+        }
+      },
+      "transformation_id": "rename_column-8cc37a0c-018e-419c-9b19-a5782e7ed869"
+    },
+    {
+      "status": "sql",
+      "model_data": {
+        "sql": "SELECT\n  \"t10\".\"store_id\",\n  \"t10\".\"manager_staff_id\",\n  \"t10\".\"address_id\",\n  \"t10\".\"last_update\",\n  \"t10\".\"staff_id\",\n  \"t10\".\"first_name\" AS \"manager_first_name\",\n  \"t10\".\"last_name\" AS \"manager_last_name\",\n  \"t10\".\"staff_address_id\",\n  \"t10\".\"email\",\n  \"t10\".\"staff_store_id\",\n  \"t10\".\"active\",\n  \"t10\".\"username\",\n  \"t10\".\"password\",\n  \"t10\".\"staff_last_update\",\n  \"t10\".\"address_address_id\",\n  \"t10\".\"address\",\n  \"t10\".\"address2\",\n  \"t10\".\"district\",\n  \"t10\".\"city_id\",\n  \"t10\".\"postal_code\",\n  \"t10\".\"phone\",\n  \"t10\".\"location\",\n  \"t10\".\"address_last_update\",\n  \"t10\".\"city_city_id\",\n  \"t10\".\"city\",\n  \"t10\".\"country_id\",\n  \"t10\".\"city_last_update\",\n  \"t10\".\"country_country_id\",\n  \"t10\".\"country\",\n  \"t10\".\"country_last_update\"\nFROM (\n  SELECT\n    \"t5\".\"store_id\",\n    \"t5\".\"manager_staff_id\",\n    \"t5\".\"address_id\",\n    \"t5\".\"last_update\",\n    \"t6\".\"staff_id\",\n    \"t6\".\"first_name\",\n    \"t6\".\"last_name\",\n    \"t6\".\"address_id\" AS \"staff_address_id\",\n    \"t6\".\"email\",\n    \"t6\".\"store_id\" AS \"staff_store_id\",\n    \"t6\".\"active\",\n    \"t6\".\"username\",\n    \"t6\".\"password\",\n    \"t6\".\"last_update\" AS \"staff_last_update\",\n    \"t7\".\"address_id\" AS \"address_address_id\",\n    \"t7\".\"address\",\n    \"t7\".\"address2\",\n    \"t7\".\"district\",\n    \"t7\".\"city_id\",\n    \"t7\".\"postal_code\",\n    \"t7\".\"phone\",\n    \"t7\".\"location\",\n    \"t7\".\"last_update\" AS \"address_last_update\",\n    \"t8\".\"city_id\" AS \"city_city_id\",\n    \"t8\".\"city\",\n    \"t8\".\"country_id\",\n    \"t8\".\"last_update\" AS \"city_last_update\",\n    \"t9\".\"country_id\" AS \"country_country_id\",\n    \"t9\".\"country\",\n    \"t9\".\"last_update\" AS \"country_last_update\"\n  FROM \"raw\".\"store\" AS \"t5\"\n  LEFT OUTER JOIN \"raw\".\"staff\" AS \"t6\"\n    ON \"t5\".\"manager_staff_id\" = \"t6\".\"staff_id\"\n  LEFT OUTER JOIN \"raw\".\"address\" AS \"t7\"\n    ON \"t5\".\"address_id\" = \"t7\".\"address_id\"\n  LEFT OUTER JOIN \"raw\".\"city\" AS \"t8\"\n    ON \"t7\".\"city_id\" = \"t8\".\"city_id\"\n  LEFT OUTER JOIN \"raw\".\"country\" AS \"t9\"\n    ON \"t8\".\"country_id\" = \"t9\".\"country_id\"\n) AS \"t10\""
+      },
+      "transformation_id": "sql"
+    }
+  ]
+}

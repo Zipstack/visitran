@@ -1,0 +1,85 @@
+import re
+import ibis
+from ibis import _
+from ibis.expr.types.relations import Table
+from ibis.common.exceptions import IbisTypeError
+from visitran.templates.model import VisitranModel
+from visitran.errors import ColumnNotExist
+from visitran.errors import TransformationFailed
+from visitran.materialization import Materialization
+
+
+
+MODEL_NAME = "store_inventory_details"
+
+class DevStoreInventoryDetails(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "inventory"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "store_inventory_details"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class Film(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "film"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "film"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class StoreInventoryDetails(DevStoreInventoryDetails, Film):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.TABLE
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "store_inventory_details"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        dev_store_inventory_details: Table = DevStoreInventoryDetails().select()
+        source_table = dev_store_inventory_details
+
+        # Processing join statements
+        # The transformation ID is join-e43bb36f-797c-4c04-986c-88f8c86853f1
+        self.save_table_columns(transformation_id="join-e43bb36f-797c-4c04-986c-88f8c86853f1", table_obj=source_table)
+        try:
+            film: Table = Film().select()
+            source_table = source_table.left_join(film, [(source_table['film_id'] == film['film_id'])], rname='film_{name}')
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(
+                    column_name=match.group(1),
+                    model_name=MODEL_NAME,
+                    transformation_name="join"
+                ) from error
+            raise TransformationFailed(
+                transformation_name="join",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="join",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        self.save_table_columns(transformation_id="join-e43bb36f-797c-4c04-986c-88f8c86853f1_transformed", table_obj=source_table)
+
+
+        return source_table

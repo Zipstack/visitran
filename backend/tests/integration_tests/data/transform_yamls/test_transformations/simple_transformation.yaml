@@ -1,0 +1,8 @@
+destination:
+  table_name: simple_transformation
+presentation:
+  columns:
+    - '*'
+source:
+  materialization: TABLE
+  table_name: employee

@@ -1,0 +1,34 @@
+/* Notification border styling based on severity */
+
+/* Base notification styling with bottom border */
+.ant-notification-notice {
+  border-bottom: 3px solid transparent;
+  overflow: hidden;
+  padding-bottom: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Success notification - green border */
+.ant-notification-notice.ant-notification-notice-success {
+  border-bottom-color: #52c41a !important; /* Green color */
+}
+
+/* Error notification - red border */
+.ant-notification-notice.ant-notification-notice-error {
+  border-bottom-color: #ff4d4f !important; /* Red color */
+}
+
+/* Warning notification - yellow/amber border */
+.ant-notification-notice.ant-notification-notice-warning {
+  border-bottom-color: #faad14 !important; /* Yellow/amber color */
+}
+
+/* Info notification - blue border */
+.ant-notification-notice.ant-notification-notice-info {
+  border-bottom-color: #1677ff !important; /* Blue color */
+}
+
+/* Update border radius to match design */
+.ant-notification-notice {
+  border-radius: 4px !important;
+}

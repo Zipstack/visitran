@@ -1,0 +1,67 @@
+{
+  "content": [
+    {
+      "town": "New York",
+      "id": 1
+    },
+    {
+      "town": "Los Angeles",
+      "id": 2
+    },
+    {
+      "town": "Chicago",
+      "id": 3
+    },
+    {
+      "town": "Houston",
+      "id": 4
+    },
+    {
+      "town": "Phoenix",
+      "id": 5
+    },
+    {
+      "town": "John",
+      "id": 1
+    },
+    {
+      "town": "Jane",
+      "id": 2
+    },
+    {
+      "town": "Bob",
+      "id": 3
+    },
+    {
+      "town": "Alice",
+      "id": 4
+    },
+    {
+      "town": "Charlie",
+      "id": 5
+    },
+    {
+      "town": "David",
+      "id": 6
+    }
+  ],
+  "schema_name": "default",
+  "column_description": {
+    "town": {
+      "column_name": "town",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "id": {
+      "column_name": "id",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    }
+  },
+  "column_names": [
+    "town",
+    "id"
+  ]
+}

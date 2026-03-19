@@ -1,0 +1,14 @@
+reference:
+  - model_a
+  - model_b
+source:
+  table_name: employee_tr
+  materialization: TABLE
+destination:
+  table_name: employee_n_home
+presentation:
+  columns:
+    - '*'
+transform:
+  union:
+    ignore_duplicate: false

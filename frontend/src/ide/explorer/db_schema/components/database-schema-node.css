@@ -1,0 +1,180 @@
+.database-schema-node {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  width: 240px;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.database-schema-node.selected {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.database-schema-node-header {
+  background: linear-gradient(90deg, #1890ff, #52c41a);
+  color: white;
+  font-weight: bold;
+  padding: 10px 16px;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 14px;
+}
+
+.schema-header {
+  padding: 10px 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.schema-title {
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+  font-size: 14px;
+  color: white;
+}
+
+.schema-name {
+  font-weight: bold;
+}
+
+.dot {
+  margin: 0 2px;
+  font-weight: bold;
+}
+
+.table-name {
+  font-weight: bold;
+}
+
+.database-schema-node-body {
+  padding: 8px 0;
+}
+
+.database-schema-table-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.database-schema-table-row:last-child {
+  border-bottom: none;
+}
+
+.database-schema-table-cell {
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.field-name {
+  flex: 1;
+  text-align: left;
+  padding-left: 16px;
+  padding-right: 16px;
+  font-size: 12px;
+  color: var(--black);
+}
+
+.field-type {
+  flex: 1;
+  text-align: right;
+  padding-right: 16px;
+  color: var(--schema-field-type);
+  font-size: 12px;
+}
+
+.schema-field {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--schema-content-border);
+}
+
+.schema-field:last-child {
+  border-bottom: none;
+}
+
+.schema-content {
+  padding: 8px 0;
+  max-height: 300px;
+  overflow-y: auto;
+  background-color: var(--schema-content-bg);
+}
+
+.labeled-handle {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.labeled-handle-point {
+  width: 8px !important;
+  height: 8px !important;
+  background-color: #1890ff !important;
+  border: 2px solid white !important;
+  left: 0 !important;
+}
+
+.labeled-handle-label {
+  font-size: 12px;
+  margin: 0 4px;
+}
+
+.type-label {
+  width: 100%;
+  padding-right: 12px;
+  text-align: right;
+}
+
+/* ReactFlow container styles */
+.react-flow {
+  height: 100%;
+  width: 100%;
+}
+
+.react-flow__node {
+  cursor: grab;
+}
+
+.react-flow__node.selected {
+  cursor: grabbing;
+}
+
+.db-schema-flow-container {
+  height: 100%;
+  width: 100%;
+  min-height: 400px;
+  border: none;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Loading, error, and empty states are styled in db-schema-visualization.css */
+
+/* Modal draggable styles */
+.ant-modal-header {
+  cursor: move;
+  user-select: none;
+  padding: 16px 24px;
+  background: linear-gradient(90deg, #1890ff, #52c41a);
+  color: white;
+  border-radius: 8px 8px 0 0;
+}
+
+.ant-modal-title {
+  color: white;
+  font-weight: bold;
+}
+
+.ant-modal-close {
+  color: white;
+}
+
+.ant-modal-close:hover {
+  color: rgba(255, 255, 255, 0.8);
+}

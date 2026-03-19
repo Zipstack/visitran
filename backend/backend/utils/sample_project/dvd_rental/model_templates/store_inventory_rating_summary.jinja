@@ -1,0 +1,110 @@
+import re
+import ibis
+from ibis import _
+from ibis.expr.types.relations import Table
+from ibis.common.exceptions import IbisTypeError
+from visitran.templates.model import VisitranModel
+from visitran.errors import ColumnNotExist
+from visitran.errors import TransformationFailed
+from visitran.materialization import Materialization
+
+
+
+MODEL_NAME = "store_inventory_rating_summary"
+
+class DevStoreInventoryRatingSummary(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "inventory"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "store_inventory_rating_summary"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class Film(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "film"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "film"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class StoreInventoryRatingSummary(Film, DevStoreInventoryRatingSummary):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.TABLE
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "store_inventory_rating_summary"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        dev_store_inventory_rating_summary: Table = DevStoreInventoryRatingSummary().select()
+        source_table = dev_store_inventory_rating_summary
+
+        # Processing join statements
+        # The transformation ID is join-5564d3f7-ccee-4e86-952d-ae833102e0f8
+        self.save_table_columns(transformation_id="join-5564d3f7-ccee-4e86-952d-ae833102e0f8", table_obj=source_table)
+        try:
+            film: Table = Film().select()
+            source_table = source_table.left_join(film, [(source_table['film_id'] == film['film_id'])], rname='film_{name}')
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(
+                    column_name=match.group(1),
+                    model_name=MODEL_NAME,
+                    transformation_name="join"
+                ) from error
+            raise TransformationFailed(
+                transformation_name="join",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="join",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        self.save_table_columns(transformation_id="join-5564d3f7-ccee-4e86-952d-ae833102e0f8_transformed", table_obj=source_table)
+
+        # Processing Groups and aggregations statements
+        # The transformation ID is groups_and_aggregation-e541ddb4-c96c-4107-a354-66697e5c1ef6
+        self.save_table_columns(transformation_id="groups_and_aggregation-e541ddb4-c96c-4107-a354-66697e5c1ef6", table_obj=source_table)
+        try:
+            source_table = source_table.group_by([source_table['store_id'], source_table['rating']]).aggregate([_['inventory_id'].count().name('inventory_items')])
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(
+                    column_name=match.group(1),
+                    model_name=MODEL_NAME,
+                    transformation_name="groups and aggregations"
+                )
+            raise TransformationFailed(
+                transformation_name="groups",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="groups",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+
+
+        return source_table

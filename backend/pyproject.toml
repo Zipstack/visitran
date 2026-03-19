@@ -1,0 +1,212 @@
+[project]
+name = "visitran"
+version = "1.0.0"
+description = "A Modern Pythonic Data Transform Tool"
+authors = [{ name = "Zipstack", email = "visitran-maintainers@zipstack.com" }]
+dependencies = [
+    "great-expectations==0.18.8",
+    "types-pyyaml==6.0.12.12",
+    "dacite==1.8.1",
+    "betterproto==1.2.5",
+    "django-stubs==4.2.7",
+    "Django==4.2.10",
+    "djangorestframework==3.14.0",
+    "stringcase==1.2.0",
+    "python-dotenv>=1.1.0",
+    "duckdb-engine==0.11.1",
+    "django-cors-headers==4.3.1",
+    "typing-extensions>=4.14.1",
+    "pyarrow<10.1.0,>=10.0.1",
+    # For FormulaSQL
+    "formulas==1.2.7",
+    # For visitran cloud
+    "whitenoise==6.6.0",
+    # For Auth plugins
+    "Authlib==1.2.1",
+    "cryptography==45.0.6",
+    "scalekit-sdk-python==2.4.12",
+    "django-redis==5.4.0",
+    "drf-standardized-errors>=0.12.6",
+    "drf-yasg==1.21.7",
+    # For API docs
+    "psycopg2-binary==2.9.9",
+    "python-magic==0.4.27",
+    # For file upload/download
+    "python-socketio==5.9.0",
+    # For log_events
+    "social-auth-app-django==5.3.0",
+    # For OAuth
+    "social-auth-core==4.4.2",
+    "urllib3>=1.26.0",
+    "fsspec>=2024.6.1",
+    "gcsfs>=2024.6.1",
+    # For Google cloud storages
+    "django-storages>=1.14.4",
+    "google-cloud-storage>=2.18.2",
+    "ibis-framework[sqlite,bigquery,duckdb,snowflake,trino,postgres,databricks]==11.0.0",
+    "pymysql==1.1.0",
+    "sqlalchemy<3,>=1.4",
+    "pydeps==1.12.18",
+    "celery>=5.4.0",
+    "django-celery-beat>=2.7.0",
+    "networkx>=3.2.1",
+    "flower>=2.0.1",
+    "openai==0.28",
+    "stripe==12.3.0",
+    "eventlet>=0.39.1",
+    "pylint>=3.3.6",
+    "flake8>=7.0.0",
+    "google-cloud-logging>=3.11.4",
+    "kombu==5.5.3",
+    "protobuf>=5.29.5",
+    "googleapis-common-protos>=1.65.0",
+    "grpcio>=1.73.1",
+    "pydantic>=2.9.2",
+    "fastapi==0.109.2",
+    "uvicorn[standard]>=0.27.0.post1",
+    "matplotlib==3.8.2",
+    "sqlalchemy-bigquery==1.9.0",
+    "snowflake-sqlalchemy==1.5.1"]
+
+requires-python = ">=3.10,<3.11.1"
+#readme = "README.md"
+
+license = { text = "AGPL-3.0-only" }
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["backend"]
+
+
+[tool.black]
+line-length = 120
+
+[tool.pycln]
+all = true
+
+[tool.flake8]
+max-line-length = 120
+exclude = "pyproject.toml"
+
+[tool.isort]
+line_length = 120
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+
+[tool.pytest.ini_options]
+env_files = [".env"]
+env = [
+    "dbpassword=postgres",
+    "unittstpassword=Visitran123",
+    "visitran_test_running=true",
+]
+log_cli = false
+mock_use_standalone_module = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+pythonpath = "tests/unit/data/models/models"
+testpaths = ["tests/unit"]
+addopts = "--ignore=tasks.py --ignore=backend/"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "postgres: Tests requiring postgres  (deselect with '-m \"not postgres\"'",
+    "trino: Tests requiring trino  (deselect with '-m \"not trino\"'",
+    "trino_memory: Tests requiring trino_memory  (deselect with '-m \"not trino_memory\"'",
+    "trino_postgres: Tests requiring trino_postgres  (deselect with '-m \"not trino_postgres\"'",
+    "trino_iceberg: Tests requiring trino_iceberg  (deselect with '-m \"not trino_iceberg\"'",
+    "duckdb: Tests requiring duckdb  (deselect with '-m \"not duckdb\"'",
+    "snowflake: Tests requiring snowflake credentials  (deselect with '-m \"not snowflake\"'",
+    "bigquery: Tests requiring bigquery credentials  (deselect with '-m \"not bigquery\"'",
+    "selected: to select tests with selected marker (deselect with '-m \"not selected\"')",
+    "command_line: to select tests with command_line marker (deselect with '-m \"not command_line\"')",
+    "incremental: to select tests with incremental marker (deselect with '-m \"not incremental\"')",
+    "adapter: to select tests with adapter marker (deselect with '-m \"not adapter\"')",
+    "context: to select tests with context marker (deselect with '-m \"not context\"')",
+    "unit: to select tests with unit marker (deselect with '-m \"not unit\"')",
+    "ui: to select tests with ui marker (deselect with '-m \"not ui\"')",
+    "minimal_core: to select tests with minimal_core marker (deselect with '-m \"not minimal_core\"')",
+]
+
+[dependency-groups]
+deploy = [
+    "gunicorn>=21.2.0",
+]
+test = [
+    "pytest==8.0.0",
+    "pytest-reverse==1.7.0",
+    "pytest-cov==4.1.0",
+    "pytest-env==1.1.3",
+    "pytest-order==1.2.0",
+    "pytest-clarity==1.0.1",
+    "pytest-repeat==0.9.3",
+    "pytest-mock==3.12.0",
+    "pytest-django==4.8.0",
+    "mock==5.1.0",
+    "faker==25.8.0",
+    "pytest-fail-slow==0.4.0",
+    "pytest-emoji==0.2.0",
+    "coverage[toml]==7.4.1",
+    "pytest-timeout==2.2.0",
+    "pytest-snapshot==0.9.0",
+    "pytest-dotenv==0.5.2",
+    "websockets==12.0",
+    "portpicker==1.6.0",
+    "types-requests==2.31.0.6",
+    "icecream==2.1.3",
+    "pytest-datadir==1.5.0",
+    "pytest-xdist==3.5.0",
+]
+lint = [
+    "flake8==7.0.0",
+    "mypy==1.8.0",
+    "flake8-pyproject==1.2.3",
+    "black==24.1.1",
+    "isort==5.13.2",
+    "absolufy-imports==0.3.1",
+    "pre-commit==3.6.0",
+]
+
+helper = [
+    "invoke==2.2.0",
+    "pyperclip==1.8.2",
+]
+others = [
+    "pyupgrade==3.15.0",
+    "deptry==0.12.0",
+]
+ci = [
+    "toml==0.10.2",
+    "types-toml==0.10.8.7",
+    "pygithub>=2.2.0",
+    "semver==3.0.2",
+]
+trino = [
+    "trino[sqlalchemy]==0.327.0",
+]
+
+
+[tool.coverage.run]
+relative_files = true
+source = ["backend"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover"]
+
+[tool.coverage.paths]
+omit = [
+    "*/duckdbuitest",
+    "*/tests",
+    "tasks.py",
+    "ci",
+    "*/starter_project"
+]
+
+

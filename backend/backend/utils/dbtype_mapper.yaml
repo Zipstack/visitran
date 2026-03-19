@@ -1,0 +1,32 @@
+# --------------------------------------------------------------------------------------------------------
+##This yaml is a direct object mapper for database types to python for visitran frontend supported dbtypes
+##The key must be only alphabets for eg, for int32 int is enough and for decimal(20, 2) - decimal is enough.
+##The values must be any on the followings
+# - String
+# - Number
+# - Date
+# - Time
+# - Boolean
+# ---------------------------------------------------------------------------------------------------------
+string: String
+varchar: String
+text: String
+char: String
+int: Number
+float: Number
+number: Number
+decimal: Number
+numeric: Number
+double: Number
+real: Number
+bigint: Number
+smallint: Number
+date: Date
+datetime: Date
+timestamp: Time
+time: Time
+timestamptz: Time
+boolean: Boolean
+bool: Boolean
+intervals: Interval
+interval: Interval

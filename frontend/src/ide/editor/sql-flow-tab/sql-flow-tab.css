@@ -1,0 +1,754 @@
+/* ========================================
+   SQL Flow Container and Layout
+   ======================================== */
+
+.sql-flow-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--content-bg);
+}
+
+.sql-flow-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border-color-1);
+  background: var(--page-bg-1);
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.sql-flow-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.sql-flow-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-color-2);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color-1);
+}
+
+.legend-divider {
+  color: var(--border-color-1, #e2e8f0);
+  margin: 0 4px;
+}
+
+.legend-line {
+  width: 24px;
+  height: 0;
+  border-top: 2px dashed #94A3B8;
+}
+
+.legend-line.dashed {
+  border-top: 2px dashed #94A3B8;
+}
+
+.sql-flow-stats {
+  display: flex;
+  gap: 8px;
+}
+
+.sql-flow-canvas {
+  flex: 1;
+  position: relative;
+}
+
+.sql-flow-loading,
+.sql-flow-empty {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.sql-flow-empty .empty-hint {
+  color: var(--text-color-3);
+  font-size: 13px;
+  margin-top: 8px;
+  max-width: 300px;
+}
+
+/* ========================================
+   Table Card Node Styles
+   ======================================== */
+
+.table-card-node {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-top: 3px solid #3b82f6;
+  border-radius: 8px;
+  min-width: 180px;
+  max-width: 220px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.table-card-node.selected {
+  box-shadow: 0 0 0 2px #3B82F6, 0 4px 12px rgba(59, 130, 246, 0.25);
+  border-color: #3B82F6;
+}
+
+.table-card-node:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+.table-card-header {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 5px 5px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.table-card-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.table-card-header .table-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+
+.table-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sql-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  background: white;
+  color: #475569;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all 0.15s ease;
+}
+
+.sql-btn:hover {
+  background: #2563EB;
+  border-color: #2563EB;
+  color: white;
+}
+
+.table-card-header .table-schema {
+  font-size: 10px;
+  color: #475569;
+  background: #e2e8f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  font-weight: 500;
+}
+
+.lineage-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.table-card-columns {
+  padding: 4px 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: var(--schema-content-bg);
+}
+
+.table-column {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 12px;
+  font-size: 12px;
+  color: var(--schema-field-type);
+  border-bottom: 1px solid var(--schema-content-border);
+}
+
+.table-column:last-child {
+  border-bottom: none;
+}
+
+.table-column:hover {
+  background: #f1f5f9;
+}
+
+.column-type {
+  color: var(--schema-field-type);
+  font-size: 12px;
+  flex-shrink: 0;
+  text-align: right;
+  padding-right: 4px;
+}
+
+.table-column.no-columns {
+  padding: 8px 12px;
+}
+
+.table-column .muted {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.table-card-node .column-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--schema-field-type);
+  flex: 1;
+  text-align: left;
+  display: inline;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  font-family: inherit;
+  font-weight: normal;
+}
+
+/* Connection handles - clean circles like workflow diagram */
+.flow-handle {
+  width: 10px !important;
+  height: 10px !important;
+  background: white !important;
+  border: 2px solid #cbd5e1 !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+
+.flow-handle:hover {
+  border-color: #94a3b8 !important;
+  background: #f8fafc !important;
+}
+
+/* ========================================
+   Edge Labels
+   ======================================== */
+
+.edge-label {
+  font-size: 10px;
+  color: #64748b;
+  background: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  font-weight: 500;
+}
+
+.edge-label.join {
+  color: #1D4ED8;
+  border-color: #93C5FD;
+  background: #EFF6FF;
+}
+
+.edge-label.union {
+  color: #6D28D9;
+  border-color: #C4B5FD;
+  background: #F5F3FF;
+}
+
+.edge-label.reference {
+  color: #B45309;
+  border-color: #FCD34D;
+  background: #FFFBEB;
+}
+
+/* ========================================
+   Edge Info Panel
+   ======================================== */
+
+.sql-flow-edge-info {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 260px;
+  background: var(--content-bg, white);
+  border: 1px solid var(--border-color-1, #e2e8f0);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.edge-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color-1, #e2e8f0);
+  background: var(--page-bg-1, #f8fafc);
+  border-radius: 8px 8px 0 0;
+}
+
+.edge-info-content {
+  padding: 12px;
+  font-size: 12px;
+}
+
+.edge-info-content p {
+  margin: 0 0 8px 0;
+  color: var(--text-color-1, #334155);
+}
+
+.edge-info-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* ========================================
+   Edge Hover Effect
+   ======================================== */
+
+.react-flow__edge:hover path {
+  stroke-width: 2.5;
+  stroke: #64748b;
+}
+
+/* ========================================
+   Dark Theme Overrides
+   ======================================== */
+
+.dark-theme .table-card-node {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.dark-theme .table-card-node.selected {
+  box-shadow: 0 0 0 2px #60A5FA, 0 4px 12px rgba(96, 165, 250, 0.3);
+  border-color: #60A5FA;
+}
+
+.dark-theme .table-card-node:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.dark-theme .table-card-header {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.dark-theme .table-card-header .table-name {
+  color: #f1f5f9;
+}
+
+.dark-theme .sql-btn {
+  background: #334155;
+  border-color: #475569;
+  color: #cbd5e1;
+}
+
+.dark-theme .sql-btn:hover {
+  background: #3B82F6;
+  border-color: #3B82F6;
+  color: white;
+}
+
+.dark-theme .table-card-header .table-schema {
+  background: #334155;
+  color: #cbd5e1;
+}
+
+.dark-theme .table-card-columns {
+  background-color: var(--schema-content-bg);
+}
+
+.dark-theme .edge-label {
+  background: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+.dark-theme .edge-label.join {
+  color: #60A5FA;
+  border-color: #1D4ED8;
+  background: #1e3a5f;
+}
+
+.dark-theme .edge-label.union {
+  color: #A78BFA;
+  border-color: #6D28D9;
+  background: #2e1f5a;
+}
+
+.dark-theme .edge-label.reference {
+  color: #FBBF24;
+  border-color: #B45309;
+  background: #422006;
+}
+
+.dark-theme .table-column:hover {
+  background: #334155;
+}
+
+.dark-theme .sql-flow-edge-info {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+.dark-theme .edge-info-header {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.dark-theme .edge-info-content p {
+  color: #e2e8f0;
+}
+
+/* ========================================
+   React Flow Overrides
+   ======================================== */
+
+.sql-flow-canvas .react-flow__node {
+  cursor: grab;
+}
+
+.sql-flow-canvas .react-flow__node:active {
+  cursor: grabbing;
+}
+
+.sql-flow-canvas .react-flow__minimap {
+  background: var(--content-bg, white);
+  border: 1px solid var(--border-color-1, #e2e8f0);
+  border-radius: 4px;
+}
+
+.sql-flow-canvas .react-flow__controls {
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sql-flow-canvas .react-flow__controls-button {
+  background: var(--content-bg, white);
+  border-color: var(--border-color-1, #e2e8f0);
+}
+
+.sql-flow-canvas .react-flow__controls-button:hover {
+  background: var(--hover-bg, #f1f5f9);
+}
+
+/* ========================================
+   SQL Details Panel (Right Drawer)
+   ======================================== */
+
+.sql-details-drawer .ant-drawer-body {
+  padding: 0 !important;
+}
+
+.sql-details-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--content-bg, #ffffff);
+}
+
+.sql-details-panel.dark-theme {
+  background: #1f1f1f;
+}
+
+/* Panel Header */
+.sql-panel-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color-1, #e8e8e8);
+  border-left: 3px solid #3B82F6;
+  position: relative;
+}
+
+.sql-details-panel.dark-theme .sql-panel-header {
+  border-bottom-color: #303030;
+}
+
+.sql-panel-header .close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  color: var(--text-color-2, #666);
+}
+
+.sql-details-panel.dark-theme .sql-panel-header .close-btn {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.sql-panel-uri {
+  font-size: 11px;
+  color: var(--text-color-3, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+
+.sql-panel-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-color-1, #1e293b);
+  margin: 0 0 10px 0;
+}
+
+.sql-details-panel.dark-theme .sql-panel-title {
+  color: #f1f5f9;
+}
+
+/* Panel Sections */
+.sql-panel-section {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border-color-1, #e8e8e8);
+}
+
+.sql-details-panel.dark-theme .sql-panel-section {
+  border-bottom-color: #303030;
+}
+
+.section-label {
+  font-size: 11px;
+  color: var(--text-secondary, #666);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.section-content {
+  font-size: 13px;
+}
+
+/* Depends On List */
+.depends-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.depends-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border-color-1, #f1f5f9);
+}
+
+.sql-details-panel.dark-theme .depends-item {
+  border-bottom-color: #303030;
+}
+
+.depends-item:last-child {
+  border-bottom: none;
+}
+
+.depends-item::before {
+  content: "•";
+  color: var(--text-color-3, #94a3b8);
+}
+
+.depends-name {
+  color: var(--text-color-1, #1e293b);
+  font-weight: 500;
+}
+
+.sql-details-panel.dark-theme .depends-name {
+  color: #e2e8f0;
+}
+
+.depends-path {
+  color: var(--text-color-3, #94a3b8);
+  font-size: 12px;
+}
+
+.depends-type {
+  margin-left: auto;
+  font-size: 10px;
+}
+
+/* Columns List */
+.columns-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.column-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  background: var(--hover-bg, #f5f5f5);
+  border: 1px solid var(--border-color-1, #e8e8e8);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-color-1, #333);
+}
+
+.sql-details-panel.dark-theme .column-chip {
+  background: #303030;
+  border-color: #424242;
+  color: #e2e8f0;
+}
+
+.no-columns-text {
+  color: var(--text-color-3, #94a3b8);
+  font-style: italic;
+}
+
+/* SQL Section */
+.sql-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-bottom: none;
+}
+
+/* ========================================
+   Lineage Flow (ReactFlow in drawer)
+   ======================================== */
+
+.lineage-flow-container {
+  height: calc(100vh - 260px);
+  min-height: 400px;
+}
+
+.lineage-flow-subtitle {
+  padding: 8px 12px 0;
+  font-size: 11px;
+  color: var(--schema-field-type, #888);
+}
+
+.lineage-flow-container .react-flow__attribution {
+  display: none;
+}
+
+.lineage-flow-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  text-align: center;
+}
+
+/* Lineage Step Node */
+.lineage-step-node {
+  width: 320px;
+  border-radius: 8px;
+  border-left: 3px solid #94a3b8;
+  background: var(--content-bg, #fff);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  padding: 10px 14px;
+  font-size: 12px;
+  transition: box-shadow 0.2s ease;
+}
+
+.lineage-step-node:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.lineage-step-node.dark-theme {
+  background: var(--content-bg, #1f1f1f);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.lineage-step-node.dark-theme:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.lineage-step-node .step-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lineage-step-node .step-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+
+.lineage-step-node .step-label {
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--text-color-1, #1e293b);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.lineage-step-node.dark-theme .step-label {
+  color: var(--text-color-1, #e2e8f0);
+}
+
+.lineage-step-node .step-detail {
+  color: var(--schema-field-type, #888);
+  font-size: 11px;
+  margin-top: 4px;
+  padding-left: 32px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Lineage handles */
+.lineage-handle {
+  width: 6px !important;
+  height: 6px !important;
+  background: #94a3b8 !important;
+  border: 1px solid #fff !important;
+}
+
+.lineage-step-node.dark-theme .lineage-handle {
+  border-color: #1f1f1f !important;
+}
+
+/* ReactFlow controls in lineage drawer - horizontal layout */
+.lineage-flow-container .react-flow__controls {
+  display: flex;
+  flex-direction: row;
+  border-radius: 4px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.lineage-flow-container .react-flow__controls-button {
+  width: 24px;
+  height: 24px;
+  background: var(--content-bg, white);
+  border-color: var(--border-color-1, #e2e8f0);
+  fill: var(--text-color-1, #334155);
+}
+
+.lineage-flow-container .react-flow__controls-button:hover {
+  background: var(--hover-bg, #f1f5f9);
+}

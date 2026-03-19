@@ -1,0 +1,26 @@
+{# The below code is for Groups and aggregations transformation #}
+# Processing Groups and aggregations statements
+# The transformation ID is {{ transformation_id }}
+self.save_table_columns(transformation_id="{{ transformation_id }}", table_obj=source_table)
+try:
+    source_table = source_table{{groups_and_aggr_statement}}
+except IbisTypeError as error:
+    match = re.search(r"Column '(\w+)'", error.__str__())
+    if match:
+        raise ColumnNotExist(
+            column_name=match.group(1),
+            model_name=MODEL_NAME,
+            transformation_name="groups and aggregations"
+        )
+    raise TransformationFailed(
+        transformation_name="groups",
+        model_name=MODEL_NAME,
+        error_message=str(error)
+    ) from error
+except Exception as error:
+    raise TransformationFailed(
+        transformation_name="groups",
+        model_name=MODEL_NAME,
+        error_message=str(error)
+    ) from error
+self.save_table_columns(transformation_id="{{ transformation_id }}_transformed", table_obj=source_table)

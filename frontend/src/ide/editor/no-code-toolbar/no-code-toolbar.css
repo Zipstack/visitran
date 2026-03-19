@@ -1,0 +1,96 @@
+.no-code-toolbar-wrapper {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 8px;
+}
+
+.no-code-toolbar-content {
+  flex: 1;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  padding: 8px 0px;
+}
+
+/* Hidden toolbar items (overflow) */
+.toolbar-item-hidden {
+  display: none !important;
+}
+
+/* Ellipsis button */
+.toolbar-ellipsis-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: background-color 0.2s;
+  color: var(--icons-color);
+}
+
+.toolbar-ellipsis-button:hover {
+  background-color: var(--hover-color);
+}
+
+.toolbar-ellipsis-button:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Dropdown menu styling */
+.no-code-toolbar-dropdown .ant-dropdown-menu {
+  max-height: 400px;
+  overflow-y: auto;
+  background-color: var(--modal-bg);
+  border: 1px solid var(--border-color-3);
+  padding: 4px 0;
+}
+
+/* Reset menu item padding - let the button inside handle it */
+.no-code-toolbar-dropdown .ant-dropdown-menu-item {
+  padding: 0;
+  margin: 0;
+  background-color: transparent;
+}
+
+.no-code-toolbar-dropdown .ant-dropdown-menu-item:hover {
+  background-color: transparent;
+}
+
+/* Toolbar item wrapper inside dropdown */
+.no-code-toolbar-dropdown .toolbar-item {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+/* Button inside dropdown should have proper padding and full width */
+.no-code-toolbar-dropdown .toolbar-item .ant-btn {
+  width: 100%;
+  justify-content: flex-start;
+  padding: 8px 16px;
+  height: auto;
+  border-radius: 0;
+  text-align: left;
+}
+
+.no-code-toolbar-dropdown .toolbar-item .ant-btn:hover {
+  background-color: var(--hover-color);
+}
+
+/* Sequence badge positioning in dropdown */
+.no-code-toolbar-dropdown .seq_badge_wrapper {
+  position: absolute;
+  top: 2px;
+  right: 8px;
+  display: flex;
+  gap: 2px;
+}
+
+.no-code-toolbar-dropdown .seq_badge {
+  font-size: 10px;
+  min-width: 16px;
+  height: 16px;
+}

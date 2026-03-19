@@ -1,0 +1,68 @@
+import re
+import ibis
+from ibis import _
+from ibis.expr.types.relations import Table
+from ibis.common.exceptions import IbisTypeError
+from visitran.templates.model import VisitranModel
+from visitran.errors import ColumnNotExist
+from visitran.errors import TransformationFailed
+from visitran.materialization import Materialization
+
+
+
+MODEL_NAME = "store_inventory_counts"
+
+class DevStoreInventoryCounts(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "inventory"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "store_inventory_counts"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class StoreInventoryCounts(DevStoreInventoryCounts):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.TABLE
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "store_inventory_counts"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        dev_store_inventory_counts: Table = DevStoreInventoryCounts().select()
+        source_table = dev_store_inventory_counts
+
+        # Processing Groups and aggregations statements
+        # The transformation ID is groups_and_aggregation-b80a7ec5-185c-401a-887b-04aaf0bdfa85
+        self.save_table_columns(transformation_id="groups_and_aggregation-b80a7ec5-185c-401a-887b-04aaf0bdfa85", table_obj=source_table)
+        try:
+            source_table = source_table.group_by([source_table['store_id']]).aggregate([_['inventory_id'].count().name('inventory_items')])
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(
+                    column_name=match.group(1),
+                    model_name=MODEL_NAME,
+                    transformation_name="groups and aggregations"
+                )
+            raise TransformationFailed(
+                transformation_name="groups",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="groups",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+
+
+        return source_table

@@ -1,0 +1,64 @@
+import re
+import ibis
+from ibis import _
+from ibis.expr.types.relations import Table
+from ibis.common.exceptions import IbisTypeError
+from visitran.templates.model import VisitranModel
+from visitran.errors import ColumnNotExist
+from visitran.errors import TransformationFailed
+from visitran.materialization import Materialization
+
+
+
+MODEL_NAME = "store_active_customer"
+
+class DevStoreActiveCustomerstoreActiveCustomer(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "customer"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "store_active_customerstore_active_customer"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class StoreActiveCustomer(DevStoreActiveCustomerstoreActiveCustomer):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.TABLE
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "store_active_customerstore_active_customer"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        dev_store_active_customerstore_active_customer: Table = DevStoreActiveCustomerstoreActiveCustomer().select()
+        source_table = dev_store_active_customerstore_active_customer
+
+        # Processing filters statements
+        # The transformation ID is filter-a963952c-c1a3-49a0-ab5e-6906d853c9ea
+        self.save_table_columns(transformation_id="filter-a963952c-c1a3-49a0-ab5e-6906d853c9ea", table_obj=source_table)
+        try:
+            source_table = source_table.filter([(_['active'] == 1)])
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(column_name=match.group(1), model_name=MODEL_NAME, transformation_name="filters")
+            raise TransformationFailed(
+                transformation_name="filters",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="filters",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+
+
+        return source_table

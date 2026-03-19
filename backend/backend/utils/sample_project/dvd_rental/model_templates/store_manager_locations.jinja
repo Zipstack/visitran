@@ -1,0 +1,162 @@
+import re
+import ibis
+from ibis import _
+from ibis.expr.types.relations import Table
+from ibis.common.exceptions import IbisTypeError
+from visitran.templates.model import VisitranModel
+from visitran.errors import ColumnNotExist
+from visitran.errors import TransformationFailed
+from visitran.materialization import Materialization
+
+
+
+MODEL_NAME = "store_manager_locations"
+
+class DevStoreManagerLocations(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "store"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "store_manager_locations"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class Staff(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "staff"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "staff"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class Address(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "address"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "address"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class City(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "city"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "city"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class Country(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "country"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "country"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class StoreManagerLocations(Address, Staff, City, Country, DevStoreManagerLocations):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.TABLE
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "store_manager_locations"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        dev_store_manager_locations: Table = DevStoreManagerLocations().select()
+        source_table = dev_store_manager_locations
+
+        # Processing join statements
+        # The transformation ID is join-149fca66-ed2c-40a2-b936-fb17d5e51777
+        self.save_table_columns(transformation_id="join-149fca66-ed2c-40a2-b936-fb17d5e51777", table_obj=source_table)
+        try:
+            staff: Table = Staff().select()
+            address: Table = Address().select()
+            city: Table = City().select()
+            country: Table = Country().select()
+            source_table = source_table.left_join(staff, [(source_table['manager_staff_id'] == staff['staff_id'])], rname='staff_{name}')
+            source_table = source_table.left_join(address, [(source_table['address_id'] == address['address_id'])], rname='address_{name}')
+            source_table = source_table.left_join(city, [(source_table['city_id'] == city['city_id'])], rname='city_{name}')
+            source_table = source_table.left_join(country, [(source_table['country_id'] == country['country_id'])], rname='country_{name}')
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(
+                    column_name=match.group(1),
+                    model_name=MODEL_NAME,
+                    transformation_name="join"
+                ) from error
+            raise TransformationFailed(
+                transformation_name="join",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="join",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        self.save_table_columns(transformation_id="join-149fca66-ed2c-40a2-b936-fb17d5e51777_transformed", table_obj=source_table)
+
+        # Processing rename columns statements
+        # The transformation ID is rename_column-8cc37a0c-018e-419c-9b19-a5782e7ed869
+        self.save_table_columns(transformation_id="rename_column-8cc37a0c-018e-419c-9b19-a5782e7ed869", table_obj=source_table)
+        try:
+            source_table = source_table.rename({'manager_first_name': 'first_name'})
+            source_table = source_table.rename({'manager_last_name': 'last_name'})
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(
+                    column_name=match.group(1),
+                    model_name=MODEL_NAME,
+                    transformation_name="rename"
+                ) from error
+            raise TransformationFailed(
+                transformation_name="rename",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="rename",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+
+
+        return source_table

@@ -1,0 +1,11 @@
+source:
+  table_name: employee
+  materialization: TABLE
+destination:
+  table_name: simple_sort_n_hide
+presentation:
+  columns:
+    - name
+  sort:
+    - column: name
+      order_by: ASC

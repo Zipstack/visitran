@@ -1,0 +1,607 @@
+{
+  "formulas": [
+    {
+      "value": "ABS",
+      "label": "Abs",
+      "title": "Returns the absolute value (i.e. the modulus) of a supplied number. \nExample: ABS(-5) returns 5."
+    },
+    {
+      "value": "ACOS",
+      "label": "Acos",
+      "title": "Returns the Arccosine of a number \n Example: ACOS(0.5) returns 60 degrees (approximately 1.047 radians)."
+    },
+    {
+      "value": "AND",
+      "label": "And",
+      "title": "Tests a number of user-defined conditions and returns TRUE if ALL of the conditions evaluate to TRUE, or FALSE otherwise. \n Example: AND(TRUE, FALSE, TRUE) returns FALSE."
+    },
+    {
+      "value": "ASIN",
+      "label": "Asin",
+      "title": "Returns the Arcsine of a number. \n Example:  ASIN(0.5) returns 0.524 (approximately)."
+    },
+    {
+      "value": "ATAN",
+      "label": "Atan",
+      "title": "Returns the Arctangent of a given number. \n Example:  ATAN(1) returns 0.785 (approximately)."
+    },
+    {
+      "value": "ATAN2",
+      "label": "Atan2",
+      "title": "Returns the Arctangent of a given pair of x and y coordinates. \n Example:  ATAN2(4, 2) returns 1.107 (approximately)."
+    },
+    {
+      "value": "AVERAGE",
+      "label": "Average",
+      "title": "Returns the Average of a list of supplied numbers. \n Example:  AVERAGE(1, 3, 5) returns 3."
+    },
+    {
+      "value": "BITAND",
+      "label": "Bitand",
+      "title": "Returns a Bitwise 'And' of two numbers . \n Example: BITAND(5-101, 3-011) returns 1-001."
+    },
+    {
+      "value": "BITLSHIFT",
+      "label": "Bitlshift",
+      "title": "Returns a number shifted left by a specified number of bits. \n Example:  BITLSHIFT(5-00000101, 2-00000010) returns 20-00010100."
+    },
+    {
+      "value": "BITOR",
+      "label": "Bitor",
+      "title": "Returns a Bitwise 'Or' of two numbers. \n Example:  BITOR(5-0101, 2-0010) returns 7-0111."
+    },
+    {
+      "value": "BITRSHIFT",
+      "label": "Bitrshift",
+      "title": "Returns a number shifted right by a specified number of bits. \n Example:  BITRSHIFT(5-00000101, 2-00000010) returns 1-00000001."
+    },
+    {
+      "value": "BITXOR",
+      "label": "Bitxor",
+      "title": "Returns a Bitwise 'Exclusive Or' of two numbers. \n Example: BITXOR(5-0101, 2-0010) returns 7-0111"
+    },
+    {
+      "value": "CAST",
+      "label": "Cast",
+      "title": "The CAST function is used to explicitly convert data types. It allows you to convert an expression from one data type to another.   \n Example: CAST(column_name,INT)"
+    },
+    {
+      "value": "CEILING",
+      "label": "Ceiling",
+      "title": "Rounds a number away from zero (i.e. rounds a positive number up and a negative number down), to a multiple of significance. \n Example:  CEILING(2.3) returns 3."
+    },
+    {
+      "value": "CHOOSE",
+      "label": "Choose",
+      "title": "Returns one of a list of values, depending on the value of a supplied index number. \n Example:  CHOOSE(3, 'Apple', 'Banana', 'Cherry') returns 'Cherry'."
+    },
+    {
+      "value": "CLEAN",
+      "label": "Clean",
+      "title": "Removes all non-printable characters from a supplied text string. \n Example:  CLEAN('Hello!^@#$') returns 'Hello!'."
+    },
+    {
+      "value": "COALESCE",
+      "label": "Coalesce",
+      "title": "The COALESCE function returns the first non-null expression in a list of . \n Example: COALESCE(column1,'DefaultValue')"
+    },
+    {
+      "value": "CODE",
+      "label": "Code",
+      "title": "Returns the numeric code for the first character of a supplied string. \n Example:  CODE('A') returns 65."
+    },
+    {
+      "value": "CONCAT",
+      "label": "Concat",
+      "title": "Joins together two or more text strings.  \n Example:  CONCAT('Hello', ' ', 'World!') returns 'Hello World!'."
+    },
+    {
+      "value": "CONCATENATE",
+      "label": "Concatenate",
+      "title": "Joins together two or more text strings. \n Example:  CONCATENATE('Hello', ' ', 'World!') returns 'Hello World!'."
+    },
+    {
+      "value": "COS",
+      "label": "Cos",
+      "title": "Returns the Cosine of a given angle. \n Example: COS(1) returns 0.5403 (approximately)."
+    },
+    {
+      "value": "COT",
+      "label": "Cot",
+      "title": "Returns the cotangent of an angle. \n Example:  COT(1) returns 0.6421 (approximately)."
+    },
+    {
+      "value": "DATE",
+      "label": "Date",
+      "title": "Returns a date, from a user-supplied year, month and day. \n Example:  DATE(2023, 6, 29) returns June 29, 2023."
+    },
+    {
+      "value": "DAY",
+      "label": "Day",
+      "title": "Returns the day (of the month) from a user-supplied date. \n Example:  DAY(DATE(2023, 6, 29)) returns 29."
+    },
+    {
+      "value": "DAYS",
+      "label": "Days",
+      "title": "Returns the number of days between 2 dates. \n Example:  DAYS(DATE(2023, 6, 29), DATE(2023, 7, 5)) returns 6."
+    },
+    {
+      "value": "DEGREES",
+      "label": "Degrees",
+      "title": "Converts Radians to Degrees. \n Example:  DEGREES(1.5708) returns 90."
+    },
+    {
+      "value": "DELTA",
+      "label": "Delta",
+      "title": "Tests whether two supplied numbers are equal. \n Example:  DELTA(5, 5) returns 1."
+    },
+    {
+      "value": "DUPLICATE",
+      "label": "Duplicate",
+      "title": "Returns shallow copy of existing column \n Example:  DUPLICATE(column_name) returns column_name."
+    },
+    {
+      "value": "EDATE",
+      "label": "Edate",
+      "title": "Returns a date that is the specified number of months before or after an initial supplied start date. \n Example:  EDATE(DATE(2023, 6, 29), 3) returns September 29, 2023."
+    },
+    {
+      "value": "EVEN",
+      "label": "Even",
+      "title": "Rounds a number away from zero (i.e. rounds a positive number up and a negative number down), to the next even number. \n Example:  EVEN(5.5) returns 6. "
+    },
+    {
+      "value": "EXACT",
+      "label": "Exact",
+      "title": "Tests if two supplied text strings are exactly the same and if so, returns TRUE; Otherwise, returns FALSE. (case-sensitive). \n Example:  EXACT('apple', 'Apple') returns FALSE."
+    },
+    {
+      "value": "EXP",
+      "label": "Exp",
+      "title": "Returns e raised to a given power. \n Example:  EXP(1) returns 2.7183 (approximately)."
+    },
+    {
+      "value": "FALSE",
+      "label": "False",
+      "title": "Simply returns the logical value FALSE. \n Example:  FALSE() returns the logical value FALSE."
+    },
+    {
+      "value": "FIND",
+      "label": "Find",
+      "title": "Returns the position of a supplied character or text string from within a supplied text string (case-sensitive). \n Example:  FIND('world', 'Hello, world!') returns 8."
+    },
+    {
+      "value": "FIXED",
+      "label": "Fixed",
+      "title": "Rounds a supplied number to a specified number of decimal places, and then converts this into text. \n Example:  FIXED(3.14159, 2) returns '3.14'."
+    },
+    {
+      "value": "FLOOR",
+      "label": "Floor",
+      "title": "Rounds a number towards zero, (i.e. rounds a positive number down and a negative number up), to a multiple of significance. \n Example:  FLOOR(4.7, 1) returns 4."
+    },
+    {
+      "value": "GESTEP",
+      "label": "Gestep",
+      "title": "Tests whether a number is greater than a supplied threshold value "
+    },
+    {
+      "value": "HOUR",
+      "label": "Hour",
+      "title": "Returns the hour part of a user-supplied time. \n Example:  HOUR(TIME(9, 30, 0)) returns 9."
+    },
+    {
+      "value": "IF",
+      "label": "If",
+      "title": "Tests a user-defined condition and returns one result if the condition is TRUE, and another result if the condition is FALSE. \n Example:  IF(column_name > 10, 'Large', 'Small') returns 'Large' if the value in column_name is greater than 10, otherwise 'Small'. "
+    },
+    {
+      "value": "IFNA",
+      "label": "Ifna",
+      "title": "Tests if an expression returns the #N/A error and if so, returns an alternative specified value; Otherwise the function returns the value of the supplied expression. \n Example:  IFNA(VLOOKUP(A1, B1:C10, 2, FALSE), 'Not found') returns 'Not found' if the VLOOKUP result is #N/A."
+    },
+    {
+      "value": "IFS",
+      "label": "Ifs",
+      "title": "Tests a number of supplied conditions and returns a result corresponding to the first condition that evaluates to TRUE. \n Example:  IFS(A1 > 10, 'Large', A1 > 5, 'Medium', A1 > 0, 'Small') returns 'Large' if A1 is greater than 10, 'Medium' if A1 is greater than 5, and 'Small' if A1 is greater than 0."
+    },
+    {
+      "value": "INT",
+      "label": "Int",
+      "title": "Rounds a number down to the next integer. \n Example:  INT(3.8) returns 3."
+    },
+    {
+      "value": "ISBLANK",
+      "label": "Isblank",
+      "title": "Tests if a given column_name is blank (empty), and if so, returns TRUE; Otherwise, returns FALSE. \n Example:  ISBLANK(column_name) returns TRUE if column_name is empty."
+    },
+    {
+      "value": "ISEVEN",
+      "label": "Iseven",
+      "title": "Tests if a supplied number (or expression) is an even number, and if so, returns TRUE; Otherwise, returns FALSE. \n Example:  ISEVEN(6) returns TRUE."
+    },
+    {
+      "value": "ISIN",
+      "label": "Isin",
+      "title": "Returns True/False \n Example:  ISIN(column_name,1,2,3) returns True \nif  column_name is among given rest of value(1,2,3), \nFalse otherwise."
+    },
+    {
+      "value": "ISNA",
+      "label": "Isna",
+      "title": "Tests if an initial supplied value (or expression) or column returns the #N/A error and if so, returns TRUE; Otherwise returns FALSE. \n Example:  ISNA(column_name) returns TRUE if column contains #N/A."
+    },
+    {
+      "value": "ISNUMBER",
+      "label": "Isnumber",
+      "title": "Tests if a supplied value is a number, and if so, returns TRUE; Otherwise, returns FALSE. \n Example:  ISNUMBER(column_name) returns TRUE if column column_name contains a number."
+    },
+    {
+      "value": "ISODD",
+      "label": "Isodd",
+      "title": "Tests if a supplied number (or expression) is an odd number, and if so, returns TRUE; Otherwise, returns FALSE. \n Example:  ISODD(7) returns TRUE."
+    },
+    {
+      "value": "ISOWEEKNUM",
+      "label": "Isoweeknum",
+      "title": "Returns the ISO week number of the year for a given date (New in Excel 2013). \n Example:  ISOWEEKNUM(DATE(2023, 6, 29)) returns 26."
+    },
+    {
+      "value": "ISTEXT",
+      "label": "Istext",
+      "title": "Tests if a supplied value is text, and if so, returns TRUE; Otherwise, returns FALSE. \n Example:  ISTEXT(A1) returns TRUE if column A1 contains text."
+    },
+    {
+      "value": "LEFT",
+      "label": "Left",
+      "title": "Returns a specified number of characters from the start of a supplied text string. \n Example:  ISTEXT(A1) returns TRUE if column A1 contains text."
+    },
+    {
+      "value": "LEN",
+      "label": "Len",
+      "title": "Returns the length of a supplied text string. \n Example:  LEN('Hello') returns 5."
+    },
+    {
+      "value": "LN",
+      "label": "Ln",
+      "title": "Returns the natural logarithm of a given number. \n Example:  LN(10) returns approximately 2.3026."
+    },
+    {
+      "value": "LOG",
+      "label": "Log",
+      "title": "Returns the logarithm of a given number, to a specified base. \n Example: LOG(100, 10) returns 2."
+    },
+    {
+      "value": "LOG10",
+      "label": "Log10",
+      "title": "Returns the base 10 logarithm of a given number. \n Example:  LOG10(100) returns 2."
+    },
+    {
+      "value": "LOWER",
+      "label": "Lower",
+      "title": "Converts all characters in a supplied text string to lower case. \n Example:  LOWER('HELLO') returns 'hello'."
+    },
+    {
+      "value": "MAX",
+      "label": "Max",
+      "title": "Returns the largest value from a list of supplied numbers or columns. \n Example:  MAX(column_1, column_2, 2,3,5) returns the maximum value from given inputs."
+    },
+    {
+      "value": "MID",
+      "label": "Mid",
+      "title": "Returns a specified number of characters from the middle of a supplied text string. \n Example:  MID('Hello, world!', 8, 5) returns 'world'."
+    },
+    {
+      "value": "MIN",
+      "label": "Min",
+      "title": "Returns the smallest value from a list of supplied numbers. \n Example:  MIN(column_1,column_2, 1,2,5) returns the minimum value among all values"
+    },
+    {
+      "value": "MINUTE",
+      "label": "Minute",
+      "title": "Returns the minute part of a user-supplied time. \n Example: MINUTE(TIME(9, 30, 0)) returns 30."
+    },
+    {
+      "value": "MOD",
+      "label": "Mod",
+      "title": "Returns the remainder from a division between two supplied numbers. \n Example:  MOD(10, 3) returns 1."
+    },
+    {
+      "value": "MONTH",
+      "label": "Month",
+      "title": "Returns the month from a user-supplied date. \n Example:  MONTH(DATE(2023, 6, 29)) returns 6."
+    },
+    {
+      "value": "N",
+      "label": "N",
+      "title": "Converts a non-number value to a number, a date to a serial number, the logical value TRUE to 1 and all other values to 0. \n Example:  N('10') returns 10."
+    },
+    {
+      "value": "NOT",
+      "label": "Not",
+      "title": "Returns a logical value that is the opposite of a user supplied logical value or expression. \n Example:  NOT(TRUE) returns FALSE."
+    },
+    {
+      "value": "NOTIN",
+      "label": "Notin",
+      "title": "Returns True/False \n Example:  NOTIN(column_name,1,2,3) returns True \nif column_name is not among given rest of value(1,2,3), \nFalse otherwise."
+    },
+    {
+      "value": "NOW",
+      "label": "Now",
+      "title": "Returns the current date & time. \n Example:  NOW() returns the current date and time."
+    },
+    {
+      "value": "NUMBERVALUE",
+      "label": "Numbervalue",
+      "title": "Converts text to a number, in a locale-independent way. \n Example:  NUMBERVALUE('123.45', '.', ',') returns 123.45."
+    },
+    {
+      "value": "ODD",
+      "label": "Odd",
+      "title": "Rounds a number away from zero (i.e. rounds a positive number up and a negative number down), to the next odd number. \n Example:  ODD(7.5) returns 9."
+    },
+    {
+      "value": "OR",
+      "label": "Or",
+      "title": "Tests a number of user-defined conditions and returns TRUE if ANY of the conditions evaluate to TRUE, or FALSE otherwise. \n Example:  OR(TRUE, FALSE, TRUE) returns TRUE."
+    },
+    {
+      "value": "PI",
+      "label": "Pi",
+      "title": "Returns the constant value of pi. \n Example:  PI() returns the value of pi (approximately 3.14159265358979)."
+    },
+    {
+      "value": "POWER",
+      "label": "Power",
+      "title": "Returns the result of a given number raised to a supplied power. \n Example:  POWER(2, 3) returns 8."
+    },
+    {
+      "value": "PRODUCT",
+      "label": "Product",
+      "title": "Returns the product of a supplied list of numbers. \n Example:  PRODUCT(2, 3, 4) returns 24."
+    },
+    {
+      "value": "PROPER",
+      "label": "Proper",
+      "title": "Converts all characters in a supplied text string to proper case (i.e. letters that do not follow another letter are upper case and all other characters are lower case). \n Example:  PROPER('hello world') returns 'Hello World'."
+    },
+    {
+      "value": "QUOTIENT",
+      "label": "Quotient",
+      "title": "Returns the integer portion of a division between two supplied numbers. \n Example:  QUOTIENT(10, 3) returns 3."
+    },
+    {
+      "value": "RADIANS",
+      "label": "Radians",
+      "title": "Converts Degrees to Radians. \n Example:  RADIANS(45) returns 0.785 (approximately)."
+    },
+    {
+      "value": "REPT",
+      "label": "Rept",
+      "title": "Returns a string consisting of a supplied text string, repeated a specified number of times. \n Example:  REPT('Hello', 3) returns 'HelloHelloHello'."
+    },
+    {
+      "value": "RIGHT",
+      "label": "Right",
+      "title": "Returns a specified number of characters from the end of a supplied text string. \n Example:  RIGHT('Hello, world!', 6) returns 'world!''."
+    },
+    {
+      "value": "ROUND",
+      "label": "Round",
+      "title": "Rounds a number up or down, to a given number of digits. \n Example:  ROUND(3.14159, 2) returns 3.14."
+    },
+    {
+      "value": "ROUNDDOWN",
+      "label": "Rounddown",
+      "title": "Rounds a number towards zero, (i.e. rounds a positive number down and a negative number up), to a given number of digits. \n Example:  ROUNDDOWN(3.14159, 2) returns 3.14."
+    },
+    {
+      "value": "ROUNDUP",
+      "label": "Roundup",
+      "title": "Rounds a number away from zero (i.e. rounds a positive number up and a negative number down), to a given number of digits. \n Example:  ROUNDUP(3.14159, 2) returns 3.15."
+    },
+    {
+      "value": "SEARCH",
+      "label": "Search",
+      "title": "Returns the position of a supplied character or text string from within a supplied text string (non-case-sensitive). \n Example:  SEARCH('world', 'Hello, world!') returns 8."
+    },
+    {
+      "value": "SECOND",
+      "label": "Second",
+      "title": "Returns the seconds part of a user-supplied time. \n Example: SECOND(TIME(9, 30, 15)) returns 15."
+    },
+    {
+      "value": "SIGN",
+      "label": "Sign",
+      "title": "Returns the sign (+1, -1 or 0) of a supplied number. \n Example:  SIGN(-5) returns -1."
+    },
+    {
+      "value": "SIN",
+      "label": "Sin",
+      "title": "Returns the Sine of a given angle. \n Example:  SIN(1) returns 0.8415 (approximately)."
+    },
+    {
+      "value": "SQRT",
+      "label": "Sqrt",
+      "title": "Returns the positive square root of a given number. \n Example:  SQRT(25) returns 5."
+    },
+    {
+      "value": "SQRTPI",
+      "label": "Sqrtpi",
+      "title": "Returns the square root of a supplied number multiplied by pi. \n Example:  SQRTPI(10) returns 5.6419 (approximately)."
+    },
+    {
+      "value": "SUBSTITUTE",
+      "label": "Substitute",
+      "title": "Substitutes all occurrences of a search text string, within an original text string, with the supplied replacement text. \n Example:  SUBSTITUTE('Hello, world!', 'world', 'universe') returns 'Hello, universe!'."
+    },
+    {
+      "value": "SUM",
+      "label": "Sum",
+      "title": "Returns the sum of a supplied list of numbers. \n Example:  SUM(1, 2, 3) returns 6."
+    },
+    {
+      "value": "SUMSQ",
+      "label": "Sumsq",
+      "title": "Returns the sum of the squares of a supplied list of numbers. \n Example:  SUMSQ(1, 2, 3) returns 14."
+    },
+    {
+      "value": "SWITCH",
+      "label": "Switch",
+      "title": "Compares a number of supplied values to a supplied test expression and returns a result corresponding to the first value that matches the test expression. \n Example:  SWITCH(A1, 1, 'One', 2, 'Two', 3, 'Three', 'Other') returns 'One' if A1 is 1, 'Two' if A1 is 2, 'Three' if A1 is 3, and 'Other' otherwise."
+    },
+    {
+      "value": "TAN",
+      "label": "Tan",
+      "title": "Returns the Tangent of a given angle. \n Example:  TAN(1) returns 1.5574 (approximately)."
+    },
+    {
+      "value": "TIME",
+      "label": "Time",
+      "title": "Returns a time, from a user-supplied hour, minute and second. \n Example:  TIME(9, 30, 0) returns the time 09:30:00."
+    },
+    {
+      "value": "TODAY",
+      "label": "Today",
+      "title": "Returns today's date. \n Example:  TIME(9, 30, 0) returns the time 09:30:00."
+    },
+    {
+      "value": "TRIM",
+      "label": "Trim",
+      "title": "Removes duplicate spaces, and spaces at the start and end of a text string. \n Example:  TRIM(' Hello ') returns 'Hello'."
+    },
+    {
+      "value": "TRUE",
+      "label": "True",
+      "title": "Simply returns the logical value TRUE. \n Example:  TRUE() returns the logical value TRUE."
+    },
+    {
+      "value": "UPPER",
+      "label": "Upper",
+      "title": "Converts all characters in a supplied text string to upper case. \n Example:  UPPER('hello') returns 'HELLO'."
+    },
+    {
+      "value": "WEEKDAY",
+      "label": "Weekday",
+      "title": "Returns an integer representing the day of the week for a supplied date. \n Example: WEEKDAY(DATE(2023, 6, 29)) returns 5."
+    },
+    {
+      "value": "WEEKNUM",
+      "label": "Weeknum",
+      "title": "Returns an integer representing the week number (from 1 to 53) of the year for a supplied date. \n Example: WEEKNUM(DATE(2023, 6, 29)) returns 26."
+    },
+    {
+      "value": "XOR",
+      "label": "Xor",
+      "title": "Returns a logical Exclusive Or of all arguments. \n Example:  XOR(TRUE, FALSE, TRUE) returns TRUE."
+    },
+    {
+      "value": "YEAR",
+      "label": "Year",
+      "title": "Returns the year from a user-supplied date. \n Example:  YEAR(DATE(2023, 6, 29)) returns 2023."
+    }
+  ],
+  "formula_list": [
+    "ABS",
+    "ACOS",
+    "AND",
+    "ASIN",
+    "ATAN",
+    "ATAN2",
+    "AVERAGE",
+    "BITAND",
+    "BITLSHIFT",
+    "BITOR",
+    "BITRSHIFT",
+    "BITXOR",
+    "CAST",
+    "CEILING",
+    "CHOOSE",
+    "CLEAN",
+    "COALESCE",
+    "CODE",
+    "CONCAT",
+    "CONCATENATE",
+    "COS",
+    "COT",
+    "DATE",
+    "DAY",
+    "DAYS",
+    "DEGREES",
+    "DELTA",
+    "DUPLICATE",
+    "EDATE",
+    "EVEN",
+    "EXACT",
+    "EXP",
+    "FALSE",
+    "FIND",
+    "FIXED",
+    "FLOOR",
+    "GESTEP",
+    "HOUR",
+    "IF",
+    "IFNA",
+    "IFS",
+    "INT",
+    "ISBLANK",
+    "ISEVEN",
+    "ISIN",
+    "ISNA",
+    "ISNUMBER",
+    "ISODD",
+    "ISOWEEKNUM",
+    "ISTEXT",
+    "LEFT",
+    "LEN",
+    "LN",
+    "LOG",
+    "LOG10",
+    "LOWER",
+    "MAX",
+    "MID",
+    "MIN",
+    "MINUTE",
+    "MOD",
+    "MONTH",
+    "N",
+    "NOT",
+    "NOTIN",
+    "NOW",
+    "NUMBERVALUE",
+    "ODD",
+    "OR",
+    "PI",
+    "POWER",
+    "PRODUCT",
+    "PROPER",
+    "QUOTIENT",
+    "RADIANS",
+    "REPT",
+    "RIGHT",
+    "ROUND",
+    "ROUNDDOWN",
+    "ROUNDUP",
+    "SEARCH",
+    "SECOND",
+    "SIGN",
+    "SIN",
+    "SQRT",
+    "SQRTPI",
+    "SUBSTITUTE",
+    "SUM",
+    "SUMSQ",
+    "SWITCH",
+    "TAN",
+    "TIME",
+    "TODAY",
+    "TRIM",
+    "TRUE",
+    "UPPER",
+    "WEEKDAY",
+    "WEEKNUM",
+    "XOR",
+    "YEAR"
+  ],
+  "formula_count": 100
+}

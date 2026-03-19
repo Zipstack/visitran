@@ -1,0 +1,15 @@
+{
+  "project_name": "duckdbuitest",
+  "datasource_name": "duckdb",
+  "connection_details": [
+    {
+      "helptext": "Enter duckdb db path or press enter to use default.",
+      "type": "file",
+      "default": "",
+      "is_required": true,
+      "label": "file_path",
+      "value": ""
+    }
+  ],
+  "is_table_exists": false
+}

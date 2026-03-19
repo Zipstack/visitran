@@ -1,0 +1,38 @@
+.combine-col-container {
+  width: 550px;
+}
+
+.combine-col-title {
+  margin: 0 0 16px 0;
+}
+
+.combine-col-form-container {
+  border: 1px solid var(--border-color-4);
+  border-radius: 5px;
+  padding: 12px;
+}
+
+/* row-form */
+.combine-col-row-form {
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+
+.field-group {
+  display: flex;
+  flex: 1 1 auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.field {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* footer buttons */
+.combine-col-footer-actions,
+.combine-col-save-container {
+  display: flex;
+  justify-content: flex-end;
+}

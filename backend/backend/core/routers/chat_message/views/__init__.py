@@ -1,0 +1,1 @@
+# Chat message views package

@@ -1,0 +1,67 @@
+.csv-viewer-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.csv-viewer-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-color-1, #e2e8f0);
+  background: var(--page-bg-1, #f8fafc);
+  flex-shrink: 0;
+}
+
+.csv-viewer-stats {
+  font-size: 12px;
+}
+
+.csv-viewer-warning {
+  font-size: 12px;
+}
+
+.csv-viewer-table {
+  flex: 1;
+  overflow: hidden;
+  padding: 0 4px;
+}
+
+/* Table overrides */
+.csv-viewer-table .ant-table {
+  font-size: 12px;
+}
+
+.csv-viewer-table .ant-table-thead > tr > th {
+  font-weight: 600;
+  font-size: 12px;
+  padding: 6px 10px;
+  white-space: nowrap;
+  background: var(--page-bg-1, #f1f5f9);
+}
+
+.csv-viewer-table .ant-table-tbody > tr > td {
+  padding: 4px 10px;
+  font-size: 12px;
+  max-width: 300px;
+}
+
+/* Row number column */
+.csv-viewer-table .csv-row-num {
+  color: var(--schema-field-type, #94a3b8);
+  text-align: center;
+  background: var(--page-bg-1, #f8fafc);
+}
+
+/* Compact pagination */
+.csv-viewer-table .ant-pagination {
+  margin: 8px 0;
+  padding: 0 8px;
+}
+
+/* Zebra striping */
+.csv-viewer-table .ant-table-tbody > tr:nth-child(even) > td {
+  background: var(--page-bg-1, #f8fafc);
+}

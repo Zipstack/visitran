@@ -1,0 +1,91 @@
+{
+  "model_name": "dev_orders",
+  "model_data": {
+    "source": {
+      "schema_name": "raw",
+      "table_name": "raw_orders",
+      "materialization": "TABLE"
+    },
+    "presentation": {
+      "hidden_columns": [
+        "*"
+      ],
+      "sort": [
+        {
+          "column": "order_id",
+          "order_by": "ASC",
+          "data_type": "Number"
+        }
+      ]
+    },
+    "model": {
+      "schema_name": "dev",
+      "table_name": "orders"
+    },
+    "transform_order": [
+      "type_rename_column_0"
+    ],
+    "transform": {
+      "type_rename_column_0": {
+        "type": "rename_column",
+        "rename_column": {
+          "mappings": [
+            {
+              "old_name": "user_id",
+              "new_name": "customer_id",
+              "original_name": "user_id"
+            },
+            {
+              "old_name": "id",
+              "new_name": "order_id",
+              "original_name": "id"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "dependent_models": [
+    {
+      "status": "rename",
+      "transformation_id": "type_rename_column_0",
+      "model_data": {
+        "column_names": [
+          "id",
+          "user_id",
+          "order_date",
+          "status"
+        ],
+        "column_description": {
+          "id": {
+            "column_name": "id",
+            "column_dbtype": "int32",
+            "nullable": true
+          },
+          "user_id": {
+            "column_name": "user_id",
+            "column_dbtype": "int32",
+            "nullable": true
+          },
+          "order_date": {
+            "column_name": "order_date",
+            "column_dbtype": "date",
+            "nullable": true
+          },
+          "status": {
+            "column_name": "status",
+            "column_dbtype": "string",
+            "nullable": true
+          }
+        }
+      }
+    },
+    {
+      "status": "sql",
+      "model_data": {
+        "sql": "SELECT\n  t0.id AS order_id,\n  t0.customer_id,\n  t0.order_date,\n  t0.status\nFROM (\n  SELECT\n    t1.id AS id,\n    t1.user_id AS customer_id,\n    t1.order_date AS order_date,\n    t1.status AS status\n  FROM raw.raw_orders AS t1\n) AS t0"
+      },
+      "transformation_id": "sql"
+    }
+  ]
+}

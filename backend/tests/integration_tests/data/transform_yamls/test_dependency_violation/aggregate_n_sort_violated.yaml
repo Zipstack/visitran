@@ -1,0 +1,14 @@
+destination:
+  table_name: aggregate_n_sort
+presentation:
+  columns:
+    - '*'
+  sort:
+    - column: avg_salary
+      order_by: ASC
+source:
+  materialization: TABLE
+  table_name: employee
+transform:
+  union:
+    ignore_duplicate: false

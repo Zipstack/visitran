@@ -1,0 +1,107 @@
+import re
+import ibis
+from ibis import _
+from ibis.expr.types.relations import Table
+from ibis.common.exceptions import IbisTypeError
+from visitran.templates.model import VisitranModel
+from visitran.errors import ColumnNotExist
+from visitran.errors import TransformationFailed
+from visitran.materialization import Materialization
+from {{ model_path }}.models.dev_payments import DevPayments
+from {{ model_path }}.models.dev_orders import DevOrders
+
+
+
+MODEL_NAME = "stg_aggr_order_payments"
+
+class StgCustomerPayments(DevPayments, DevOrders):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "dev"
+        self.source_table_name = "payments"
+        self.destination_schema_name = "stg"
+        self.destination_table_name = "customer_payments"
+        self.database = "default_org__js_db_f_2025_06_27_16_58_684329b3"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class StgAggrOrderPayments(StgCustomerPayments):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.TABLE
+        self.destination_schema_name = "stg"
+        self.destination_table_name = "customer_payments"
+        self.database = "default_org__js_db_f_2025_06_27_16_58_684329b3"
+
+    def select(self) -> Table:
+        stg_customer_payments: Table = StgCustomerPayments().select()
+        source_table = stg_customer_payments
+
+        # Processing join statements
+        # The transformation ID is type_join_0
+        self.save_table_columns(transformation_id="type_join_0", table_obj=source_table)
+        try:
+            dev_orders: Table = DevOrders().select()
+            source_table = source_table.inner_join(dev_orders, [(source_table['order_id'] != dev_orders['order_id'])], rname='dev_orders_{name}')
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(
+                    column_name=match.group(1),
+                    model_name=MODEL_NAME,
+                    transformation_name="join"
+                ) from error
+            raise TransformationFailed(
+                transformation_name="join",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="join",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        self.save_table_columns(transformation_id="type_join_0_transformed", table_obj=source_table)
+
+        # Processing Groups and aggregations statements
+        # The transformation ID is groups_and_aggregation_1
+        self.save_table_columns(transformation_id="groups_and_aggregation_1", table_obj=source_table)
+        try:
+            source_table = source_table.group_by([source_table['customer_id']]).aggregate([_['amount_in_dollars'].sum().name('total_amount')])
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(
+                    column_name=match.group(1),
+                    model_name=MODEL_NAME,
+                    transformation_name="groups and aggregations"
+                )
+            raise TransformationFailed(
+                transformation_name="groups",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="groups",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+
+        # Processing sort statements
+        try:
+            source_table = source_table.order_by([ibis.asc("customer_id")])
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(column_name=match.group(1), model_name=MODEL_NAME, transformation_name="sort")
+            raise TransformationFailed(transformation_name="sort", model_name=MODEL_NAME, error_message=str(error)) from error
+        except Exception as error:
+            raise TransformationFailed(transformation_name="sort", model_name=MODEL_NAME, error_message=str(error)) from error
+
+        return source_table

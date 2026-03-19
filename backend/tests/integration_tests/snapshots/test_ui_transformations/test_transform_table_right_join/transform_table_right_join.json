@@ -1,0 +1,112 @@
+{
+  "content": [
+    {
+      "id": 1,
+      "town": "New York",
+      "employee_id": 1,
+      "name": "John",
+      "age": 25,
+      "profession": "Engineer",
+      "salary": 50000
+    },
+    {
+      "id": 2,
+      "town": "Los Angeles",
+      "employee_id": 2,
+      "name": "Jane",
+      "age": 30,
+      "profession": "Manager",
+      "salary": 80000
+    },
+    {
+      "id": 3,
+      "town": "Chicago",
+      "employee_id": 3,
+      "name": "Bob",
+      "age": 40,
+      "profession": "Developer",
+      "salary": 65000
+    },
+    {
+      "id": 4,
+      "town": "Houston",
+      "employee_id": 4,
+      "name": "Alice",
+      "age": 35,
+      "profession": null,
+      "salary": 100000
+    },
+    {
+      "id": 5,
+      "town": "Phoenix",
+      "employee_id": 5,
+      "name": "Charlie",
+      "age": 45,
+      "profession": "Architect",
+      "salary": 90000
+    },
+    {
+      "id": null,
+      "town": null,
+      "employee_id": 6,
+      "name": "David",
+      "age": 50,
+      "profession": "Engineer",
+      "salary": 70000
+    }
+  ],
+  "schema_name": "default",
+  "column_description": {
+    "id": {
+      "column_name": "id",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "town": {
+      "column_name": "town",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "employee_id": {
+      "column_name": "employee_id",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "name": {
+      "column_name": "name",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "age": {
+      "column_name": "age",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "profession": {
+      "column_name": "profession",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "salary": {
+      "column_name": "salary",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    }
+  },
+  "column_names": [
+    "id",
+    "town",
+    "employee_id",
+    "name",
+    "age",
+    "profession",
+    "salary"
+  ]
+}

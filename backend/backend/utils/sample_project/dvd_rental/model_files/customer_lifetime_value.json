@@ -1,0 +1,321 @@
+{
+  "model_name": "customer_lifetime_value",
+  "model_data": {
+    "source": {
+      "schema_name": "raw",
+      "table_name": "customer",
+      "materialization": "TABLE"
+    },
+    "model": {
+      "schema_name": "dev",
+      "table_name": "customer_lifetime_value"
+    },
+    "presentation": {
+      "hidden_columns": [
+        "*"
+      ],
+      "sort": [
+        {
+          "column": "total_payment_amount",
+          "order_by": "DESC",
+          "data_type": "Number"
+        }
+      ]
+    },
+    "transform": {
+      "groups_and_aggregation-96b8a9cc-1479-43e6-8698-52d2065641ae": {
+        "type": "groups_and_aggregation",
+        "groups_and_aggregation": {
+          "group": [
+            "first_name",
+            "last_name"
+          ],
+          "aggregate_columns": [
+            {
+              "function": "COUNT",
+              "column": "rental_id",
+              "alias": "total_rentals"
+            },
+            {
+              "function": "SUM",
+              "column": "amount",
+              "alias": "total_payment_amount"
+            }
+          ],
+          "having": {
+            "criteria": []
+          },
+          "filter": {
+            "criteria": []
+          }
+        }
+      },
+      "join-49708152-73bd-4e99-b6d0-d6f3f9fce731": {
+        "type": "join",
+        "join": {
+          "tables": [
+            {
+              "joined_table": {
+                "schema_name": "raw",
+                "table_name": "rental"
+              },
+              "type": "Left",
+              "criteria": [
+                {
+                  "condition": {
+                    "lhs": {
+                      "type": "COLUMN",
+                      "column": {
+                        "schema_name": "raw",
+                        "table_name": "customer",
+                        "column_name": "customer_id",
+                        "data_type": "Number"
+                      }
+                    },
+                    "operator": "EQ",
+                    "rhs": {
+                      "type": "COLUMN",
+                      "column": {
+                        "schema_name": "raw",
+                        "table_name": "rental",
+                        "column_name": "customer_id",
+                        "data_type": "Number"
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "joined_table": {
+                "schema_name": "raw",
+                "table_name": "payment"
+              },
+              "type": "Left",
+              "criteria": [
+                {
+                  "condition": {
+                    "lhs": {
+                      "type": "COLUMN",
+                      "column": {
+                        "schema_name": "raw",
+                        "table_name": "rental",
+                        "column_name": "rental_id",
+                        "data_type": "Number"
+                      }
+                    },
+                    "operator": "EQ",
+                    "rhs": {
+                      "type": "COLUMN",
+                      "column": {
+                        "schema_name": "raw",
+                        "table_name": "payment",
+                        "column_name": "rental_id",
+                        "data_type": "Number"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "transform_order": [
+      "join-49708152-73bd-4e99-b6d0-d6f3f9fce731",
+      "groups_and_aggregation-96b8a9cc-1479-43e6-8698-52d2065641ae"
+    ]
+  },
+  "dependent_models": [
+    {
+      "status": "joins",
+      "model_data": {
+        "column_names": [
+          "customer_id",
+          "store_id",
+          "first_name",
+          "last_name",
+          "email",
+          "address_id",
+          "active",
+          "create_date",
+          "last_update",
+          "rental_id",
+          "rental_date",
+          "inventory_id",
+          "rental_customer_id",
+          "return_date",
+          "staff_id",
+          "rental_last_update",
+          "payment_id",
+          "payment_customer_id",
+          "payment_staff_id",
+          "payment_rental_id",
+          "amount",
+          "payment_date",
+          "payment_last_update"
+        ],
+        "column_description": {
+          "customer_id": {
+            "column_name": "customer_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "store_id": {
+            "column_name": "store_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "first_name": {
+            "column_name": "first_name",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "last_name": {
+            "column_name": "last_name",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "email": {
+            "column_name": "email",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "address_id": {
+            "column_name": "address_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "active": {
+            "column_name": "active",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "create_date": {
+            "column_name": "create_date",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          },
+          "last_update": {
+            "column_name": "last_update",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          },
+          "rental_id": {
+            "column_name": "rental_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "rental_date": {
+            "column_name": "rental_date",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          },
+          "inventory_id": {
+            "column_name": "inventory_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "rental_customer_id": {
+            "column_name": "rental_customer_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "return_date": {
+            "column_name": "return_date",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          },
+          "staff_id": {
+            "column_name": "staff_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "rental_last_update": {
+            "column_name": "rental_last_update",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          },
+          "payment_id": {
+            "column_name": "payment_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "payment_customer_id": {
+            "column_name": "payment_customer_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "payment_staff_id": {
+            "column_name": "payment_staff_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "payment_rental_id": {
+            "column_name": "payment_rental_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "amount": {
+            "column_name": "amount",
+            "column_dbtype": "float64",
+            "nullable": true
+          },
+          "payment_date": {
+            "column_name": "payment_date",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          },
+          "payment_last_update": {
+            "column_name": "payment_last_update",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          }
+        }
+      },
+      "transformation_id": "join-49708152-73bd-4e99-b6d0-d6f3f9fce731"
+    },
+    {
+      "status": "groups",
+      "model_data": {
+        "column_names": [
+          "first_name",
+          "last_name",
+          "total_rentals",
+          "total_payment_amount"
+        ],
+        "column_description": {
+          "first_name": {
+            "column_name": "first_name",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "last_name": {
+            "column_name": "last_name",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "total_rentals": {
+            "column_name": "total_rentals",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "total_payment_amount": {
+            "column_name": "total_payment_amount",
+            "column_dbtype": "float64",
+            "nullable": true
+          }
+        }
+      },
+      "transformation_id": "groups_and_aggregation-96b8a9cc-1479-43e6-8698-52d2065641ae"
+    },
+    {
+      "status": "sql",
+      "model_data": {
+        "sql": "SELECT\n  *\nFROM (\n  SELECT\n    \"t6\".\"first_name\",\n    \"t6\".\"last_name\",\n    COUNT(\"t6\".\"rental_id\") AS \"total_rentals\",\n    SUM(\"t6\".\"amount\") AS \"total_payment_amount\"\n  FROM (\n    SELECT\n      \"t3\".\"customer_id\",\n      \"t3\".\"store_id\",\n      \"t3\".\"first_name\",\n      \"t3\".\"last_name\",\n      \"t3\".\"email\",\n      \"t3\".\"address_id\",\n      \"t3\".\"active\",\n      \"t3\".\"create_date\",\n      \"t3\".\"last_update\",\n      \"t4\".\"rental_id\",\n      \"t4\".\"rental_date\",\n      \"t4\".\"inventory_id\",\n      \"t4\".\"customer_id\" AS \"rental_customer_id\",\n      \"t4\".\"return_date\",\n      \"t4\".\"staff_id\",\n      \"t4\".\"last_update\" AS \"rental_last_update\",\n      \"t5\".\"payment_id\",\n      \"t5\".\"customer_id\" AS \"payment_customer_id\",\n      \"t5\".\"staff_id\" AS \"payment_staff_id\",\n      \"t5\".\"rental_id\" AS \"payment_rental_id\",\n      \"t5\".\"amount\",\n      \"t5\".\"payment_date\",\n      \"t5\".\"last_update\" AS \"payment_last_update\"\n    FROM \"raw\".\"customer\" AS \"t3\"\n    LEFT OUTER JOIN \"raw\".\"rental\" AS \"t4\"\n      ON \"t3\".\"customer_id\" = \"t4\".\"customer_id\"\n    LEFT OUTER JOIN \"raw\".\"payment\" AS \"t5\"\n      ON \"t4\".\"rental_id\" = \"t5\".\"rental_id\"\n  ) AS \"t6\"\n  GROUP BY\n    1,\n    2\n) AS \"t7\"\nORDER BY\n  \"t7\".\"total_payment_amount\" DESC NULLS LAST"
+      },
+      "transformation_id": "sql"
+    }
+  ]
+}

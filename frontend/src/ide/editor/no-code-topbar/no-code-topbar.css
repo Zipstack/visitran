@@ -1,0 +1,118 @@
+.no-code-top-layout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  white-space: nowrap;
+}
+
+.no-code-top-left {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  overflow-x: auto;
+}
+
+.no-code-top-right {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.display-flex {
+  display: flex;
+}
+
+.flex-2 {
+  flex: 2;
+}
+
+.flex-4 {
+  flex: 4;
+}
+
+.align-items-center {
+  align-items: center;
+}
+
+.flex-direction-row {
+  flex-direction: row;
+}
+
+.fs_14 {
+  font-size: 14px;
+  padding-top: 1px;
+}
+.configuration-list {
+  max-height: 44px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--black);
+}
+.seq_badge_wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 50%;
+  width: 100%;
+  z-index: 999;
+  position: absolute;
+  margin-top: -8px;
+  margin-left: -16px;
+}
+.chip_style {
+  background: var(--chip-bg);
+  padding: 4px;
+  cursor: pointer;
+}
+
+.no-code-top-item .ant-tag {
+  margin-inline-end: 0;
+}
+
+.joinTag_wrap {
+  width: max-content;
+  position: relative;
+}
+.joinTables_item {
+  color: var(--black);
+  margin: 5px;
+  font-size: 12px;
+}
+
+.no-code-topbar-icon-size svg {
+  height: 16px;
+  width: auto;
+}
+
+.no-code-top-layout {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.no-code-topbar-chip {
+  width: auto;
+  flex-shrink: 0;
+  background: var(--chip-bg);
+  padding: 4px;
+  cursor: pointer;
+}
+
+.no-code-topbar-flex {
+  display: flex;
+  align-items: center;
+  gap: 0px;
+  flex-wrap: nowrap;
+}
+
+.no-code-topbar-icon-size {
+  flex-shrink: 0;
+  padding-right: 4px;
+}
+
+.no-code-topbar-config {
+  flex-shrink: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
+}

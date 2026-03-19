@@ -1,0 +1,60 @@
+{
+  "model_name": "store_active_customer",
+  "model_data": {
+    "source": {
+      "schema_name": "raw",
+      "table_name": "customer",
+      "materialization": "TABLE"
+    },
+    "model": {
+      "schema_name": "dev",
+      "table_name": "store_active_customerstore_active_customer"
+    },
+    "presentation": {
+      "hidden_columns": [
+        "*"
+      ]
+    },
+    "transform": {
+      "filter-a963952c-c1a3-49a0-ab5e-6906d853c9ea": {
+        "type": "filter",
+        "filter": {
+          "criteria": [
+            {
+              "condition": {
+                "lhs": {
+                  "type": "COLUMN",
+                  "column": {
+                    "schema_name": "dev",
+                    "table_name": "store_active_customerstore_active_customer",
+                    "column_name": "active",
+                    "data_type": "Number"
+                  }
+                },
+                "operator": "EQ",
+                "rhs": {
+                  "type": "VALUE",
+                  "value": [
+                    1
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "transform_order": [
+      "filter-a963952c-c1a3-49a0-ab5e-6906d853c9ea"
+    ]
+  },
+  "dependent_models": [
+    {
+      "status": "sql",
+      "model_data": {
+        "sql": "SELECT\n  *\nFROM \"raw\".\"customer\" AS \"t0\"\nWHERE\n  \"t0\".\"active\" = 1"
+      },
+      "transformation_id": "sql"
+    }
+  ]
+}

@@ -1,0 +1,545 @@
+/* OnboardingGuide Component Styles */
+
+/* Main container */
+.onboarding-guide-container {
+  transform: translateY(-2px);
+}
+
+
+/* Quick Start Guide Card */
+.quick-start-card {
+  border-radius: 12px;
+  transition: all 0.6s ease-out;
+}
+
+.quick-start-card.light {
+  border: 1px solid #e1f5fe;
+  background: linear-gradient(135deg, #e3f2fd 0%, #f0f9ff 100%);
+}
+
+.quick-start-card.dark {
+  border: 1px solid #0C3861;
+  background: #0C3861;
+}
+
+.quick-start-card.fade-in-card {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.quick-start-card:not(.fade-in-card) {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* Quick Start Guide Content */
+.quick-start-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.quick-start-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.quick-start-text {
+  flex: 1;
+}
+
+.quick-start-title {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+}
+
+.quick-start-title.light {
+  color: #1565c0;
+}
+
+.quick-start-title.dark {
+  color: #E6F6FD;
+}
+
+.quick-start-description {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.quick-start-description.light {
+  color: #424242;
+}
+
+.quick-start-description.dark {
+  color: #E6F6FD;
+}
+
+/* To-Do List Card */
+.todo-list-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.todo-list-card.light {
+  border: 1px solid #e8e8e8;
+  background-color: #ffffff;
+}
+
+.todo-list-card.dark {
+  border: 1px solid #212121;
+  background-color: #212121;
+}
+
+/* Onboarding Progress Section */
+.onboarding-progress {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  transition: all 0.5s ease-out;
+}
+
+.onboarding-progress.light {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.onboarding-progress.dark {
+  border-bottom: 1px solid #434343;
+}
+
+.onboarding-progress.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.onboarding-progress:not(.show) {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+.progress-title {
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.progress-title.light {
+  color: #0c4a6e;
+}
+
+.progress-title.dark {
+  color: #FFFFFF;
+}
+
+.progress-step {
+  font-size: 12px;
+}
+
+.progress-step.light {
+  color: #075985;
+}
+
+.progress-step.dark {
+  color: #E6F6FD;
+}
+
+.progress-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #e0f2fe;
+  border: 2px solid #0ea5e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+  color: #0c4a6e;
+}
+
+.skip-button {
+  font-size: 12px;
+  padding: 2px 6px;
+  height: auto;
+}
+
+.skip-button.light {
+  color: #64748b;
+}
+
+.skip-button.dark {
+  color: #E6F6FD;
+}
+
+/* Interactive To-Do List Title */
+.todo-list-title {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.todo-list-title.light {
+  color: #333;
+}
+
+.todo-list-title.dark {
+  color: #FFFFFF;
+}
+
+/* Task Items */
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  transition: all 0.4s ease-out;
+}
+
+.task-item.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.task-item:not(.show) {
+  opacity: 0;
+  transform: translateY(15px);
+}
+
+.task-item.light:not(:last-child) {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.task-item.dark:not(:last-child) {
+  border-bottom: 1px solid #434343;
+}
+
+.task-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.task-number.completed {
+  background: #4caf50;
+  color: white;
+}
+
+.task-number.pending {
+  background: #e8f5e8;
+  color: #4caf50;
+}
+
+.task-number.skipped {
+  background: #f5f5f5;
+  color: #8c8c8c;
+}
+
+.task-content {
+  flex: 1;
+}
+
+.task-title {
+  font-size: 14px;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.task-title.light {
+  color: #333;
+}
+
+.task-title.dark {
+  color: #FFFFFF;
+}
+
+.task-description {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.task-description.light {
+  color: #666;
+}
+
+.task-description.dark {
+  color: #C2C3C2B2;
+}
+
+.task-button {
+  font-size: 12px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 6px;
+}
+
+.task-button.completed {
+  background-color: #4caf50;
+  border-color: #4caf50;
+  color: white;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.task-button.pending {
+  background-color: #1890ff;
+  border-color: #1890ff;
+  color: white;
+}
+
+.task-button.skipped {
+  background-color: #f5f5f5;
+  border-color: #d9d9d9;
+  color: #8c8c8c;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* Compact Mode Styles */
+.compact-card {
+  margin-bottom: 12px;
+}
+
+.compact-completed {
+  border: 1px solid #52c41a;
+  background-color: #f6ffed;
+}
+
+.compact-remaining {
+  border: 1px solid #0ea5e9;
+  background-color: #f0f9ff;
+}
+
+.compact-content {
+  font-size: 12px;
+}
+
+.compact-title {
+  color: #0c4a6e;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.compact-completed-text {
+  color: #52c41a;
+  font-size: 12px;
+}
+
+.compact-task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.compact-task-item:last-child {
+  margin-bottom: 0;
+}
+
+.compact-task-item.with-margin {
+  margin-bottom: 4px;
+}
+
+.compact-task-content {
+  flex: 1;
+  font-size: 11px;
+}
+
+.compact-task-text {
+  font-size: 11px;
+  color: #374151;
+}
+
+.compact-try-button {
+  font-size: 10px;
+  height: 20px;
+  padding: 0 6px;
+  margin-left: 8px;
+}
+
+.compact-more-text {
+  font-size: 10px;
+  color: #6b7280;
+}
+
+/* Skip confirmation modal positioning - centered within chat container */
+.skip-confirmation-modal {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  pointer-events: none !important;
+}
+
+.skip-confirmation-modal .ant-modal-wrap {
+  pointer-events: auto !important;
+}
+
+.skip-confirmation-modal .ant-modal-mask {
+  pointer-events: auto !important;
+}
+
+.skip-confirmation-modal .ant-modal {
+  position: relative !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  margin: 0 auto !important;
+  pointer-events: auto !important;
+}
+
+.skip-confirmation-modal .ant-modal-centered {
+  text-align: left;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heartbeat-icon {
+  0% {
+    transform: scale(1);
+  }
+  25% {
+    transform: scale(1.1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  75% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.fade-in-card {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* Collapse button styles */
+.collapse-button {
+  padding: 4px 8px;
+  height: auto;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.collapse-button.light {
+  color: #64748b;
+}
+
+.collapse-button.dark {
+  color: #E6F6FD;
+}
+
+.collapse-button:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.collapse-button.dark:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Task description styles */
+.task-description.light {
+  color: #64748b;
+}
+
+.task-description.dark {
+  color: #94a3b8;
+}
+
+/* Icon styles */
+.step-icon-completed {
+  color: #52c41a;
+}
+
+.step-icon-pending {
+  color: #1890ff;
+}
+
+.rocket-icon {
+  color: white;
+  font-size: 20px;
+}
+
+.progress-icon {
+  color: #0ea5e9;
+  font-size: 16px;
+}
+
+/* Layout styles */
+.compact-center {
+  text-align: center;
+}
+
+.compact-tasks-container {
+  margin-top: 6px;
+}
+
+.compact-task-icon {
+  margin-right: 4px;
+}
+
+.compact-try-button-style {
+  background-color: var(--mode-color);
+  border-color: var(--mode-color);
+}
+
+.task-content-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.task-meta-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.mode-tag-style {
+  font-size: 10px;
+}
+
+.task-description-style {
+  font-style: italic;
+  font-size: 12px;
+}
+
+.skipped-task-button {
+  color: #8c8c8c;
+}
+
+/* Modal container style - centered */
+.modal-container-style {
+  margin: 0;
+}
+
+.modal-mask-style {
+  position: absolute;
+  inset: 0;
+}

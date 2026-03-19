@@ -1,0 +1,43 @@
+{
+  "content": [
+    {
+      "profession": null,
+      "no_of_employees": 0
+    },
+    {
+      "profession": "Architect",
+      "no_of_employees": 1
+    },
+    {
+      "profession": "Developer",
+      "no_of_employees": 1
+    },
+    {
+      "profession": "Manager",
+      "no_of_employees": 1
+    },
+    {
+      "profession": "Engineer",
+      "no_of_employees": 2
+    }
+  ],
+  "schema_name": "default",
+  "column_description": {
+    "profession": {
+      "column_name": "profession",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "no_of_employees": {
+      "column_name": "no_of_employees",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    }
+  },
+  "column_names": [
+    "profession",
+    "no_of_employees"
+  ]
+}

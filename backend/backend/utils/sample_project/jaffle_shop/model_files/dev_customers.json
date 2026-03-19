@@ -1,0 +1,80 @@
+{
+  "model_name": "dev_customers",
+  "model_data": {
+    "source": {
+      "schema_name": "raw",
+      "table_name": "raw_customers",
+      "materialization": "TABLE"
+    },
+    "presentation": {
+      "hidden_columns": [
+        "*"
+      ],
+      "sort": [
+        {
+          "column": "customer_id",
+          "order_by": "ASC",
+          "data_type": "Number"
+        }
+      ]
+    },
+    "model": {
+      "schema_name": "dev",
+      "table_name": "customers"
+    },
+    "transform_order": [
+      "type_rename_column_0"
+    ],
+    "transform": {
+      "type_rename_column_0": {
+        "type": "rename_column",
+        "rename_column": {
+          "mappings": [
+            {
+              "old_name": "id",
+              "new_name": "customer_id",
+              "original_name": "id"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "dependent_models": [
+    {
+      "status": "rename",
+      "transformation_id": "type_rename_column_0",
+      "model_data": {
+        "column_names": [
+          "id",
+          "first_name",
+          "last_name"
+        ],
+        "column_description": {
+          "id": {
+            "column_name": "id",
+            "column_dbtype": "int32",
+            "nullable": true
+          },
+          "first_name": {
+            "column_name": "first_name",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "last_name": {
+            "column_name": "last_name",
+            "column_dbtype": "string",
+            "nullable": true
+          }
+        }
+      }
+    },
+    {
+      "status": "sql",
+      "model_data": {
+        "sql": "SELECT\n  t0.id AS customer_id,\n  t0.first_name,\n  t0.last_name\nFROM raw.raw_customers AS t0"
+      },
+      "transformation_id": "sql"
+    }
+  ]
+}

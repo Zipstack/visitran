@@ -1,0 +1,83 @@
+{
+  "model_name": "prod_order_details",
+  "model_data": {
+    "reference": [
+      "dev_orders",
+      "stg_payments_by_type"
+    ],
+    "source": {
+      "schema_name": "dev",
+      "table_name": "orders",
+      "materialization": "TABLE"
+    },
+    "presentation": {
+      "hidden_columns": [
+        "*"
+      ],
+      "sort": [
+        {
+          "column": "order_id",
+          "order_by": "ASC",
+          "data_type": "Number"
+        }
+      ]
+    },
+    "model": {
+      "schema_name": "prod",
+      "table_name": "order_final"
+    },
+    "transform_order": [
+      "type_join_0"
+    ],
+    "transform": {
+      "type_join_0": {
+        "type": "join",
+        "join": {
+          "tables": [
+            {
+              "type": "Inner",
+              "criteria": [
+                {
+                  "condition": {
+                    "lhs": {
+                      "type": "COLUMN",
+                      "column": {
+                        "schema_name": "dev",
+                        "table_name": "orders",
+                        "column_name": "order_id",
+                        "data_type": "Number"
+                      }
+                    },
+                    "operator": "EQ",
+                    "rhs": {
+                      "type": "COLUMN",
+                      "column": {
+                        "schema_name": "stg",
+                        "table_name": "order_payments",
+                        "column_name": "order_id",
+                        "data_type": "Number"
+                      }
+                    }
+                  }
+                }
+              ],
+              "joined_table": {
+                "schema_name": "stg",
+                "table_name": "order_payments"
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "dependent_models": [
+    {
+      "status": "sql",
+      "model_data": {
+        "sql": "WITH t0 AS (\n  SELECT\n    t6.payment_id AS payment_id,\n    t6.order_id AS order_id,\n    t6.payment_method AS payment_method,\n    t6.amount AS amount,\n    t6.amount_in_dollars AS amount_in_dollars,\n    CASE\n      WHEN (\n        t6.payment_method = 'credit_card'\n      )\n      THEN t6.amount_in_dollars\n      ELSE 0\n    END AS credit_card_amount\n  FROM dev.payments AS t6\n), t1 AS (\n  SELECT\n    t0.payment_id AS payment_id,\n    t0.order_id AS order_id,\n    t0.payment_method AS payment_method,\n    t0.amount AS amount,\n    t0.amount_in_dollars AS amount_in_dollars,\n    t0.credit_card_amount AS credit_card_amount,\n    CASE WHEN (\n      t0.payment_method = 'coupon'\n    ) THEN t0.amount_in_dollars ELSE 0 END AS coupon_amount\n  FROM t0\n), t2 AS (\n  SELECT\n    t1.payment_id AS payment_id,\n    t1.order_id AS order_id,\n    t1.payment_method AS payment_method,\n    t1.amount AS amount,\n    t1.amount_in_dollars AS amount_in_dollars,\n    t1.credit_card_amount AS credit_card_amount,\n    t1.coupon_amount AS coupon_amount,\n    CASE\n      WHEN (\n        t1.payment_method = 'bank_transfer'\n      )\n      THEN t1.amount_in_dollars\n      ELSE 0\n    END AS bank_transfer_amount\n  FROM t1\n), t3 AS (\n  SELECT\n    t2.payment_id AS payment_id,\n    t2.order_id AS order_id,\n    t2.payment_method AS payment_method,\n    t2.amount AS amount,\n    t2.amount_in_dollars AS amount_in_dollars,\n    t2.credit_card_amount AS credit_card_amount,\n    t2.coupon_amount AS coupon_amount,\n    t2.bank_transfer_amount AS bank_transfer_amount,\n    CASE\n      WHEN (\n        t2.payment_method = 'gift_card'\n      )\n      THEN t2.amount_in_dollars\n      ELSE 0\n    END AS gift_card_amount\n  FROM t2\n), t4 AS (\n  SELECT\n    t3.order_id AS order_id,\n    SUM(t3.credit_card_amount) AS credit_card_amount_total,\n    SUM(t3.coupon_amount) AS coupon_total,\n    SUM(t3.bank_transfer_amount) AS transaction_total,\n    SUM(t3.gift_card_amount) AS gift_card_amount_total,\n    SUM(t3.amount_in_dollars) AS total_amount_in_dollars\n  FROM t3\n  GROUP BY\n    1\n)\nSELECT\n  t5.order_id,\n  t5.customer_id,\n  t5.order_date,\n  t5.status,\n  t5.credit_card_amount_total,\n  t5.coupon_total,\n  t5.transaction_total,\n  t5.gift_card_amount_total,\n  t5.total_amount_in_dollars\nFROM (\n  SELECT\n    t6.order_id AS order_id,\n    t6.customer_id AS customer_id,\n    t6.order_date AS order_date,\n    t6.status AS status,\n    t4.credit_card_amount_total AS credit_card_amount_total,\n    t4.coupon_total AS coupon_total,\n    t4.transaction_total AS transaction_total,\n    t4.gift_card_amount_total AS gift_card_amount_total,\n    t4.total_amount_in_dollars AS total_amount_in_dollars\n  FROM dev.orders AS t6\n  JOIN t4\n    ON t6.order_id = t4.order_id\n) AS t5\nORDER BY\n  t5.coupon_total ASC"
+      },
+      "transformation_id": "sql"
+    }
+  ]
+}

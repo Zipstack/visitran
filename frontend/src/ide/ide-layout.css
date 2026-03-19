@@ -1,0 +1,511 @@
+.ideLayout {
+  height: 100%;
+  overflow: hidden;
+}
+
+.fullscreen.ideLayout {
+  position: fixed;
+  background: var(--page-bg-1);
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
+  z-index: 10;
+}
+
+.ideHeader {
+  display: grid;
+  grid-auto-flow: column;
+  align-items: center;
+  grid-template-columns: 1fr auto;
+  column-gap: 12px;
+  padding-inline: 12px;
+  background-color: var(--secondary);
+  height: 46px;
+}
+.topMenu {
+  background-color: var(--secondary);
+  color: var(--font-color-1);
+}
+
+.ideBody {
+  display: flex;
+  height: 100%;
+  background-color: var(--white);
+}
+
+.ideResizeExplorer {
+  background-color: var(--chat-ai-bg-color);
+  transition: width 0.2s ease;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.ideBody > .flex-1 {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ideExplorer {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+.explorerHeader {
+  height: 45px;
+  display: flex;
+  justify-content: space-between;
+  padding-block-start: 12px;
+  padding-inline: 8px;
+  margin: 5px;
+}
+.explorerTree {
+  overflow: auto;
+}
+
+/* Reduce spacing between arrow and text in tree nodes */
+.explorerTree .ant-tree-switcher {
+  width: 12px !important;
+}
+
+.explorerTree .ant-tree-node-content-wrapper {
+  padding: 0 4px !important;
+}
+
+.explorerTree .ant-tree-indent-unit {
+  width: 8px !important;
+}
+
+.contextMenu {
+  position: fixed;
+  z-index: 1000;
+  border: 1px solid var(--border-color-2);
+  border-radius: 5px;
+  background-color: var(--ant-color-bg-container);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+.expDbPreview {
+  border-block-start: 1px solid var(--border-color-2);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  margin-inline-start: 3px;
+  padding: 12px;
+  height: 45px;
+  flex-shrink: 0;
+}
+
+/* Docs icon in explorer tab bar */
+.explorer-docs-tab {
+  padding: 12px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-color-2);
+  transition: color 0.2s;
+}
+.explorer-docs-tab:hover {
+  color: #4c9aff;
+}
+.explorer-docs-tab .anticon {
+  font-size: 16px;
+}
+
+.ideEditor {
+  display: grid;
+  grid-auto-flow: row;
+  grid-template-rows: 1fr auto;
+  margin: 4px;
+  overflow: hidden;
+  height: 100%;
+}
+
+.ideEditor .ant-tabs-nav {
+  margin: 0px !important;
+}
+
+.editorBottomSection {
+  background-color: var(--page-bg-2);
+}
+
+/* overriding antd menuItem hover css starts */
+.topMenu .ant-menu-overflow-item.ant-menu-item:hover {
+  color: var(--font-color-1) !important;
+}
+/* overriding antd menuItem hover css ends */
+
+/* csv file scrollable in Editor css starts */
+.ideEditor .ant-tabs-content.ant-tabs-content-top {
+  height: 100%;
+}
+.ideEditor .ant-tabs-tabpane.ant-tabs-tabpane-active {
+  height: 100%;
+}
+/* csv file scrollable in Editor css ends */
+
+/* Tree node content wrapper — icon and title always on one row */
+.ideExplorer
+  .ant-tree-node-content-wrapper.ant-tree-node-content-wrapper-normal,
+.ideExplorer .ant-tree-node-content-wrapper.ant-tree-node-content-wrapper-open,
+.ideExplorer
+  .ant-tree-node-content-wrapper.ant-tree-node-content-wrapper-close {
+  display: flex !important;
+  align-items: center;
+  flex-wrap: nowrap;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* Tree title fills available width */
+.explorerTree .ant-tree-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Tree node title uses flex so text truncates but icons stay visible */
+.explorerTree .ant-tree-title > .ant-typography {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Push action icons to the right and prevent them from being clipped */
+.explorerTree .ant-tree-title .float_right {
+  float: none;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.ml15 {
+  margin-left: 15px;
+}
+.float_right {
+  float: right;
+}
+
+.upload-container {
+  position: relative;
+}
+
+.ant-upload-list {
+  max-height: 200px; /* Adjust this height as needed */
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.recent-upload-text {
+  color: #1668dc;
+}
+.ant-upload-list-item .ant-upload-list-item-actions {
+  display: none;
+}
+
+.hint {
+  margin-top: 8px;
+  display: block;
+  font-size: 10px;
+}
+
+.start_main_wrap {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.center_text {
+  background-color: transparent;
+
+  border-radius: 10px;
+}
+.main_text {
+  display: flex;
+  align-items: center;
+}
+.explorer-tabs {
+  flex: 1;
+}
+.explorer-tabs .ant-tabs-tabpane {
+  padding: 0px !important;
+}
+
+/* Collapsed explorer - show only tab icons */
+.resizeComponent.hide .explorer-tabs .ant-tabs-content-holder {
+  display: none;
+}
+.resizeComponent.hide .explorer-tabs .ant-tabs-nav {
+  margin: 0;
+  height: auto;
+}
+.resizeComponent.hide .explorer-tabs .ant-tabs-nav-list {
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.resizeComponent.hide .explorer-tabs .ant-tabs-tab {
+  padding: 12px 8px;
+  margin: 0;
+  justify-content: center;
+}
+.resizeComponent.hide .explorer-tabs .ant-tabs-tab .anticon {
+  font-size: 16px;
+  cursor: pointer;
+}
+.resizeComponent.hide .explorer-tabs .ant-tabs-ink-bar {
+  display: none;
+}
+
+/* Collapsed explorer - show only settings icon at bottom */
+.resizeComponent.hide .expDbPreview {
+  padding: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: none;
+  margin: 0;
+}
+.resizeComponent.hide .expDbPreview .db-preview-wrap {
+  justify-content: center;
+}
+.resizeComponent.hide .expDbPreview .db-preview-wrap > .flex-1 {
+  display: none;
+}
+.resizeComponent.hide .expDbPreview .db-config-icons {
+  gap: 0;
+}
+.resizeComponent.hide .expDbPreview .db-config-icons .db-visualizer-icon {
+  display: none;
+}
+.resizeComponent.hide .expDbPreview .db-config-icons .anticon-setting {
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.bg-white {
+  background-color: white;
+}
+.editor-tabs {
+  overflow: auto hidden;
+}
+
+/* Darken unselected tabs */
+.editor-tabs .ant-tabs-tab:not(.ant-tabs-tab-active) {
+  background-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Make selected tab name bolder */
+.editor-tabs .ant-tabs-tab-active {
+  font-weight: 600 !important;
+}
+.icon-text {
+  padding-inline-start: 2px;
+}
+
+/* Feature cards section */
+.feature-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin: 40px auto;
+  max-width: 900px;
+  padding: 0 16px;
+  width: 100%;
+}
+
+.feature-card {
+  background: var(--vscode-editor-background);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  position: relative;
+  border: none;
+  height: 100%;
+}
+
+.feature-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  padding: 1px;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.1),
+    rgba(255, 255, 255, 0)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.feature-icon {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 28px;
+}
+
+.feature-icon .anticon {
+  padding: 12px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.feature-card-1::before {
+  background: linear-gradient(135deg, #ff4b6e 0%, rgba(255, 75, 110, 0.2) 100%);
+}
+
+.feature-card-2::before {
+  background: linear-gradient(135deg, #ffb240 0%, rgba(255, 178, 64, 0.2) 100%);
+}
+
+.feature-card-3::before {
+  background: linear-gradient(135deg, #40ddff 0%, rgba(64, 221, 255, 0.2) 100%);
+}
+
+.feature-card-1 .feature-btn {
+  background: #ff4b6e !important;
+}
+
+.feature-card-2 .feature-btn {
+  background: #ffb240 !important;
+}
+
+.feature-card-3 .feature-btn {
+  background: #40ddff !important;
+}
+
+.feature-card-1 .feature-btn:hover {
+  background: #e63f5f !important;
+}
+
+.feature-card-2 .feature-btn:hover {
+  background: #e69e35 !important;
+}
+
+.feature-card-3 .feature-btn:hover {
+  background: #35bee6 !important;
+}
+
+.feature-card h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 12px;
+  color: var(--vscode-foreground);
+}
+
+.feature-card p {
+  font-size: 13px;
+  line-height: 1.5;
+  flex-grow: 1;
+  margin: 0 0 20px;
+}
+
+.feature-btn {
+  background: #4285f4 !important;
+  border: none !important;
+  height: 40px !important;
+  padding: 0 24px !important;
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+  margin-top: 20px;
+}
+
+.feature-btn:hover {
+  background: #3367d6 !important;
+  transform: translateY(-1px);
+}
+
+/* Specific icon styles */
+.chat-icon {
+  color: #4285f4;
+}
+
+.audio-icon {
+  color: #4285f4;
+}
+
+.plus-icon {
+  color: #4285f4;
+}
+
+.table-icon {
+  color: #4285f4;
+}
+
+.db-icon {
+  color: #4285f4;
+}
+
+.tree-container {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+.check-icon-green {
+  color: green;
+  margin-right: 10px;
+}
+
+.icon-highlight {
+  width: 25px;
+  height: 25px;
+  background-color: transparent;
+  display: grid;
+  place-items: center;
+  border-radius: 5px;
+}
+/* Reduce spacing between explorer action icons */
+.icon-highlight.ml-10 {
+  margin-left: 4px;
+}
+.icon-highlight:hover {
+  background-color: var(--hover-color);
+}
+
+.icon-highlight-active {
+  background-color: var(--hover-color) !important;
+}
+.seed-icon-disabled {
+  cursor: not-allowed;
+  color: gray;
+}
+
+.seed-icon {
+  cursor: pointer;
+  margin-left: 7px;
+}
+
+/* SQL Flow Explorer Panel */
+.sql-flow-explorer-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 24px;
+}
+
+.sql-flow-explorer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 200px;
+}
+
+.schema-select-dropdown .ant-dropdown-menu {
+  max-height: 300px;
+  overflow-y: auto;
+}

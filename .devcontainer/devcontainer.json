@@ -1,0 +1,71 @@
+{
+  "name": "Docker in Docker",
+  "build": {
+    "dockerfile": "../DevContainerDockerfile",
+    "context": ".."
+  },
+  "mounts": [
+    "type=bind,source=${localWorkspaceFolder},target=/home/vscode/workspaces/visitran",
+    "type=bind,source=/home/${localEnv:USER}/.ssh,target=/home/vscode/.ssh,readonly"
+  ],
+  "workspaceFolder": "/home/vscode/workspaces/visitran",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "installZsh": "true",
+      "version": "20.10",
+      "enableNonRootDocker": "true",
+      "moby": "true"
+    },
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "configureZshAsDefaultShell": "true",
+      "username": "vscode"
+    },
+    "ghcr.io/stuartleeks/dev-container-features/shell-history:0": {},
+    "ghcr.io/devcontainers-contrib/features/zsh-plugins:0": {
+      "plugins": "colored-man-pages jsontools zsh-autosuggestions zsh-syntax-highlighting",
+      "omzPlugins": "https://github.com/zsh-users/zsh-autosuggestions https://github.com/zsh-users/zsh-syntax-highlighting",
+      "username": "vscode"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "v18.14.2"
+    },
+    "ghcr.io/devcontainers/features/git-lfs:1": {}
+  },
+  "forwardPorts": [],
+  "postCreateCommand": "inv install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "GitHub.vscode-pull-request-github",
+        "bungcip.better-toml"
+      ],
+      "settings": {
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/bin/zsh"
+          }
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "python.linting.flake8Enabled": true,
+        "python.linting.enabled": true,
+        "python.formatting.provider": "black",
+        "editor.formatOnSave": true,
+        "python.linting.flake8Args": [
+          "--max-line-length=120"
+        ],
+        "python.testing.pytestArgs": [
+          "tests"
+        ],
+        "python.testing.unittestEnabled": false,
+        "python.testing.pytestEnabled": true,
+        "python.analysis.extraPaths": [
+          "./visitran_cli"
+        ],
+        "python.analysis.typeCheckingMode": "basic",
+        "python.linting.mypyEnabled": true
+      }
+    }
+  },
+  "remoteUser": "vscode"
+}

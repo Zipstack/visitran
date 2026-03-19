@@ -1,0 +1,774 @@
+syntax = "proto3";
+
+package proto_types;
+
+// Common event info
+message EventInfo {
+  string name = 1;
+  string code = 2;
+  string msg = 3;
+  string level = 4;
+  string invocation_id = 5;
+  int32 pid = 6;
+  string thread = 7;
+  string ts = 8;
+  map<string, string> extra = 9;
+  string category = 10;
+}
+
+// A - Pre-project loading
+
+// A001
+
+message MainReportVersion {
+  string version = 1;
+}
+
+
+message MainReportVersionMsg {
+  EventInfo info = 1;
+  MainReportVersion data = 2;
+}
+
+// A017
+
+message StarterProjectPath {
+  string dir = 1;
+}
+
+message StarterProjectPathMsg {
+  EventInfo info = 1;
+  StarterProjectPath data = 2;
+}
+
+// A018
+message ConfigFolderDirectory {
+  string dir = 1;
+}
+
+message ConfigFolderDirectoryMsg {
+  EventInfo info = 1;
+  ConfigFolderDirectory data = 2;
+}
+
+// A023
+message SettingUpProfile {
+}
+
+message SettingUpProfileMsg {
+  EventInfo info = 1;
+  SettingUpProfile data = 2;
+}
+
+// A024
+message InvalidProfileTemplateYAML {
+}
+
+message InvalidProfileTemplateYAMLMsg {
+  EventInfo info = 1;
+  InvalidProfileTemplateYAML data = 2;
+}
+
+// A025
+message ProjectFileAlreadyExists {
+  string name = 1;
+}
+
+message ProjectFileAlreadyExistsMsg {
+  EventInfo info = 1;
+  ProjectFileAlreadyExists data = 2;
+}
+
+// A026
+message ProjectCreated {
+  string project_name = 1;
+}
+
+message ProjectCreatedMsg {
+  EventInfo info = 1;
+  ProjectCreated data = 2;
+}
+
+// A027
+message SeedEventIntiated {
+  string seed_path = 1;
+}
+
+message SeedEventIntiatedMsg {
+  EventInfo info = 1;
+  SeedEventIntiated data = 2;
+}
+
+// A028
+message SeedFilesFound {
+  string sf_path = 1;
+  string schema_name = 2;
+  string database_type = 3;
+}
+
+message SeedFilesFoundMsg {
+  EventInfo info = 1;
+  SeedEventIntiated data = 2;
+}
+
+// A029
+message SnapshotEventIntiated {
+  string snp_path = 1;
+}
+
+message SnapshotEventIntiatedMsg {
+  EventInfo info = 1;
+  SnapshotEventIntiated data = 2;
+}
+
+// A030
+message SnapshotFilesFound {
+  string snp_path = 1;
+}
+
+message SnapshotFilesFoundMsg {
+  EventInfo info = 1;
+  SnapshotFilesFound data = 2;
+}
+
+// A031
+message IncludesExcludesList {
+  string includes = 1;
+  string excludes = 2;
+}
+
+message IncludesExcludesListMsg {
+  EventInfo info = 1;
+  IncludesExcludesList data = 2;
+}
+
+// E - DB Adapter
+
+// E001
+message AdapterEventDebug {
+  string name = 1;
+  string base_msg = 2;
+  repeated string args = 3;
+}
+
+message AdapterEventDebugMsg {
+  EventInfo info = 1;
+  AdapterEventDebug data = 2;
+}
+
+// E002
+message AdapterEventInfo {
+  string name = 1;
+  string base_msg = 2;
+  repeated string args = 3;
+}
+
+message AdapterEventInfoMsg {
+  EventInfo info = 1;
+  AdapterEventInfo data = 2;
+}
+
+// E003
+message AdapterEventWarning {
+  string name = 1;
+  string base_msg = 2;
+  repeated string args = 3;
+}
+
+message AdapterEventWarningMsg {
+  EventInfo info = 1;
+  AdapterEventWarning data = 2;
+}
+
+// E004
+message AdapterEventError {
+  string name = 1;
+  string base_msg = 2;
+  repeated string args = 3;
+  string exc_info = 4;
+}
+
+message AdapterEventErrorMsg {
+  EventInfo info = 1;
+  AdapterEventError data = 2;
+}
+
+message AdapterType {
+  string database_name = 1;
+}
+
+message AdapterTypeMsg {
+  EventInfo info = 1;
+  AdapterType data = 2;
+}
+
+// I - Project Parsing
+message SqlExecutionCompleted {
+}
+
+message SqlExecutionCompletedMsg {
+  EventInfo info = 1;
+  SqlExecutionCompleted data = 2;
+}
+
+message IntiatingRunExecution {
+  string model_path = 1;
+}
+
+message IntiatingRunExecutionMsg {
+  EventInfo info = 1;
+  IntiatingRunExecution data = 2;
+}
+
+message FoundModels {
+  string mf = 1;
+}
+
+message FoundModelsMsg {
+  EventInfo info = 1;
+  FoundModels data = 2;
+}
+
+message ImportModelsFailed {
+  string file_name = 1;
+  string err = 2;
+}
+
+message ImportModelsFailedMsg {
+  EventInfo info = 1;
+  ImportModelsFailed data = 2;
+}
+
+message ProcessingModel {
+  string cls = 1;
+}
+
+message ProcessingModelMsg {
+  EventInfo info = 1;
+  ProcessingModel data = 2;
+}
+
+message ProcessingDAG {
+  string dest_table = 1;
+}
+
+message ProcessingDAGMsg {
+  EventInfo info = 1;
+  ProcessingDAG data = 2;
+}
+
+message ObjectForClassNotFound {
+  string base = 1;
+  string values = 2;
+}
+
+message ObjectForClassNotFoundMsg {
+  EventInfo info = 1;
+  ObjectForClassNotFound data = 2;
+}
+message FoundBaseClass {
+  string bases = 1;
+}
+
+message FoundBaseClassMsg {
+  EventInfo info = 1;
+  FoundBaseClass data = 2;
+}
+
+message ExecutingModelNode {
+  string database = 1;
+  string database_type = 2;
+  string destination_schema_name = 3;
+  bool destination_table_exists = 4;
+  string destination_table_name = 5;
+  string destination_table_obj = 6;
+  string materialization = 7;
+  string select_statement = 8;
+  string source_schema_name = 9;
+  string source_table_name = 10;
+  string source_table_obj = 11;
+}
+
+message ExecutingModelNodeMsg {
+  EventInfo info = 1;
+  ExecutingModelNode data = 2;
+}
+
+message ExecutingSnapshotNode {
+  string database = 1;
+  string database_type = 2;
+  string source_table_name = 3;
+  string source_schema_name = 4;
+  string snapshot_table_name = 5;
+  string snapshot_schema_name = 6;
+  string unique_key = 7;
+  string strategy = 8;
+  string updated_at = 9;
+  repeated string check_cols = 10;
+  bool invalidate_hard_deletes = 11;
+}
+
+message ExecutingSnapshotNodeMsg {
+  EventInfo info = 1;
+  ExecutingSnapshotNode data = 2;
+}
+
+message NodeExecutionError {
+  string dest_table = 1;
+  string err = 2;
+}
+
+message NodeExecutionErrorMsg {
+  EventInfo info = 1;
+  NodeExecutionError data = 2;
+}
+
+message IncludeExcludeError {
+  string includes = 1;
+  string excludes = 2;
+  string err = 3;
+}
+
+message IncludeExcludeErrorMsg {
+  EventInfo info = 1;
+  IncludeExcludeError data = 2;
+}
+
+// Z017
+message Formatting {
+  string msg = 1;
+}
+
+message FormattingMsg {
+  EventInfo info = 1;
+  Formatting data = 2;
+}
+
+// Z002
+message SeedExecutionCompleted {
+}
+
+message SeedExecutionCompletedMsg {
+  EventInfo info = 1;
+  SeedExecutionCompleted data = 2;
+}
+
+// Z008
+message SnapshotExecutionCompleted {
+}
+
+message SnapshotExecutionCompletedMsg {
+  EventInfo info = 1;
+  SnapshotExecutionCompleted data = 2;
+}
+
+message SortedDAGNodes {
+  string sorted_dag_nodes = 1;
+}
+
+message SortedDAGNodesMsg {
+  EventInfo info = 1;
+  SortedDAGNodes data = 2;
+}
+
+message FoundModelSubClass {
+  string cls_str = 1;
+}
+
+message FoundModelSubClassMsg {
+  EventInfo info = 1;
+  FoundModelSubClass data = 2;
+}
+
+message FoundModelClass {
+  string cls_str = 1;
+}
+
+message FoundModelClassMsg {
+  EventInfo info = 1;
+  FoundModelClass data = 2;
+}
+
+message ExecutingTests {
+  string test_name = 1;
+  string test_path = 2;
+  string database = 3;
+  string database_type = 4;
+  string connection_string = 5;
+  string destination_schema_name = 6;
+  string destination_table_name = 7;
+  string materialization = 8;
+  string source_schema_name = 9;
+  string source_table_name = 10;
+}
+
+message ExecutingTestsMsg {
+  EventInfo info = 1;
+  ExecutingTests data = 2;
+}
+
+message FoundTestModels {
+  string test_path = 1;
+}
+
+message FoundTestModelsMsg {
+  EventInfo info = 1;
+  FoundTestModels data = 2;
+}
+
+message TestExecutionCompleted {
+}
+
+message TestExecutionCompletedMsg {
+  EventInfo info = 1;
+  TestExecutionCompleted data = 2;
+}
+
+message TestExecutionFailed {
+  string err = 1;
+  string test_path = 2;
+  string class_name = 3;
+  string test_func = 4;
+}
+
+message TestExecutionFailedMsg {
+  EventInfo info = 1;
+  TestExecutionFailed data = 2;
+}
+
+message MaterializationType {
+  string materialization = 1;
+}
+
+message MaterializationTypeMsg {
+  EventInfo info = 1;
+  MaterializationType data = 2;
+}
+
+message ModelAlreadyProcessed {
+  string cls = 1;
+}
+
+message ModelAlreadyProcessedMsg {
+  EventInfo info = 1;
+  ModelAlreadyProcessed data = 2;
+}
+
+//  bigquery
+message UsingCachedObject {
+  string objname = 1;
+  bool is_cached = 2;
+}
+
+message UsingCachedObjectMsg {
+  EventInfo info = 1;
+  UsingCachedObject data = 2;
+}
+
+message ReadConnectionDetails {
+  string dbname = 1;
+  map<string, string> details = 2;
+}
+
+message ReadConnectionDetailsMsg {
+  EventInfo info = 1;
+  ReadConnectionDetails data = 2;
+}
+
+message ExecutingQuery {
+  string query = 1;
+}
+message ExecutingQueryMsg {
+  EventInfo info = 1;
+  ExecutingQuery data = 2;
+}
+
+message SetExpiration {
+  string schema_name = 1;
+  string table_name = 2;
+  int64 expiration = 3;
+}
+
+message SetExpirationMsg {
+  EventInfo info = 1;
+  SetExpiration data = 2;
+}
+
+message GetTableObject {
+  string schema_name = 1;
+  string table_name = 2;
+}
+message GetTableObjectMsg {
+  EventInfo info = 1;
+  GetTableObject data = 2;
+}
+
+message GetTableColumns {
+  string schema_name = 1;
+  string table_name = 2;
+  repeated string columns = 3;
+}
+message GetTableColumnsMsg {
+  EventInfo info = 1;
+  GetTableColumns data = 2;
+}
+
+message TableExists {
+  string schema_name = 1;
+  string table_name = 2;
+  bool exists = 3;
+}
+message TableExistsMsg {
+  EventInfo info = 1;
+  TableExists data = 2;
+}
+
+message ListAllTables {
+  string schema_name = 1;
+  repeated string tables = 2;
+}
+message ListAllTablesMsg {
+  EventInfo info = 1;
+  ListAllTables data = 2;
+}
+
+message GetRowCount {
+  string schema_name = 1;
+  string table_name = 2;
+  int64 row_count = 3;
+}
+message GetRowCountMsg {
+  EventInfo info = 1;
+  GetRowCount data = 2;
+}
+
+message GetTableRecords {
+  string schema_name = 1;
+  string table_name = 2;
+}
+message GetTableRecordsMsg {
+  EventInfo info = 1;
+  GetTableRecords data = 2;
+}
+
+message InsertInToTable {
+  string schema_name = 1;
+  string table_name = 2;
+}
+message InsertInToTableMsg {
+  EventInfo info = 1;
+  InsertInToTable data = 2;
+}
+
+message MergeInToTable {
+  string schema_name = 1;
+  string table_name = 2;
+  string temp_table_name = 3;
+}
+message MergeInToTableMsg {
+  EventInfo info = 1;
+  MergeInToTable data = 2;
+}
+
+message ExecuteEphemeral {
+  string schema_name = 1;
+  string table_name = 2;
+}
+message ExecuteEphemeralMsg {
+  EventInfo info = 1;
+  ExecuteEphemeral data = 2;
+}
+
+message ExecuteTable {
+  string schema_name = 1;
+  string table_name = 2;
+}
+message ExecuteTableMsg {
+  EventInfo info = 1;
+  ExecuteTable data = 2;
+}
+
+message ExecuteView {
+  string schema_name = 1;
+  string table_name = 2;
+}
+message ExecuteViewMsg {
+  EventInfo info = 1;
+  ExecuteView data = 2;
+}
+
+message ExecuteIncrementalCreate {
+  string schema_name = 1;
+  string table_name = 2;
+}
+message ExecuteIncrementalCreateMsg {
+  EventInfo info = 1;
+  ExecuteIncrementalCreate data = 2;
+}
+
+message ExecuteIncrementalUpdate {
+  string schema_name = 1;
+  string table_name = 2;
+}
+message ExecuteIncrementalUpdateMsg {
+  EventInfo info = 1;
+  ExecuteIncrementalUpdate data = 2;
+}
+
+message DoesNotExistError {
+  string object_name = 1;
+}
+
+message DoesNotExistErrorMsg {
+  EventInfo info = 1;
+  DoesNotExistError data = 2;
+}
+
+message NotSupportedError {
+  string action = 1;
+  string connector = 2;
+}
+
+message NotSupportedErrorMsg {
+  EventInfo info = 1;
+  NotSupportedError data = 2;
+}
+
+message EmptyFileError {
+  string file = 1;
+}
+
+message EmptyFileErrorMsg {
+  EventInfo info = 1;
+  EmptyFileError data = 2;
+}
+
+message HyphenDebugger {
+}
+
+message HyphenDebuggerMsg {
+  EventInfo info = 1;
+  HyphenDebugger data = 2;
+}
+
+message ListOfInstalledAdapters {
+  string db_list = 1;
+}
+
+message ListOfInstalledAdaptersMsg {
+  EventInfo info = 1;
+  ListOfInstalledAdapters data = 2;
+}
+
+message ConfigurationFileNotFound {
+  string file = 1;
+}
+
+message ConfigurationFileNotFoundMsg {
+  EventInfo info = 1;
+  ConfigurationFileNotFound data = 2;
+}
+
+message SkipExecution {
+  string filename = 1;
+}
+
+message SkipExecutionMsg {
+  EventInfo info = 1;
+  SkipExecution data = 2;
+}
+
+message SummaryReport {
+  string node_name= 1;
+  string status= 2;
+  string info_message= 3;
+  bool failures= 4;
+  string starting_time= 5;
+  string ending_time= 6;
+  int32 sequence_num = 7;
+  string end_status = 8;
+  int32 total_count = 9;
+
+}
+
+message SummaryReportMsg {
+  EventInfo info = 1;
+  SummaryReport data = 2;
+}
+
+
+message EndSummaryReportCounts {
+  int32 pass_count = 1;
+  int32 warn_count = 2;
+  int32 error_count = 3;
+  int32 skip_count = 4;
+  int32 total_count = 5;
+}
+
+message EndSummaryReportCountsMsg {
+  EventInfo info = 1;
+  SkipExecution data = 2;
+}
+
+message ProjectAlreadyExistsInProfile {
+  string project_name = 1;
+  string profile_name = 2;
+}
+
+message ProjectAlreadyExistsInProfileMsg {
+  EventInfo info = 1;
+  ProjectAlreadyExistsInProfile data = 2;
+}
+
+message ProjectAlreadyExistsOrNoPermission {
+  string project_name = 1;
+  string project_path = 2;
+}
+
+message ProjectAlreadyExistsOrNoPermissionMsg {
+  EventInfo info = 1;
+  ProjectAlreadyExistsOrNoPermission data = 2;
+}
+
+message SeedReport {
+  string seed_path= 1;
+  string schema_name= 2;
+  string status= 3;
+}
+
+message SeedReportMsg {
+  EventInfo info = 1;
+  SeedReport data = 2;
+}
+
+message SnapshotReport {
+  string source_table= 1;
+  string status= 2;
+  string unique_key= 3;
+}
+
+message SnapshotReportMsg {
+  EventInfo info = 1;
+  SnapshotReport data = 2;
+}
+
+
+message SeedExecutionError {
+  string file_name = 1;
+  string err = 2;
+}
+
+message SeedExecutionErrorMsg {
+  EventInfo info = 1;
+  SeedExecutionError data = 2;
+}
+
+message BulkExecuteError {
+  string query = 1;
+  string err = 2;
+}
+
+message BulkExecuteErrorMsg {
+  EventInfo info = 1;
+  BulkExecuteError data = 2;
+}

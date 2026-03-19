@@ -1,0 +1,111 @@
+import re
+import ibis
+from ibis import _
+from ibis.expr.types.relations import Table
+from ibis.common.exceptions import IbisTypeError
+from formulasql.formulasql import FormulaSQL
+
+from visitran.errors import ColumnNotExist
+from visitran.errors import TransformationFailed
+from visitran.errors import SynthesisColumnNotExist
+from visitran.templates.model import VisitranModel
+from visitran.materialization import Materialization
+
+from {{ model_path }}.models.dev_payments import DevPayments
+
+
+
+MODEL_NAME = "stg_payments_by_type"
+
+class StgOrderPayments(DevPayments):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "dev"
+        self.source_table_name = "payments"
+        self.destination_schema_name = "stg"
+        self.destination_table_name = "order_payments"
+        self.database = "default_org__js_db_f_2025_06_27_16_58_684329b3"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class StgPaymentsByType(StgOrderPayments):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.TABLE
+        self.destination_schema_name = "stg"
+        self.destination_table_name = "order_payments"
+        self.database = "default_org__js_db_f_2025_06_27_16_58_684329b3"
+
+    def select(self) -> Table:
+        stg_order_payments: Table = StgOrderPayments().select()
+        source_table = stg_order_payments
+
+        # Processing Formula columns statements
+        # The transformation ID is type_synthesize_0
+        self.save_table_columns(transformation_id="type_synthesize_0", table_obj=source_table)
+        try:
+            source_table = source_table.mutate(FormulaSQL(source_table, 'credit_card_amount', '=IF(payment_method="credit_card",amount_in_dollars,0)').ibis_column())
+            source_table = source_table.mutate(FormulaSQL(source_table, 'coupon_amount', '=IF(payment_method = "coupon",amount_in_dollars,0)').ibis_column())
+            source_table = source_table.mutate(FormulaSQL(source_table, 'bank_transfer_amount', '=IF(payment_method ="bank_transfer",amount_in_dollars,0)').ibis_column())
+            source_table = source_table.mutate(FormulaSQL(source_table, 'gift_card_amount', '=IF(payment_method = "gift_card",amount_in_dollars,0)').ibis_column())
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise SynthesisColumnNotExist(
+                    column_name=match.group(1),
+                    model_name=MODEL_NAME,
+                    transformation_name="formula column"
+                )
+            raise TransformationFailed(
+                transformation_name="formula columns",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="formula columns",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+
+        # Processing Groups and aggregations statements
+        # The transformation ID is groups_and_aggregation_1
+        self.save_table_columns(transformation_id="groups_and_aggregation_1", table_obj=source_table)
+        try:
+            source_table = source_table.group_by([source_table['order_id']]).aggregate([_['credit_card_amount'].sum().name('credit_card_amount_total'), _['coupon_amount'].sum().name('coupon_total'), _['bank_transfer_amount'].sum().name('transaction_total'), _['gift_card_amount'].sum().name('gift_card_amount_total'), _['amount_in_dollars'].sum().name('total_amount_in_dollars')])
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(
+                    column_name=match.group(1),
+                    model_name=MODEL_NAME,
+                    transformation_name="groups and aggregations"
+                )
+            raise TransformationFailed(
+                transformation_name="groups",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="groups",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+
+        # Processing sort statements
+        try:
+            source_table = source_table.order_by([ibis.asc("order_id")])
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(column_name=match.group(1), model_name=MODEL_NAME, transformation_name="sort")
+            raise TransformationFailed(transformation_name="sort", model_name=MODEL_NAME, error_message=str(error)) from error
+        except Exception as error:
+            raise TransformationFailed(transformation_name="sort", model_name=MODEL_NAME, error_message=str(error)) from error
+
+        return source_table

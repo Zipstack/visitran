@@ -1,0 +1,4 @@
+{
+  "project_name": "duckdbuitest",
+  "yaml": "destination:\n  table_name: failure_and_rollback\npresentation:\n  columns:\n  - '*'\n  sort:\n  - column: avg_salary\n    order_by: ASC\nsource:\n  materialization: TABLE\n  table_name: employee\ntransform:\n  aggregate:\n    aggregate_columns:\n    - alias: avg_salary\n      column: salary\n      function: AVG\n  group:\n  - profession\n  union:\n    ignore_duplicate: false\n"
+}

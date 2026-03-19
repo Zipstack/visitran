@@ -1,0 +1,104 @@
+# Visitran OSS — Docker Compose
+#
+# Quick start:
+#   cd docker
+#   cp ../backend/sample.env ../backend/.env
+#   # Edit .env: set SECRET_KEY, VISITRAN_ENCRYPTION_KEY
+#   docker compose up --build -d
+#
+# Open: http://localhost:3000
+
+name: visitran
+
+services:
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/dockerfiles/frontend.Dockerfile
+    container_name: visitran-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  backend:
+    build:
+      context: ..
+      dockerfile: docker/dockerfiles/backend.Dockerfile
+    container_name: visitran-backend
+    restart: unless-stopped
+    command: migrate
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../backend/.env
+    depends_on:
+      - postgres
+      - redis
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  celery-worker:
+    build:
+      context: ..
+      dockerfile: docker/dockerfiles/backend.Dockerfile
+    container_name: visitran-celery-worker
+    restart: unless-stopped
+    entrypoint: .venv/bin/celery
+    command: "-A backend worker --loglevel=info -Q celery --concurrency=2"
+    env_file:
+      - ../backend/.env
+    volumes:
+      - ./workflow_data:/data
+    depends_on:
+      backend:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  celery-beat:
+    build:
+      context: ..
+      dockerfile: docker/dockerfiles/backend.Dockerfile
+    container_name: visitran-celery-beat
+    restart: unless-stopped
+    entrypoint: .venv/bin/celery
+    command: "-A backend beat --scheduler django_celery_beat.schedulers:DatabaseScheduler -l INFO"
+    env_file:
+      - ../backend/.env
+    depends_on:
+      backend:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  redis:
+    image: redis:7-alpine
+    container_name: visitran-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: visitran-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

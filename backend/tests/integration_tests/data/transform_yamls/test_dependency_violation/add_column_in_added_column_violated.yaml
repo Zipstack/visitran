@@ -1,0 +1,17 @@
+destination:
+  table_name: add_column_in_added_column
+presentation:
+  columns:
+    - '*'
+source:
+  materialization: TABLE
+  table_name: employee
+transform:
+  synthesize:
+    columns:
+      - column_name: capital_name_job
+        operation:
+          formula: CONCAT(capitalize_name," ",profession)
+        type: FORMULA
+  union:
+    ignore_duplicate: false

@@ -1,0 +1,43 @@
+{
+  "table_name": "employee",
+  "schema_name": "default",
+  "column_description": {
+    "id": {
+      "column_name": "id",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "name": {
+      "column_name": "name",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "age": {
+      "column_name": "age",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "profession": {
+      "column_name": "profession",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "salary": {
+      "column_name": "salary",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    }
+  },
+  "column_names": [
+    "id",
+    "name",
+    "age",
+    "profession",
+    "salary"
+  ]
+}

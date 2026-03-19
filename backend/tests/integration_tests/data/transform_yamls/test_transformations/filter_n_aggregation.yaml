@@ -1,0 +1,30 @@
+source:
+  table_name: employee
+  materialization: TABLE
+destination:
+  table_name: filter_n_aggregation
+presentation:
+  columns:
+    - '*'
+transform:
+  filter:
+    criteria:
+      - condition:
+          lhs:
+            type: COLUMN
+            column:
+              table_name: filter_n_aggregation
+              column_name: age
+              data_type: Number
+          operator: EQ
+          rhs:
+            type: VALUE
+            value:
+              - 25
+  aggregate:
+      aggregate_columns:
+        - alias: avg_salary
+          column: salary
+          function: AVG
+  group:
+    - profession

@@ -1,0 +1,18 @@
+{
+  "reference": [],
+  "source": {
+    "schema_name": null,
+    "table_name": null,
+    "materialization": "TABLE"
+  },
+  "model": {
+    "schema_name": null,
+    "table_name": null
+  },
+  "presentation": {
+    "hidden_columns": ["*"],
+    "sort": []
+  },
+  "transform_order": [],
+  "transform": {}
+}

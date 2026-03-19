@@ -1,0 +1,22 @@
+name: 'Setup Python'
+description: 'Prints a greeting message'
+inputs:
+  python-version:
+    required: true
+    type: string
+    description: 'The version of Python to use'
+
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ inputs.python-version }}
+    - uses: astral-sh/setup-uv@v4
+      with:
+        python-version: ${{ inputs.python-version }}
+        enable-cache: true
+        cache-dependency-path: ./uv.lock
+    - name: Install visitran-cloud dependencies
+      shell: bash
+      run: uv sync

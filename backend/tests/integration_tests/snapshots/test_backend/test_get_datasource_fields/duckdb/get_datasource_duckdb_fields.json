@@ -1,0 +1,15 @@
+{
+  "datasource_name": "duckdb",
+  "datasource_fields": [
+    "file_path"
+  ],
+  "datasource_field_details": [
+    {
+      "helptext": "Enter duckdb db path or press enter to use default.",
+      "type": "file",
+      "default": "",
+      "is_required": false,
+      "label": "file_path"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+source:
+  table_name: employee
+  materialization: TABLE
+destination:
+  table_name: add_column
+presentation:
+  columns:
+    - '*'
+transform:
+  synthesize:
+    columns:
+      - column_name: job_name
+        type: FORMULA
+        operation:
+          formula: CONCAT(IFNA(profession,"CEO")," ",name)

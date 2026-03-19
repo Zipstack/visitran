@@ -1,0 +1,104 @@
+.dbConfigPreview {
+  display: grid;
+  grid-template-columns: 1fr auto;
+}
+
+.modalField {
+  display: grid;
+  row-gap: 4px;
+}
+
+.twoColumnField {
+  display: inline-block;
+  width: 25%;
+}
+.twoColumnField:nth-child(2) {
+  width: 70%;
+  margin-inline-end: 20px;
+}
+
+.marginBtm12 {
+  margin-block-end: 12px;
+}
+
+.dbConfigFooter {
+  display: flex;
+  justify-content: right;
+  width: auto;
+}
+
+/* Pulse animation for badge dot css starts */
+.dbConfigPreview .ant-badge-dot.ant-badge-status-success {
+  animation: pulse 1s ease infinite;
+  transform-origin: unset;
+  box-shadow: unset;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1.3);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+/* Pulse animation for badge dot css ends */
+
+.db-preview-wrap {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.db-preview-wrap-name {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  align-items: center;
+}
+
+.db-preview-name-typography {
+  flex: 1;
+  overflow: hidden;
+}
+
+.db-config-icons {
+  display: flex;
+  align-items: center;
+}
+
+.db-visualizer-icon {
+  position: relative;
+  cursor: pointer;
+}
+
+.db-visualizer-icon .anticon-line-chart {
+  color: var(--black);
+  margin-right: 10px;
+}
+
+.db-config-icons .anticon-setting {
+  color: var(--black);
+}
+
+.db-visualizer-tooltip {
+  position: absolute;
+  top: -30px;
+  right: 0;
+  background-color: var(--vscode-editor-background, #1e1e1e);
+  color: var(--vscode-foreground, #d4d4d4);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}

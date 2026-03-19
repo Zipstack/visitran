@@ -1,0 +1,17 @@
+source:
+  table_name: employee
+  materialization: TABLE
+destination:
+  table_name: conflicting_column
+presentation:
+  columns:
+    - '*'
+transform:
+  synthesize:
+    columns:
+      - column_name: age
+        type: FORMULA
+        operation:
+          formula: ABS(age)
+  union:
+    ignore_duplicate: false

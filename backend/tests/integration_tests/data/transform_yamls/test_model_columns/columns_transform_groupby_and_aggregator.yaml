@@ -1,0 +1,18 @@
+destination:
+  table_name: columns_transform_groupby_and_aggregator
+presentation:
+  columns:
+  - '*'
+source:
+  materialization: TABLE
+  table_name: employee
+transform:
+  group:
+    - profession
+  aggregate:
+    aggregate_columns:
+      - alias: avg_salary
+        column: salary
+        function: AVG
+  union:
+    ignore_duplicate: false

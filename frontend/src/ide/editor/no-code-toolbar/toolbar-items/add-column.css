@@ -1,0 +1,97 @@
+.formulaListWrapper {
+  height: 100px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border-color-3);
+  background-color: var(--page-bg-2);
+  overflow: auto;
+  padding: 8px;
+}
+.formulaListItem {
+  width: 100%;
+  display: flex;
+  justify-content: flex-start;
+  padding: 0px 2px;
+  cursor: pointer;
+}
+.descriptionBox {
+  border: 1px solid var(--border-color-3);
+  background: var(--page-bg-2);
+  height: 110px;
+  padding: 8px;
+  overflow: auto;
+}
+.btnWrap {
+  display: flex;
+  width: 100%;
+  justify-content: flex-end;
+  padding-bottom: 20px;
+}
+.formulaListItem:hover {
+  background-color: var(--hover-color);
+}
+
+.history-box {
+  /* max-height: 100px; */
+  overflow-y: auto;
+  border: 1px solid var(--border-color-3);
+  padding: 10px;
+  border-radius: 4px;
+  background: var(--page-bg-2);
+  width: 100%;
+  margin-bottom: 15px;
+  height: 212px;
+}
+
+.helpInfo {
+  padding-left: 5px;
+  color: #f5f5dc78;
+}
+.helpClose {
+  color: #f5f5dc78;
+  display: flex;
+  justify-content: end;
+  padding: 8px;
+}
+
+.action {
+  display: flex;
+  gap: 15px;
+}
+.helper-text {
+  font-size: 16px;
+  color: grey;
+  margin: -5px 0px 5px 0px;
+}
+
+/* Window function form styles */
+.window-function-form {
+  padding: 0;
+}
+
+.order-by-list {
+  margin-bottom: 10px;
+}
+
+.order-by-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.order-by-item .ant-select {
+  min-width: 100px;
+}
+
+/* Row styling for column types in the table */
+.formula-row {
+  background-color: var(--page-bg-2);
+}
+
+.window-row {
+  background-color: rgba(99, 179, 237, 0.15); /* Light blue tint for window functions */
+}
+
+.window-row:hover td {
+  background-color: rgba(99, 179, 237, 0.25) !important;
+}

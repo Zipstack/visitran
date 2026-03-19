@@ -1,0 +1,35 @@
+{
+  "datasource_name": "bigquery",
+  "datasource_fields": [
+    "project_id",
+    "dataset_id",
+    "auth_external_data",
+    "partition_column"
+  ],
+  "datasource_field_details": [
+    {
+      "helptext": "project_id (A BigQuery project id)",
+      "type": "text",
+      "is_required": true,
+      "label": "project_id"
+    },
+    {
+      "helptext": "dataset_id (a dataset inside above project)",
+      "type": "text",
+      "is_required": true,
+      "label": "dataset_id"
+    },
+    {
+      "helptext": "auth_external_data (additional scopes required to query external data sources)",
+      "type": "boolean",
+      "default": false,
+      "label": "auth_external_data"
+    },
+    {
+      "helptext": "partition_column (Identifier to use instead of default _PARTITIONTIME partition column.)",
+      "default": "PARTITIONTIME",
+      "type": "text",
+      "label": "partition_column"
+    }
+  ]
+}

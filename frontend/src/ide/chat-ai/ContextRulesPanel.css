@@ -1,0 +1,205 @@
+/* Context Rules Panel Styles - Multi-level Drawer */
+.context-rules-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.context-rules-backdrop.visible {
+  opacity: 1;
+  visibility: visible;
+}
+
+.context-rules-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 400px;
+  height: 100%;
+  z-index: 1001;
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  visibility: hidden;
+  opacity: 0;
+}
+
+.context-rules-panel.visible {
+  transform: translateX(0);
+  visibility: visible;
+  opacity: 1;
+}
+
+.context-rules-panel.light {
+  background-color: #ffffff;
+  border-right: 1px solid #e5e7eb;
+}
+
+.context-rules-panel.dark {
+  background-color: #111827;
+  border-right: 1px solid #374151;
+}
+
+.context-rules-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  border-bottom: 1px solid;
+  flex-shrink: 0;
+}
+
+.context-rules-panel.light .context-rules-header {
+  border-bottom-color: #e5e7eb;
+  background-color: #ffffff;
+}
+
+.context-rules-panel.dark .context-rules-header {
+  border-bottom-color: #374151;
+  background-color: #111827;
+}
+
+.context-rules-header .close-button {
+  color: inherit;
+  border: none;
+  background: transparent;
+}
+
+.context-rules-header .close-button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.context-rules-panel.dark .context-rules-header .close-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.context-rules-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.context-rules-tabs {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 24px;
+}
+
+.context-rules-panel.light .context-rules-tabs {
+  background-color: #ffffff;
+}
+
+.context-rules-panel.dark .context-rules-tabs {
+  background-color: #111827;
+}
+
+.context-rules-tabs .ant-tabs-content-holder {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.context-rules-tabs .ant-tabs-tabpane {
+  height: 100%;
+}
+
+.context-rules-panel.light .context-rules-tabs .ant-tabs-tab {
+  color: #6b7280;
+}
+
+.context-rules-panel.dark .context-rules-tabs .ant-tabs-tab {
+  color: #9ca3af;
+}
+
+.context-rules-panel.light .context-rules-tabs .ant-tabs-tab-active {
+  color: #7c3aed;
+}
+
+.context-rules-panel.dark .context-rules-tabs .ant-tabs-tab-active {
+  color: #a855f7;
+}
+
+.context-rules-panel.light .context-rules-tabs .ant-tabs-ink-bar {
+  background-color: #7c3aed;
+}
+
+.context-rules-panel.dark .context-rules-tabs .ant-tabs-ink-bar {
+  background-color: #a855f7;
+}
+
+.context-rules-footer {
+  border-top: 1px solid;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.context-rules-panel.light .context-rules-footer {
+  border-top-color: #e5e7eb;
+  background-color: #ffffff;
+}
+
+.context-rules-panel.dark .context-rules-footer {
+  border-top-color: #374151;
+  background-color: #111827;
+}
+
+/* Responsive adjustments for multi-level drawer */
+@media (max-width: 768px) {
+  .context-rules-panel {
+    width: 100%;
+  }
+}
+
+/* Tab styling to match Visitran theme */
+.context-rules-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #1890ff !important;
+}
+
+.context-rules-tabs .ant-tabs-ink-bar {
+  background-color: #1890ff !important;
+}
+
+/* Smooth scrollbar for content */
+.context-rules-tabs .ant-tabs-content-holder::-webkit-scrollbar {
+  width: 6px;
+}
+
+.context-rules-tabs .ant-tabs-content-holder::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.context-rules-tabs .ant-tabs-content-holder::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.context-rules-panel.dark .context-rules-tabs .ant-tabs-content-holder::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.context-rules-tabs .ant-tabs-content-holder::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.context-rules-panel.dark .context-rules-tabs .ant-tabs-content-holder::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Character counter styles */
+.character-counter {
+  margin-top: 8px;
+  text-align: left;
+}

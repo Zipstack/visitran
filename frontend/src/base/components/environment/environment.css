@@ -1,0 +1,250 @@
+.flex-center {
+  display: flex;
+  align-items: center;
+}
+
+.dFlex {
+  display: flex;
+}
+.dFlexJustifyBetween {
+  display: flex;
+  justify-content: space-between;
+}
+.w-150px {
+  width: 150px;
+}
+
+.ml5 {
+  margin-left: 5px;
+}
+.height-100 {
+  height: 100%;
+}
+.flex-direction-column {
+  display: flex;
+  flex-direction: column;
+}
+.buttonContainer {
+  margin-top: 18px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.envMainContainer {
+  width: 100%;
+  border: 1px solid var(--border-color-4);
+  border-radius: 5px;
+  max-height: 600px;
+  overflow-y: scroll;
+}
+.envMainWrap {
+  padding: 18px;
+}
+
+.envBtnWrap {
+  display: flex;
+  justify-content: flex-end;
+}
+.fieldWrap {
+  display: flex;
+  width: 35%;
+  justify-content: space-between;
+  margin: 16px 0px;
+  align-items: center;
+}
+.fieldName {
+  text-align: left;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--black);
+}
+.questionicon {
+  margin: 0px 10px 0px 10px;
+  color: var(--question-icon);
+}
+.fieldCategory {
+  padding: 14px;
+  border-bottom: 1px solid #d9d9d9;
+}
+.categoryLabel {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--black);
+}
+.connection_name_wrap {
+  margin: 18px 0px;
+}
+.custom_data_icons {
+  width: 30%;
+  display: flex;
+  justify-content: flex-start;
+}
+.icon_style {
+  margin: 0px 10px;
+  color: var(--black);
+}
+
+.custom_value_wrap {
+  display: flex;
+  width: 70%;
+}
+.createConnectionContainer {
+  width: 100%;
+  height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+.createConnectionBody {
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--border-color-4);
+  border-radius: 5px;
+}
+.createConnectionBody2 {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.createConnectionSection {
+  padding: 18px;
+}
+.deploymentCredSection {
+  padding: 18px;
+}
+.deploymentCredSectionBorder {
+  border: 1px solid var(--border-color-4);
+  border-radius: 5px;
+}
+.createConnectionSectionDivider {
+  border-right: 1px solid var(--border-color-4);
+}
+.sectionTitle {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+.credentialsTitleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.formFieldsWrapper {
+  padding-top: 9px;
+  width: 100%;
+}
+.formFieldFull {
+  width: 100%;
+}
+.credentialsFieldsContainer {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+}
+.credentialFieldBox {
+  width: 45%;
+}
+.field {
+  margin: 5px 0;
+  width: 100%;
+}
+.fieldSelect {
+  width: 100%;
+  margin: 5px 0;
+}
+.fieldName {
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+.connectionUsageSection {
+  width: 100%;
+}
+.usageWrapper {
+  display: flex;
+  flex-direction: column;
+}
+.usageRow {
+  display: flex;
+  margin: 10px 0;
+}
+.usageLabel {
+  width: 100px;
+  font-weight: 500;
+}
+.usageTags {
+  flex: 1;
+}
+.footerContainer {
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.footerBtnRight {
+  display: flex;
+  gap: 8px;
+}
+.createConnectionBtn {
+  margin-left: 10px;
+}
+.dataSourceItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dataSourceImg {
+  width: 20px;
+  height: 20px;
+}
+.spinnerContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+.compactForm .ant-form-item {
+  margin-bottom: 0px !important;
+}
+.compactForm fieldset {
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  width: 100%;
+}
+.border {
+  border: 1px solid green;
+}
+.envListContainer {
+  background-color: var(--white);
+}
+.envTable {
+  width: 98%;
+  margin: 0px 16px;
+}
+.red {
+  color: red;
+}
+.myHeading {
+  font-weight: 600;
+  font-size: 16px;
+}
+.listPageTopbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 12px;
+  padding: 20px 0;
+  background-color: var(--white);
+}
+.listPageTopbar .myHeading {
+  margin: 0;
+  white-space: nowrap;
+}
+.mr10 {
+  margin-right: 10px;
+}

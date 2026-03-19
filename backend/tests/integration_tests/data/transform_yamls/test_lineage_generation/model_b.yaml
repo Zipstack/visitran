@@ -1,0 +1,11 @@
+destination:
+  table_name: employee_home_tr
+presentation:
+  columns:
+    - '*'
+source:
+  materialization: TABLE
+  table_name: employee_home
+transform:
+  union:
+    ignore_duplicate: false

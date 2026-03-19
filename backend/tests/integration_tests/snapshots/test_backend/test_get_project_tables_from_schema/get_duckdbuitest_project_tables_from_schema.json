@@ -1,0 +1,15 @@
+{
+  "schema_name": "default",
+  "table_description": {
+    "employee": [
+      "employee"
+    ],
+    "employee_home": [
+      "employee_home"
+    ]
+  },
+  "table_names": [
+    "default.employee",
+    "default.employee_home"
+  ]
+}

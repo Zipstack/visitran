@@ -1,0 +1,30 @@
+{
+  "model_name": "payment_amount_summary",
+  "model_data": {
+    "source": {
+      "schema_name": "raw",
+      "table_name": "payment",
+      "materialization": "TABLE"
+    },
+    "model": {
+      "schema_name": "dev",
+      "table_name": "payment_amount_summary"
+    },
+    "presentation": {
+      "hidden_columns": [
+        "*"
+      ]
+    },
+    "transform": {},
+    "transform_order": []
+  },
+  "dependent_models": [
+    {
+      "status": "sql",
+      "model_data": {
+        "sql": "SELECT\n  *\nFROM \"raw\".\"payment\""
+      },
+      "transformation_id": "sql"
+    }
+  ]
+}

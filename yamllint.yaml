@@ -1,0 +1,10 @@
+# Configuration file for yamllint
+# For more information see: https://yamllint.readthedocs.io/en/stable/configuration.html
+
+# Specify the version of the YAML language to use
+version: '1.2'
+
+# Specify the rules to apply to YAML files
+rules:
+  line-length:
+    max: 120

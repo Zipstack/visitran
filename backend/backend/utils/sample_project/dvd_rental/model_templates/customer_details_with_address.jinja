@@ -1,0 +1,119 @@
+import re
+import ibis
+from ibis import _
+from ibis.expr.types.relations import Table
+from ibis.common.exceptions import IbisTypeError
+from visitran.templates.model import VisitranModel
+from visitran.errors import ColumnNotExist
+from visitran.errors import TransformationFailed
+from visitran.materialization import Materialization
+
+
+
+MODEL_NAME = "customer_details_with_address"
+
+class DevCustomerDetailsWithAddress(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "customer"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "customer_details_with_address"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class Address(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "address"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "address"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class City(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "city"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "city"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class Country(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "country"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "country"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class CustomerDetailsWithAddress(City, Address, DevCustomerDetailsWithAddress, Country):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.TABLE
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "customer_details_with_address"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        dev_customer_details_with_address: Table = DevCustomerDetailsWithAddress().select()
+        source_table = dev_customer_details_with_address
+
+        # Processing join statements
+        # The transformation ID is join-27e21b65-9e3d-4d97-adab-f018163b35ec
+        self.save_table_columns(transformation_id="join-27e21b65-9e3d-4d97-adab-f018163b35ec", table_obj=source_table)
+        try:
+            address: Table = Address().select()
+            city: Table = City().select()
+            country: Table = Country().select()
+            source_table = source_table.left_join(address, [(source_table['address_id'] == address['address_id'])], rname='address_{name}')
+            source_table = source_table.left_join(city, [(source_table['city_id'] == city['city_id'])], rname='city_{name}')
+            source_table = source_table.left_join(country, [(source_table['country_id'] == country['country_id'])], rname='country_{name}')
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(
+                    column_name=match.group(1),
+                    model_name=MODEL_NAME,
+                    transformation_name="join"
+                ) from error
+            raise TransformationFailed(
+                transformation_name="join",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="join",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        self.save_table_columns(transformation_id="join-27e21b65-9e3d-4d97-adab-f018163b35ec_transformed", table_obj=source_table)
+
+
+        return source_table

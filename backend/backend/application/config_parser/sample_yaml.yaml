@@ -1,0 +1,152 @@
+source:
+  schema_name: raw
+  table_name: raw_customers
+  materialization: TABLE
+
+model:
+  schema_name: dev
+  table_name: customers
+
+presentation:
+  hidden_columns:
+    - "*"
+  sort:
+    - column: avg_of_completed
+      order_by: DESC
+      data_type: Number
+
+transform_order:
+  - step-01-join-raw_orders
+  - step-02-union-false
+  - step-02-filter-raw_orders_id
+  - step-03-group-return_pending
+  - step-04-aggregate-avg_completed
+  - step-06-preview-disabled
+  - step-07-distinct-avg_completed
+  - step-08-transpose-off
+  - step-09-combine-columns
+  - step-10-synthesize-duplicate
+  - step-11-pivot-status
+  - step-12-find-replace
+  - step-13-rename-column
+
+transform:
+  step-01-join-raw_orders:
+    type: join
+    join:
+      - joined_table:
+          schema_name: raw
+          table_name: raw_orders
+        type: Inner
+        criteria:
+          - condition:
+              lhs:
+                type: COLUMN
+                column:
+                  schema_name: raw
+                  table_name: raw_customers
+                  column_name: id
+                  data_type: Number
+              operator: EQ
+              rhs:
+                type: COLUMN
+                column:
+                  schema_name: raw
+                  table_name: raw_orders
+                  column_name: user_id
+
+  step-02-filter-raw_orders_id:
+    type: filter
+    filter:
+      criteria:
+        - condition:
+            lhs:
+              type: COLUMN
+              column:
+                schema_name: dev
+                table_name: customers
+                column_name: raw_orders_id
+                data_type: Number
+            operator: GT
+            rhs:
+              type: VALUE
+              value:
+                - 2
+
+  step-03-group-return_pending:
+    type: groups_and_aggregation
+    groups_and_aggregation:
+      group:
+        - return_pending
+      aggregate_columns:
+        - function: AVG
+          column: completed
+          alias: avg_of_completed
+      having:
+        criteria: []
+      filter:
+        criteria: []
+
+  step-05-union-false:
+    type: union
+    union:
+      ignore_duplicate: false
+
+  step-06-preview-disabled:
+    type: preview
+    preview:
+      preview_enabled: false
+
+  step-07-distinct-avg_completed:
+    type: distinct
+    distinct:
+      - avg_of_completed
+
+  step-08-transpose-off:
+    type: transpose
+    transpose:
+      state: false
+
+  step-09-combine-columns:
+    type: combine_columns
+    combine_columns:
+      - columnName: combined_column
+        values:
+          - id: 1749297599970-0e1593f2-0ce6-46bc-81c7-79d9773ee2e4
+            type: column
+            value: completed
+          - id: 1749297599970-6857040d-7b5d-42d6-b27c-ec3e3dc282d3
+            type: value
+            value: " combined "
+          - id: 1749297622409-31fe6ffa-4f85-49b1-8764-689d810ddfb8
+            type: column
+            value: returned
+
+  step-10-synthesize-duplicate:
+    type: synthesize
+    synthesize:
+      columns:
+        - column_name: duplicated_combine_column
+          type: FORMULA
+          operation:
+            formula: DUPLICATE(combined_column)
+
+  step-11-pivot-status:
+    type: pivot
+    pivot:
+      column: status
+      row: raw_orders_id
+      summerize_by:
+        aggregator: COUNT
+        summerize_column: id
+
+  step-12-find-replace:
+    type: find_and_replace
+    find_and_replace: []
+
+  step-13-rename-column:
+    type: rename_column
+    rename_column: []
+
+reference: []
+

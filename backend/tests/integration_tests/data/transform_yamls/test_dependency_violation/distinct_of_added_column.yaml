@@ -1,0 +1,19 @@
+destination:
+  table_name: distinct_of_added_column
+presentation:
+  columns:
+    - '*'
+source:
+  materialization: TABLE
+  table_name: employee
+transform:
+  distinct:
+    - capital_job
+  synthesize:
+    columns:
+      - column_name: capital_job
+        operation:
+          formula: UPPER(profession)
+        type: FORMULA
+  union:
+    ignore_duplicate: false

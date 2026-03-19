@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "connection_type": {
+      "type": "string",
+      "title": "Connection Type",
+      "minLength": 1,
+      "format": "radio"
+    },
+    "connection_url": {
+      "type": "string",
+      "title": "Url",
+      "description": "host url for the instance\n[eg.: postgresql://user:password@host:port/database?params]",
+      "minLength": 1,
+      "url_format": "postgresql://user:password@host:port/database?params"
+    },
+    "host": {
+      "type": "string",
+      "title": "Host",
+      "description": "hostname for the instance",
+      "minLength": 1
+    },
+    "port": {
+      "type": "integer",
+      "title": "Port",
+      "description": "port",
+      "default": 5432
+    },
+    "user": {
+      "type": "string",
+      "title": "User",
+      "description": "dev username",
+      "minLength": 1
+    },
+    "passw": {
+      "type": "string",
+      "title": "Password",
+      "description": "dev password",
+      "format": "password"
+    },
+    "dbname": {
+      "type": "string",
+      "title": "Database Name",
+      "description": "default database that visitran will build objects in",
+      "minLength": 1
+    },
+    "schema": {
+      "type": "string",
+      "title": "Schema",
+      "description": "default schema that visitran will build objects in"
+    }
+  },
+  "required": ["host", "user", "passw", "dbname", "connection_url", "connection_type"]
+}

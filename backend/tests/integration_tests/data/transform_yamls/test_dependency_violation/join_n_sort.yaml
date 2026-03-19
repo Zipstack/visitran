@@ -1,0 +1,33 @@
+destination:
+  table_name: join_n_sort
+presentation:
+  columns:
+    - '*'
+  sort:
+    - column: town
+      order_by: ASC
+source:
+  materialization: TABLE
+  table_name: employee
+transform:
+  join:
+    - criteria:
+        - condition:
+            lhs:
+              column:
+                column_name: id
+                data_type: Number
+                table_name: employee
+              type: COLUMN
+            operator: EQ
+            rhs:
+              column:
+                column_name: id
+                data_type: Number
+                table_name: employee_home
+              type: COLUMN
+      destination:
+        table_name: employee_home
+      type: Inner
+  union:
+    ignore_duplicate: false

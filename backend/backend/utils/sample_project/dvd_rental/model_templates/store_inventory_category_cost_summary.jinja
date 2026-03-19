@@ -1,0 +1,179 @@
+import re
+import ibis
+from ibis import _
+from ibis.expr.types.relations import Table
+from ibis.common.exceptions import IbisTypeError
+from visitran.templates.model import VisitranModel
+from visitran.errors import ColumnNotExist
+from visitran.errors import TransformationFailed
+from visitran.materialization import Materialization
+
+
+
+MODEL_NAME = "store_inventory_category_cost_summary"
+
+class DevStoreInventoryCategoryCostSummary(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "inventory"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "store_inventory_category_cost_summary"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class Film(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "film"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "film"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class FilmCategory(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "film_category"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "film_category"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class Category(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "category"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "category"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class StoreInventoryCategoryCostSummary(Film, FilmCategory, Category, DevStoreInventoryCategoryCostSummary):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.TABLE
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "store_inventory_category_cost_summary"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        dev_store_inventory_category_cost_summary: Table = DevStoreInventoryCategoryCostSummary().select()
+        source_table = dev_store_inventory_category_cost_summary
+
+        # Processing join statements
+        # The transformation ID is join-a8e266ee-75de-4d50-913f-51e4dc14c8a3
+        self.save_table_columns(transformation_id="join-a8e266ee-75de-4d50-913f-51e4dc14c8a3", table_obj=source_table)
+        try:
+            film: Table = Film().select()
+            film_category: Table = FilmCategory().select()
+            category: Table = Category().select()
+            source_table = source_table.left_join(film, [(source_table['film_id'] == film['film_id'])], rname='film_{name}')
+            source_table = source_table.left_join(film_category, [(source_table['film_id'] == film_category['film_id'])], rname='film_category_{name}')
+            source_table = source_table.left_join(category, [(source_table['category_id'] == category['category_id'])], rname='category_{name}')
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(
+                    column_name=match.group(1),
+                    model_name=MODEL_NAME,
+                    transformation_name="join"
+                ) from error
+            raise TransformationFailed(
+                transformation_name="join",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="join",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        self.save_table_columns(transformation_id="join-a8e266ee-75de-4d50-913f-51e4dc14c8a3_transformed", table_obj=source_table)
+
+        # Processing rename columns statements
+        # The transformation ID is rename_column-9a7bf32b-31a5-48d9-80dd-9a92386a7c10
+        self.save_table_columns(transformation_id="rename_column-9a7bf32b-31a5-48d9-80dd-9a92386a7c10", table_obj=source_table)
+        try:
+            source_table = source_table.rename({'category': 'name'})
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(
+                    column_name=match.group(1),
+                    model_name=MODEL_NAME,
+                    transformation_name="rename"
+                ) from error
+            raise TransformationFailed(
+                transformation_name="rename",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="rename",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+
+        # Processing Groups and aggregations statements
+        # The transformation ID is groups_and_aggregation-c3e8addb-1a60-4e5d-b496-e0e8795ff4d0
+        self.save_table_columns(transformation_id="groups_and_aggregation-c3e8addb-1a60-4e5d-b496-e0e8795ff4d0", table_obj=source_table)
+        try:
+            source_table = source_table.group_by([source_table['store_id'], source_table['category']]).aggregate([_['inventory_id'].count().name('films'), _['replacement_cost'].mean().name('avg_replacement_cost'), _['replacement_cost'].sum().name('total_replacement_cost')])
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(
+                    column_name=match.group(1),
+                    model_name=MODEL_NAME,
+                    transformation_name="groups and aggregations"
+                )
+            raise TransformationFailed(
+                transformation_name="groups",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="groups",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+
+        # Processing sort statements
+        try:
+            source_table = source_table.order_by([ibis.desc("total_replacement_cost")])
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(column_name=match.group(1), model_name=MODEL_NAME, transformation_name="sort")
+            raise TransformationFailed(transformation_name="sort", model_name=MODEL_NAME, error_message=str(error)) from error
+        except Exception as error:
+            raise TransformationFailed(transformation_name="sort", model_name=MODEL_NAME, error_message=str(error)) from error
+
+        return source_table

@@ -1,0 +1,238 @@
+{
+  "model_name": "store_inventory_rating_summary",
+  "model_data": {
+    "source": {
+      "schema_name": "raw",
+      "table_name": "inventory",
+      "materialization": "TABLE"
+    },
+    "model": {
+      "schema_name": "dev",
+      "table_name": "store_inventory_rating_summary"
+    },
+    "presentation": {
+      "hidden_columns": [
+        "*"
+      ]
+    },
+    "transform": {
+      "groups_and_aggregation-e541ddb4-c96c-4107-a354-66697e5c1ef6": {
+        "type": "groups_and_aggregation",
+        "groups_and_aggregation": {
+          "group": [
+            "store_id",
+            "rating"
+          ],
+          "aggregate_columns": [
+            {
+              "function": "COUNT",
+              "column": "inventory_id",
+              "alias": "inventory_items"
+            }
+          ],
+          "having": {
+            "criteria": []
+          },
+          "filter": {
+            "criteria": []
+          }
+        }
+      },
+      "join-5564d3f7-ccee-4e86-952d-ae833102e0f8": {
+        "type": "join",
+        "join": {
+          "tables": [
+            {
+              "joined_table": {
+                "schema_name": "raw",
+                "table_name": "film"
+              },
+              "type": "Left",
+              "criteria": [
+                {
+                  "condition": {
+                    "lhs": {
+                      "type": "COLUMN",
+                      "column": {
+                        "schema_name": "raw",
+                        "table_name": "inventory",
+                        "column_name": "film_id",
+                        "data_type": "Number"
+                      }
+                    },
+                    "operator": "EQ",
+                    "rhs": {
+                      "type": "COLUMN",
+                      "column": {
+                        "schema_name": "raw",
+                        "table_name": "film",
+                        "column_name": "film_id",
+                        "data_type": "Number"
+                      },
+                      "value": [
+                        ""
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+    "transform_order": [
+      "join-5564d3f7-ccee-4e86-952d-ae833102e0f8",
+      "groups_and_aggregation-e541ddb4-c96c-4107-a354-66697e5c1ef6"
+    ]
+  },
+  "dependent_models": [
+    {
+      "status": "joins",
+      "model_data": {
+        "column_names": [
+          "inventory_id",
+          "film_id",
+          "store_id",
+          "last_update",
+          "film_film_id",
+          "title",
+          "description",
+          "release_year",
+          "language_id",
+          "original_language_id",
+          "rental_duration",
+          "rental_rate",
+          "length",
+          "replacement_cost",
+          "rating",
+          "special_features",
+          "film_last_update"
+        ],
+        "column_description": {
+          "inventory_id": {
+            "column_name": "inventory_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "film_id": {
+            "column_name": "film_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "store_id": {
+            "column_name": "store_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "last_update": {
+            "column_name": "last_update",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          },
+          "film_film_id": {
+            "column_name": "film_film_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "title": {
+            "column_name": "title",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "description": {
+            "column_name": "description",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "release_year": {
+            "column_name": "release_year",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "language_id": {
+            "column_name": "language_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "original_language_id": {
+            "column_name": "original_language_id",
+            "column_dbtype": "float64",
+            "nullable": true
+          },
+          "rental_duration": {
+            "column_name": "rental_duration",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "rental_rate": {
+            "column_name": "rental_rate",
+            "column_dbtype": "float64",
+            "nullable": true
+          },
+          "length": {
+            "column_name": "length",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "replacement_cost": {
+            "column_name": "replacement_cost",
+            "column_dbtype": "float64",
+            "nullable": true
+          },
+          "rating": {
+            "column_name": "rating",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "special_features": {
+            "column_name": "special_features",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "film_last_update": {
+            "column_name": "film_last_update",
+            "column_dbtype": "timestamp(6)",
+            "nullable": true
+          }
+        }
+      },
+      "transformation_id": "join-5564d3f7-ccee-4e86-952d-ae833102e0f8"
+    },
+    {
+      "status": "groups",
+      "model_data": {
+        "column_names": [
+          "store_id",
+          "rating",
+          "inventory_items"
+        ],
+        "column_description": {
+          "store_id": {
+            "column_name": "store_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "rating": {
+            "column_name": "rating",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "inventory_items": {
+            "column_name": "inventory_items",
+            "column_dbtype": "int64",
+            "nullable": true
+          }
+        }
+      },
+      "transformation_id": "groups_and_aggregation-e541ddb4-c96c-4107-a354-66697e5c1ef6"
+    },
+    {
+      "status": "sql",
+      "model_data": {
+        "sql": "SELECT\n  \"t4\".\"store_id\",\n  \"t4\".\"rating\",\n  COUNT(\"t4\".\"inventory_id\") AS \"inventory_items\"\nFROM (\n  SELECT\n    \"t2\".\"inventory_id\",\n    \"t2\".\"film_id\",\n    \"t2\".\"store_id\",\n    \"t2\".\"last_update\",\n    \"t3\".\"film_id\" AS \"film_film_id\",\n    \"t3\".\"title\",\n    \"t3\".\"description\",\n    \"t3\".\"release_year\",\n    \"t3\".\"language_id\",\n    \"t3\".\"original_language_id\",\n    \"t3\".\"rental_duration\",\n    \"t3\".\"rental_rate\",\n    \"t3\".\"length\",\n    \"t3\".\"replacement_cost\",\n    \"t3\".\"rating\",\n    \"t3\".\"special_features\",\n    \"t3\".\"last_update\" AS \"film_last_update\"\n  FROM \"raw\".\"inventory\" AS \"t2\"\n  LEFT OUTER JOIN \"raw\".\"film\" AS \"t3\"\n    ON \"t2\".\"film_id\" = \"t3\".\"film_id\"\n) AS \"t4\"\nGROUP BY\n  1,\n  2"
+      },
+      "transformation_id": "sql"
+    }
+  ]
+}

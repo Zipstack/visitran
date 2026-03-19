@@ -1,0 +1,22 @@
+destination:
+  table_name: merge_check
+presentation:
+  columns:
+    - '*'
+source:
+  materialization: TABLE
+  table_name: employee_home
+transform:
+  union:
+    ignore_duplicate: false
+    tables:
+      - column_dbtype: string
+        merge_column: name
+        merge_table: employee
+        source_column: town
+        source_table: employee_home
+      - column_dbtype: int64
+        merge_column: id
+        merge_table: employee
+        source_column: id
+        source_table: employee_home

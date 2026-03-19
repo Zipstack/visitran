@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "visitran-core"
+version = "1.1.7"
+description = "Core library that helps with executing workflows."
+authors = [
+    { name = "Zipstack Inc.", email = "devsupport@zipstack.com" }
+]
+dependencies = [
+    "typer==0.9.0",
+    "ibis-framework[bigquery,duckdb,snowflake,trino,postgres,databricks]==11.0.0",
+    "fastapi==0.109.2",
+    "uvicorn[standard]>=0.27.0.post1",
+    "networkx==3.2.1",
+    "matplotlib==3.8.2",
+    "sqlalchemy-bigquery==1.9.0",
+    "snowflake-sqlalchemy==1.5.1",
+]
+# <3.11.1 due to resolution error from Unstract SDK
+requires-python = ">=3.10,<3.11.1"
+classifiers = [
+    "Programming Language :: Python"
+]
+license = {text = "AGPL-3.0-only"}
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[tool.black]
+line-length = 120

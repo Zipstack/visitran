@@ -1,0 +1,117 @@
+{
+  "schema_name": "",
+  "column_description": {
+    "profession": {
+      "column_name": "profession",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "avg_salary": {
+      "column_name": "avg_salary",
+      "column_dbtype": "float64",
+      "nullable": true,
+      "data_type": "Number"
+    }
+  },
+  "all_column_description": {
+    "id": {
+      "column_name": "id",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "name": {
+      "column_name": "name",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "age": {
+      "column_name": "age",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "profession": {
+      "column_name": "profession",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "salary": {
+      "column_name": "salary",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "avg_salary": {
+      "column_name": "avg_salary",
+      "column_dbtype": "float64",
+      "nullable": true,
+      "data_type": "Number"
+    }
+  },
+  "column_names": {
+    "current": [
+      "avg_salary",
+      "profession"
+    ],
+    "joins": [
+      "age",
+      "id",
+      "name",
+      "profession",
+      "salary"
+    ],
+    "joined_tables": {},
+    "unions": [
+      "age",
+      "id",
+      "name",
+      "profession",
+      "salary"
+    ],
+    "synthesis_validator": [
+      "age",
+      "id",
+      "name",
+      "profession",
+      "salary"
+    ],
+    "filter": [
+      "age",
+      "id",
+      "name",
+      "profession",
+      "salary"
+    ],
+    "synthesize": [
+      "age",
+      "id",
+      "name",
+      "profession",
+      "salary"
+    ],
+    "group": [
+      "age",
+      "id",
+      "name",
+      "profession",
+      "salary"
+    ],
+    "distinct": [
+      "avg_salary",
+      "profession"
+    ],
+    "sort": [
+      "avg_salary",
+      "profession"
+    ],
+    "hidden_columns": [
+      "avg_salary",
+      "profession"
+    ]
+  },
+  "sql_statement": "SELECT\n  t0.profession,\n  AVG(t0.salary) AS avg_salary\nFROM main.employee AS t0\nGROUP BY\n  1"
+}

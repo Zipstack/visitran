@@ -1,0 +1,40 @@
+{
+  "aggregations": [
+    {
+      "value": "AVG",
+      "label": "Avg",
+      "title": "Return the average value of the argument"
+    },
+    {
+      "value": "COUNT",
+      "label": "Count",
+      "title": "Return a count of the number of rows returned"
+    },
+    {
+      "value": "MAX",
+      "label": "Max",
+      "title": "Return the maximum value of the argument"
+    },
+    {
+      "value": "MEAN",
+      "label": "Mean",
+      "title": "Return the mean value of the argument"
+    },
+    {
+      "value": "MIN",
+      "label": "Min",
+      "title": "Return the minimum value of the argument"
+    },
+    {
+      "value": "STD",
+      "label": "Std",
+      "title": "Return the std value of the argument"
+    },
+    {
+      "value": "SUM",
+      "label": "Sum",
+      "title": "Return the sum value of the argument"
+    }
+  ],
+  "aggregation_count": 7
+}

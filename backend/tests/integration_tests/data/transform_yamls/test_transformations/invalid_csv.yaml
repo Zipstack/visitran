@@ -1,0 +1,8 @@
+destination:
+  table_name: invalid_csv
+presentation:
+  columns:
+    - '*'
+source:
+  materialization: TABLE
+  table_name: employee

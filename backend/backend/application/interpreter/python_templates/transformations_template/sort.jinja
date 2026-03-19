@@ -1,0 +1,11 @@
+{# The below code is for sort transformation #}
+# Processing sort statements
+try:
+    source_table = source_table{{sort_statements}}
+except IbisTypeError as error:
+    match = re.search(r"Column '(\w+)'", error.__str__())
+    if match:
+        raise ColumnNotExist(column_name=match.group(1), model_name=MODEL_NAME, transformation_name="sort")
+    raise TransformationFailed(transformation_name="sort", model_name=MODEL_NAME, error_message=str(error)) from error
+except Exception as error:
+    raise TransformationFailed(transformation_name="sort", model_name=MODEL_NAME, error_message=str(error)) from error

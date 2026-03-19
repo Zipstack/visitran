@@ -1,0 +1,56 @@
+.global-error-fallback-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background-color: var(--error-overlay-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.global-error-fallback-modal {
+  position: relative;
+  background-color: var(--modal-bg);
+  border-radius: 8px;
+  padding: 24px;
+  width: 500px;
+  max-width: 90vw;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.global-error-fallback-content {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.global-error-fallback-icon {
+  font-size: 64px;
+  color: var(--error-color);
+  margin-bottom: 20px;
+}
+
+.global-error-fallback-title {
+  color: var(--error-color) !important;
+  margin-bottom: 16px;
+}
+
+.global-error-fallback-description {
+  font-size: var(--font-size-16);
+  color: var(--panel-lable-disabled);
+  margin-bottom: 24px;
+}
+
+.global-error-fallback-actions {
+  width: 100%;
+}
+
+.global-error-fallback-button {
+  width: 200px;
+}
+
+.global-error-fallback-report-button {
+  color: var(--panel-lable-disabled);
+}

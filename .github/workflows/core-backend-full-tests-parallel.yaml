@@ -1,0 +1,87 @@
+#---
+#    name: Run Tests Parallely
+#
+#    on:
+#      workflow_dispatch:
+#      push:
+#        branches: ["main"]
+#      pull_request:
+#        branches: ["main"]
+#        types: [labeled]
+#
+#
+#    concurrency:
+#      group: ${{ github.repository }}-${{ github.head_ref || github.sha }}-${{ github.workflow }}
+#      cancel-in-progress: true
+#    env:
+#      FORCE_COLOR: "1"
+#
+#    jobs:
+#      run_tests_parallely:
+#        name: Run Tests Parallely
+#        runs-on: ubuntu-latest
+#        if: contains(github.event.pull_request.labels.*.name, 'Run Tests Parallely') ||
+#          contains(github.event_name, 'workflow_dispatch')
+#        strategy:
+#          fail-fast: true
+#          matrix:
+#            python-version: ["3.11"] #,"3.9","3.10"]
+#        steps:
+#          #----------------------------------------------
+#          #       check-out repo and set-up python
+#          #----------------------------------------------
+#          - uses: actions/checkout@v4
+#            with:
+#              lfs: true
+#          - name: Setup Python
+#            uses: ./.github/actions/setup-python/
+#            with:
+#              python-version: ${{ matrix.python-version }}
+#          - name: Login to Docker Hub
+#            uses: docker/login-action@v3
+#            with:
+#              username: ${{ secrets.DOCKERHUB_USERNAME }}
+#              password: ${{ secrets.DOCKERHUB_TOKEN }}
+#            continue-on-error: true
+#          - name: Start visitran test containers
+#            run: |
+#              docker compose up --wait
+#          - id: 'auth'
+#            uses: 'google-github-actions/auth@v2'
+#            with:
+#              credentials_json: '${{ secrets.GCP_BIGQUERY_SECRET }}'
+#          - name: 'Set up Cloud SDK'
+#            uses: 'google-github-actions/setup-gcloud@v2'
+#          - name: 'Use gcloud CLI'
+#            run: 'gcloud info'
+#
+#          - name: Run tests
+#            env:
+#              SNOWFLAKE_USERNAME: ${{ secrets.SNOWFLAKE_USERNAME }}
+#              SNOWFLAKE_PASSWORD: ${{ secrets.SNOWFLAKE_PASSWORD }}
+#              SNOWFLAKE_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+#            run: |
+#              uv run pytest -vv --cov=visitran --cov=visitran_cli --cov=visitran_adapters --cov=visitran_backend \
+#              --cov-report=xml --cov-config=pyproject.toml --dist loadgroup -n 5 tests visitran_backend
+#
+#          - name: Check code coverage
+#            run: |
+#                uv run coverage report -m
+#                coverage=$(uv run coverage report --format=total)
+#                echo "Coverage is $coverage"
+#          - name: Stop test containers
+#            run: |
+#              docker compose down
+#          - name: Git fetch unshallow
+#            run: |
+#              git fetch --unshallow
+#          - name: Core SonarCloud Scan
+#            uses: SonarSource/sonarcloud-github-action@master
+#            if: ${{ github.actor != 'dependabot[bot]' }}
+#            env:
+#              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
+#              SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+#            with:
+#              projectBaseDir: ./
+#              args: >
+#                -Dproject.settings=./sonar-project.properties

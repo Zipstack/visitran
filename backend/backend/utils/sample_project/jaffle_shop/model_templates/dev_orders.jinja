@@ -1,0 +1,79 @@
+import re
+import ibis
+from ibis import _
+from ibis.expr.types.relations import Table
+from ibis.common.exceptions import IbisTypeError
+from visitran.templates.model import VisitranModel
+from visitran.errors import ColumnNotExist
+from visitran.errors import TransformationFailed
+from visitran.materialization import Materialization
+
+
+
+MODEL_NAME = "dev_orders"
+
+class DevOrdersSource(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "raw_orders"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "orders"
+        self.database = "default_org__js_db_f_2025_06_27_16_58_684329b3"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class DevOrders(DevOrdersSource):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.TABLE
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "orders"
+        self.database = "default_org__js_db_f_2025_06_27_16_58_684329b3"
+
+    def select(self) -> Table:
+        dev_orders_source: Table = DevOrdersSource().select()
+        source_table = dev_orders_source
+
+        # Processing rename columns statements
+        # The transformation ID is type_rename_column_0
+        self.save_table_columns(transformation_id="type_rename_column_0", table_obj=source_table)
+        try:
+            source_table = source_table.rename({'customer_id': 'user_id'})
+            source_table = source_table.rename({'order_id': 'id'})
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(
+                    column_name=match.group(1),
+                    model_name=MODEL_NAME,
+                    transformation_name="rename"
+                ) from error
+            raise TransformationFailed(
+                transformation_name="rename",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="rename",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+
+        # Processing sort statements
+        try:
+            source_table = source_table.order_by([ibis.asc("order_id")])
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(column_name=match.group(1), model_name=MODEL_NAME, transformation_name="sort")
+            raise TransformationFailed(transformation_name="sort", model_name=MODEL_NAME, error_message=str(error)) from error
+        except Exception as error:
+            raise TransformationFailed(transformation_name="sort", model_name=MODEL_NAME, error_message=str(error)) from error
+
+        return source_table

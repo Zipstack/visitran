@@ -1,0 +1,10 @@
+backend/pluggable_apps
+backend/pluggable_apps/**
+backend/plugins
+backend/plugins/**
+frontend/src/plugins
+frontend/src/plugins/**
+.git
+.github
+.vscode
+project-s

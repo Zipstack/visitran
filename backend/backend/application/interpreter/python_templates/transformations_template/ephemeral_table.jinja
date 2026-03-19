@@ -1,0 +1,14 @@
+
+class {{class_name}}({{parent_class}}):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "{{source_schema_name}}"
+        self.source_table_name = "{{source_table_name}}"
+        self.destination_schema_name = "{{destination_schema_name}}"
+        self.destination_table_name = "{{destination_table_name}}"
+        self.database = "{{database_name}}"
+
+    def select(self) -> Table:
+        {{parent_declaration}}
+        return source_table

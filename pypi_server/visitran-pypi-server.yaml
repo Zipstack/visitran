@@ -1,0 +1,128 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: visitran-pypi-server
+  labels:
+    istio-injection: enabled
+    environment: development
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pypiserver
+  namespace: visitran-pypi-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pypiserver
+  template:
+    metadata:
+      labels:
+        app: pypiserver
+    spec:
+      containers:
+        - name: pypiserver
+          image: pypiserver/pypiserver:v1.5.2
+          command:
+            ["pypi-server", "run", "-v", "-a", ".", "-P", ".", "/data/packages"]
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: "1"
+              memory: "1Gi"
+              ephemeral-storage: "1Gi"
+          volumeMounts:
+            - name: packages
+              mountPath: /data/packages
+          readinessProbe:
+            httpGet:
+              path: /health/
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 30
+      automountServiceAccountToken: false
+      volumes:
+        - name: packages
+          persistentVolumeClaim:
+            claimName: pypiserver-pvc
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: pypiserver-pdb
+  namespace: visitran-pypi-server
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: pypiserver
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pypiserver
+  namespace: visitran-pypi-server
+spec:
+  selector:
+    app: pypiserver
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pypiserver-pvc
+  namespace: visitran-pypi-server
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: gp2
+  volumeMode: Filesystem
+---
+apiVersion: route53.aws.upbound.io/v1beta1
+kind: Record
+metadata:
+  name: visitran-pypi-record
+spec:
+  providerConfigRef:
+    name: parent-zipstack
+  forProvider:
+    name: visitran-pypi.internal
+    records:
+      - dev-private-1566412017.ap-south-1.elb.amazonaws.com
+    region: ap-south-1
+    ttl: 300
+    type: CNAME
+    zoneId: Z03395013VG01JMWY18UB
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: zipstack-visitran-pypi-internal
+  namespace: visitran-pypi-server
+spec:
+  hosts:
+    - visitran-pypi.internal.zipstack.io
+  gateways:
+    - istio-system/zipstack-gateway
+  http:
+    - name: visitran-pypi-internal
+      route:
+        - destination:
+            host: pypiserver

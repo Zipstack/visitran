@@ -1,0 +1,21 @@
+{
+  "datasources": [
+    {
+      "value": "bigquery",
+      "label": "Bigquery"
+    },
+    {
+      "value": "duckdb",
+      "label": "DuckDB"
+    },
+    {
+      "value": "postgres",
+      "label": "Postgres"
+    },
+    {
+      "value": "snowflake",
+      "label": "Snowflake"
+    }
+  ],
+  "datasources_count": 4
+}

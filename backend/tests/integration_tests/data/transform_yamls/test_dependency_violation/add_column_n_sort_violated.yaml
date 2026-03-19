@@ -1,0 +1,14 @@
+destination:
+  table_name: add_column_n_sort
+presentation:
+  columns:
+    - '*'
+  sort:
+    - column: inr
+      order_by: ASC
+source:
+  materialization: TABLE
+  table_name: employee
+transform:
+  union:
+    ignore_duplicate: false

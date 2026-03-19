@@ -1,0 +1,30 @@
+source:
+  table_name: employee
+  materialization: TABLE
+destination:
+  table_name: employee_tr
+presentation:
+  columns:
+    - '*'
+transform:
+  join:
+    - destination:
+        table_name: employee_home
+      type: Inner
+      criteria:
+        - condition:
+            lhs:
+              type: COLUMN
+              column:
+                table_name: employee
+                column_name: id
+                data_type: Number
+            operator: EQ
+            rhs:
+              type: COLUMN
+              column:
+                table_name: employee_home
+                column_name: id
+                data_type: Number
+  union:
+    ignore_duplicate: false

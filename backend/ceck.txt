@@ -1,0 +1,45 @@
+########################################################### Ingress configuration ###########################################################
+ingress:
+  enabled: true
+  hostLookup:
+    visitran: # <REQUIRED> domain to be associated
+  annotations:
+    # The below once are only for GCP. AWS and Azure we will add later.
+    kubernetes.io/ingress.class: gce
+    kubernetes.io/ingress.global-static-ip-name: # <REQUIRED>
+    ingress.gcp.kubernetes.io/pre-shared-cert: # <REQUIRED>
+  hosts:
+    # Hostnames are dynamically replaced based on the environment.
+    # The keys defined under 'host' must match the keys in the environment-specific values file (e.g., integration.cloud.values.yaml).
+    - host: visitran # This will be replaced by the actual hostname from the environment values file.
+      paths:
+        - path: /api/v1
+          pathType: Prefix
+          backend:
+            service:
+              name: visitran-backend
+              port: 80
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: visitran-frontend
+              port: 80
+
+########################################################### global configurations  ###########################################################
+global:
+  visitran:
+    image:
+      registry: us-central1-docker.pkg.dev/visitran-production/visitran-cloud
+      tag: v0.71.8
+      aiTag: v0.2.7
+    storage:
+      default: 1Gi
+
+  tolerations: &visitranTolerations
+    - key: "service"
+      operator: "Equal"
+      value: "visitran"
+      effect: "NoSchedule"
+    - key: "service"
+                                                                                                                                                                                                 13,68         Top

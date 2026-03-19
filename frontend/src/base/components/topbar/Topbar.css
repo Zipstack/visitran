@@ -1,0 +1,118 @@
+.topbar_wrap {
+  width: 100%;
+  background-color: #092c4c;
+}
+
+:where(.css-dev-only-do-not-override-14wwjjs).ant-dropdown-menu-submenu
+  .ant-dropdown-menu
+  .ant-dropdown-menu-item:hover {
+  background-color: #77a6d2;
+}
+
+.top_wrap {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+  padding: 2px 12px;
+  color: white;
+  min-height: 42px;
+}
+
+.themeSection {
+  width: 100%;
+  padding: 2px 0px;
+  background-color: var(--secondary);
+  min-height: 2px;
+}
+
+.switchTag {
+  float: right;
+  margin-right: 50px;
+}
+
+.menu_items {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 6px 15px;
+  margin: 4px 0;
+  border-radius: 4px;
+  transition: box-shadow 0.3s ease;
+}
+
+.menu_label {
+  color: #fff;
+  margin-left: 10px;
+}
+
+.menu_items:hover {
+  background-color: rgb(231 232 235 / 10%);
+}
+
+.menu_items_active {
+  background-color: rgb(231 232 235 / 10%);
+}
+
+.left_section {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  margin: 2px 0;
+  height: 100%;
+}
+
+.proj_name {
+  color: #fff;
+  width: auto;
+}
+
+.content_topbar_wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--white);
+  padding: 20px 0px;
+}
+
+.myHeading {
+  margin: 10px 10px 10px 1%;
+  font-size: 16px;
+  font-weight: 600;
+  color: "var(--white)";
+}
+.avatar-style {
+  border-color: rgba(255, 255, 255, 0.25);
+  vertical-align: middle;
+  cursor: pointer;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+.nav-tab-wrap {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.clr-white {
+  color: white;
+}
+.m5 {
+  margin: 5px;
+}
+
+.visitran-ai-btn {
+  background-color: #ff4b6e;
+  color: white;
+  border: none;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.visitran-ai-btn:hover {
+  color: white !important;
+  background-color: #db1d40 !important;
+}

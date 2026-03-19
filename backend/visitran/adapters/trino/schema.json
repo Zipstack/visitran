@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "host": {
+      "type": "string",
+      "title": "Host",
+      "description": "Host (hostname for the instance)",
+      "minLength": 1
+    },
+    "port": {
+      "type": "integer",
+      "title": "Port",
+      "description": "Port",
+      "default": 8080
+    },
+    "user": {
+      "type": "string",
+      "title": "User",
+      "description": "User (dev username)",
+      "minLength": 1
+    },
+    "passw": {
+      "type": "string",
+      "title": "Password",
+      "description": "Password (dev password)",
+      "format": "password",
+      "default": ""
+    },
+    "catalog": {
+      "type": "string",
+      "title": "Catalog",
+      "description": "Catalog (default catalog that visitran will build objects in)",
+      "minLength": 1
+    },
+    "schema": {
+      "type": "string",
+      "title": "Schema",
+      "description": "Schema (default schema that visitran will build objects in)",
+      "minLength": 1
+    }
+  },
+  "required": ["host", "user", "catalog"]
+}

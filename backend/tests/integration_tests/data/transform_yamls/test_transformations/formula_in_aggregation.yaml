@@ -1,0 +1,36 @@
+source:
+  table_name: employee
+  materialization: TABLE
+destination:
+  table_name: formula_in_aggregation
+presentation:
+  columns:
+    - '*'
+transform:
+  synthesize:
+    columns:
+      - column_name: sum_of_avg_salary
+        operation:
+          formula: SUM(avg_salary, 10)
+        type: FORMULA
+  aggregate:
+    aggregate_columns:
+      - alias: avg_salary
+        column: salary
+        function: AVG
+    filter:
+      criteria:
+        - condition:
+            lhs:
+              type: COLUMN
+              column:
+                table_name: formula_in_aggregation
+                column_name: avg_salary
+                data_type: Number
+            operator: GTE
+            rhs:
+              type: VALUE
+              value:
+                - 95000.0
+  group:
+    - profession

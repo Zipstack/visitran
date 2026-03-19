@@ -1,0 +1,12 @@
+backend/pluggable_apps
+backend/pluggable_apps/**
+backend/plugins
+backend/plugins/**
+backend/.venv
+backend/.venv/**
+frontend/src/plugins
+frontend/src/plugins/**
+.git
+.github
+.vscode
+project-s

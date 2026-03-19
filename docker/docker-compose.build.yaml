@@ -1,0 +1,12 @@
+
+services:
+  backend:
+    image: visitran/backend:${VERSION}
+    build:
+      dockerfile: docker/dockerfiles/backend.Dockerfile
+      context: ..
+  frontend:
+    image: visitran/frontend:${VERSION}
+    build:
+      dockerfile: docker/dockerfiles/frontend.Dockerfile
+      context: ..

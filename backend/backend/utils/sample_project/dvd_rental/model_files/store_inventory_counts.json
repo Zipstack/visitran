@@ -1,0 +1,76 @@
+{
+  "model_name": "store_inventory_counts",
+  "model_data": {
+    "source": {
+      "schema_name": "raw",
+      "table_name": "inventory",
+      "materialization": "TABLE"
+    },
+    "model": {
+      "schema_name": "dev",
+      "table_name": "store_inventory_counts"
+    },
+    "presentation": {
+      "hidden_columns": [
+        "*"
+      ]
+    },
+    "transform": {
+      "groups_and_aggregation-b80a7ec5-185c-401a-887b-04aaf0bdfa85": {
+        "type": "groups_and_aggregation",
+        "groups_and_aggregation": {
+          "group": [
+            "store_id"
+          ],
+          "aggregate_columns": [
+            {
+              "function": "COUNT",
+              "column": "inventory_id",
+              "alias": "inventory_items"
+            }
+          ],
+          "having": {
+            "criteria": []
+          },
+          "filter": {
+            "criteria": []
+          }
+        }
+      }
+    },
+    "transform_order": [
+      "groups_and_aggregation-b80a7ec5-185c-401a-887b-04aaf0bdfa85"
+    ]
+  },
+  "dependent_models": [
+    {
+      "status": "groups",
+      "model_data": {
+        "column_names": [
+          "store_id",
+          "inventory_items"
+        ],
+        "column_description": {
+          "store_id": {
+            "column_name": "store_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "inventory_items": {
+            "column_name": "inventory_items",
+            "column_dbtype": "int64",
+            "nullable": true
+          }
+        }
+      },
+      "transformation_id": "groups_and_aggregation-b80a7ec5-185c-401a-887b-04aaf0bdfa85"
+    },
+    {
+      "status": "sql",
+      "model_data": {
+        "sql": "SELECT\n  \"t0\".\"store_id\",\n  COUNT(\"t0\".\"inventory_id\") AS \"inventory_items\"\nFROM \"raw\".\"inventory\" AS \"t0\"\nGROUP BY\n  1"
+      },
+      "transformation_id": "sql"
+    }
+  ]
+}

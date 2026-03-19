@@ -1,0 +1,91 @@
+name: Version Bump
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    types: [opened, reopened, synchronize, ready_for_review, labeled, unlabeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.repository }}-${{ github.head_ref || github.sha }}-${{ github.workflow }}
+  cancel-in-progress: true
+env:
+  FORCE_COLOR: "1"
+
+jobs:
+  version_bump:
+    name: Version Bump
+    if: github.actor != 'dependabot[bot]' # ignore the pull request which comes from user depbot.
+    permissions:
+      # write permission is required to create a github release
+      contents: write
+      # write permission is required for autolabeler
+      # otherwise, read permission is required at least
+      pull-requests: write
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ["3.11"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install SSH key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+      - name: Setup Python and uv
+        uses: ./.github/actions/setup-python/
+        with:
+          python-version: ${{ matrix.python-version }}
+
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+      # - name: Print env variables
+      #   uses: ./.github/actions/print-env/
+      # - name: Setup tmate session
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     GITHUB_CONTEXT: ${{ toJson(github) }}
+      #   uses: mxschmitt/action-tmate@v3
+      #   timeout-minutes: 15
+      - name: Bump Python version
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: uv run python ci/increment_version.py
+
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          # Optional. Commit message for the created commit.
+          # Defaults to "Apply automatic changes"
+          commit_message: Set to next version ${{ env.PROJECT_VERSION }}
+          commit_options: "--no-verify --signoff"
+
+      # Drafts your next Release notes as Pull Requests are merged into "main"
+      # - uses: release-drafter/release-drafter@v5
+      #   id: draft_release
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     version: ${{ env.PROJECT_VERSION }}
+      #     commitish: main
+      - name: Fail if version changed
+        run: |
+          if [ "${{ env.PROJECT_VERSION_CHANGED }}" = "1" ]; then
+            echo "Version changed, exiting."
+            exit 1
+          else
+            echo "Version not changed, continuing"
+            exit 0
+          fi

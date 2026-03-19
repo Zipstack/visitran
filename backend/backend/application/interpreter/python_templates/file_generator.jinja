@@ -1,0 +1,11 @@
+{%- for import in imports -%}
+{{import}}
+{% endfor %}
+
+
+MODEL_NAME = "{{model_name}}"
+
+
+{%- for class_content in class_contents %}
+{{class_content}}
+{% endfor -%}

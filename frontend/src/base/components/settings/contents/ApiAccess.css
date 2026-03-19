@@ -1,0 +1,110 @@
+.api-access-wrap {
+  padding: 0px 24px 24px;
+  max-width: 800px;
+}
+
+.api-access-wrap .ant-typography h5,
+.api-access-wrap .ant-typography-h5 {
+  margin-bottom: 4px;
+}
+
+.api-access-section {
+  margin-bottom: 28px;
+}
+
+.api-access-section .section-description {
+  color: var(--text-secondary, #666);
+  margin-bottom: 16px;
+  font-size: 13px;
+}
+
+.api-access-info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.api-access-info-row .info-label {
+  font-weight: 500;
+  min-width: 100px;
+  color: var(--text-secondary, #666);
+  font-size: 13px;
+}
+
+.api-access-info-row .info-value {
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 12px;
+  background: var(--component-background, #f5f5f5);
+  border: 1px solid var(--border-color, #d9d9d9);
+  border-radius: 4px;
+  padding: 4px 10px;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.api-access-code-block {
+  background: var(--component-background, #1e1e1e);
+  border: 1px solid var(--border-color, #333);
+  border-radius: 6px;
+  padding: 16px;
+  position: relative;
+  overflow-x: auto;
+}
+
+.api-access-code-block pre {
+  margin: 0;
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+  color: var(--text-primary, #d4d4d4);
+}
+
+.api-access-code-block .copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.api-access-endpoint-table {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.api-access-endpoint-table .ant-table-thead > tr > th {
+  font-size: 12px;
+}
+
+.api-access-endpoint-table .ant-table-tbody > tr > td {
+  font-size: 12px;
+}
+
+.api-access-endpoint-table .endpoint-method {
+  font-weight: 600;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+.api-access-endpoint-table .method-get {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.api-access-endpoint-table .method-post {
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.endpoint-path {
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-size: 12px;
+}
+
+.api-access-tabs .ant-tabs-tab {
+  font-size: 13px;
+}

@@ -1,0 +1,247 @@
+{
+  "content": [
+    {
+      "inventory_id": 6,
+      "film_id": 1,
+      "store_id": 2,
+      "last_update": "2006-02-15T10:09:17",
+      "manager_staff_id": 2,
+      "address_id": 2,
+      "store_last_update": "2006-02-15T09:57:12",
+      "title": "ACADEMY DINOSAUR",
+      "description": "An Epic Drama of a Feminist And a Mad Scientist who must Battle a Teacher in The Canadian Rockies",
+      "release_year": 2006,
+      "language_id": 1,
+      "original_language_id": null,
+      "rental_duration": 6,
+      "rental_rate": 0.99,
+      "length": 86,
+      "replacement_cost": 20.99,
+      "rating": "PG",
+      "film_last_update": "2007-09-10T17:46:03.905795",
+      "special_features": "{\"Deleted Scenes\",\"Behind the Scenes\"}",
+      "fulltext": "'academi':1 'battl':15 'canadian':20 'dinosaur':2 'drama':5 'epic':4 'feminist':8 'mad':11 'must':14 'rocki':21 'scientist':12 'teacher':17",
+      "rental_id": 361,
+      "rental_date": "2005-05-27T07:03:28",
+      "customer_id": 587,
+      "return_date": "2005-05-31T08:01:28",
+      "staff_id": 1,
+      "rental_last_update": "2006-02-16T02:30:53"
+    },
+    {
+      "inventory_id": 2,
+      "film_id": 1,
+      "store_id": 1,
+      "last_update": "2006-02-15T10:09:17",
+      "manager_staff_id": 1,
+      "address_id": 1,
+      "store_last_update": "2006-02-15T09:57:12",
+      "title": "ACADEMY DINOSAUR",
+      "description": "An Epic Drama of a Feminist And a Mad Scientist who must Battle a Teacher in The Canadian Rockies",
+      "release_year": 2006,
+      "language_id": 1,
+      "original_language_id": null,
+      "rental_duration": 6,
+      "rental_rate": 0.99,
+      "length": 86,
+      "replacement_cost": 20.99,
+      "rating": "PG",
+      "film_last_update": "2007-09-10T17:46:03.905795",
+      "special_features": "{\"Deleted Scenes\",\"Behind the Scenes\"}",
+      "fulltext": "'academi':1 'battl':15 'canadian':20 'dinosaur':2 'drama':5 'epic':4 'feminist':8 'mad':11 'must':14 'rocki':21 'scientist':12 'teacher':17",
+      "rental_id": 972,
+      "rental_date": "2005-05-30T20:21:07",
+      "customer_id": 411,
+      "return_date": "2005-06-06T00:36:07",
+      "staff_id": 1,
+      "rental_last_update": "2006-02-16T02:30:53"
+    }
+  ],
+  "schema_name": "default",
+  "column_description": {
+    "inventory_id": {
+      "column_name": "inventory_id",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "film_id": {
+      "column_name": "film_id",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "store_id": {
+      "column_name": "store_id",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "last_update": {
+      "column_name": "last_update",
+      "column_dbtype": "timestamp",
+      "nullable": true,
+      "data_type": "Time"
+    },
+    "manager_staff_id": {
+      "column_name": "manager_staff_id",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "address_id": {
+      "column_name": "address_id",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "store_last_update": {
+      "column_name": "store_last_update",
+      "column_dbtype": "timestamp",
+      "nullable": true,
+      "data_type": "Time"
+    },
+    "title": {
+      "column_name": "title",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "description": {
+      "column_name": "description",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "release_year": {
+      "column_name": "release_year",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "language_id": {
+      "column_name": "language_id",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "original_language_id": {
+      "column_name": "original_language_id",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "rental_duration": {
+      "column_name": "rental_duration",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "rental_rate": {
+      "column_name": "rental_rate",
+      "column_dbtype": "float64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "length": {
+      "column_name": "length",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "replacement_cost": {
+      "column_name": "replacement_cost",
+      "column_dbtype": "float64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "rating": {
+      "column_name": "rating",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "film_last_update": {
+      "column_name": "film_last_update",
+      "column_dbtype": "timestamp",
+      "nullable": true,
+      "data_type": "Time"
+    },
+    "special_features": {
+      "column_name": "special_features",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "fulltext": {
+      "column_name": "fulltext",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "rental_id": {
+      "column_name": "rental_id",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "rental_date": {
+      "column_name": "rental_date",
+      "column_dbtype": "timestamp",
+      "nullable": true,
+      "data_type": "Time"
+    },
+    "customer_id": {
+      "column_name": "customer_id",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "return_date": {
+      "column_name": "return_date",
+      "column_dbtype": "timestamp",
+      "nullable": true,
+      "data_type": "Time"
+    },
+    "staff_id": {
+      "column_name": "staff_id",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "rental_last_update": {
+      "column_name": "rental_last_update",
+      "column_dbtype": "timestamp",
+      "nullable": true,
+      "data_type": "Time"
+    }
+  },
+  "column_names": [
+    "inventory_id",
+    "film_id",
+    "store_id",
+    "last_update",
+    "manager_staff_id",
+    "address_id",
+    "store_last_update",
+    "title",
+    "description",
+    "release_year",
+    "language_id",
+    "original_language_id",
+    "rental_duration",
+    "rental_rate",
+    "length",
+    "replacement_cost",
+    "rating",
+    "film_last_update",
+    "special_features",
+    "fulltext",
+    "rental_id",
+    "rental_date",
+    "customer_id",
+    "return_date",
+    "staff_id",
+    "rental_last_update"
+  ]
+}

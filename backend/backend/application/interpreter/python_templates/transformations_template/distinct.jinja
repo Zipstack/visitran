@@ -1,0 +1,41 @@
+{# The below code is for distinct transformation #}
+# Processing distinct statements
+# The transformation ID is {{ transformation_id }}
+self.save_table_columns(transformation_id="{{ transformation_id }}", table_obj=source_table)
+try:
+    # Define a window partitioned by last_name without ordering
+    window = ibis.window(
+        group_by={{ group_columns }},
+        order_by=[source_table['{{ order_by }}'].desc()]
+    )
+    # Assign row numbers arbitrarily within each group
+    _original_columns = list(source_table.columns)
+    ranked = source_table.mutate(row_num=ibis.row_number().over(window))
+    # Keep only the first row for each group
+    _deduped = ranked.filter(ranked['row_num'] == 0)
+    # DuckDB: .drop() generates EXCLUDE clause which causes column mismatch in create_table;
+    # use explicit .select() instead. Other adapters work fine with .drop().
+    if self.visitran_context.database_type == "duckdb":
+        source_table = _deduped.select(_original_columns)
+    else:
+        source_table = _deduped.drop(['row_num'])
+except IbisTypeError as error:
+    match = re.search(r"Column '(\w+)'", error.__str__())
+    if match:
+        raise ColumnNotExist(
+            column_name=match.group(1),
+            model_name=MODEL_NAME,
+            transformation_name="distinct"
+        )
+    raise TransformationFailed(
+        transformation_name="distinct",
+        model_name=MODEL_NAME,
+        error_message=str(error)
+    ) from error
+except Exception as error:
+    raise TransformationFailed(
+        transformation_name="distinct",
+        model_name=MODEL_NAME,
+        error_message=str(error)
+    ) from error
+self.save_table_columns(transformation_id="{{ transformation_id }}_transformed", table_obj=source_table)

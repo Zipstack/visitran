@@ -1,0 +1,10 @@
+{# The below code is for column reorder transformation #}
+# Processing column reorder
+try:
+    _column_order = {{ column_order }}
+    _ordered = [c for c in _column_order if c in source_table.columns]
+    _remaining = [c for c in source_table.columns if c not in _column_order]
+    if _ordered:
+        source_table = source_table.select(_ordered + _remaining)
+except Exception as error:
+    raise TransformationFailed(transformation_name="column reorder", model_name=MODEL_NAME, error_message=str(error)) from error

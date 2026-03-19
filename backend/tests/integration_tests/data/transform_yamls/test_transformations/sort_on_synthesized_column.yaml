@@ -1,0 +1,23 @@
+source:
+  table_name: employee
+  materialization: TABLE
+destination:
+  table_name: sort_on_synthesized_column
+presentation:
+  columns:
+    - '*'
+  sort:
+    - column: no_of_employees
+      order_by: ASC
+    - column: profession
+      order_by: ASC
+transform:
+  group:
+    - profession
+  union:
+    ignore_duplicate: false
+  aggregate:
+    aggregate_columns:
+      - function: COUNT
+        column: profession
+        alias: no_of_employees

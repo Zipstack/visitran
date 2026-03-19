@@ -1,0 +1,237 @@
+.settings_layout {
+  display: flex !important;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+}
+.menu-tree-wrap {
+  width: 300px;
+}
+.content_wrap {
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  background-color: var(--content-bg);
+}
+.roles_wrapper {
+  padding: 20px;
+}
+.btn_wrap {
+  display: flex;
+  justify-content: flex-end;
+}
+.invite_field_wrap {
+  width: 100%;
+  margin: 10px 0px;
+}
+.invite_inputfield {
+  width: 100%;
+  margin-top: 5px;
+}
+.menutree {
+  height: 100%;
+  overflow: scroll;
+  padding-bottom: 20px;
+  width: 100%;
+}
+
+.api-overview-container {
+  background: var(--bg-color);
+  padding: 24px;
+}
+.info-card {
+  background: var(--component-background);
+  border: 1px solid var(--border-color);
+}
+
+.card-container {
+  background: none;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-title {
+  margin: 0 0 12px 0;
+}
+
+.alert-container {
+  border-radius: 6px;
+}
+
+.filter-container {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.filter-select {
+  width: 120px;
+}
+.billing-subscription {
+  padding: 0 24px;
+  height: 100%;
+  overflow: auto;
+}
+
+.billing_content_wrap {
+  min-width: 100%;
+  padding: 24px 0;
+}
+
+.billing_cycle {
+  margin: 24px 0;
+}
+
+.mt-24 {
+  margin-top: 24px;
+}
+.plan-card {
+  height: 100%;
+}
+.mt-48 {
+  margin-top: 48px;
+}
+.flex-column {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.flex_1_1 {
+  flex: 1 1 auto;
+}
+
+.flex_0_0 {
+  flex: 0 0 auto;
+}
+.plan-card {
+  border-color: var(--bg-secondary);
+  border-radius: 8px;
+  margin-bottom: 24px;
+  border: 1px solid #d9d9d9;
+}
+.radio_group {
+  background-color: var(--bg-secondary);
+  padding: 0;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.card_style {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+}
+
+.card_content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 24px;
+}
+
+.quick-copy-modal {
+  /* Modal specific styles */
+}
+
+.modal-content {
+  background-color: var(--modal-bg);
+  padding: 16px;
+  border-radius: 6px;
+}
+
+.info-text {
+  color: #888;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.env-container {
+  background-color: var(--modal-bg);
+  border-radius: 6px;
+  padding: 16px;
+}
+
+.env-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.env-label {
+  background-color: var(--modal-bg);
+  color: #888;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.icon-button {
+  color: #888;
+}
+
+.env-variables {
+  font-family: monospace;
+  font-size: 13px;
+  overflow-x: auto;
+}
+
+.env-row {
+  display: flex;
+  white-space: nowrap;
+}
+
+.env-line-number {
+  width: 28px;
+  min-width: 28px;
+  flex-shrink: 0;
+  color: var(--panel-lable-disabled);
+  text-align: right;
+  padding-right: 12px;
+  user-select: none;
+}
+
+.env-value {
+  white-space: nowrap;
+}
+
+.env-footer {
+  border-top: 1px solid var(--border-color);
+  margin-top: 16px;
+  padding-top: 16px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.footer-content {
+  margin-bottom: 12px;
+}
+
+.footer-description {
+  font-size: 12px;
+  color: #888;
+}
+
+.green-color {
+  color: green;
+}
+.red-color {
+  color: red;
+}
+.user-management-wrap {
+  padding: 24px;
+  background-color: var(--component-background);
+}

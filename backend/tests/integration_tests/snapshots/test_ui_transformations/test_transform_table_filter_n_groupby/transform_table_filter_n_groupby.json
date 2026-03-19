@@ -1,0 +1,27 @@
+{
+  "content": [
+    {
+      "profession": "Engineer",
+      "job_count": 2
+    }
+  ],
+  "schema_name": "default",
+  "column_description": {
+    "profession": {
+      "column_name": "profession",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "job_count": {
+      "column_name": "job_count",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    }
+  },
+  "column_names": [
+    "profession",
+    "job_count"
+  ]
+}

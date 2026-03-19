@@ -1,0 +1,11 @@
+source:
+  table_name: employee
+  materialization: TABLE
+destination:
+  table_name: formula_creating_existing_column
+presentation:
+  columns:
+    - '*'
+transform:
+  union:
+    ignore_duplicate: false

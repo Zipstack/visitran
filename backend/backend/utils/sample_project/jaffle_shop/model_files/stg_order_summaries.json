@@ -1,0 +1,74 @@
+{
+  "model_name": "stg_order_summaries",
+  "model_data": {
+    "source": {
+      "schema_name": "dev",
+      "table_name": "orders",
+      "materialization": "TABLE"
+    },
+    "presentation": {
+      "hidden_columns": [
+        "*"
+      ],
+      "sort": [
+        {
+          "column": "customer_id",
+          "order_by": "ASC",
+          "data_type": "Number"
+        }
+      ]
+    },
+    "reference": [
+      "dev_orders"
+    ],
+    "model": {
+      "schema_name": "stg",
+      "table_name": "customer_orders"
+    },
+    "transform_order": [
+      "groups_and_aggregation_0"
+    ],
+    "transform": {
+      "groups_and_aggregation_0": {
+        "type": "groups_and_aggregation",
+        "groups_and_aggregation": {
+          "group": [
+            "customer_id"
+          ],
+          "aggregate_columns": [
+            {
+              "function": "MIN",
+              "column": "order_date",
+              "alias": "first_order"
+            },
+            {
+              "function": "MAX",
+              "column": "order_date",
+              "alias": "most_recent_order"
+            },
+            {
+              "function": "COUNT",
+              "column": "order_id",
+              "alias": "number_of_orders"
+            }
+          ],
+          "having": {
+            "criteria": []
+          },
+          "filter": {
+            "criteria": []
+          }
+        }
+      }
+    }
+  },
+  "dependent_models": [
+    {
+      "status": "sql",
+      "model_data": {
+        "sql": "SELECT\n  t0.customer_id,\n  MIN(t0.order_date) AS first_order,\n  MAX(t0.order_date) AS most_recent_order,\n  COUNT(t0.order_id) AS number_of_orders\nFROM dev.orders AS t0\nGROUP BY\n  1"
+      },
+      "transformation_id": "sql"
+    }
+  ]
+}

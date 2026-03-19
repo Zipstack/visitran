@@ -1,0 +1,17 @@
+destination:
+  table_name: columns_transform_synthesis
+presentation:
+  columns:
+  - '*'
+source:
+  materialization: TABLE
+  table_name: employee
+transform:
+  synthesize:
+    columns:
+    - column_name: full_name
+      operation:
+        formula: CONCAT(name, " ", profession)
+      type: FORMULA
+  union:
+    ignore_duplicate: false

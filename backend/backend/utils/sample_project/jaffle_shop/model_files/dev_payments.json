@@ -1,0 +1,135 @@
+{
+  "model_name": "dev_payments",
+  "model_data": {
+    "source": {
+      "schema_name": "raw",
+      "table_name": "raw_payments",
+      "materialization": "TABLE"
+    },
+    "presentation": {
+      "hidden_columns": [
+        "*"
+      ],
+      "sort": [
+        {
+          "column": "payment_id",
+          "order_by": "ASC",
+          "data_type": "Number"
+        }
+      ]
+    },
+    "model": {
+      "schema_name": "dev",
+      "table_name": "payments"
+    },
+    "transform_order": [
+      "type_synthesize_0",
+      "type_rename_column_1"
+    ],
+    "transform": {
+      "type_synthesize_0": {
+        "type": "synthesize",
+        "synthesize": {
+          "columns": [
+            {
+              "column_name": "amount_in_dollars",
+              "type": "FORMULA",
+              "operation": {
+                "formula": "QUOTIENT(amount,100)"
+              }
+            }
+          ]
+        }
+      },
+      "type_rename_column_1": {
+        "type": "rename_column",
+        "rename_column": {
+          "mappings": [
+            {
+              "old_name": "id",
+              "new_name": "payment_id",
+              "original_name": "id"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "dependent_models": [
+    {
+      "status": "synthesis_validator",
+      "transformation_id": "type_synthesize_0",
+      "model_data": {
+        "column_names": [
+          "id",
+          "order_id",
+          "payment_method",
+          "amount"
+        ],
+        "column_description": {
+          "id": {
+            "column_name": "id",
+            "column_dbtype": "int32",
+            "nullable": true
+          },
+          "order_id": {
+            "column_name": "order_id",
+            "column_dbtype": "int32",
+            "nullable": true
+          },
+          "payment_method": {
+            "column_name": "payment_method",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "amount": {
+            "column_name": "amount",
+            "column_dbtype": "int32",
+            "nullable": true
+          }
+        }
+      }
+    },
+    {
+      "status": "rename",
+      "transformation_id": "type_rename_column_1",
+      "model_data": {
+        "column_names": [
+          "id",
+          "order_id",
+          "payment_method",
+          "amount"
+        ],
+        "column_description": {
+          "id": {
+            "column_name": "id",
+            "column_dbtype": "int32",
+            "nullable": true
+          },
+          "order_id": {
+            "column_name": "order_id",
+            "column_dbtype": "int32",
+            "nullable": true
+          },
+          "payment_method": {
+            "column_name": "payment_method",
+            "column_dbtype": "string",
+            "nullable": true
+          },
+          "amount": {
+            "column_name": "amount",
+            "column_dbtype": "int32",
+            "nullable": true
+          }
+        }
+      }
+    },
+    {
+      "status": "sql",
+      "model_data": {
+        "sql": "SELECT\n  t0.id AS payment_id,\n  t0.order_id,\n  t0.payment_method,\n  t0.amount,\n  t0.amount_in_dollars\nFROM (\n  SELECT\n    t1.id AS id,\n    t1.order_id AS order_id,\n    t1.payment_method AS payment_method,\n    t1.amount AS amount,\n    FLOOR(t1.amount / 100) AS amount_in_dollars\n  FROM raw.raw_payments AS t1\n) AS t0"
+      },
+      "transformation_id": "sql"
+    }
+  ]
+}

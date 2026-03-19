@@ -1,0 +1,31 @@
+
+class {{class_name}}({{previous_class}}):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.{{materialization_type}}
+        self.destination_schema_name = "{{destination_schema_name}}"
+        self.destination_table_name = "{{destination_table_name}}"
+        self.database = "{{database_name}}"
+
+    def select(self) -> Table:
+
+        {%- for transformation_statement in transformation_statements %}
+        {{ transformation_statement | indent(8) }}
+        {%- endfor %}
+
+        return source_table
+    {% if materialization_type == "INCREMENTAL" %}
+    def select_if_incremental(self) -> Table:
+        """A select method which will called only while doing incremental
+        update. Uses delta strategy framework if configured, otherwise
+        falls back to manual implementation."""
+        self.delta_strategy = {{delta_strategy}}
+        self.primary_key = {{unique_keys}}
+        # Validate configuration for incremental models
+        self._validate_incremental_config()
+
+        # If delta strategy is configured, use the framework
+        if self.delta_strategy.get("type"):
+            return self._execute_delta_strategy()
+        return self.select()
+    {% endif %}

@@ -1,0 +1,88 @@
+{
+  "title": "duckdbuitest",
+  "key": "duckdbuitest",
+  "is_folder": true,
+  "type": "ROOT",
+  "children": [
+    {
+      "title": "README.md",
+      "key": "duckdbuitest/README.md",
+      "is_folder": false,
+      "extension": "md",
+      "type": "ROOT_README_FILE"
+    },
+    {
+      "title": "model_tests",
+      "key": "duckdbuitest/model_tests",
+      "type": "ROOT_TEST",
+      "is_folder": true,
+      "children": []
+    },
+    {
+      "title": "models",
+      "key": "duckdbuitest/models",
+      "type": "ROOT_MODEL",
+      "is_folder": true,
+      "children": [
+        {
+          "title": "full_code",
+          "key": "duckdbuitest/models/full_code",
+          "type": "FULL_CODE",
+          "is_folder": true,
+          "children": []
+        },
+        {
+          "title": "no_code",
+          "key": "duckdbuitest/models/no_code",
+          "type": "NO_CODE",
+          "is_folder": true,
+          "children": [
+            {
+              "title": "no_code_model",
+              "key": "duckdbuitest/models/no_code/no_code_model",
+              "is_folder": false,
+              "extension": "no_code_model",
+              "type": "NO_CODE_MODEL"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "seeds",
+      "key": "duckdbuitest/seeds",
+      "type": "ROOT_SEED",
+      "is_folder": true,
+      "children": [
+        {
+          "title": "employee.csv",
+          "key": "duckdbuitest/seeds/employee.csv",
+          "is_folder": false,
+          "extension": "csv",
+          "type": "SEED_CSV_FILE"
+        },
+        {
+          "title": "employee_home.csv",
+          "key": "duckdbuitest/seeds/employee_home.csv",
+          "is_folder": false,
+          "extension": "csv",
+          "type": "SEED_CSV_FILE"
+        }
+      ]
+    },
+    {
+      "title": "snapshots",
+      "key": "duckdbuitest/snapshots",
+      "type": "ROOT_SNAPSHOT",
+      "is_folder": true,
+      "children": []
+    },
+    {
+      "title": "visitran_project.yaml",
+      "key": "duckdbuitest/visitran_project.yaml",
+      "is_folder": false,
+      "extension": "yaml",
+      "type": "ROOT_YAML_FILE"
+    }
+  ]
+}

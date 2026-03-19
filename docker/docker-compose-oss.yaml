@@ -1,0 +1,53 @@
+name: visitran-oss
+
+services:
+  redis:
+    image: "redis:7.2.3"
+    container_name: oss-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - oss_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    image: visitran/backend:${VERSION:-dev}
+    container_name: oss-backend
+    restart: unless-stopped
+    entrypoint: ["/bin/bash", "/app/entrypoint-oss.sh"]
+    ports:
+      - "8002:8000"
+    env_file:
+      - .env.docker.oss
+    depends_on:
+      redis:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - oss_sqlite_data:/app/db
+      - ./entrypoint-oss.sh:/app/entrypoint-oss.sh:ro
+
+  frontend:
+    image: visitran/frontend:${VERSION:-dev}
+    container_name: oss-frontend
+    restart: unless-stopped
+    ports:
+      - "3001:80"
+    depends_on:
+      - backend
+    volumes:
+      - ./nginx-oss.conf:/etc/nginx/nginx.conf:ro
+
+networks:
+  default:
+    name: visitran-oss-network
+
+volumes:
+  oss_redis_data:
+  oss_sqlite_data:

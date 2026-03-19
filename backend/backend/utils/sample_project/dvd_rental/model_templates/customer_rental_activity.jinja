@@ -1,0 +1,78 @@
+import re
+import ibis
+from ibis import _
+from ibis.expr.types.relations import Table
+from ibis.common.exceptions import IbisTypeError
+from visitran.templates.model import VisitranModel
+from visitran.errors import ColumnNotExist
+from visitran.errors import TransformationFailed
+from visitran.materialization import Materialization
+
+
+
+MODEL_NAME = "customer_rental_activity"
+
+class DevCustomerRentalActivity(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "rental"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "customer_rental_activity"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class CustomerRentalActivity(DevCustomerRentalActivity):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.TABLE
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "customer_rental_activity"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        dev_customer_rental_activity: Table = DevCustomerRentalActivity().select()
+        source_table = dev_customer_rental_activity
+
+        # Processing Groups and aggregations statements
+        # The transformation ID is groups_and_aggregation-6979db5d-80ff-4843-96d5-43c8f1ed7cb9
+        self.save_table_columns(transformation_id="groups_and_aggregation-6979db5d-80ff-4843-96d5-43c8f1ed7cb9", table_obj=source_table)
+        try:
+            source_table = source_table.group_by([source_table['customer_id']]).aggregate([_['rental_id'].count().name('number_of_rentals')])
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(
+                    column_name=match.group(1),
+                    model_name=MODEL_NAME,
+                    transformation_name="groups and aggregations"
+                )
+            raise TransformationFailed(
+                transformation_name="groups",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="groups",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+
+        # Processing sort statements
+        try:
+            source_table = source_table.order_by([ibis.desc("number_of_rentals")])
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(column_name=match.group(1), model_name=MODEL_NAME, transformation_name="sort")
+            raise TransformationFailed(transformation_name="sort", model_name=MODEL_NAME, error_message=str(error)) from error
+        except Exception as error:
+            raise TransformationFailed(transformation_name="sort", model_name=MODEL_NAME, error_message=str(error)) from error
+
+        return source_table

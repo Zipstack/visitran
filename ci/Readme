@@ -1,0 +1,15 @@
+## How to Debug
+
+To debug, you need to install GitHub CLI and get authenticated. Then you can run the following command:
+
+```bash
+GITHUB_CONTEXT=$(cat ci/context.json) GITHUB_TOKEN=$(gh auth token) python ci/increment_version.py
+```
+
+To get context.json, you need to add the following step in version-bump.yml:
+```yaml
+- name: Print env variables
+  uses: ./.github/actions/print-env/
+```
+
+Then push your changes and copy the context.json from the action run of version-bump. Paste the full GITHUB_CONTEXT json into context.json

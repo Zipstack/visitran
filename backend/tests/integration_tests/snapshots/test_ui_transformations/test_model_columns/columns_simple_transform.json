@@ -1,0 +1,141 @@
+{
+  "schema_name": "",
+  "column_description": {
+    "id": {
+      "column_name": "id",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "name": {
+      "column_name": "name",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "age": {
+      "column_name": "age",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "profession": {
+      "column_name": "profession",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "salary": {
+      "column_name": "salary",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    }
+  },
+  "all_column_description": {
+    "id": {
+      "column_name": "id",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "name": {
+      "column_name": "name",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "age": {
+      "column_name": "age",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    },
+    "profession": {
+      "column_name": "profession",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "salary": {
+      "column_name": "salary",
+      "column_dbtype": "int64",
+      "nullable": true,
+      "data_type": "Number"
+    }
+  },
+  "column_names": {
+    "current": [
+      "age",
+      "id",
+      "name",
+      "profession",
+      "salary"
+    ],
+    "joins": [
+      "age",
+      "id",
+      "name",
+      "profession",
+      "salary"
+    ],
+    "joined_tables": {},
+    "unions": [
+      "age",
+      "id",
+      "name",
+      "profession",
+      "salary"
+    ],
+    "synthesis_validator": [
+      "age",
+      "id",
+      "name",
+      "profession",
+      "salary"
+    ],
+    "filter": [
+      "age",
+      "id",
+      "name",
+      "profession",
+      "salary"
+    ],
+    "synthesize": [
+      "age",
+      "id",
+      "name",
+      "profession",
+      "salary"
+    ],
+    "group": [
+      "age",
+      "id",
+      "name",
+      "profession",
+      "salary"
+    ],
+    "distinct": [
+      "age",
+      "id",
+      "name",
+      "profession",
+      "salary"
+    ],
+    "sort": [
+      "age",
+      "id",
+      "name",
+      "profession",
+      "salary"
+    ],
+    "hidden_columns": [
+      "age",
+      "id",
+      "name",
+      "profession",
+      "salary"
+    ]
+  },
+  "sql_statement": "SELECT\n  t0.id,\n  t0.name,\n  t0.age,\n  t0.profession,\n  t0.salary\nFROM main.employee AS t0"
+}

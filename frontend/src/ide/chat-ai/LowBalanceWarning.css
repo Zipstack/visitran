@@ -1,0 +1,48 @@
+.low-balance-warning {
+  margin-bottom: 12px;
+}
+
+.low-balance-warning .ant-alert {
+  border-radius: 6px;
+  border: 1px solid #faad14;
+  background-color: #fff7e6;
+}
+
+.low-balance-warning .warning-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.low-balance-warning .warning-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8c6d1f;
+  font-weight: 500;
+}
+
+.low-balance-warning .warning-text strong {
+  color: #8c6d1f;
+}
+
+.low-balance-warning .warning-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.low-balance-warning .reset-button {
+  padding: 0;
+  height: auto;
+  color: #1890ff;
+}
+
+.low-balance-warning .close-button {
+  padding: 0;
+  height: auto;
+  color: #8c6d1f;
+}
+
+.low-balance-warning .warning-icon {
+  color: #faad14;
+} 

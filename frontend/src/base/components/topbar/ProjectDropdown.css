@@ -1,0 +1,49 @@
+/* Project Dropdown Styles */
+
+.project-dropdown-item {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 8px 12px;
+}
+
+.project-dropdown-item-current {
+  color: #1890ff;
+}
+
+.project-dropdown-button {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 6px 15px;
+  border-radius: 4px;
+  margin-right: 5px;
+  height: 32px;
+  justify-content: space-between;
+}
+
+.project-name-container {
+  display: flex;
+  align-items: center;
+}
+
+.project-name-text {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  font-weight: 500;
+  color: #fff !important;
+}
+
+.dropdown-arrow-icon {
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+.dropdown-message {
+  padding: 10px 12px;
+  text-align: center;
+}

@@ -1,0 +1,43 @@
+{
+  "content": [
+    {
+      "profession": "Architect",
+      "avg_salary": 90000.0
+    },
+    {
+      "profession": "Developer",
+      "avg_salary": 65000.0
+    },
+    {
+      "profession": "Engineer",
+      "avg_salary": 60000.0
+    },
+    {
+      "profession": "Manager",
+      "avg_salary": 80000.0
+    },
+    {
+      "profession": null,
+      "avg_salary": 100000.0
+    }
+  ],
+  "schema_name": "default",
+  "column_description": {
+    "profession": {
+      "column_name": "profession",
+      "column_dbtype": "string",
+      "nullable": true,
+      "data_type": "String"
+    },
+    "avg_salary": {
+      "column_name": "avg_salary",
+      "column_dbtype": "float64",
+      "nullable": true,
+      "data_type": "Number"
+    }
+  },
+  "column_names": [
+    "profession",
+    "avg_salary"
+  ]
+}

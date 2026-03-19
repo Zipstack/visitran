@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "file_path": {
+      "type": "string",
+      "title": "File Path",
+      "description": "Enter duckdb db path or press enter to use default.",
+      "default": ""
+    }
+  },
+  "required": ["file_path"]
+}

@@ -1,0 +1,108 @@
+{
+  "model_name": "stg_aggr_order_payments",
+  "model_data": {
+    "reference": [
+      "dev_payments",
+      "dev_orders"
+    ],
+    "source": {
+      "schema_name": "dev",
+      "table_name": "payments",
+      "materialization": "TABLE"
+    },
+    "presentation": {
+      "hidden_columns": [
+        "*"
+      ],
+      "sort": [
+        {
+          "column": "customer_id",
+          "order_by": "ASC",
+          "data_type": "Number"
+        }
+      ]
+    },
+    "model": {
+      "schema_name": "stg",
+      "table_name": "customer_payments"
+    },
+    "transform_order": [
+      "type_join_0",
+      "groups_and_aggregation_1"
+    ],
+    "transform": {
+      "type_join_0": {
+        "type": "join",
+        "join": {
+          "tables": [
+            {
+              "type": "Inner",
+              "criteria": [
+                {
+                  "condition": {
+                    "lhs": {
+                      "type": "COLUMN",
+                      "column": {
+                        "schema_name": "dev",
+                        "table_name": "payments",
+                        "column_name": "order_id",
+                        "data_type": "String"
+                      }
+                    },
+                    "operator": "NEQ",
+                    "rhs": {
+                      "type": "COLUMN",
+                      "column": {
+                        "schema_name": "dev",
+                        "table_name": "orders",
+                        "column_name": "order_id",
+                        "data_type": "Number"
+                      },
+                      "value": [
+                        ""
+                      ]
+                    }
+                  }
+                }
+              ],
+              "joined_table": {
+                "schema_name": "dev",
+                "table_name": "orders"
+              }
+            }
+          ]
+        }
+      },
+      "groups_and_aggregation_1": {
+        "type": "groups_and_aggregation",
+        "groups_and_aggregation": {
+          "group": [
+            "customer_id"
+          ],
+          "aggregate_columns": [
+            {
+              "function": "SUM",
+              "column": "amount_in_dollars",
+              "alias": "total_amount"
+            }
+          ],
+          "having": {
+            "criteria": []
+          },
+          "filter": {
+            "criteria": []
+          }
+        }
+      }
+    }
+  },
+  "dependent_models": [
+    {
+      "status": "sql",
+      "model_data": {
+        "sql": "WITH t0 AS (\n  SELECT\n    t3.id AS id,\n    t3.user_id AS customer_id,\n    t3.order_date AS order_date,\n    t3.status AS status\n  FROM raw.raw_orders AS t3\n), t1 AS (\n  SELECT\n    t0.id AS order_id,\n    t0.customer_id AS customer_id,\n    t0.order_date AS order_date,\n    t0.status AS status\n  FROM t0\n)\nSELECT\n  t2.customer_id,\n  SUM(t2.amount_in_dollars) AS total_amount\nFROM (\n  SELECT\n    t3.payment_id AS payment_id,\n    t3.order_id AS order_id,\n    t3.payment_method AS payment_method,\n    t3.amount AS amount,\n    t3.amount_in_dollars AS amount_in_dollars,\n    t1.order_id AS dev_orders_order_id,\n    t1.customer_id AS customer_id,\n    t1.order_date AS order_date,\n    t1.status AS status\n  FROM dev.payments AS t3\n  JOIN t1\n    ON t3.order_id <> t1.order_id\n) AS t2\nGROUP BY\n  1"
+      },
+      "transformation_id": "sql"
+    }
+  ]
+}

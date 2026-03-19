@@ -1,0 +1,4 @@
+store.csv filter=lfs diff=lfs merge=lfs -text
+film.csv filter=lfs diff=lfs merge=lfs -text
+inventory.csv filter=lfs diff=lfs merge=lfs -text
+rental.csv filter=lfs diff=lfs merge=lfs -text

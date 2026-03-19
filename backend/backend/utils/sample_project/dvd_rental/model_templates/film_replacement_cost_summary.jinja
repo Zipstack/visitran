@@ -1,0 +1,43 @@
+import re
+import ibis
+from ibis import _
+from ibis.expr.types.relations import Table
+from ibis.common.exceptions import IbisTypeError
+from visitran.templates.model import VisitranModel
+from visitran.errors import ColumnNotExist
+from visitran.errors import TransformationFailed
+from visitran.materialization import Materialization
+
+
+
+MODEL_NAME = "film_replacement_cost_summary"
+
+class DevFilmReplacementCostSummary(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "film"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "film_replacement_cost_summary"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class FilmReplacementCostSummary(DevFilmReplacementCostSummary):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.TABLE
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "film_replacement_cost_summary"
+        self.database = "default_org__dvd_db_f_2025_06_27_18_36_c0ef26ef"
+
+    def select(self) -> Table:
+        dev_film_replacement_cost_summary: Table = DevFilmReplacementCostSummary().select()
+        source_table = dev_film_replacement_cost_summary
+
+
+        return source_table

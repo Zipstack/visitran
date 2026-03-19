@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "project_id": {
+      "type": "string",
+      "title": "Project ID",
+      "description": "A BigQuery project ID",
+      "minLength": 1
+    },
+    "dataset_id": {
+      "type": "string",
+      "title": "Dataset ID",
+      "description": "A dataset inside the above project",
+      "minLength": 1
+    },
+    "credentials": {
+      "type": "string",
+      "title": "Credentials",
+      "description": "Place your service account JSON data here",
+      "format": "textarea"
+    }
+  },
+  "required": ["project_id", "dataset_id", "credentials"]
+}

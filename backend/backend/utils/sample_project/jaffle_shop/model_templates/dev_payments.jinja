@@ -1,0 +1,105 @@
+import re
+import ibis
+from ibis import _
+from ibis.expr.types.relations import Table
+from ibis.common.exceptions import IbisTypeError
+from visitran.templates.model import VisitranModel
+from visitran.errors import ColumnNotExist
+from visitran.errors import TransformationFailed
+from visitran.materialization import Materialization
+from formulasql.formulasql import FormulaSQL
+from visitran.errors import SynthesisColumnNotExist
+
+
+
+MODEL_NAME = "dev_payments"
+
+class DevPaymentsSource(VisitranModel):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.EPHEMERAL
+        self.source_schema_name = "raw"
+        self.source_table_name = "raw_payments"
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "payments"
+        self.database = "default_org__js_db_f_2025_06_27_16_58_684329b3"
+
+    def select(self) -> Table:
+        source_table = self.source_table_obj
+        return source_table
+
+
+class DevPayments(DevPaymentsSource):
+    def __init__(self):
+        super().__init__()
+        self.materialization = Materialization.TABLE
+        self.destination_schema_name = "dev"
+        self.destination_table_name = "payments"
+        self.database = "default_org__js_db_f_2025_06_27_16_58_684329b3"
+
+    def select(self) -> Table:
+        dev_payments_source: Table = DevPaymentsSource().select()
+        source_table = dev_payments_source
+
+        # Processing Formula columns statements
+        # The transformation ID is type_synthesize_0
+        self.save_table_columns(transformation_id="type_synthesize_0", table_obj=source_table)
+        try:
+            source_table = source_table.mutate(FormulaSQL(source_table, 'amount_in_dollars', '=QUOTIENT(amount,100)').ibis_column())
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise SynthesisColumnNotExist(
+                    column_name=match.group(1),
+                    model_name=MODEL_NAME,
+                    transformation_name="formula column"
+                )
+            raise TransformationFailed(
+                transformation_name="formula columns",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="formula columns",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+
+        # Processing rename columns statements
+        # The transformation ID is type_rename_column_1
+        self.save_table_columns(transformation_id="type_rename_column_1", table_obj=source_table)
+        try:
+            source_table = source_table.rename({'payment_id': 'id'})
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(
+                    column_name=match.group(1),
+                    model_name=MODEL_NAME,
+                    transformation_name="rename"
+                ) from error
+            raise TransformationFailed(
+                transformation_name="rename",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+        except Exception as error:
+            raise TransformationFailed(
+                transformation_name="rename",
+                model_name=MODEL_NAME,
+                error_message=str(error)
+            ) from error
+
+        # Processing sort statements
+        try:
+            source_table = source_table.order_by([ibis.asc("payment_id")])
+        except IbisTypeError as error:
+            match = re.search(r"Column '(\w+)'", error.__str__())
+            if match:
+                raise ColumnNotExist(column_name=match.group(1), model_name=MODEL_NAME, transformation_name="sort")
+            raise TransformationFailed(transformation_name="sort", model_name=MODEL_NAME, error_message=str(error)) from error
+        except Exception as error:
+            raise TransformationFailed(transformation_name="sort", model_name=MODEL_NAME, error_message=str(error)) from error
+
+        return source_table

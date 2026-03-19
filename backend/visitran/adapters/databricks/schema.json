@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "server_hostname": {
+      "type": "string",
+      "title": "Server Hostname",
+      "description": "Databricks workspace hostname without https:// (e.g., adb-1234567890123456.7.azuredatabricks.net)",
+      "minLength": 1,
+      "placeholder": "adb-xxx.azuredatabricks.net"
+    },
+    "http_path": {
+      "type": "string",
+      "title": "HTTP Path",
+      "description": "SQL Warehouse or cluster HTTP path (e.g., /sql/1.0/warehouses/abc123)",
+      "minLength": 1,
+      "placeholder": "/sql/1.0/warehouses/..."
+    },
+    "access_token": {
+      "type": "string",
+      "title": "Access Token",
+      "description": "Personal access token for authentication",
+      "format": "password",
+      "minLength": 1
+    },
+    "catalog": {
+      "type": "string",
+      "title": "Catalog",
+      "description": "Unity Catalog name (e.g., main)",
+      "minLength": 1,
+      "placeholder": "main"
+    },
+    "schema": {
+      "type": "string",
+      "title": "Default Schema (Optional)",
+      "description": "Default schema/database name. Leave empty to use workspace default.",
+      "placeholder": "default"
+    }
+  },
+  "required": ["server_hostname", "http_path", "access_token", "catalog"]
+}

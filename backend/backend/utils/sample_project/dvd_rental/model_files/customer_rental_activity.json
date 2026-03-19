@@ -1,0 +1,83 @@
+{
+  "model_name": "customer_rental_activity",
+  "model_data": {
+    "source": {
+      "schema_name": "raw",
+      "table_name": "rental",
+      "materialization": "TABLE"
+    },
+    "model": {
+      "schema_name": "dev",
+      "table_name": "customer_rental_activity"
+    },
+    "presentation": {
+      "hidden_columns": [
+        "*"
+      ],
+      "sort": [
+        {
+          "column": "number_of_rentals",
+          "order_by": "DESC",
+          "data_type": "Number"
+        }
+      ]
+    },
+    "transform": {
+      "groups_and_aggregation-6979db5d-80ff-4843-96d5-43c8f1ed7cb9": {
+        "type": "groups_and_aggregation",
+        "groups_and_aggregation": {
+          "group": [
+            "customer_id"
+          ],
+          "aggregate_columns": [
+            {
+              "function": "COUNT",
+              "column": "rental_id",
+              "alias": "number_of_rentals"
+            }
+          ],
+          "having": {
+            "criteria": []
+          },
+          "filter": {
+            "criteria": []
+          }
+        }
+      }
+    },
+    "transform_order": [
+      "groups_and_aggregation-6979db5d-80ff-4843-96d5-43c8f1ed7cb9"
+    ]
+  },
+  "dependent_models": [
+    {
+      "status": "groups",
+      "model_data": {
+        "column_names": [
+          "customer_id",
+          "number_of_rentals"
+        ],
+        "column_description": {
+          "customer_id": {
+            "column_name": "customer_id",
+            "column_dbtype": "int64",
+            "nullable": true
+          },
+          "number_of_rentals": {
+            "column_name": "number_of_rentals",
+            "column_dbtype": "int64",
+            "nullable": true
+          }
+        }
+      },
+      "transformation_id": "groups_and_aggregation-6979db5d-80ff-4843-96d5-43c8f1ed7cb9"
+    },
+    {
+      "status": "sql",
+      "model_data": {
+        "sql": "SELECT\n  *\nFROM (\n  SELECT\n    \"t0\".\"customer_id\",\n    COUNT(\"t0\".\"rental_id\") AS \"number_of_rentals\"\n  FROM \"raw\".\"rental\" AS \"t0\"\n  GROUP BY\n    1\n) AS \"t1\"\nORDER BY\n  \"t1\".\"number_of_rentals\" DESC NULLS LAST"
+      },
+      "transformation_id": "sql"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+.docs-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 12px 0;
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-color-4, #e2e8f0);
+  background-color: var(--white);
+}
+
+.docs-footer-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #94a3b8;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.docs-footer-link:hover {
+  color: #3b82f6;
+}
+
+.docs-footer-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #cbd5e1;
+}

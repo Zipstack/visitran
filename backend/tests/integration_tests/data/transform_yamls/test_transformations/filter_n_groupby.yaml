@@ -1,0 +1,44 @@
+source:
+  table_name: employee
+  materialization: TABLE
+destination:
+  table_name: filter_n_groupby
+presentation:
+  columns:
+    - '*'
+transform:
+  group:
+    - profession
+  filter:
+    criteria:
+      - condition:
+          lhs:
+            type: COLUMN
+            column:
+              table_name: filter_n_groupby
+              column_name: salary
+              data_type: Number
+          operator: LT
+          rhs:
+            type: VALUE
+            value:
+              - 100000
+  aggregate:
+    aggregate_columns:
+      - function: COUNT
+        column: profession
+        alias: job_count
+    filter:
+      criteria:
+        - condition:
+            lhs:
+              type: COLUMN
+              column:
+                table_name: filter_n_groupby
+                column_name: job_count
+                data_type: Number
+            operator: EQ
+            rhs:
+              type: VALUE
+              value:
+                - 2

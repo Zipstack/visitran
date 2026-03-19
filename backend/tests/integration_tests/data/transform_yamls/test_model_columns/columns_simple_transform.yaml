@@ -1,0 +1,11 @@
+destination:
+  table_name: columns_simple_transform
+presentation:
+  columns:
+  - '*'
+source:
+  materialization: TABLE
+  table_name: employee
+transform:
+  union:
+    ignore_duplicate: false

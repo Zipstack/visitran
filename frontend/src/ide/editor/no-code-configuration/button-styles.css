@@ -1,0 +1,90 @@
+/* Button container */
+.button-container {
+  display: flex;
+  margin-right: 12px;
+  background: transparent;
+  padding: 4px;
+}
+
+/* Common button styles */
+.icon-button {
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  margin: 0 2px;
+  position: relative;
+}
+
+/* Divider between buttons */
+.button-divider {
+  width: 1px;
+  margin: 8px 2px;
+}
+
+.button-divider-light {
+  background: #f0f0f0;
+}
+
+.button-divider-dark {
+  background: #333333;
+}
+
+/* Python button specific styles */
+.python-button {
+  /* No animation styles */
+}
+
+.python-icon {
+  width: 40px;
+  height: 40px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Sequence button specific styles */
+.sequence-button {
+  /* No specific styles needed beyond icon-button */
+}
+
+.sequence-icon {
+  font-size: 20px;
+}
+
+/* SQL button specific styles */
+.sql-button {
+  /* No specific styles needed beyond icon-button */
+}
+
+.sql-icon {
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* SVG icon filters for theme adaptation */
+.icon-light {
+  filter: brightness(0.9);
+}
+
+.icon-dark {
+  filter: brightness(1.5);
+}
+
+/* SQL icon specific styling for light and dark themes */
+.sql-icon-light {
+  filter: invert(42%) sepia(0%) saturate(0%) hue-rotate(143deg) brightness(95%) contrast(92%);
+}
+
+.sql-icon-dark {
+  filter: invert(80%) sepia(0%) saturate(0%) hue-rotate(143deg) brightness(95%) contrast(92%);
+}

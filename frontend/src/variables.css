@@ -1,0 +1,159 @@
+:root {
+  --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+  --white: #ffffff;
+  --black: #000000;
+
+  --primary: #092c4c;
+  --secondary: #0c3861;
+
+  --font-color-1: #ffffff;
+
+  /* font sizes */
+  --font-size-16: 16px;
+  --font-size-14: 14px;
+
+  /* font weights */
+  --font-weight-400: 400;
+  --font-weight-500: 500;
+  --font-weight-600: 600;
+
+  --page-bg-1: #ffffff;
+  --page-bg-2: #ffffff;
+
+  --border-color-1: #e1e1e1;
+  --border-color-2: #efeaea;
+  --border-color-3: #d9d9d9;
+  --border-color-4: #0000000f;
+  --border-color-5: #0505050f;
+  --hover-color: #d9d9d966;
+
+  --toggle-icon-bg: #cad5dc;
+  --chip-bg: #d2e6ff;
+  --icons-color: #000;
+  --lineage-blue: #f2fbff;
+  --lineage-yellow: #fef6e1;
+  --project-card-bg: #e6f4ff;
+  --project-title: #092c4c;
+  --project-detail-bg: #fafbfc;
+  --segment-bg: #ebebeb;
+  --sidebar: #f5f7f9;
+  --check-icon: #e6f4ff;
+  --circle-color: #00000073;
+  --not-selected: #0000000f;
+  --config-bg: "#ffffff";
+
+  --panel-lable: #000000;
+  --panel-lable-disabled: #6e6e6e;
+  --project-box-shadow: 0px 1px 2px 0px #00000008;
+  --project-hover-box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1),
+    0px 6px 20px rgba(0, 0, 0, 0.1);
+  --island-bg: #e9ebee;
+  --card-header-bg: #e6f4ff;
+  --question-icon: #00000073;
+  --hover-bg: rgb(216, 213, 213);
+  --close-icon: rgba(0, 0, 0, 0.45);
+  --content-bg: #fff;
+  --left-border: #f0f0f0;
+  --modal-bg: #ffffff;
+  --chat-ai-bg-color: #f8f9fb;
+  --chat-ai-past-convo-card: #ebeff3;
+  --chat-ai-past-convo-card-hover: #e2eefb;
+  --chat-ai-prompt: #ebeff3;
+  --chat-ai-prompt-user: #dfe6ed;
+  --chat-ai-prompt-user-initial: #000000;
+  --chat-ai-prompt-response: #ffffff;
+  --chat-ai-prompt-input-border: #d9d9d9;
+  --chat-ai-prompt-input-bg: #f0f2f5;
+  --chat-ai-markdown-code-block-bg: #f6f8fa;
+  --start-modal-box-bg: rgb(230, 247, 255);
+  --start-modal-box-border: rgb(145, 213, 255);
+  --menu-items-bg: #e6f6fd;
+  --revert-icon-disable: #000000;
+  --schema-content-bg: #fff;
+  --schema-content-border: #f0f0f0;
+  --schema-field-type: #888;
+  --error-overlay-bg: rgba(0, 0, 0, 0.5);
+  --error-color: #ff4d4f;
+  --success-color: #52c41a;
+  --action-button-wrapper:#91CAFF;
+
+  /* Lineage node colors */
+  --node-color-blue: #B0E3F9;
+  --node-color-yellow: #FFDD8A;
+  --node-color-pink: #FFC8D2;
+}
+
+.dark {
+  --white: #000000;
+  --black: #ffffff;
+
+  --primary: #092c4c;
+  --secondary: #0c3861;
+
+  --font-color-1: #ffffff;
+
+  --page-bg-1: #000000;
+  --page-bg-2: #141414;
+
+  --border-color-1: #1d1d1d;
+  --border-color-2: #383535;
+  --border-color-3: #424242;
+  --border-color-4: #383838;
+  --border-color-5: #fdfdfd1f;
+  --hover-color: #42424266;
+
+  --toggle-icon-bg: #40484e;
+  --chip-bg: #40484e;
+  --icons-color: #fff;
+  --lineage-blue: #205072;
+  --lineage-yellow: #5c4412;
+  --project-card-bg: #092c4c;
+  --project-title: #ffffff;
+  --project-detail-bg: #262626;
+  --segment-bg: #333333;
+  --sidebar: #1d1d1d;
+  --check-icon: #111a2c;
+  --circle-color: #ffffff;
+  --not-selected: #ffffff73;
+  --config-bg: #141414;
+
+  --panel-lable: #ffffff;
+  --panel-lable-disabled: #aaa;
+  --project-box-shadow: 0px 1px 2px 0px rgba(255, 255, 255, 0.1);
+  --project-hover-box-shadow: 0px 4px 8px rgba(255, 255, 255, 0.15),
+    0px 6px 20px rgba(255, 255, 255, 0.1);
+  --island-bg: #424242;
+  --card-header-bg: #092c4c;
+  --question-icon: #ffffff;
+  --hover-bg: rgb(109, 103, 103);
+  --close-icon: rgba(255, 255, 255, 0.45);
+  --content-bg: #1d1d1d;
+  --left-border: #303030;
+  --modal-bg: #1f1f1f;
+  --chat-ai-bg-color: #141414;
+  --chat-ai-past-convo-card: #05182a;
+  --chat-ai-past-convo-card-hover: #08243f;
+  --chat-ai-prompt: #05182a;
+  --chat-ai-prompt-user: #0a2b49;
+  --chat-ai-prompt-user-initial: #ffffff;
+  --chat-ai-prompt-response: #222222;
+  --chat-ai-prompt-input-border: #424242;
+  --chat-ai-prompt-input-bg: #1a1a1a;
+  --chat-ai-markdown-code-block-bg: #161b22;
+  --start-modal-box-bg: #0a0f1c;
+  --start-modal-box-border: #1a2233;
+  --menu-items-bg: #072036;
+  --revert-icon-disable: #ffffff91;
+  --schema-content-bg: #202020;
+  --schema-content-border: #323131;
+  --schema-field-type: #9f9f9f;
+  --error-overlay-bg: rgba(0, 0, 0, 0.7);
+  --error-color: #ff7875;
+  --success-color: #73d13d;
+  --action-button-wrapper:#686868;
+
+  /* Lineage node colors */
+  --node-color-blue: #1a5a6e;
+  --node-color-yellow: #6e5a1a;
+  --node-color-pink: #6e3a4a;
+}

@@ -1,0 +1,25 @@
+/* Group Component Styles */
+
+.aggregator-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.aggregator-select-items {
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 12px;
+  gap: 10px;
+}
+
+.aggregator-action-buttons-container {
+  margin: 5px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.aggregator-footer-buttons {
+  display: flex;
+  justify-content: flex-end;
+}

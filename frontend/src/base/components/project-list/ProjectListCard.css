@@ -1,0 +1,462 @@
+/* ---------- wrapper ---------- */
+.project-list-card-wrapper {
+  border: 1px solid var(--border-color-4);
+  border-radius: 10px;
+  transition: all 0.15s ease;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--project-detail-bg);
+  position: relative;
+  overflow: hidden;
+}
+
+.project-list-card-wrapper:hover {
+  border-color: var(--border-color-3);
+  box-shadow: var(--project-hover-box-shadow);
+}
+
+.project-list-card--compact {
+  width: 100%;
+  min-width: 280px;
+}
+
+.project-list-card--full {
+  width: 100%;
+}
+
+/* ---------- bottom ownership border ---------- */
+.project-list-card-wrapper::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 0 0 10px 10px;
+}
+
+.project-list-card-wrapper.status-owned::before {
+  background: #1677ff;
+}
+
+.project-list-card-wrapper.status-shared::before {
+  background: #722ed1;
+}
+
+.project-list-card-wrapper.status-sample::before {
+  background: var(--circle-color);
+  opacity: 0.3;
+}
+
+/* ---------- right failed-jobs border ---------- */
+.project-list-card-wrapper::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 0 10px 10px 0;
+  pointer-events: none;
+}
+
+.project-list-card-wrapper.has-failed::after {
+  background: var(--error-color);
+}
+
+/* ---------- header ---------- */
+.project-list-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+}
+
+.project-list-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.project-list-card-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.project-list-card-status-dot.active {
+  background: #1677ff;
+  box-shadow: 0 0 6px #1677ff;
+}
+
+.project-list-card-status-dot.sample {
+  background: #1677ff;
+}
+
+.project-list-card-status-dot.failed {
+  background: var(--error-color);
+  box-shadow: 0 0 6px var(--error-color);
+}
+
+.project-list-card-status-dot.stale {
+  background: var(--circle-color);
+  opacity: 0.4;
+}
+
+.project-list-card-db-source-icon {
+  width: 22px;
+  height: 22px;
+  object-fit: scale-down;
+  display: block;
+  flex-shrink: 0;
+}
+
+.project-list-card-title-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.project-list-card-title {
+  color: var(--project-title);
+  font-weight: 600;
+  line-height: 22px;
+  font-size: 14px;
+  min-width: 0;
+}
+
+.project-list-card-modified-hint {
+  font-size: 11px;
+  color: var(--circle-color);
+  opacity: 0.7;
+  line-height: 16px;
+}
+
+/* badges */
+.project-list-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.project-list-card-badge-type {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(22, 119, 255, 0.12);
+  color: #1677ff;
+  white-space: nowrap;
+}
+
+.project-list-card-badge-sample {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(22, 119, 255, 0.12);
+  color: #1677ff;
+  white-space: nowrap;
+}
+
+
+/* ---------- body ---------- */
+.project-list-card-clickable-content {
+  cursor: pointer;
+}
+
+.project-list-card-detail-section {
+  padding: 12px 14px;
+}
+
+.project-list-card-border-top {
+  border-top: 1px solid var(--border-color-4);
+}
+
+.project-list-card-desc-section {
+  min-height: 52px; /* 2 lines × 18px line-height + 12px top + 4px bottom buffer */
+}
+
+.project-list-card-desc,
+.project-list-card-sample-desc {
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 18px;
+  color: #7f7f7f;
+}
+
+.project-list-card-sample-desc {
+  min-height: 20px;
+  height: 35px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+}
+
+/* ---------- jobs & progress ---------- */
+.project-list-card-jobs-title {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.project-list-card-progress-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.project-list-card-status-icon {
+  font-size: 15px;
+  margin-right: 4px;
+}
+
+.project-list-card-no-jobs {
+  font-size: 12px;
+  color: var(--circle-color);
+  opacity: 0.6;
+}
+
+.project-list-card-status-icon.warning {
+  color: #faad14;
+}
+
+.project-list-card-status-icon.info {
+  color: #1677ff;
+}
+
+.project-list-card-status-icon.success {
+  color: #1677ff;
+}
+
+.project-list-card-status-icon.failed {
+  color: #a13e49;
+}
+
+/* ---------- timeline ---------- */
+.project-list-card-timeline-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+
+.project-list-card-timeline-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 1 1 0;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--circle-color);
+}
+
+.project-list-card-created-time,
+.project-list-card-modified-time {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+/* ---------- author ---------- */
+.project-list-card-author-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--circle-color);
+}
+
+.project-list-card-author-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.project-list-card-avatar {
+  flex-shrink: 0;
+  font-size: 10px !important;
+  background: #1677ff;
+}
+
+.project-list-card-author-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* shared users avatar group */
+.project-list-card-shared-avatars {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: auto;
+  cursor: pointer;
+}
+
+.project-list-card-shared-avatars .ant-avatar-group .ant-avatar {
+  width: 20px !important;
+  height: 20px !important;
+  font-size: 9px !important;
+  line-height: 20px !important;
+  border: 1.5px solid var(--project-detail-bg);
+}
+
+.project-list-card-shared-avatars .ant-avatar-group .ant-avatar.project-list-card-shared-avatar {
+  background: #722ed1;
+}
+
+/* ---------- hover actions ---------- */
+.project-list-card-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  gap: 0;
+  padding: 8px 14px;
+  background: var(--border-color-3);
+  border-top: 1px solid var(--border-color-4);
+  border-radius: 0 0 10px 10px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+.project-list-card-wrapper:hover .project-list-card-actions {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+
+.project-list-card-action-btn {
+  flex: 1;
+  padding: 4px 0;
+  border: none;
+  background: transparent;
+  color: var(--circle-color);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.project-list-card-action-btn:hover {
+  background: var(--hover-bg);
+  color: var(--project-title);
+}
+
+/* ---------- counts (models & chats) ---------- */
+.project-list-card-counts-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.project-list-card-count-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--circle-color);
+}
+
+.project-list-card-count-icon {
+  font-size: 13px;
+  color: #1677ff;
+}
+
+.project-list-card-count-text {
+  font-size: 12px;
+}
+
+/* ---------- selection checkbox (in action bar) ---------- */
+.project-list-card-action-checkbox {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* keep action bar visible when in selection mode */
+.project-list-card--selection-mode .project-list-card-actions {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* ---------- delete overlay & animation ---------- */
+.project-list-card--deleting {
+  pointer-events: none;
+  animation: card-zoom-out 0.4s ease-in forwards;
+  animation-delay: 0.6s;
+}
+
+.project-list-card-delete-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 10px;
+}
+
+.dark .project-list-card-delete-overlay {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.project-list-card-delete-text {
+  font-size: 12px;
+  color: var(--error-color);
+  font-weight: 500;
+}
+
+@keyframes card-zoom-out {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+}
+
+/* ---------- modal ---------- */
+.project-list-card-modal-title {
+  text-align: left;
+  font-weight: 700;
+}
+
+.project-list-card-modal-text {
+  text-align: left;
+}
+
+.project-list-card-modal-confirm-text {
+  margin: 8px 0;
+}

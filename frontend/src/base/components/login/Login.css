@@ -1,0 +1,13 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: var(--page-bg-2);
+}
+
+.login-card {
+  width: 400px;
+  background: var(--content-bg);
+  box-shadow: var(--project-box-shadow);
+}

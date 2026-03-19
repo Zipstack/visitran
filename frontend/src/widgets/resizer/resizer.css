@@ -1,0 +1,63 @@
+.resizeComponent.hide {
+  overflow: visible;
+}
+.resizeComponent.hide .toggleBtn {
+  visibility: visible;
+}
+
+.toggleIcon {
+  font-size: 18px;
+  color: var(--toggle-icon-bg);
+  margin-top: 80px;
+}
+.toggleIcon:hover {
+  color: #4c9aff;
+}
+
+.vertical-resize-controls {
+  position: absolute;
+  right: 45px;
+  z-index: 2;
+  cursor: pointer;
+  margin-bottom: 0px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  transition: opacity 0.2s ease;
+}
+
+/* Horizontal resize grip handle - contained within resizeComponent */
+.resizeComponent {
+  position: relative;
+  overflow: visible !important;
+}
+.resizeComponent .resize-grip-handle {
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 40px;
+  background: var(--border-color-1);
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: opacity 0.2s, background 0.2s;
+  z-index: 1;
+  cursor: ew-resize;
+}
+.resizeComponent .resize-grip-handle::before {
+  content: "⋮";
+  font-size: 12px;
+  color: var(--icons-color);
+  letter-spacing: -2px;
+}
+.resizeComponent .resize-grip-handle:hover {
+  opacity: 1;
+  background: #4c9aff;
+}
+.resizeComponent .resize-grip-handle:hover::before {
+  color: #fff;
+}
