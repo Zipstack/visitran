@@ -16,7 +16,8 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
         enable-cache: true
-        cache-dependency-path: ./uv.lock
-    - name: Install visitran-cloud dependencies
+        cache-dependency-path: ./backend/uv.lock
+    - name: Install dependencies
       shell: bash
+      working-directory: ./backend
       run: uv sync

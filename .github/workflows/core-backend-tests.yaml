@@ -41,18 +41,22 @@
 
           - name: Check pre-commit
             if: github.ref != 'refs/heads/main'
+            working-directory: ./backend
             run: |
-              uv run pre-commit run --all-files
+              uv run pre-commit run --all-files -c ../.pre-commit-config.yaml
           - name: Run minimal core tests
+            working-directory: ./backend
             run: |
               uv run coverage run --rcfile=pyproject.toml --data-file=minimal.cov --context="minimal" --source=. -m \
-              pytest -x -vv -m "not snowflake and not bigquery and not trino and not postgres"
+              pytest -x -vv -m "not snowflake and not bigquery and not trino and not postgres" ../tests/unit/
           - name: Run backend tests
+            working-directory: ./backend
             run: |
               uv run coverage run --rcfile=pyproject.toml --data-file=backend.cov --context="backend" --source=. -m \
-              pytest -x -vv ./visitran_backend
+              pytest -x -vv -o "addopts=--ignore=tasks.py" tests/
 
           - name: Combine to coverage xml
+            working-directory: ./backend
             run: |
               uv run coverage combine backend.cov minimal.cov
               uv run coverage report -m
