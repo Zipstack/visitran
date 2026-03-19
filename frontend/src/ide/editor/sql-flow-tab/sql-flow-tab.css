@@ -54,11 +54,11 @@
 .legend-line {
   width: 24px;
   height: 0;
-  border-top: 2px dashed #94A3B8;
+  border-top: 2px dashed #94a3b8;
 }
 
 .legend-line.dashed {
-  border-top: 2px dashed #94A3B8;
+  border-top: 2px dashed #94a3b8;
 }
 
 .sql-flow-stats {
@@ -104,8 +104,8 @@
 }
 
 .table-card-node.selected {
-  box-shadow: 0 0 0 2px #3B82F6, 0 4px 12px rgba(59, 130, 246, 0.25);
-  border-color: #3B82F6;
+  box-shadow: 0 0 0 2px #3b82f6, 0 4px 12px rgba(59, 130, 246, 0.25);
+  border-color: #3b82f6;
 }
 
 .table-card-node:hover {
@@ -139,7 +139,6 @@
   line-height: 1.2;
 }
 
-
 .table-card-actions {
   display: flex;
   align-items: center;
@@ -163,8 +162,8 @@
 }
 
 .sql-btn:hover {
-  background: #2563EB;
-  border-color: #2563EB;
+  background: #2563eb;
+  border-color: #2563eb;
   color: white;
 }
 
@@ -273,21 +272,21 @@
 }
 
 .edge-label.join {
-  color: #1D4ED8;
-  border-color: #93C5FD;
-  background: #EFF6FF;
+  color: #1d4ed8;
+  border-color: #93c5fd;
+  background: #eff6ff;
 }
 
 .edge-label.union {
-  color: #6D28D9;
-  border-color: #C4B5FD;
-  background: #F5F3FF;
+  color: #6d28d9;
+  border-color: #c4b5fd;
+  background: #f5f3ff;
 }
 
 .edge-label.reference {
-  color: #B45309;
-  border-color: #FCD34D;
-  background: #FFFBEB;
+  color: #b45309;
+  border-color: #fcd34d;
+  background: #fffbeb;
 }
 
 /* ========================================
@@ -349,8 +348,8 @@
 }
 
 .dark-theme .table-card-node.selected {
-  box-shadow: 0 0 0 2px #60A5FA, 0 4px 12px rgba(96, 165, 250, 0.3);
-  border-color: #60A5FA;
+  box-shadow: 0 0 0 2px #60a5fa, 0 4px 12px rgba(96, 165, 250, 0.3);
+  border-color: #60a5fa;
 }
 
 .dark-theme .table-card-node:hover {
@@ -373,8 +372,8 @@
 }
 
 .dark-theme .sql-btn:hover {
-  background: #3B82F6;
-  border-color: #3B82F6;
+  background: #3b82f6;
+  border-color: #3b82f6;
   color: white;
 }
 
@@ -394,20 +393,20 @@
 }
 
 .dark-theme .edge-label.join {
-  color: #60A5FA;
-  border-color: #1D4ED8;
+  color: #60a5fa;
+  border-color: #1d4ed8;
   background: #1e3a5f;
 }
 
 .dark-theme .edge-label.union {
-  color: #A78BFA;
-  border-color: #6D28D9;
+  color: #a78bfa;
+  border-color: #6d28d9;
   background: #2e1f5a;
 }
 
 .dark-theme .edge-label.reference {
-  color: #FBBF24;
-  border-color: #B45309;
+  color: #fbbf24;
+  border-color: #b45309;
   background: #422006;
 }
 
@@ -484,7 +483,7 @@
 .sql-panel-header {
   padding: 16px 20px;
   border-bottom: 1px solid var(--border-color-1, #e8e8e8);
-  border-left: 3px solid #3B82F6;
+  border-left: 3px solid #3b82f6;
   position: relative;
 }
 

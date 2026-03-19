@@ -60,7 +60,7 @@
 }
 
 .thought-chain-timeline::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 8px;
   top: 0;
@@ -79,7 +79,7 @@
 }
 
 .thought-chain-item::before {
-  content: '';
+  content: "";
   position: absolute;
   left: -26px;
   top: 6px;
@@ -113,7 +113,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     opacity: 1;
   }
@@ -301,7 +302,7 @@
 
 .model-progress-name {
   flex: 1;
-  font-family: 'Monaco', 'Menlo', monospace;
+  font-family: "Monaco", "Menlo", monospace;
   font-size: 13px;
   color: #262626;
 }
@@ -380,7 +381,7 @@
 }
 
 .error-popover-code {
-  font-family: 'Monaco', 'Menlo', monospace;
+  font-family: "Monaco", "Menlo", monospace;
   background: #f5f5f5;
   padding: 8px 12px;
   border-radius: 4px;

@@ -47,7 +47,6 @@ const TransformApply = memo(function TransformApply({
   }, [triggerRetryTransform]);
 
   const onApplyClick = () => {
-    const yamlContent = (message.response || []).join("\n");
     handleTransformApply({
       chatId: selectedChatId,
       chatMessageId: message.chat_message_id,

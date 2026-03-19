@@ -1,4 +1,4 @@
-import React, { memo, useState, useEffect } from "react";
+import { memo, useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Space, Button, Typography } from "antd";
 import { CheckCircleOutlined, CloseOutlined } from "@ant-design/icons";

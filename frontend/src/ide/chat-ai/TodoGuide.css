@@ -198,13 +198,13 @@
   .todo-guide-card .ant-card-body {
     padding: 16px;
   }
-  
+
   .todo-guide-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
   }
-  
+
   .todo-guide-item {
     padding: 12px;
   }

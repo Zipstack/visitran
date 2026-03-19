@@ -89,7 +89,12 @@
 }
 
 .window-row {
-  background-color: rgba(99, 179, 237, 0.15); /* Light blue tint for window functions */
+  background-color: rgba(
+    99,
+    179,
+    237,
+    0.15
+  ); /* Light blue tint for window functions */
 }
 
 .window-row:hover td {

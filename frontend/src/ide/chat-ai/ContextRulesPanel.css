@@ -186,7 +186,9 @@
   border-radius: 3px;
 }
 
-.context-rules-panel.dark .context-rules-tabs .ant-tabs-content-holder::-webkit-scrollbar-thumb {
+.context-rules-panel.dark
+  .context-rules-tabs
+  .ant-tabs-content-holder::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.2);
 }
 
@@ -194,7 +196,9 @@
   background-color: rgba(0, 0, 0, 0.3);
 }
 
-.context-rules-panel.dark .context-rules-tabs .ant-tabs-content-holder::-webkit-scrollbar-thumb:hover {
+.context-rules-panel.dark
+  .context-rules-tabs
+  .ant-tabs-content-holder::-webkit-scrollbar-thumb:hover {
   background-color: rgba(255, 255, 255, 0.3);
 }
 

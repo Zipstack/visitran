@@ -187,18 +187,18 @@
 }
 
 .source-icon {
-  background: #74A700;
+  background: #74a700;
   color: white;
   font-size: 20px !important;
 }
 
 .transform-icon {
-  background: #0097D8;
+  background: #0097d8;
   color: white;
 }
 
 .output-icon {
-  background: #74A700;
+  background: #74a700;
   color: white;
   font-size: 20px !important;
 }
@@ -221,7 +221,7 @@
 }
 
 .sequence-collapse .ant-collapse-content-box::before {
-  content: '';
+  content: "";
   position: absolute;
   width: 44px;
   height: 2px;
@@ -292,7 +292,7 @@
 .timeline-table-name .ant-typography {
   font-size: 14px;
   color: #1890ff;
-  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-family: "Monaco", "Menlo", "Courier New", monospace;
 }
 
 /* Dark theme support for timeline */
@@ -459,7 +459,7 @@
 }
 
 .pipeline-connector::after {
-  content: '';
+  content: "";
   position: absolute;
   bottom: -4px;
   left: -3px;
@@ -621,7 +621,7 @@
   background: #fff3cd;
   padding: 2px 6px;
   border-radius: 3px;
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: "Monaco", "Courier New", monospace;
   font-size: 12px;
 }
 
@@ -644,11 +644,17 @@
   background: #1f1f1f;
 }
 
-.dark-theme .timeline-details .ant-descriptions-bordered .ant-descriptions-item-label {
+.dark-theme
+  .timeline-details
+  .ant-descriptions-bordered
+  .ant-descriptions-item-label {
   border-color: #434343;
 }
 
-.dark-theme .timeline-details .ant-descriptions-bordered .ant-descriptions-item-content {
+.dark-theme
+  .timeline-details
+  .ant-descriptions-bordered
+  .ant-descriptions-item-content {
   border-color: #434343;
 }
 
@@ -661,7 +667,7 @@
 /* Developer Mode View - Code Block Style */
 .transform-details.dev-mode {
   padding: 0;
-  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-family: "Monaco", "Menlo", "Courier New", monospace;
 }
 
 .dark-theme .transform-details.dev-mode {
@@ -678,7 +684,7 @@
   font-size: 13px;
   line-height: 1.8;
   overflow-x: auto;
-  font-family: 'SF Mono', 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-family: "SF Mono", "Monaco", "Menlo", "Courier New", monospace;
 }
 
 /* Code Section with Title */
@@ -695,11 +701,12 @@
   font-weight: 600;
   color: rgba(255, 255, 255, 0.85);
   margin-bottom: 6px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    sans-serif;
 }
 
 .code-inline {
-  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-family: "Monaco", "Menlo", "Courier New", monospace;
   font-weight: 400;
   color: #4096ff;
 }
@@ -779,8 +786,8 @@
 
 /* Light Theme Overrides for Code Blocks */
 body:not(.dark) .code-block {
-  background: #F5F7F9;
-  border: 1px solid #ECEFF3;
+  background: #f5f7f9;
+  border: 1px solid #eceff3;
 }
 
 body:not(.dark) .code-section-title {
@@ -802,8 +809,8 @@ body:not(.dark) .code-value {
 
 /* Light Theme Overrides for Accordion */
 body:not(.dark) .sequence-collapse .ant-collapse-content-box {
-  background: #F5F7F9;
-  border: 1px solid #ECEFF3;
+  background: #f5f7f9;
+  border: 1px solid #eceff3;
 }
 
 /* Dark Theme - ChatGPT Code Block Style */
@@ -929,7 +936,7 @@ body:not(.dark) .sequence-collapse .ant-collapse-content-box {
   background: #e6f7ff;
   color: #0050b3;
   border-radius: 4px;
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: "Monaco", "Courier New", monospace;
   font-size: 13px;
   font-weight: 600;
   border: 1px solid #91d5ff;
@@ -988,7 +995,7 @@ body:not(.dark) .sequence-collapse .ant-collapse-content-box {
 }
 
 .formula-box code {
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: "Monaco", "Courier New", monospace;
   font-size: 12px;
   color: #ad6800;
   line-height: 1.6;
@@ -999,7 +1006,7 @@ body:not(.dark) .sequence-collapse .ant-collapse-content-box {
   background: #f5f5f5;
   border: 1px solid #d9d9d9;
   border-radius: 3px;
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: "Monaco", "Courier New", monospace;
   font-size: 12px;
   color: #262626;
 }
@@ -1053,7 +1060,7 @@ body:not(.dark) .sequence-collapse .ant-collapse-content-box {
   background: #fff1f0;
   color: #cf1322;
   border-radius: 4px;
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: "Monaco", "Courier New", monospace;
   font-size: 13px;
   text-decoration: line-through;
   border: 1px solid #ffa39e;
@@ -1064,7 +1071,7 @@ body:not(.dark) .sequence-collapse .ant-collapse-content-box {
   background: #f6ffed;
   color: #389e0d;
   border-radius: 4px;
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: "Monaco", "Courier New", monospace;
   font-size: 13px;
   font-weight: 600;
   border: 1px solid #b7eb8f;
@@ -1091,7 +1098,7 @@ body:not(.dark) .sequence-collapse .ant-collapse-content-box {
   background: #f0f5ff;
   border-left: 3px solid #1890ff;
   border-radius: 4px;
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: "Monaco", "Courier New", monospace;
   font-size: 12px;
   color: #0050b3;
 }
@@ -1132,7 +1139,7 @@ body:not(.dark) .sequence-collapse .ant-collapse-content-box {
   background: #e6f7ff;
   color: #0050b3;
   border-radius: 4px;
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: "Monaco", "Courier New", monospace;
   font-size: 13px;
   font-weight: 600;
   border: 1px solid #91d5ff;
@@ -1149,7 +1156,7 @@ body:not(.dark) .sequence-collapse .ant-collapse-content-box {
   background: #f9f0ff;
   border-left: 3px solid #722ed1;
   border-radius: 4px;
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: "Monaco", "Courier New", monospace;
   font-size: 12px;
   color: #531dab;
 }
@@ -1199,7 +1206,7 @@ body:not(.dark) .sequence-collapse .ant-collapse-content-box {
 }
 
 .agg-column {
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: "Monaco", "Courier New", monospace;
   font-size: 12px;
   color: #389e0d;
   padding: 2px 6px;
@@ -1218,7 +1225,7 @@ body:not(.dark) .sequence-collapse .ant-collapse-content-box {
 }
 
 .alias {
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: "Monaco", "Courier New", monospace;
   font-size: 12px;
   color: #0050b3;
   font-weight: 600;
@@ -1260,7 +1267,7 @@ body:not(.dark) .sequence-collapse .ant-collapse-content-box {
   background: #fff1f0;
   color: #cf1322;
   border-radius: 3px;
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: "Monaco", "Courier New", monospace;
   font-size: 12px;
   text-decoration: line-through;
 }
@@ -1270,7 +1277,7 @@ body:not(.dark) .sequence-collapse .ant-collapse-content-box {
   background: #f6ffed;
   color: #389e0d;
   border-radius: 3px;
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: "Monaco", "Courier New", monospace;
   font-size: 12px;
   font-weight: 600;
 }

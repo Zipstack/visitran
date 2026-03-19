@@ -5,7 +5,6 @@
   transform: translateY(-2px);
 }
 
-
 /* Quick Start Guide Card */
 .quick-start-card {
   border-radius: 12px;
@@ -18,8 +17,8 @@
 }
 
 .quick-start-card.dark {
-  border: 1px solid #0C3861;
-  background: #0C3861;
+  border: 1px solid #0c3861;
+  background: #0c3861;
 }
 
 .quick-start-card.fade-in-card {
@@ -64,7 +63,7 @@
 }
 
 .quick-start-title.dark {
-  color: #E6F6FD;
+  color: #e6f6fd;
 }
 
 .quick-start-description {
@@ -77,13 +76,13 @@
 }
 
 .quick-start-description.dark {
-  color: #E6F6FD;
+  color: #e6f6fd;
 }
 
 /* To-Do List Card */
 .todo-list-card {
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .todo-list-card.light {
@@ -133,7 +132,7 @@
 }
 
 .progress-title.dark {
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .progress-step {
@@ -145,7 +144,7 @@
 }
 
 .progress-step.dark {
-  color: #E6F6FD;
+  color: #e6f6fd;
 }
 
 .progress-badge {
@@ -173,7 +172,7 @@
 }
 
 .skip-button.dark {
-  color: #E6F6FD;
+  color: #e6f6fd;
 }
 
 /* Interactive To-Do List Title */
@@ -188,7 +187,7 @@
 }
 
 .todo-list-title.dark {
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 /* Task Items */
@@ -261,7 +260,7 @@
 }
 
 .task-title.dark {
-  color: #FFFFFF;
+  color: #ffffff;
 }
 
 .task-description {
@@ -274,7 +273,7 @@
 }
 
 .task-description.dark {
-  color: #C2C3C2B2;
+  color: #c2c3c2b2;
 }
 
 .task-button {
@@ -451,7 +450,7 @@
 }
 
 .collapse-button.dark {
-  color: #E6F6FD;
+  color: #e6f6fd;
 }
 
 .collapse-button:hover {

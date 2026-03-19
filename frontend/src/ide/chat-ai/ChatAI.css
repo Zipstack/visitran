@@ -122,7 +122,8 @@
   animation: collapsed-icon-glow 2s ease-in-out infinite;
 }
 @keyframes collapsed-icon-glow {
-  0%, 100% {
+  0%,
+  100% {
     filter: drop-shadow(0 0 4px rgba(76, 154, 255, 0.4));
   }
   50% {
@@ -170,7 +171,9 @@
   border-left: 1px solid var(--border-color-1);
   border-right: 1px solid var(--border-color-1);
 }
-.chat-ai-container.fullscreen-mode .height-100.overflow-y-auto.pad-8 > .ant-space {
+.chat-ai-container.fullscreen-mode
+  .height-100.overflow-y-auto.pad-8
+  > .ant-space {
   max-width: 800px;
   margin: 0 auto;
 }
@@ -185,7 +188,9 @@
   padding-left: 24px;
   padding-right: 24px;
 }
-.chat-ai-container.fullscreen-mode .chat-ai-existing-chat-container > .ant-space {
+.chat-ai-container.fullscreen-mode
+  .chat-ai-existing-chat-container
+  > .ant-space {
   max-width: 800px;
   margin: 0 auto;
 }

@@ -130,7 +130,6 @@
   background-color: #999;
 }
 
-
 /* Sequence Panel Styles */
 .lineage-tab-container .sequence-panel {
   position: absolute;
@@ -237,8 +236,6 @@
   padding-left: 40px;
 }
 
-
-
 /* Custom control button styling */
 .lineage-tab-container .react-flow__controls {
   background: var(--content-bg, #fff);
@@ -264,15 +261,15 @@
 
 /* Legend colors */
 .lineage-tab-container .legend-color-blue {
-  background-color: #00A6ED;
+  background-color: #00a6ed;
 }
 
 .lineage-tab-container .legend-color-yellow {
-  background-color: #E8A400;
+  background-color: #e8a400;
 }
 
 .lineage-tab-container .legend-color-pink {
-  background-color: #FF889D;
+  background-color: #ff889d;
 }
 
 .lineage-tab-container .legend-item {

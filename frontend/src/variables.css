@@ -75,12 +75,12 @@
   --error-overlay-bg: rgba(0, 0, 0, 0.5);
   --error-color: #ff4d4f;
   --success-color: #52c41a;
-  --action-button-wrapper:#91CAFF;
+  --action-button-wrapper: #91caff;
 
   /* Lineage node colors */
-  --node-color-blue: #B0E3F9;
-  --node-color-yellow: #FFDD8A;
-  --node-color-pink: #FFC8D2;
+  --node-color-blue: #b0e3f9;
+  --node-color-yellow: #ffdd8a;
+  --node-color-pink: #ffc8d2;
 }
 
 .dark {
@@ -150,7 +150,7 @@
   --error-overlay-bg: rgba(0, 0, 0, 0.7);
   --error-color: #ff7875;
   --success-color: #73d13d;
-  --action-button-wrapper:#686868;
+  --action-button-wrapper: #686868;
 
   /* Lineage node colors */
   --node-color-blue: #1a5a6e;

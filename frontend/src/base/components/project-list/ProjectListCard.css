@@ -169,7 +169,6 @@
   white-space: nowrap;
 }
 
-
 /* ---------- body ---------- */
 .project-list-card-clickable-content {
   cursor: pointer;
@@ -317,7 +316,9 @@
   border: 1.5px solid var(--project-detail-bg);
 }
 
-.project-list-card-shared-avatars .ant-avatar-group .ant-avatar.project-list-card-shared-avatar {
+.project-list-card-shared-avatars
+  .ant-avatar-group
+  .ant-avatar.project-list-card-shared-avatar {
   background: #722ed1;
 }
 
@@ -345,7 +346,6 @@
   transform: translateY(0);
   pointer-events: auto;
 }
-
 
 .project-list-card-action-btn {
   flex: 1;
