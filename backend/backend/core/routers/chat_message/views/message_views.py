@@ -52,12 +52,15 @@ class ChatMessageView(viewsets.ViewSet):
     def get_token_usage(self, request, project_id=None, chat_id=None, chat_message_id=None, *args, **kwargs) -> Response:
         """
         Get token usage data for a specific chat message.
-        
+
         Returns:
             - remaining_balance: Current token balance
             - total_consumed: Total tokens consumed
             - message_tokens_consumed: Tokens consumed for this specific message
             - token_usage_found: Whether token usage was found for this message
+
+        In OSS mode (no subscriptions module), returns a response indicating
+        token tracking is not available rather than a 500 error.
         """
         try:
             # Get organization ID from header
@@ -67,18 +70,25 @@ class ChatMessageView(viewsets.ViewSet):
                     {"error": "Organization header is required"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
             # Get token usage data using the existing function
             token_data = get_token_usage_data(org_id, str(chat_message_id), str(chat_id))
-            
+
             if token_data is None:
-                return Response(
-                    {"error": "Failed to retrieve token usage data"},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
-                )
-            
+                # Token tracking not available (OSS mode without subscriptions module)
+                return Response({
+                    "organization_id": org_id,
+                    "remaining_balance": 0,
+                    "total_consumed": 0,
+                    "total_purchased": 0,
+                    "utilization_percentage": 0,
+                    "message_tokens_consumed": 0,
+                    "token_usage_found": False,
+                    "token_tracking_available": False,
+                }, status=status.HTTP_200_OK)
+
             return Response(token_data, status=status.HTTP_200_OK)
-            
+
         except Exception as e:
             return Response(
                 {"error": f"Error retrieving token usage: {str(e)}"},
