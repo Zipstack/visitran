@@ -1,5 +1,9 @@
 <p align="center">
-  <img src="https://storage.googleapis.com/visitran-static/logo/v-logo.png" alt="Visitran" width="200" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/logo-light.png" />
+    <source media="(prefers-color-scheme: light)" srcset="docs/images/logo-dark.png" />
+    <img src="docs/images/logo-dark.png" alt="Visitran" width="200" />
+  </picture>
 </p>
 
 <p align="center">
@@ -16,7 +20,7 @@
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/github/license/Zipstack/visitran" alt="License" /></a>
-  <a href="https://hub.docker.com/u/visitran"><img src="https://img.shields.io/docker/pulls/visitran/backend" alt="Docker Pulls" /></a>
+  <a href="https://github.com/Zipstack/visitran/releases"><img src="https://img.shields.io/github/v/release/Zipstack/visitran" alt="Latest Release" /></a>
   <a href="https://deepwiki.com/Zipstack/visitran"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki" /></a>
 </p>
 <p align="center">
@@ -128,7 +132,6 @@ For development or when you want full control over each component.
 - Python 3.10.x (`>=3.10, <3.11.1` — required by `pyproject.toml`)
 - Node.js 16+
 - [uv](https://docs.astral.sh/uv/) (Python package manager)
-- [Git LFS](https://git-lfs.com/) (run `git lfs install && git lfs pull` after cloning)
 - Redis (for WebSockets and Celery) — install via `brew install redis` (macOS) or your OS package manager
 
 **Backend**
