@@ -48,7 +48,7 @@
     "schema": {
       "type": "string",
       "title": "Schema",
-      "description": "default schema that visitran will build objects in"
+      "description": "Using 'public' is not recommended, consider a dedicated schema (e.g. 'analytics')."
     }
   },
   "required": ["host", "user", "passw", "dbname", "connection_url", "connection_type"]

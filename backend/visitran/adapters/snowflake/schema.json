@@ -48,7 +48,7 @@
     "schema": {
       "type": "string",
       "title": "Schema",
-      "description": "Schema",
+      "description": "Using 'public' is not recommended, consider a dedicated schema (e.g. 'analytics').",
       "minLength": 1
     },
     "role": {
