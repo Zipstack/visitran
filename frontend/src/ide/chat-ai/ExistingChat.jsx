@@ -17,6 +17,7 @@ import { OnboardingGuide } from "./OnboardingGuide";
 import { OnboardingCompletionPopup } from "./OnboardingCompletionPopup";
 import { useNotificationService } from "../../service/notification-service";
 import { SpinnerLoader } from "../../widgets/spinner_loader";
+import { useSessionStore } from "../../store/session-store";
 
 const ExistingChat = memo(function ExistingChat({
   selectedChatId,
@@ -63,6 +64,7 @@ const ExistingChat = memo(function ExistingChat({
 }) {
   const { getChatMessagesByChatId, getTokenUsage, updateChatName } =
     useChatAIService();
+  const isCloud = useSessionStore((state) => state.sessionDetails?.is_cloud);
   const chatContainerRef = useRef(null);
 
   const [isLoadingChats, setIsLoadingChats] = useState(false);
@@ -262,8 +264,9 @@ const ExistingChat = memo(function ExistingChat({
           : [msg.response].filter(Boolean),
       }));
 
-      // Fetch token usage for all messages to display in historical conversations
-      if (updatedData.length > 0) {
+      // Fetch token usage for all messages to display in historical conversations.
+      // In OSS mode, token usage data comes through WebSocket — skip the API call.
+      if (isCloud && updatedData.length > 0) {
         const tokenUsagePromises = updatedData.map((msg) =>
           getTokenUsage(selectedChatId, msg.chat_message_id).catch(() => null)
         );
