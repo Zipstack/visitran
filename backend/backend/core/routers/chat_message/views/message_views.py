@@ -52,7 +52,7 @@ class ChatMessageView(viewsets.ViewSet):
     def get_token_usage(self, request, project_id=None, chat_id=None, chat_message_id=None, *args, **kwargs) -> Response:
         """
         Get token usage data for a specific chat message.
-        
+
         Returns:
             - remaining_balance: Current token balance
             - total_consumed: Total tokens consumed
@@ -67,18 +67,18 @@ class ChatMessageView(viewsets.ViewSet):
                     {"error": "Organization header is required"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            
+
             # Get token usage data using the existing function
             token_data = get_token_usage_data(org_id, str(chat_message_id), str(chat_id))
-            
+
             if token_data is None:
                 return Response(
                     {"error": "Failed to retrieve token usage data"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
-            
+
             return Response(token_data, status=status.HTTP_200_OK)
-            
+
         except Exception as e:
             return Response(
                 {"error": f"Error retrieving token usage: {str(e)}"},

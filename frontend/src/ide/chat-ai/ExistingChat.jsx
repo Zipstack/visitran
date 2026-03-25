@@ -16,7 +16,17 @@ import { TodoGuide } from "./TodoGuide";
 import { OnboardingGuide } from "./OnboardingGuide";
 import { OnboardingCompletionPopup } from "./OnboardingCompletionPopup";
 import { useNotificationService } from "../../service/notification-service";
+import { useAxiosPrivate } from "../../service/axios-service";
 import { SpinnerLoader } from "../../widgets/spinner_loader";
+import { useSessionStore } from "../../store/session-store";
+
+// Cloud-only: fetch per-message token usage (unavailable in OSS — import fails gracefully)
+let getTokenUsage = null;
+try {
+  ({ getTokenUsage } = require("../../plugins/token-management/token-usage"));
+} catch {
+  // OSS: token usage API not available
+}
 
 const ExistingChat = memo(function ExistingChat({
   selectedChatId,
@@ -61,8 +71,9 @@ const ExistingChat = memo(function ExistingChat({
   onSkipCurrentTask,
   onSendButtonClick,
 }) {
-  const { getChatMessagesByChatId, getTokenUsage, updateChatName } =
-    useChatAIService();
+  const { getChatMessagesByChatId, updateChatName } = useChatAIService();
+  const axiosPrivate = useAxiosPrivate();
+  const isCloud = useSessionStore((state) => state.sessionDetails?.is_cloud);
   const chatContainerRef = useRef(null);
 
   const [isLoadingChats, setIsLoadingChats] = useState(false);
@@ -262,10 +273,15 @@ const ExistingChat = memo(function ExistingChat({
           : [msg.response].filter(Boolean),
       }));
 
-      // Fetch token usage for all messages to display in historical conversations
-      if (updatedData.length > 0) {
+      // Fetch token usage for all messages to display in historical conversations.
+      // Only available in cloud mode via the token-usage plugin.
+      if (getTokenUsage && isCloud && updatedData.length > 0) {
         const tokenUsagePromises = updatedData.map((msg) =>
-          getTokenUsage(selectedChatId, msg.chat_message_id).catch(() => null)
+          getTokenUsage(
+            axiosPrivate,
+            selectedChatId,
+            msg.chat_message_id
+          ).catch(() => null)
         );
         const tokenUsageResults = await Promise.all(tokenUsagePromises);
 

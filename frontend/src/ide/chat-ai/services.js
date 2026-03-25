@@ -134,22 +134,6 @@ export function useChatAIService() {
     return response.data;
   };
 
-  const getTokenUsage = async (chatId, chatMessageId) => {
-    const url = `/api/v1/visitran/${orgId}/project/${projectId}/chat/${chatId}/chat-message/${chatMessageId}/token-usage/`;
-    try {
-      const response = await axiosPrivate.get(url, {
-        headers: {
-          "Content-Type": "application/json",
-          "X-Organization": orgId,
-        },
-      });
-      return response.data || null;
-    } catch (error) {
-      console.warn("Failed to fetch token usage:", error);
-      return null;
-    }
-  };
-
   return {
     getAllChats,
     deleteChatById,
@@ -161,6 +145,5 @@ export function useChatAIService() {
     getChatLlmModels,
     completeOnboardingTask,
     getOnboardingStatus,
-    getTokenUsage,
   };
 }
