@@ -115,7 +115,7 @@ class PostgresConnection(BaseConnection):
         query = """
             SELECT nspname
             FROM pg_catalog.pg_namespace
-            WHERE nspname NOT IN ('information_schema', 'pg_catalog', 'public')
+            WHERE nspname NOT IN ('information_schema', 'pg_catalog')
                   AND nspname NOT LIKE 'pg_toast%'
                   AND nspname NOT LIKE 'pg_temp_%'
             ORDER BY nspname;

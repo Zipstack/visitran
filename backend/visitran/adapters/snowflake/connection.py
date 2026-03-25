@@ -129,7 +129,7 @@ class SnowflakeConnection(BaseConnection):
             SELECT 
                 schema_name
             FROM information_schema.schemata
-            WHERE schema_name NOT IN ('INFORMATION_SCHEMA', 'PUBLIC')
+            WHERE schema_name NOT IN ('INFORMATION_SCHEMA')
             ORDER BY schema_name
         """
         rows = self.connection.raw_sql(sql_query).fetchall()
