@@ -61,43 +61,22 @@ Visitran is an **open-source** data transformation tool that supports **no-code*
 
 ## Getting Started
 
-Choose your preferred installation method:
-
-- [Docker Compose](#option-1-docker-compose) — Recommended for quick evaluation
-- [Direct Installation (localhost)](#option-2-direct-installation-localhost) — For development and customization
-
-### Option 1: Docker Compose
-
-The fastest way to get Visitran running. Requires [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/).
+Requires [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/).
 
 ```bash
-# Clone the repository
 git clone https://github.com/Zipstack/visitran.git
 cd visitran
-
-# Set up backend environment variables
 cp backend/sample.env backend/.env
-```
-
-**Edit `backend/.env`** — default values are provided for quick start. For production, replace these keys:
-
-| Variable | Default | How to Generate (production) |
-|----------|---------|------------------------------|
-| `SECRET_KEY` | Provided | Use [djecrety.ir](https://djecrety.ir/) or run: `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"` |
-| `VISITRAN_ENCRYPTION_KEY` | Provided | Run: `python -c "from base64 import b64encode; from cryptography.fernet import Fernet; print(b64encode(Fernet.generate_key()).decode())"` |
-| `VISITRAN_RSA_PRIVATE_KEY` | Provided | Generate a 2048-bit RSA key pair (see `sample.env` for the command) |
-| `VISITRAN_RSA_PUBLIC_KEY` | Provided | Derived from the private key above |
-| `VISITRAN_AI_KEY` | Empty | Optional — get from [app.visitran.com](https://app.visitran.com) to enable AI features |
-
-> **Note:** The sample.env is pre-configured for Docker — `DB_HOST=postgres` and `REDIS_HOST=redis` point to the Docker Compose service names. No hostname changes needed. You can run `docker compose up --build -d` immediately after copying.
-
-```bash
-# Build and start all services
 cd docker
 docker compose up --build -d
 ```
 
-This starts:
+Open [http://localhost:3000](http://localhost:3000) and **Sign Up** to create your account — that's it!
+
+> **AI Features (optional):** Get an API key from [app.visitran.com](https://app.visitran.com) and add `VISITRAN_AI_KEY=vtk_...` to `backend/.env`, then restart with `docker compose restart backend`.
+
+<details>
+<summary><strong>Services started by Docker Compose</strong></summary>
 
 | Service | Port | Description |
 |---------|------|-------------|
@@ -108,23 +87,27 @@ This starts:
 | Celery Worker | — | Background job processing |
 | Celery Beat | — | Scheduled task processing |
 
-Open `http://localhost:3000` in your browser.
+To stop: `docker compose down`
+To stop and delete all data: `docker compose down -v`
 
-**First-time setup:** On first launch, click **Sign Up** to create a local admin account. There is no default username/password — you set your own credentials during signup.
+</details>
 
-To stop:
+<details>
+<summary><strong>Environment variables</strong></summary>
 
-```bash
-docker compose down
-```
+The `sample.env` ships with working defaults — no edits needed to get started. For production, replace these keys:
 
-To stop and **delete all data** (PostgreSQL volume):
+| Variable | Default | How to Generate (production) |
+|----------|---------|------------------------------|
+| `SECRET_KEY` | Provided | Use [djecrety.ir](https://djecrety.ir/) or `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"` |
+| `VISITRAN_ENCRYPTION_KEY` | Provided | `python -c "from base64 import b64encode; from cryptography.fernet import Fernet; print(b64encode(Fernet.generate_key()).decode())"` |
+| `VISITRAN_RSA_PRIVATE_KEY` | Provided | Generate a 2048-bit RSA key pair (see `sample.env`) |
+| `VISITRAN_RSA_PUBLIC_KEY` | Provided | Derived from the private key above |
 
-```bash
-docker compose down -v
-```
+</details>
 
-### Option 2: Direct Installation (localhost)
+<details>
+<summary><strong>Local development (without Docker)</strong></summary>
 
 For development or when you want full control over each component.
 
@@ -137,39 +120,27 @@ For development or when you want full control over each component.
 **Backend**
 
 ```bash
-# Clone the repository
 git clone https://github.com/Zipstack/visitran.git
 cd visitran
-
-# Set up environment variables
 cp backend/sample.env backend/.env
 ```
 
-**Edit `backend/.env`** for local development:
+Edit `backend/.env` for local development:
 
 | Variable | Required | Value for localhost |
 |----------|----------|---------------------|
-| `SECRET_KEY` | Yes | Default provided — replace in production |
-| `VISITRAN_ENCRYPTION_KEY` | Yes | Default provided — replace in production |
-| `DB_HOST` | No | Leave **empty** for SQLite (no PostgreSQL needed), or `localhost` if you have PostgreSQL running |
+| `DB_HOST` | No | Leave **empty** for SQLite, or `localhost` for local PostgreSQL |
 | `REDIS_HOST` | Yes | `localhost` |
-| `DB_SAMPLE_HOST` | No | `localhost` (to enable sample project — requires PostgreSQL) or leave empty to skip |
+| `DB_SAMPLE_HOST` | No | `localhost` (requires PostgreSQL) or leave empty to skip |
 
-> **Important for localhost:** Change `DB_HOST=postgres` → `DB_HOST=` (empty for SQLite) or `DB_HOST=localhost` (for local PostgreSQL). Change `REDIS_HOST=redis` → `REDIS_HOST=localhost`.
+> **Important:** Change `DB_HOST=postgres` → `DB_HOST=` (empty) and `REDIS_HOST=redis` → `REDIS_HOST=localhost`.
 
 ```bash
-# Install backend dependencies
 cd backend
 pip install uv
 uv sync
-
-# Activate virtual environment
 source .venv/bin/activate
-
-# Run database migrations
 python manage.py migrate
-
-# Start backend server (port 8000)
 python manage.py runserver
 ```
 
@@ -177,27 +148,14 @@ python manage.py runserver
 
 ```bash
 cd frontend
-
-# Set up environment variables
 cp sample.env .env
-```
-
-**Edit `frontend/.env`** if needed:
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `REACT_APP_BACKEND_URL` | `http://localhost:8000` | Backend API URL |
-| `REACT_APP_SOCKET_SERVICE_BASE_URL` | `http://localhost:4000` | WebSocket server URL |
-
-```bash
-# Install dependencies
 npm install
-
-# Start dev server (port 3000)
 npm start
 ```
 
-Open `http://localhost:3000` in your browser and **sign up** to create your account.
+Open [http://localhost:3000](http://localhost:3000) and **sign up** to create your account.
+
+</details>
 
 ## Project Structure
 

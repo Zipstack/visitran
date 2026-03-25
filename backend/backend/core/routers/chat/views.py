@@ -107,7 +107,8 @@ class ChatView(RequestHandlingMixin, viewsets.ViewSet):
                 f"Token balance check passed for organization {organization.organization_id}. "
                 f"Required: {tokens_required}, Available: {balance_info.get('current_balance', 0)}"
             )
-        except Exception:
+        except ImportError:
+            # OSS mode: pluggable_apps not installed, skip billing check
             pass
 
     def persist_prompt(self, request: Request, project_id: str, *args, **kwargs) -> Response:
