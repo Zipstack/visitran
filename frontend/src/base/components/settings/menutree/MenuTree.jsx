@@ -82,7 +82,6 @@ const MenuTree = () => {
   const { sessionDetails } = useSessionStore();
 
   const isOrgAdmin = sessionDetails?.is_org_admin;
-  const userRole = sessionDetails?.user_role;
 
   // Build settings children dynamically
   const settingsChildren = useMemo(
@@ -171,8 +170,7 @@ const MenuTree = () => {
           label: "Settings",
           children: settingsChildren,
         },
-        userRole === "visitran_super_admin" &&
-          uacChildren.length > 0 && {
+        uacChildren.length > 0 && {
             key: "user_access_control",
             icon: <UAC />,
             label: "User Access Control",
@@ -185,7 +183,7 @@ const MenuTree = () => {
           children: notificationsChildren,
         },
       ].filter(Boolean),
-    [settingsChildren, uacChildren, notificationsChildren, userRole]
+    [settingsChildren, uacChildren, notificationsChildren]
   );
 
   const handleClick = useCallback(
@@ -201,11 +199,9 @@ const MenuTree = () => {
       ...(notificationsChildren.some((c) => !c.disabled)
         ? ["notifications"]
         : []),
-      ...(userRole === "visitran_super_admin" && uacChildren.length > 0
-        ? ["user_access_control"]
-        : []),
+      ...(uacChildren.length > 0 ? ["user_access_control"] : []),
     ],
-    [notificationsChildren, uacChildren, userRole]
+    [notificationsChildren, uacChildren]
   );
 
   return (

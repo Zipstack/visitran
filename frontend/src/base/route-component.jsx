@@ -201,22 +201,18 @@ function RouteComponent() {
                   {UserManagement && (
                     <Route path="usermanagement" element={<UserManagement />} />
                   )}
-                  {sessionDetails?.user_role === "visitran_super_admin" && (
-                    <>
-                      {Roles && <Route path="roles" element={<Roles />} />}
-                      {Resources && (
-                        <Route path="resources" element={<Resources />} />
-                      )}
-                      {Permissions && (
-                        <Route path="permissions" element={<Permissions />} />
-                      )}
-                      {SubscriptionAdminPage && (
-                        <Route
-                          path="subscription-admin"
-                          element={<SubscriptionAdminPage />}
-                        />
-                      )}
-                    </>
+                  {Roles && <Route path="roles" element={<Roles />} />}
+                  {Resources && (
+                    <Route path="resources" element={<Resources />} />
+                  )}
+                  {Permissions && (
+                    <Route path="permissions" element={<Permissions />} />
+                  )}
+                  {SubscriptionAdminPage && (
+                    <Route
+                      path="subscription-admin"
+                      element={<SubscriptionAdminPage />}
+                    />
                   )}
                   {Subscriptions && (
                     <Route path="subscriptions" element={<Subscriptions />} />

@@ -7,7 +7,6 @@ import { useNavigate } from "react-router-dom";
 
 import { useAxiosPrivate } from "../../../../service/axios-service";
 import { orgStore } from "../../../../store/org-store";
-import { useSessionStore } from "../../../../store/session-store";
 import { useNotificationService } from "../../../../service/notification-service";
 
 import "./Profile.css";
@@ -19,7 +18,6 @@ const Profile = () => {
   const axios = useAxiosPrivate();
   const navigate = useNavigate();
   const { selectedOrgId } = orgStore();
-  const { sessionDetails } = useSessionStore();
   const { notify } = useNotificationService();
   const csrfToken = Cookies.get("csrftoken");
 
@@ -54,13 +52,13 @@ const Profile = () => {
       const { data } = await axios.get(
         `/api/v1/visitran/${selectedOrgId || "default_org"}/profile`
       );
-      form.setFieldsValue({ ...data, role: sessionDetails.user_role });
+      form.setFieldsValue(data);
       const { first_name, last_name, token } = data;
       initialRef.current = { first_name, last_name, token };
     } catch (error) {
       notify({ error });
     }
-  }, [selectedOrgId, form, sessionDetails.user_role]);
+  }, [selectedOrgId, form]);
 
   const saveProfile = useCallback(
     async (values) => {
@@ -183,22 +181,6 @@ const Profile = () => {
                 type: "email",
                 required: true,
                 message: "Enter a valid email address",
-              },
-            ]}
-          >
-            <Input disabled className="input-300" />
-          </Form.Item>
-
-          {/* ---------------------- role ---------------------- */}
-          <Form.Item
-            label="Role"
-            name="role"
-            rules={[
-              {
-                required: true,
-                pattern: /^(?!_)[a-z_]+(?<!_)$/,
-                message:
-                  "Lower-case letters & underscores only (cannot start/end with underscore)",
               },
             ]}
           >
