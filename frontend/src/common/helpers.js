@@ -113,10 +113,7 @@ const checkPermission = (resource, action) => {
   const sessionDetails = useSessionStore.getState().sessionDetails;
   // Handle case when session is expired/undefined/empty (e.g., after logout)
   if (!sessionDetails || Object.keys(sessionDetails).length === 0) return false;
-  const role = sessionDetails.user_role;
-  // Validate user_role exists
-  if (!role) return false;
-  if (role === "visitran_super_admin") return true;
+  // Always use server-returned permissions — never trust client-side role
   return permissions[resource]?.[action] ?? false;
 };
 
