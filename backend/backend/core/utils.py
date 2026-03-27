@@ -37,7 +37,8 @@ def handle_http_request(func) -> Any:
                     )
                 cache.set(lock_key, True, timeout=120)
             response: Response = func(*args, **kwargs)
-            response.status_code = status.HTTP_200_OK
+            if response.status_code < 400:
+                response.status_code = status.HTTP_200_OK
             logging.info(f"Deleting lock - {lock_key}")
             cache.delete(lock_key)
             return response
