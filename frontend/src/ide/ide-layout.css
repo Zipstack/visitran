@@ -36,8 +36,10 @@
 .ideResizeExplorer {
   background-color: var(--chat-ai-bg-color);
   transition: width 0.2s ease;
-  overflow: hidden;
+  overflow: visible;
   flex-shrink: 0;
+  position: relative;
+  z-index: 10;
 }
 
 .ideBody > .flex-1 {
