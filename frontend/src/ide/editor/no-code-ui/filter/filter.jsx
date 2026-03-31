@@ -879,7 +879,9 @@ function Filter({
                             return false;
                           }
 
-                          return ["NULL", "NOTNULL"].includes(item.value)
+                          return ["NULL", "NOTNULL", "BETWEEN"].includes(
+                            item.value
+                          )
                             ? false
                             : true;
                         }
