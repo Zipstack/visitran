@@ -21,7 +21,7 @@
 
 /* More button — align with toolbar items that have seq_badge_wrapper above */
 .toolbar-more-item {
-  padding-top: 9px;
+  margin-top: -11px;
 }
 
 .no-code-toolbar-wrapper .toolbar-ellipsis-button {
