@@ -467,7 +467,7 @@ function ConfigureJoins({
         // For Full join, keep only the first criteria and reset operator to EQ
         if (value === "Full" && draft[joinIndex].criteria.length > 0) {
           draft[joinIndex].criteria = [draft[joinIndex].criteria[0]];
-          if (draft[joinIndex].criteria[0].condition) {
+          if (draft[joinIndex]?.criteria?.[0]?.condition) {
             draft[joinIndex].criteria[0].condition.operator = "EQ";
           }
         }
