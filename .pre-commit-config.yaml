@@ -4,10 +4,9 @@
 
 ci:
   skip:
-    - no-commit-to-branch
-    - mypy
-    - protolint-docker
-    - hadolint-docker
+    - mypy # Uses language: system, not available in pre-commit.ci sandbox
+    - protolint-docker # Needs Docker, not available in pre-commit.ci
+    - hadolint-docker # Needs Docker, not available in pre-commit.ci
   autofix_prs: true
   autoupdate_schedule: monthly
 
