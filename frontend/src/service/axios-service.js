@@ -31,6 +31,7 @@ function useAxiosPrivate() {
         if (error?.response?.status === 401) {
           localStorage.removeItem("orgid");
           localStorage.removeItem("session-storage");
+          useSessionStore.getState().setShowSessionExpiredModal(true);
           setSessionDetails({});
           return Promise.resolve({ suppressed: true });
         }
