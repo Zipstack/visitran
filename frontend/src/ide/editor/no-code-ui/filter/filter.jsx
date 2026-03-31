@@ -367,8 +367,8 @@ function Filter({
 
           if (dataType === "number") {
             inAndNotIn
-              ? setAndSanitizeValue(/[^\d,]/, /[^\d,]/g)
-              : setAndSanitizeValue(/[^\d]/, /\D/g);
+              ? setAndSanitizeValue(/[^\d,.-]/, /[^\d,.-]/g)
+              : setAndSanitizeValue(/[^\d.-]/, /[^\d.-]/g);
           }
           newFilterCondition["condition"][conditionKey][key] = [value];
           newFilterCondition["condition"][conditionKey]["type"] = typed;
@@ -428,8 +428,8 @@ function Filter({
         newFilterCondition.condition.lhs.column?.data_type?.toLowerCase() || "";
       let sanitized = value.trimStart();
       if (dataType === "number") {
-        setShowHint(/[^\d]/.test(sanitized));
-        sanitized = sanitized.replace(/\D/g, "");
+        setShowHint(/[^\d.-]/.test(sanitized));
+        sanitized = sanitized.replace(/[^\d.-]/g, "");
       }
       if (!Array.isArray(newFilterCondition.condition.rhs.value)) {
         newFilterCondition.condition.rhs.value = ["", ""];
