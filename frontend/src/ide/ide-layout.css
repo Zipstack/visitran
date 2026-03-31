@@ -227,9 +227,23 @@
 }
 .explorer-tabs {
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.explorer-tabs > .ant-tabs {
+  height: 100% !important;
+}
+.explorer-tabs .ant-tabs-content-holder {
+  min-height: 0;
+  overflow: hidden;
+}
+.explorer-tabs .ant-tabs-content {
+  height: 100%;
 }
 .explorer-tabs .ant-tabs-tabpane {
   padding: 0px !important;
+  height: 100% !important;
+  overflow: hidden;
 }
 
 /* Collapsed explorer - show only tab icons */
@@ -455,6 +469,17 @@
   flex: 1;
   overflow-y: auto;
   min-height: 0;
+}
+
+/* Show scrollbar only on hover over explorer sidebar */
+.tree-container::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+.ideExplorer:hover .tree-container::-webkit-scrollbar-thumb {
+  background: #999;
+}
+.ideExplorer:hover .tree-container::-webkit-scrollbar-thumb:hover {
+  background: #888;
 }
 .check-icon-green {
   color: green;
