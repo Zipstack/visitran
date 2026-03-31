@@ -250,23 +250,24 @@ const NewEnv = ({
   );
 
   const getAllConnections = useCallback(
-    async (connectionData) => {
-      if (connectionData) {
+    async (updatedConnection) => {
+      if (updatedConnection?.id) {
         setConnectionList((prev) => {
-          const exists = prev.some((c) => c.id === connectionData.id);
+          const list = prev || [];
+          const exists = list.some((c) => c?.id === updatedConnection.id);
           if (exists) {
-            return prev.map((c) =>
-              c.id === connectionData.id ? connectionData : c
+            return list.map((c) =>
+              c?.id === updatedConnection.id ? updatedConnection : c
             );
           }
-          return [...prev, connectionData];
+          return [...list, updatedConnection];
         });
         return;
       }
       setLoading(true);
       try {
         const data = await fetchAllConnections(axiosRef, selectedOrgId);
-        setConnectionList(data?.filter((el) => !el?.is_sample_project));
+        setConnectionList(data?.filter((el) => !el?.is_sample_project) || []);
       } catch (error) {
         console.error(error);
         notify({ error });
