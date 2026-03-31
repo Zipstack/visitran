@@ -63,6 +63,16 @@ def _merge_with_stored(incoming: dict[str, Any], stored: dict[str, Any]) -> dict
     return merged
 
 
+def _has_credentials_changed(incoming: dict[str, Any], stored: dict[str, Any]) -> bool:
+    """Return True if any connection credential field differs from stored values."""
+    if not stored:
+        return True
+    for key, value in incoming.items():
+        if stored.get(key) != value:
+            return True
+    return False
+
+
 class ConnectionContext:
 
     def __init__(self):
@@ -148,9 +158,10 @@ class ConnectionContext:
             stored_details = stored_model.decrypted_connection_details
             decrypted_connection_data = _merge_with_stored(decrypted_connection_data, stored_details)
 
-        # Skip connection test for metadata-only updates (name/description changes)
+        # Skip connection test only for metadata-only updates where credentials are unchanged
         metadata_only = connection_details.pop("metadata_only", False)
-        if not metadata_only:
+        credentials_changed = _has_credentials_changed(decrypted_connection_data, stored_details)
+        if not metadata_only or credentials_changed:
             test_connection_data(datasource=datasource, connection_data=decrypted_connection_data)
         _conn_details = get_connection_data(datasource=datasource, connection_data=decrypted_connection_data)
         connection_details["connection_details"] = _conn_details

@@ -187,7 +187,7 @@ const CreateConnection = ({
             message: "Success",
             description: "Connection updated successfully.",
           });
-          getAllConnection();
+          getAllConnection(res.data?.data);
           setIsModalOpen(false);
         }
       }
