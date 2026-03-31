@@ -249,18 +249,33 @@ const NewEnv = ({
     [connectionDataSource, selectedOrgId, csrfToken, connType, connection]
   );
 
-  const getAllConnections = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await fetchAllConnections(axiosRef, selectedOrgId);
-      setConnectionList(data?.filter((el) => !el?.is_sample_project));
-    } catch (error) {
-      console.error(error);
-      notify({ error });
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedOrgId]);
+  const getAllConnections = useCallback(
+    async (connectionData) => {
+      if (connectionData) {
+        setConnectionList((prev) => {
+          const exists = prev.some((c) => c.id === connectionData.id);
+          if (exists) {
+            return prev.map((c) =>
+              c.id === connectionData.id ? connectionData : c
+            );
+          }
+          return [...prev, connectionData];
+        });
+        return;
+      }
+      setLoading(true);
+      try {
+        const data = await fetchAllConnections(axiosRef, selectedOrgId);
+        setConnectionList(data?.filter((el) => !el?.is_sample_project));
+      } catch (error) {
+        console.error(error);
+        notify({ error });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [selectedOrgId]
+  );
 
   const getProjectDependency = useCallback(async () => {
     try {

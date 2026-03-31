@@ -66,15 +66,30 @@ function NewProject({ open, setOpen, getAllProject, id }) {
     setOpen(false);
   }, [form, setOpen]);
 
-  const getAllConnections = useCallback(async () => {
-    try {
-      const data = await getAllConnectionsApi(axiosPrivate, selectedOrgId);
-      setConnectionList(data);
-    } catch (error) {
-      console.error(error);
-      notify({ error });
-    }
-  }, [selectedOrgId]);
+  const getAllConnections = useCallback(
+    async (connectionData) => {
+      if (connectionData) {
+        setConnectionList((prev) => {
+          const exists = prev.some((c) => c.id === connectionData.id);
+          if (exists) {
+            return prev.map((c) =>
+              c.id === connectionData.id ? connectionData : c
+            );
+          }
+          return [...prev, connectionData];
+        });
+        return;
+      }
+      try {
+        const data = await getAllConnectionsApi(axiosPrivate, selectedOrgId);
+        setConnectionList(data);
+      } catch (error) {
+        console.error(error);
+        notify({ error });
+      }
+    },
+    [selectedOrgId]
+  );
 
   const getAllEnvironments = useCallback(async () => {
     try {
