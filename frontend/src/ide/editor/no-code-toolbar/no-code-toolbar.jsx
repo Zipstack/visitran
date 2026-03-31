@@ -470,7 +470,7 @@ const NoCodeToolbar = memo(function NoCodeToolbar({
             </div>
           ))}
           {hasOverflow && (
-            <div className="toolbar-item">
+            <div className="toolbar-item toolbar-more-item">
               <Dropdown
                 menu={dropdownMenu}
                 trigger={["click"]}
