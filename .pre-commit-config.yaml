@@ -12,7 +12,8 @@ ci:
     - markdownlint # Pre-existing violations — will clean up separately
     - yamllint # Pre-existing violations — will clean up separately
     - actionlint # Pre-existing violations — will clean up separately
-  autofix_prs: true
+    - absolufy-imports # Incorrectly rewrites relative imports in monorepo structure
+  autofix_prs: false
   autoupdate_schedule: monthly
 
 # Force all unspecified python hooks to run python 3.10
