@@ -196,7 +196,7 @@ class NoCodeModel(ApplicationContext):
 
     def set_model_presentation(self, no_code_data: dict[str, Any], model_name: str):
         """
-        Updates the 'presentation' configuration of the model. Only updates keys present in 'no_code_data' 
+        Updates the 'presentation' configuration of the model. Only updates keys present in 'no_code_data'
         without affecting other keys.
         """
         model_data = self.session.fetch_model_data(model_name=model_name)

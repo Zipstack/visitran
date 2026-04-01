@@ -14,8 +14,6 @@ ci:
     - actionlint # Pre-existing violations — will clean up separately
     - absolufy-imports # Incorrectly rewrites relative imports in monorepo structure
     - black # Large-scale reformatting — will clean up in dedicated PR
-    - trailing-whitespace # Pre-existing across 59 files
-    - end-of-file-fixer # Pre-existing across 131 files
     - pyupgrade # Pre-existing across 43 files
     - isort # Pre-existing import ordering across codebase
     - yesqa # Pre-existing unnecessary noqa comments
