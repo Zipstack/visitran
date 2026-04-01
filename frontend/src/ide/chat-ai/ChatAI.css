@@ -417,6 +417,29 @@
   transition: all 0.3s ease;
   white-space: nowrap;
 }
+/* InfoChip component styles */
+.chat-ai-info-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 100px;
+  background-color: var(--content-bg);
+  border: 1px solid var(--border-color-3);
+  cursor: default;
+  transition: all 0.3s ease;
+}
+.chat-ai-info-chip-text {
+  font-size: 10px;
+  white-space: nowrap;
+}
+.chat-ai-info-chip-icon {
+  font-size: 12px;
+  color: var(--icons-color);
+}
+.chat-ai-info-chip-clickable {
+  cursor: pointer;
+}
 .chat-ai-manage-credits-link:hover {
   color: var(--icons-color);
   border-color: var(--icons-color);
