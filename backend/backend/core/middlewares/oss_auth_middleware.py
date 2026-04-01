@@ -60,8 +60,7 @@ class OSSAuthMiddleware:
                     from backend.core.models.organization_member import OrganizationMember
 
                     org_member = OrganizationMember.objects.filter(
-                        user=request.user,
-                        organization__organization_id=tenant_id
+                        user=request.user, organization__organization_id=tenant_id
                     ).first()
                     if org_member:
                         request.user.role = org_member.role

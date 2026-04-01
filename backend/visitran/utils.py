@@ -19,6 +19,7 @@ import yaml
 from django.conf import settings
 from django.core.cache import cache
 from google.cloud import storage
+
 from visitran.constants import CloudConstants
 from visitran.errors import ModelIncludedIsExcluded
 
@@ -27,6 +28,7 @@ if TYPE_CHECKING:  # pragma: no cover
     # if we do a normal import it will result in circular import
     from adapters.adapter import BaseAdapter
     from adapters.connection import BaseConnection
+
     from visitran.visitran import VisitranModel
 
 
@@ -159,7 +161,6 @@ def get_adapters_list() -> list[str]:
     if settings.IS_CLOUD:
         db_list.remove("duckdb")
     return sorted(db_list)
-
 
 
 def get_adapter_connection_fields(adapter_name: str) -> dict[str, Any]:

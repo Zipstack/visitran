@@ -1,5 +1,5 @@
-from typing import Any, List, Dict
 from collections import deque
+from typing import Any, Dict, List
 
 from backend.application.session.session import Session
 from backend.core.models.csv_models import CSVModels
@@ -29,15 +29,15 @@ def topological_sort_models(models_with_refs: list[dict[str, Any]]) -> list[str]
     all_model_names = set()
 
     for item in models_with_refs:
-        model_name = item['model_name']
+        model_name = item["model_name"]
         all_model_names.add(model_name)
         graph.setdefault(model_name, [])
         in_degree.setdefault(model_name, 0)
 
     # Build edges: if model A references model B, then B -> A (B must come before A)
     for item in models_with_refs:
-        model_name = item['model_name']
-        references = item.get('references', []) or []
+        model_name = item["model_name"]
+        references = item.get("references", []) or []
 
         for ref in references:
             # Only consider references that are in our model set (ignore raw/seed tables)
@@ -84,10 +84,7 @@ class FileExplorer:
         models_with_refs: list[dict[str, Any]] = []
         for model in all_models:
             references = model.model_data.get("reference", []) or []
-            models_with_refs.append({
-                "model_name": model.model_name,
-                "references": references
-            })
+            models_with_refs.append({"model_name": model.model_name, "references": references})
 
         # Sort models by execution order (DAG order)
         sorted_model_names = topological_sort_models(models_with_refs)

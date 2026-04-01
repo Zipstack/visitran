@@ -1,16 +1,20 @@
 # common/cache/decorators.py
 import logging
 from functools import wraps
+
 from django.http import JsonResponse
+
 from backend.utils.cache_service.cache_loader import CacheService
+
 Logger = logging.getLogger(__name__)
+
 
 def cache_response(key_prefix: str, key_params: list[str]):
     def decorator(view_func):
         @wraps(view_func)
         def _wrapped(view_or_request, *args, **kwargs):
             # Determine if CBV or FBV
-            if hasattr(view_or_request, 'request'):
+            if hasattr(view_or_request, "request"):
                 # CBV
                 request = view_or_request.request
             else:
@@ -50,6 +54,7 @@ def cache_response(key_prefix: str, key_params: list[str]):
                 elif hasattr(response, "content"):
                     try:
                         import json
+
                         content_data = json.loads(response.content)
                         CacheService.set_key(cache_key, content_data)
                     except Exception:
@@ -58,6 +63,7 @@ def cache_response(key_prefix: str, key_params: list[str]):
             return response
 
         return _wrapped
+
     return decorator
 
 
@@ -100,4 +106,5 @@ def clear_cache(patterns: list[str]):
             return response
 
         return wrapped
+
     return decorator

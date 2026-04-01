@@ -8,11 +8,7 @@ class SocketSessionContext:
         return cls._instance
 
     def set_context(self, sid, user, tenant, env):
-        self._sid_to_context[sid] = {
-            "user": user,
-            "tenant": tenant,
-            "env": env
-        }
+        self._sid_to_context[sid] = {"user": user, "tenant": tenant, "env": env}
 
     def get_context(self, sid):
         return self._sid_to_context.get(sid, {})

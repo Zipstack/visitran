@@ -18,20 +18,14 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.utils.encoding import force_bytes, force_str
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from backend.core.models.organization_model import Organization
+from backend.account.constants import DefaultOrg, ErrorMessage, OrgNamePattern, SuccessMessage, UserRole
 from backend.core.models.organization_member import OrganizationMember
-from backend.account.constants import (
-    DefaultOrg,
-    ErrorMessage,
-    OrgNamePattern,
-    SuccessMessage,
-    UserRole,
-)
+from backend.core.models.organization_model import Organization
 
 User = get_user_model()
 Logger = logging.getLogger(__name__)
@@ -133,9 +127,7 @@ class AuthenticationService:
             with transaction.atomic():
                 user = self._create_user(email, password, display_name)
                 organization = self._create_personal_organization(email, user)
-                self._create_organization_membership(
-                    user, organization, role=UserRole.ADMIN, is_admin=True
-                )
+                self._create_organization_membership(user, organization, role=UserRole.ADMIN, is_admin=True)
                 login(request, user)
                 Logger.info(f"User signed up successfully: {email}")
 
@@ -158,9 +150,7 @@ class AuthenticationService:
     # Authorization Callback (matches ScalekitService interface)
     # =========================================================================
 
-    def handle_authorization_callback(
-        self, request: HttpRequest, backend: str = ""
-    ) -> HttpResponse:
+    def handle_authorization_callback(self, request: HttpRequest, backend: str = "") -> HttpResponse:
         """Handle SSO authorization callback.
 
         OSS: Returns error (SSO not supported)
@@ -183,37 +173,37 @@ class AuthenticationService:
         if not request.user.is_authenticated:
             return []
 
-        memberships = OrganizationMember.objects.filter(
-            user=request.user
-        ).select_related("organization")
+        memberships = OrganizationMember.objects.filter(user=request.user).select_related("organization")
 
         organizations = []
         for membership in memberships:
             if membership.organization:
                 # Return format compatible with scalekit Membership
-                organizations.append({
-                    "organization_id": membership.organization.organization_id,
-                    "name": membership.organization.name,
-                    "display_name": membership.organization.display_name,
-                    "role": membership.role,
-                    "is_org_admin": membership.is_org_admin,
-                })
+                organizations.append(
+                    {
+                        "organization_id": membership.organization.organization_id,
+                        "name": membership.organization.name,
+                        "display_name": membership.organization.display_name,
+                        "role": membership.role,
+                        "is_org_admin": membership.is_org_admin,
+                    }
+                )
 
         # Fallback for users without organization membership
         if not organizations:
-            organizations.append({
-                "organization_id": DefaultOrg.ORGANIZATION_NAME,
-                "name": DefaultOrg.ORGANIZATION_NAME,
-                "display_name": "Default Organization",
-                "role": UserRole.ADMIN,
-                "is_org_admin": True,
-            })
+            organizations.append(
+                {
+                    "organization_id": DefaultOrg.ORGANIZATION_NAME,
+                    "name": DefaultOrg.ORGANIZATION_NAME,
+                    "display_name": "Default Organization",
+                    "role": UserRole.ADMIN,
+                    "is_org_admin": True,
+                }
+            )
 
         return organizations
 
-    def switch_organization(
-        self, request: HttpRequest, user_id: str, organization_id: str
-    ) -> HttpResponse:
+    def switch_organization(self, request: HttpRequest, user_id: str, organization_id: str) -> HttpResponse:
         """Switch user's current organization.
 
         OSS: Single org, returns error
@@ -260,9 +250,7 @@ class AuthenticationService:
                     created_by=request.user,
                     modified_by=request.user,
                 )
-                self._create_organization_membership(
-                    request.user, organization, role=UserRole.ADMIN, is_admin=True
-                )
+                self._create_organization_membership(request.user, organization, role=UserRole.ADMIN, is_admin=True)
                 return Response(
                     status=status.HTTP_201_CREATED,
                     data={
@@ -336,27 +324,21 @@ class AuthenticationService:
         """Get available roles."""
         return [{"id": "admin", "name": "Admin", "display_name": "Administrator"}]
 
-    def add_organization_user_role(
-        self, organization_id: str, user: Any, user_role_name: str
-    ) -> Optional[list]:
+    def add_organization_user_role(self, organization_id: str, user: Any, user_role_name: str) -> Optional[list]:
         """Add role to user.
 
         OSS stub.
         """
         return None  # Not supported in OSS
 
-    def assign_role_to_org_user(
-        self, organization_id: str, user: Any, user_role_name: str = "admin"
-    ) -> list:
+    def assign_role_to_org_user(self, organization_id: str, user: Any, user_role_name: str = "admin") -> list:
         """Assign role to organization user.
 
         OSS stub.
         """
         return []  # Not supported in OSS
 
-    def get_organization_role_of_user(
-        self, user_id: str, organization_id: str
-    ) -> list:
+    def get_organization_role_of_user(self, user_id: str, organization_id: str) -> list:
         """Get user's role in organization."""
         return []  # Basic implementation
 
@@ -364,18 +346,14 @@ class AuthenticationService:
     # User Management (matches ScalekitService interface)
     # =========================================================================
 
-    def invite_user(
-        self, admin: Any, org_id: str, email: str, role: str = "admin"
-    ) -> bool:
+    def invite_user(self, admin: Any, org_id: str, email: str, role: str = "admin") -> bool:
         """Invite a user to organization.
 
         OSS stub.
         """
         return False  # Not supported in OSS
 
-    def remove_users_from_organization(
-        self, admin: Any, organization_id: str, user_emails: list
-    ) -> list:
+    def remove_users_from_organization(self, admin: Any, organization_id: str, user_emails: list) -> list:
         """Remove users from organization.
 
         OSS stub.
@@ -384,13 +362,9 @@ class AuthenticationService:
 
     def get_organizations_users(self, org_id: str) -> list:
         """Get organization members."""
-        memberships = OrganizationMember.objects.filter(
-            organization__organization_id=org_id
-        ).select_related("user")
+        memberships = OrganizationMember.objects.filter(organization__organization_id=org_id).select_related("user")
 
-        return [
-            self._make_user_info_dict(m.user) for m in memberships if m.user
-        ]
+        return [self._make_user_info_dict(m.user) for m in memberships if m.user]
 
     def get_invitations(self, organization_id: str) -> list:
         """Get pending invitations.
@@ -417,15 +391,12 @@ class AuthenticationService:
     def is_user_member_of_organization(self, user_id: str, organization_id: str) -> bool:
         """Check if user is member of organization."""
         return OrganizationMember.objects.filter(
-            user__user_id=user_id,
-            organization__organization_id=organization_id
+            user__user_id=user_id, organization__organization_id=organization_id
         ).exists()
 
     def get_organizations_by_user_id(self, user_id: str) -> list:
         """Get organizations for a user by user_id."""
-        memberships = OrganizationMember.objects.filter(
-            user__user_id=user_id
-        ).select_related("organization")
+        memberships = OrganizationMember.objects.filter(user__user_id=user_id).select_related("organization")
 
         return [
             {
@@ -433,7 +404,8 @@ class AuthenticationService:
                 "name": m.organization.name,
                 "display_name": m.organization.display_name,
             }
-            for m in memberships if m.organization
+            for m in memberships
+            if m.organization
         ]
 
     def create_roles(self, role: Any) -> Any:
@@ -633,9 +605,7 @@ class AuthenticationService:
         )
         return membership
 
-    def _try_legacy_login(
-        self, request: Request, email: str, password: str
-    ) -> bool:
+    def _try_legacy_login(self, request: Request, email: str, password: str) -> bool:
         """Try legacy env-based authentication for backward compatibility."""
         legacy_username = DefaultOrg.MOCK_USER
         legacy_password = DefaultOrg.MOCK_USER_PASSWORD

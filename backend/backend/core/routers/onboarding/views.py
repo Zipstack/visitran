@@ -7,11 +7,11 @@ from rest_framework.decorators import action
 from rest_framework.request import Request
 from rest_framework.response import Response
 
+from backend.core.mixins.http_request_handler import RequestHandlingMixin
 from backend.core.models.onboarding import OnboardingTemplate, ProjectOnboardingSession
 from backend.core.models.project_details import ProjectDetails
 from backend.core.models.user_model import User
 from backend.utils.tenant_context import get_current_user
-from backend.core.mixins.http_request_handler import RequestHandlingMixin
 
 logger = logging.getLogger(__name__)
 
@@ -24,19 +24,18 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
     def get_onboarding_template(self, request: Request, template_id: str) -> Response:
         """Get onboarding template by ID - Global templates"""
         try:
-            template = OnboardingTemplate.objects.get(
-                template_id=template_id,
-                is_active=True
+            template = OnboardingTemplate.objects.get(template_id=template_id, is_active=True)
+            return Response(
+                {
+                    "template_id": template.template_id,
+                    "title": template.title,
+                    "description": template.description,
+                    "welcome_message": template.welcome_message,
+                    "items": template.template_data.get("items", []),
+                }
             )
-            return Response({
-                'template_id': template.template_id,
-                'title': template.title,
-                'description': template.description,
-                'welcome_message': template.welcome_message,
-                'items': template.template_data.get('items', [])
-            })
         except OnboardingTemplate.DoesNotExist:
-            return Response({'error': 'Template not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Template not found"}, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=False, methods=["GET"])
     def get_project_onboarding_status(self, request: Request, project_id: str) -> Response:
@@ -47,21 +46,23 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
             try:
                 project = ProjectDetails.objects.get(project_uuid=project_id)
             except ProjectDetails.DoesNotExist:
-                return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
 
             # Check if onboarding is enabled for this project
             if not project.onboarding_enabled:
-                return Response({
-                    "onboarding_enabled": False,
-                    "onboarding_active": False,
-                    "message": "Onboarding is not enabled for this project"
-                })
+                return Response(
+                    {
+                        "onboarding_enabled": False,
+                        "onboarding_active": False,
+                        "message": "Onboarding is not enabled for this project",
+                    }
+                )
 
             # Get user object from context
             try:
                 user = self._get_user_from_context()
             except ValueError as e:
-                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
             # Get or create onboarding session
             onboarding_session, created = ProjectOnboardingSession.objects.get_or_create(
@@ -71,7 +72,7 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
                     "template": self._get_template_for_project(project),
                     "completed_tasks": [],
                     "skipped_tasks": [],
-                }
+                },
             )
 
             if created:
@@ -80,13 +81,13 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
             # Get template details
             template = onboarding_session.template
             if not template:
-                return Response({'error': 'Onboarding template not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "Onboarding template not found"}, status=status.HTTP_404_NOT_FOUND)
 
             # Build tasks with status
             tasks = self._build_tasks_with_status(template, onboarding_session)
 
             # Calculate progress
-            total_tasks = len(template.template_data.get('items', []))
+            total_tasks = len(template.template_data.get("items", []))
             completed_count = len(onboarding_session.completed_tasks)
             skipped_count = len(onboarding_session.skipped_tasks)
             progress_percentage = int((completed_count + skipped_count) / total_tasks * 100) if total_tasks > 0 else 0
@@ -109,15 +110,15 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
                     "total_tasks": total_tasks,
                     "completed_tasks": completed_count,
                     "skipped_tasks": skipped_count,
-                    "progress_percentage": progress_percentage
-                }
+                    "progress_percentage": progress_percentage,
+                },
             }
 
             return Response(response_data)
 
         except Exception as e:
             logger.error(f"Error getting project onboarding status: {str(e)}", exc_info=True)
-            return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=["POST"])
     def start_onboarding(self, request: Request, project_id: str) -> Response:
@@ -128,17 +129,19 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
             try:
                 project = ProjectDetails.objects.get(project_uuid=project_id)
             except ProjectDetails.DoesNotExist:
-                return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
 
             # Check if onboarding is enabled
             if not project.onboarding_enabled:
-                return Response({'error': 'Onboarding is not enabled for this project'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "Onboarding is not enabled for this project"}, status=status.HTTP_400_BAD_REQUEST
+                )
 
             # Get user object from context
             try:
                 user = self._get_user_from_context()
             except ValueError as e:
-                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
             # Create or update onboarding session
             onboarding_session, created = ProjectOnboardingSession.objects.get_or_create(
@@ -148,7 +151,7 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
                     "template": self._get_template_for_project(project),
                     "completed_tasks": [],
                     "skipped_tasks": [],
-                }
+                },
             )
 
             if not created:
@@ -172,18 +175,18 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
                 },
                 "tasks": tasks,
                 "progress": {
-                    "total_tasks": len(template.template_data.get('items', [])),
+                    "total_tasks": len(template.template_data.get("items", [])),
                     "completed_tasks": 0,
                     "skipped_tasks": 0,
-                    "progress_percentage": 0
-                }
+                    "progress_percentage": 0,
+                },
             }
 
             return Response(response_data)
 
         except Exception as e:
             logger.error(f"Error starting onboarding: {str(e)}", exc_info=True)
-            return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=["POST"])
     def complete_task(self, request: Request, project_id: str) -> Response:
@@ -192,7 +195,7 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
 
             task_id = request.data.get("task_id")
             if not task_id:
-                return Response({'error': 'Task ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "Task ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
             # Get project and user
             project = ProjectDetails.objects.get(project_uuid=project_id)
@@ -200,24 +203,21 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
             try:
                 user = self._get_user_from_context()
             except ValueError as e:
-                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
             try:
-                onboarding_session = ProjectOnboardingSession.objects.get(
-                    project=project,
-                    user=user
-                )
+                onboarding_session = ProjectOnboardingSession.objects.get(project=project, user=user)
             except ProjectOnboardingSession.DoesNotExist:
-                return Response({'error': 'Onboarding session not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "Onboarding session not found"}, status=status.HTTP_404_NOT_FOUND)
 
             # Get template to validate task exists
             template = onboarding_session.template
             if not template:
-                return Response({'error': 'Onboarding template not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "Onboarding template not found"}, status=status.HTTP_404_NOT_FOUND)
 
             # Validate task exists in template
             if not self._task_exists_in_template(template, task_id):
-                return Response({'error': 'Task not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND)
 
             # Update task status
             if task_id not in onboarding_session.completed_tasks:
@@ -229,7 +229,7 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
 
             # Build updated response
             tasks = self._build_tasks_with_status(template, onboarding_session)
-            total_tasks = len(template.template_data.get('items', []))
+            total_tasks = len(template.template_data.get("items", []))
             completed_count = len(onboarding_session.completed_tasks)
             skipped_count = len(onboarding_session.skipped_tasks)
             progress_percentage = int((completed_count + skipped_count) / total_tasks * 100) if total_tasks > 0 else 0
@@ -253,17 +253,17 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
                     "total_tasks": total_tasks,
                     "completed_tasks": completed_count,
                     "skipped_tasks": skipped_count,
-                    "progress_percentage": progress_percentage
-                }
+                    "progress_percentage": progress_percentage,
+                },
             }
 
             return Response(response_data)
 
         except ProjectDetails.DoesNotExist:
-            return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             logger.error(f"Error completing task: {str(e)}", exc_info=True)
-            return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=["POST"])
     def skip_task(self, request: Request, project_id: str) -> Response:
@@ -272,7 +272,7 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
 
             task_id = request.data.get("task_id")
             if not task_id:
-                return Response({'error': 'Task ID is required'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "Task ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
             # Get project and user
             project = ProjectDetails.objects.get(project_uuid=project_id)
@@ -280,24 +280,21 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
             try:
                 user = self._get_user_from_context()
             except ValueError as e:
-                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
             try:
-                onboarding_session = ProjectOnboardingSession.objects.get(
-                    project=project,
-                    user=user
-                )
+                onboarding_session = ProjectOnboardingSession.objects.get(project=project, user=user)
             except ProjectOnboardingSession.DoesNotExist:
-                return Response({'error': 'Onboarding session not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "Onboarding session not found"}, status=status.HTTP_404_NOT_FOUND)
 
             # Get template to validate task exists
             template = onboarding_session.template
             if not template:
-                return Response({'error': 'Onboarding template not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "Onboarding template not found"}, status=status.HTTP_404_NOT_FOUND)
 
             # Validate task exists in template
             if not self._task_exists_in_template(template, task_id):
-                return Response({'error': 'Task not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND)
 
             # Update task status
             if task_id not in onboarding_session.skipped_tasks:
@@ -309,7 +306,7 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
 
             # Build updated response
             tasks = self._build_tasks_with_status(template, onboarding_session)
-            total_tasks = len(template.template_data.get('items', []))
+            total_tasks = len(template.template_data.get("items", []))
             completed_count = len(onboarding_session.completed_tasks)
             skipped_count = len(onboarding_session.skipped_tasks)
             progress_percentage = int((completed_count + skipped_count) / total_tasks * 100) if total_tasks > 0 else 0
@@ -333,17 +330,17 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
                     "total_tasks": total_tasks,
                     "completed_tasks": completed_count,
                     "skipped_tasks": skipped_count,
-                    "progress_percentage": progress_percentage
-                }
+                    "progress_percentage": progress_percentage,
+                },
             }
 
             return Response(response_data)
 
         except ProjectDetails.DoesNotExist:
-            return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
             logger.error(f"Error skipping task: {str(e)}", exc_info=True)
-            return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=["POST"])
     def reset_onboarding(self, request: Request, project_id: str) -> Response:
@@ -354,20 +351,17 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
             try:
                 project = ProjectDetails.objects.get(project_uuid=project_id)
             except ProjectDetails.DoesNotExist:
-                return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
 
             # Get user object from context
             try:
                 user = self._get_user_from_context()
             except ValueError as e:
-                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
             # Reset onboarding session
             try:
-                onboarding_session = ProjectOnboardingSession.objects.get(
-                    project=project,
-                    user=user
-                )
+                onboarding_session = ProjectOnboardingSession.objects.get(project=project, user=user)
                 onboarding_session.completed_tasks = []
                 onboarding_session.skipped_tasks = []
                 onboarding_session.save()
@@ -396,18 +390,18 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
                 },
                 "tasks": tasks,
                 "progress": {
-                    "total_tasks": len(template.template_data.get('items', [])),
+                    "total_tasks": len(template.template_data.get("items", [])),
                     "completed_tasks": 0,
                     "skipped_tasks": 0,
-                    "progress_percentage": 0
-                }
+                    "progress_percentage": 0,
+                },
             }
 
             return Response(response_data)
 
         except Exception as e:
             logger.error(f"Error resetting onboarding: {str(e)}", exc_info=True)
-            return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=False, methods=["POST"])
     def toggle_project_onboarding(self, request: Request, project_id: str) -> Response:
@@ -418,21 +412,23 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
             try:
                 project = ProjectDetails.objects.get(project_uuid=project_id)
             except ProjectDetails.DoesNotExist:
-                return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
 
             # Toggle onboarding status
             project.onboarding_enabled = not project.onboarding_enabled
             project.save()
 
-            return Response({
-                "project_id": project_id,
-                "onboarding_enabled": project.onboarding_enabled,
-                "message": f"Onboarding {'enabled' if project.onboarding_enabled else 'disabled'} for project"
-            })
+            return Response(
+                {
+                    "project_id": project_id,
+                    "onboarding_enabled": project.onboarding_enabled,
+                    "message": f"Onboarding {'enabled' if project.onboarding_enabled else 'disabled'} for project",
+                }
+            )
 
         except Exception as e:
             logger.error(f"Error toggling project onboarding: {str(e)}", exc_info=True)
-            return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def _get_template_for_project(self, project: ProjectDetails) -> OnboardingTemplate:
         """Get template based on project type."""
@@ -452,7 +448,7 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
         """Build tasks list with individual status for each task."""
         tasks = []
 
-        for task in template.template_data.get('items', []):
+        for task in template.template_data.get("items", []):
             task_id = task.get("id")
             if not task_id:
                 continue
@@ -465,14 +461,16 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
             else:
                 status = "pending"
 
-            tasks.append({
-                "id": task_id,
-                "title": task.get("title", ""),
-                "description": task.get("description", ""),
-                "prompt": task.get("prompt", ""),
-                "mode": task.get("mode", ""),
-                "status": status
-            })
+            tasks.append(
+                {
+                    "id": task_id,
+                    "title": task.get("title", ""),
+                    "description": task.get("description", ""),
+                    "prompt": task.get("prompt", ""),
+                    "mode": task.get("mode", ""),
+                    "status": status,
+                }
+            )
 
         return tasks
 
@@ -484,22 +482,19 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
             try:
                 project = ProjectDetails.objects.get(project_uuid=project_id)
             except ProjectDetails.DoesNotExist:
-                return Response({'error': 'Project not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
 
             # Get user from context
             try:
                 user = self._get_user_from_context()
             except ValueError as e:
-                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
             # Get onboarding session
             try:
-                onboarding_session = ProjectOnboardingSession.objects.get(
-                    project=project,
-                    user=user
-                )
+                onboarding_session = ProjectOnboardingSession.objects.get(project=project, user=user)
             except ProjectOnboardingSession.DoesNotExist:
-                return Response({'error': 'Onboarding session not found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({"error": "Onboarding session not found"}, status=status.HTTP_404_NOT_FOUND)
 
             # Mark as complete
             if not onboarding_session.is_completed:
@@ -507,19 +502,22 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
                 onboarding_session.completed_at = timezone.now()
                 onboarding_session.save()
 
-            return Response({
-                'message': 'Onboarding marked as complete',
-                'is_completed': True,
-                'completed_at': onboarding_session.completed_at
-            }, status=status.HTTP_200_OK)
+            return Response(
+                {
+                    "message": "Onboarding marked as complete",
+                    "is_completed": True,
+                    "completed_at": onboarding_session.completed_at,
+                },
+                status=status.HTTP_200_OK,
+            )
 
         except Exception as e:
             logger.error(f"Error marking onboarding complete: {str(e)}", exc_info=True)
-            return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def _task_exists_in_template(self, template: OnboardingTemplate, task_id: str) -> bool:
         """Check if task exists in template."""
-        for task in template.template_data.get('items', []):
+        for task in template.template_data.get("items", []):
             if task.get("id") == task_id:
                 return True
         return False

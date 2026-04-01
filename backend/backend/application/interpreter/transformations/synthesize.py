@@ -51,9 +51,7 @@ class SynthesizeTransformation(BaseTransformation):
             formula_escaped = formula.replace("'", "\\'")
 
             # Construct the mutate statement
-            statement = (
-                f".mutate(FormulaSQL(source_table, '{col_name}', '={formula_escaped}').ibis_column())"
-            )
+            statement = f".mutate(FormulaSQL(source_table, '{col_name}', '={formula_escaped}').ibis_column())"
             synthesis_statements.append(statement)
 
         return synthesis_statements

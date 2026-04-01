@@ -11,6 +11,7 @@ from typing import Any, Optional
 @dataclass
 class MemberData:
     """Data for organization member."""
+
     user_id: str
     email: Optional[str] = None
     name: Optional[str] = None
@@ -22,6 +23,7 @@ class MemberData:
 @dataclass
 class OrganizationData:
     """Data for organization."""
+
     id: str
     display_name: str
     name: str
@@ -30,6 +32,7 @@ class OrganizationData:
 @dataclass
 class CallbackData:
     """Data from SSO callback."""
+
     user_id: str
     email: str
     token: Any
@@ -38,6 +41,7 @@ class CallbackData:
 @dataclass
 class OrganizationSignupRequestBody:
     """Request body for organization signup."""
+
     name: str
     display_name: str
     organization_id: str
@@ -46,6 +50,7 @@ class OrganizationSignupRequestBody:
 @dataclass
 class OrganizationSignupResponse:
     """Response for organization signup."""
+
     name: str
     display_name: str
     organization_id: str
@@ -55,6 +60,7 @@ class OrganizationSignupResponse:
 @dataclass
 class UserInfo:
     """User information."""
+
     email: str
     user_id: str
     id: Optional[str] = None
@@ -67,6 +73,7 @@ class UserInfo:
 @dataclass
 class UserSessionInfo:
     """Session information for a user."""
+
     id: str
     user_id: str
     email: str
@@ -101,6 +108,7 @@ class UserSessionInfo:
 @dataclass
 class GetUserResponse:
     """Response for get user request."""
+
     user: UserInfo
     organizations: list[OrganizationData]
 
@@ -108,6 +116,7 @@ class GetUserResponse:
 @dataclass
 class ResetUserPasswordDto:
     """DTO for password reset."""
+
     status: bool
     message: str
 
@@ -115,6 +124,7 @@ class ResetUserPasswordDto:
 @dataclass
 class UserInviteResponse:
     """Response for user invitation."""
+
     email: str
     status: str
     message: Optional[str] = None
@@ -123,6 +133,7 @@ class UserInviteResponse:
 @dataclass
 class UserRoleData:
     """Data for user role."""
+
     name: str
     display_name: Optional[str] = None
     id: Optional[str] = None
@@ -141,6 +152,7 @@ class MemberInvitation:
             was created.
         expires_at (Optional[str]): The timestamp when the invitation expires.
     """
+
     id: str
     email: str
     roles: list[str]
@@ -151,6 +163,7 @@ class MemberInvitation:
 @dataclass
 class UserOrganizationRole:
     """User's role in an organization."""
+
     user_id: str
     role: UserRoleData
     organization_id: str

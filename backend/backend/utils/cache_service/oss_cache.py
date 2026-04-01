@@ -1,6 +1,6 @@
 import logging
 import re
-from typing import Optional, Any
+from typing import Any, Optional
 
 from django.conf import settings
 from django.core.cache import cache
@@ -41,9 +41,7 @@ class OssCacheService:
         return data.decode("utf-8") if isinstance(data, bytes) else data
 
     @classmethod
-    def set_key(cls,
-        key: str, value: Any, expire: int = int(settings.CACHE_TTL_SEC)
-    ) -> None:
+    def set_key(cls, key: str, value: Any, expire: int = int(settings.CACHE_TTL_SEC)) -> None:
         key = str(key)
         registry = cls._get_registry()
         registry.add(key)

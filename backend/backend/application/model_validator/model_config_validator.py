@@ -1,5 +1,5 @@
 from backend.application.model_validator.transformations.base_validator import Validator
-from backend.errors import SourceTableDoesNotExist, DestinationTableAlreadyExist, ReferenceNotFound
+from backend.errors import DestinationTableAlreadyExist, ReferenceNotFound, SourceTableDoesNotExist
 from backend.errors.visitran_backend_base_exceptions import VisitranBackendBaseException
 
 
@@ -17,21 +17,21 @@ class ModelConfigValidator(Validator):
         src_table_name = self.current_parser.source_table_name
         src_schema_name = self.current_parser.source_schema_name
         if not self._visitran_context.db_adapter.db_connection.is_table_exists(
-                table_name=src_table_name,
-                schema_name=src_schema_name,
+            table_name=src_table_name,
+            schema_name=src_schema_name,
         ):
             table_not_exist_flag: bool = True
             for parser in self.all_parsers:
                 if (
-                        parser.destination_schema_name == src_schema_name
-                        and parser.destination_table_name == src_table_name
+                    parser.destination_schema_name == src_schema_name
+                    and parser.destination_table_name == src_table_name
                 ):
                     table_not_exist_flag = False
             if table_not_exist_flag:
                 raise SourceTableDoesNotExist(
                     schema_name=self.current_parser.source_schema_name,
                     table_name=self.current_parser.source_table_name,
-                    model_name=self.current_parser.model_name
+                    model_name=self.current_parser.model_name,
                 )
 
         if self.old_parser:
@@ -61,7 +61,7 @@ class ModelConfigValidator(Validator):
                     schema_name=parser.destination_schema_name,
                     table_name=parser.destination_table_name,
                     current_model_name=self.current_parser.model_name,
-                    conflicting_model_name=parser.model_name
+                    conflicting_model_name=parser.model_name,
                 )
 
         if self.old_parser:

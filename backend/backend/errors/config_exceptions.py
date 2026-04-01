@@ -63,6 +63,7 @@ class InvalidModelConfigError(VisitranBackendBaseException):
             failure_reason=failure_reason,
         )
 
+
 class InvalidModelReferenceError(VisitranBackendBaseException):
     """Raise if the model config is invalid."""
 

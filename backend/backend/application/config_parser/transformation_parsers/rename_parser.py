@@ -12,6 +12,7 @@ class RenameParser(BaseParser):
     def new_name(self) -> str:
         return self.get("new_name", "")
 
+
 class RenameParsers(BaseParser):
     def __init__(self, config_data: dict[str, Any]):
         super().__init__(config_data)

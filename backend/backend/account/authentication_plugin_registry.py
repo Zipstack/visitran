@@ -57,20 +57,12 @@ def _load_plugins() -> dict[str, dict[str, Any]]:
                     module.metadata["is_active"],
                 )
         except ModuleNotFoundError as exception:
-            Logger.error(
-                "Error while importing authentication module: %s", exception
-            )
+            Logger.error("Error while importing authentication module: %s", exception)
 
     if len(auth_modules) > 1:
-        raise ValueError(
-            "Multiple authentication modules found. "
-            "Only one authentication method is allowed."
-        )
+        raise ValueError("Multiple authentication modules found. " "Only one authentication method is allowed.")
     elif len(auth_modules) == 0:
-        Logger.info(
-            "No authentication modules found. "
-            "Application will start with default OSS authentication."
-        )
+        Logger.info("No authentication modules found. " "Application will start with default OSS authentication.")
     return auth_modules
 
 

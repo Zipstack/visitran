@@ -7,7 +7,7 @@ intermediate models to final outputs.
 """
 
 import logging
-from typing import Dict, List, Any, Set
+from typing import Any, Dict, List, Set
 
 from backend.application.context.base_context import BaseContext
 from backend.core.models.dependent_models import DependentModels
@@ -113,12 +113,8 @@ class SQLFlowGenerator(BaseContext):
             "stats": {
                 "totalTables": len(self.nodes),
                 "totalConnections": len(self.edges),
-                "sourceTablesCount": sum(
-                    1 for n in self.nodes.values() if n["data"]["tableType"] == "source"
-                ),
-                "modelTablesCount": sum(
-                    1 for n in self.nodes.values() if n["data"]["tableType"] == "model"
-                ),
+                "sourceTablesCount": sum(1 for n in self.nodes.values() if n["data"]["tableType"] == "source"),
+                "modelTablesCount": sum(1 for n in self.nodes.values() if n["data"]["tableType"] == "model"),
                 "schemas": sorted(list(self.schemas)) if self.schemas else ["default"],
                 "tablesBySchema": tables_by_schema,
             },
@@ -268,17 +264,19 @@ class SQLFlowGenerator(BaseContext):
         if any(e["id"] == edge_id for e in self.edges):
             return
 
-        self.edges.append({
-            "id": edge_id,
-            "source": source_key,
-            "target": target_key,
-            "sourceHandle": "default",
-            "targetHandle": "default",
-            "data": {
-                "edgeType": edge_type,
-                "modelName": model_name,
-            },
-        })
+        self.edges.append(
+            {
+                "id": edge_id,
+                "source": source_key,
+                "target": target_key,
+                "sourceHandle": "default",
+                "targetHandle": "default",
+                "data": {
+                    "edgeType": edge_type,
+                    "modelName": model_name,
+                },
+            }
+        )
 
     def _process_model_references(self):
         """Create edges for model references (when one model references
@@ -314,9 +312,7 @@ class SQLFlowGenerator(BaseContext):
     def _fetch_table_columns(self, schema_name: str, table_name: str) -> list[dict]:
         """Fetch columns for a table from the database."""
         try:
-            columns = self.visitran_context.get_table_columns_with_type(
-                schema_name=schema_name, table_name=table_name
-            )
+            columns = self.visitran_context.get_table_columns_with_type(schema_name=schema_name, table_name=table_name)
             return [
                 {"name": col.get("column_name", ""), "type": col.get("column_dbtype", "")}
                 for col in columns
@@ -358,18 +354,12 @@ class SQLFlowGenerator(BaseContext):
         """Fetch and set columns for all nodes."""
         for key, node in self.nodes.items():
             columns = self._get_columns_for_table(key)
-            node["data"]["columns"] = [
-                {"name": col["name"], "type": col.get("type", "")}
-                for col in columns
-            ]
+            node["data"]["columns"] = [{"name": col["name"], "type": col.get("type", "")} for col in columns]
 
     def _fetch_model_sql(self, model) -> str | None:
         """Fetch compiled SQL for a model from DependentModels."""
         try:
-            dependent_model = self.session.project_instance.dependent_model.get(
-                model=model,
-                transformation_id="sql"
-            )
+            dependent_model = self.session.project_instance.dependent_model.get(model=model, transformation_id="sql")
             sql_data = dependent_model.model_data
             if isinstance(sql_data, dict):
                 return sql_data.get("sql", "")

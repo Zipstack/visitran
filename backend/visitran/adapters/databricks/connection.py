@@ -8,13 +8,14 @@ from typing import TYPE_CHECKING, Any, Optional, Union
 
 import ibis
 from ibis.common.exceptions import IbisError
+
 from visitran.adapters.connection import BaseConnection
 from visitran.errors import (
     ConnectionFailedError,
+    ConnectionFieldMissingException,
     DatabasePermissionDeniedError,
     SchemaAlreadyExist,
     SchemaCreationFailed,
-    ConnectionFieldMissingException,
 )
 
 if TYPE_CHECKING:  # pragma: no cover

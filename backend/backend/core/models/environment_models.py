@@ -1,11 +1,12 @@
 import uuid
 
 from django.db import models
+
 from backend.core.models.connection_models import ConnectionDetails
+from backend.utils.encryption import decrypt_connection_details, encrypt_connection_details, mask_connection_details
 from backend.utils.tenant_context import get_current_user
 from utils.models.base_model import BaseModel
-from utils.models.organization_mixin import DefaultOrganizationMixin, DefaultOrganizationManagerMixin
-from backend.utils.encryption import encrypt_connection_details, decrypt_connection_details, mask_connection_details
+from utils.models.organization_mixin import DefaultOrganizationManagerMixin, DefaultOrganizationMixin
 
 
 class EnvironmentModelsManager(DefaultOrganizationManagerMixin, models.Manager):
@@ -48,10 +49,12 @@ class EnvironmentModels(DefaultOrganizationMixin, BaseModel):
             # If Fernet decryption fails, try RSA decryption
             try:
                 from backend.utils.decryption_utils import decrypt_sensitive_fields
+
                 return decrypt_sensitive_fields(self.env_connection_data)
             except Exception as rsa_error:
                 # If both fail, return the original data
                 import logging
+
                 logging.exception("Failed to decrypt environment data")
                 return self.env_connection_data
 
@@ -67,7 +70,7 @@ class EnvironmentModels(DefaultOrganizationMixin, BaseModel):
     deployment_type = models.CharField(max_length=100)
     env_connection_data = models.JSONField(default=dict)
     env_custom_data = models.JSONField(default=dict)
-    connection_model = models.ForeignKey(ConnectionDetails, on_delete=models.CASCADE, related_name='environment_model')
+    connection_model = models.ForeignKey(ConnectionDetails, on_delete=models.CASCADE, related_name="environment_model")
     is_tested = models.BooleanField(default=False)
 
     # User specific access control fields

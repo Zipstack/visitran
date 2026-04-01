@@ -1,7 +1,7 @@
 from django.apps import AppConfig
 from django.conf import settings
 from django.db import connection
-from django.db.utils import ProgrammingError, OperationalError
+from django.db.utils import OperationalError, ProgrammingError
 
 
 class CoreAppConfig(AppConfig):
@@ -10,9 +10,7 @@ class CoreAppConfig(AppConfig):
 
     def ready(self):
 
-        from backend.execution_log_utils import (
-            create_log_consumer_scheduler_if_not_exists,
-        )
+        from backend.execution_log_utils import create_log_consumer_scheduler_if_not_exists
 
         try:
             # Check if the app is ready and migrations are not running
@@ -22,6 +20,7 @@ class CoreAppConfig(AppConfig):
             # Start the web socket server if the manager explicitly set to eventlet
             if settings.WEBSOCKET_MANAGER == "eventlet":
                 from threading import Thread
+
                 from backend.core.web_socket import run_socket_server
 
                 thread = Thread(target=run_socket_server, daemon=True)

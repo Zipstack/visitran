@@ -3,9 +3,9 @@
 import base64
 import json
 import logging
-from typing import Dict, Any, Union
+from typing import Any, Dict, Union
 
-from backend.utils.rsa_encryption import decrypt_with_private_key, validate_encrypted_data, get_encryption_debug_info
+from backend.utils.rsa_encryption import decrypt_with_private_key, get_encryption_debug_info, validate_encrypted_data
 
 # Sensitive fields that should be decrypted
 SENSITIVE_FIELDS = {
@@ -54,9 +54,9 @@ def decrypt_chunked_value(encrypted_value: str) -> str:
     """
     try:
         # Check if this is a chunked value (contains '|' delimiter)
-        if '|' in encrypted_value:
+        if "|" in encrypted_value:
             # Split into chunks
-            chunks = encrypted_value.split('|')
+            chunks = encrypted_value.split("|")
 
             # Decrypt each chunk
             decrypted_chunks = []
@@ -68,7 +68,7 @@ def decrypt_chunked_value(encrypted_value: str) -> str:
                 decrypted_chunks.append(decrypted_chunk)
 
             # Combine chunks
-            result = ''.join(decrypted_chunks)
+            result = "".join(decrypted_chunks)
             return result
         else:
             # Not chunked, decrypt normally
@@ -95,13 +95,7 @@ def decrypt_bigquery_credentials(credentials_json: str) -> str:
         decrypted_credentials = credentials.copy()
 
         # List of sensitive fields in BigQuery service account JSON
-        bigquery_sensitive_fields = [
-            "private_key",
-            "client_email",
-            "client_id",
-            "private_key_id",
-            "project_id"
-        ]
+        bigquery_sensitive_fields = ["private_key", "client_email", "client_id", "private_key_id", "project_id"]
 
         for field in bigquery_sensitive_fields:
             if field in decrypted_credentials and isinstance(decrypted_credentials[field], str):
@@ -245,7 +239,9 @@ def is_encrypted_value(value: str) -> bool:
 
     # Check if it looks like base64 encoded encrypted data
     # Encrypted data is typically longer and contains base64 characters
-    if len(value) > 100 and all(c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=' for c in value):
+    if len(value) > 100 and all(
+        c in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=" for c in value
+    ):
         return True
 
     return False
@@ -371,7 +367,9 @@ def decrypt_connection_details_safe(connection_details: dict[str, Any]) -> dict[
                     if original_value != decrypted_value:
                         logging.info(f"Successfully decrypted field '{field}' in connection_details")
                     else:
-                        logging.warning(f"Failed to decrypt field '{field}' in connection_details, using original value")
+                        logging.warning(
+                            f"Failed to decrypt field '{field}' in connection_details, using original value"
+                        )
                 else:
                     logging.debug(f"Field '{field}' was not encrypted in connection_details")
 
@@ -382,6 +380,7 @@ def decrypt_connection_details_safe(connection_details: dict[str, Any]) -> dict[
         logging.error(f"Error during connection_details decryption: {e}")
         logging.error(f"connection_details content: {connection_details}")
         import traceback
+
         logging.error(f"Traceback: {traceback.format_exc()}")
         # Return original data on error
         return connection_details
@@ -496,6 +495,7 @@ def decrypt_connection_details_robust(connection_details: dict[str, Any]) -> dic
         logging.error(f"❌ Critical error during connection_details decryption: {e}")
         logging.error(f"connection_details content: {connection_details}")
         import traceback
+
         logging.error(f"Traceback: {traceback.format_exc()}")
         # Return original data on critical error
         return connection_details
@@ -518,7 +518,7 @@ def is_valid_encrypted_data(value: str) -> bool:
         return False
 
     # Check if it contains only base64 characters
-    valid_chars = set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=')
+    valid_chars = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=")
     if not all(c in valid_chars for c in value):
         return False
 

@@ -1,5 +1,7 @@
-from backend.application.config_parser.transformation_parsers.find_and_replace_parser import FindAndReplaceColumns, \
-    FindAndReplaceParser
+from backend.application.config_parser.transformation_parsers.find_and_replace_parser import (
+    FindAndReplaceColumns,
+    FindAndReplaceParser,
+)
 from backend.application.interpreter.constants import FindAndReplaceConstants, TemplateNames
 from backend.application.interpreter.transformations.base_transformation import BaseTransformation
 
@@ -7,12 +9,12 @@ from backend.application.interpreter.transformations.base_transformation import 
 class FindAndReplaceTransformation(BaseTransformation):
     def __init__(self, parser: FindAndReplaceParser, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.find_and_replace_parser: FindAndReplaceParser  = parser
+        self.find_and_replace_parser: FindAndReplaceParser = parser
 
     def get_find_value_by_operator(self, match_value: str, find_value: str) -> str:
         if self.visitran_context.database_type == "snowflake" and match_value == "TEXT":
             # Handling explicitly for snowflake due to snowflake REGEX limitations
-            snowflake_match_value = '(\\W|^){value}(\\W|$)'
+            snowflake_match_value = "(\\W|^){value}(\\W|$)"
             return snowflake_match_value.format(**{"value": find_value})
         if match_value in FindAndReplaceConstants.FIND_VALUE:
             return FindAndReplaceConstants.FIND_VALUE.get(match_value).format(**{"value": find_value})
@@ -40,9 +42,7 @@ class FindAndReplaceTransformation(BaseTransformation):
         if match_type == FindAndReplaceConstants.EMPTY:
             # fillna("") converts NULLs to empty strings so the regex can match them.
             # Regex ^\s*$ matches empty strings and whitespace-only strings.
-            return (
-                f'source_table["{column_name}"].fillna("").re_replace(r"^\\s*$", "{replace_value}")'
-            )
+            return f'source_table["{column_name}"].fillna("").re_replace(r"^\\s*$", "{replace_value}")'
         if self.is_regex(match_type):
             return f'source_table["{column_name}"].re_replace("{find_value}", "{replace_value}")'
         return f'source_table["{column_name}"].replace("{find_value}", "{replace_value}")'

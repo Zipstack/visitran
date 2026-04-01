@@ -59,15 +59,9 @@ def _load_plugins() -> dict[str, dict[str, Any]]:
             )
 
     if len(storage_modules) > 1:
-        raise ValueError(
-            "Multiple storage modules found."
-            "Only one storage method is allowed."
-        )
+        raise ValueError("Multiple storage modules found." "Only one storage method is allowed.")
     elif len(storage_modules) == 0:
-        Logger.warning(
-            "No storage modules found."
-            "Application will start without storage module"
-        )
+        Logger.warning("No storage modules found." "Application will start without storage module")
     return storage_modules
 
 
@@ -92,7 +86,5 @@ class PluginRegistry:
         """
         chosen_storage_module = next(iter(cls.storage_modules.values()))
         chosen_metadata = chosen_storage_module[PluginConfig.STORAGE_METADATA]
-        service_class_name = chosen_metadata[
-            PluginConfig.METADATA_SERVICE_CLASS
-        ]
+        service_class_name = chosen_metadata[PluginConfig.METADATA_SERVICE_CLASS]
         return service_class_name()

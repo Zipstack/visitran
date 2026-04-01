@@ -1,23 +1,20 @@
+from datetime import timedelta
 from typing import List
 
+from django.utils.timezone import now
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from backend.utils.constants import HTTPMethods
-from backend.core.utils import handle_http_request
-from backend.application.context.application import ApplicationContext
 from backend.application.config_parser.constants import AGGREGATE_DETAILS, AGGREGATE_DICT, FORMULA_DICT
-from visitran.utils import get_adapter_connection_fields, get_adapters_list, import_file
-
-from backend.core.user import UserService
-
-from backend.utils.tenant_context import get_current_tenant
-
+from backend.application.context.application import ApplicationContext
 from backend.core.models.api_tokens import APIToken
-from django.utils.timezone import now
-from datetime import timedelta
+from backend.core.user import UserService
+from backend.core.utils import handle_http_request
+from backend.utils.constants import HTTPMethods
+from backend.utils.tenant_context import get_current_tenant
+from visitran.utils import get_adapter_connection_fields, get_adapters_list, import_file
 
 
 @api_view([HTTPMethods.GET])
@@ -44,10 +41,10 @@ def update_user_profile(request: Request) -> Response:
     update_user_token(request, user)
     return Response(
         data={
-            'first_name': user.first_name,
-            'last_name': user.last_name,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
         },
-        status=status.HTTP_200_OK
+        status=status.HTTP_200_OK,
     )
 
 
@@ -61,7 +58,7 @@ def update_user_token(request, user):
         if existing_token:
             existing_token.delete()
 
-        APIToken.objects.create(user=user, token=new_token, expires_at= now() + timedelta(days=90))
+        APIToken.objects.create(user=user, token=new_token, expires_at=now() + timedelta(days=90))
     else:
         if existing_token:
             existing_token.delete()
@@ -74,15 +71,14 @@ def get_user_profile(request: Request) -> Response:
     user_data = user_service.get_user_by_email(request.user.email)
     token: APIToken = user_service.fetch_token(user=request.user)
     user_json = {
-        'first_name': user_data.first_name,
-        'last_name': user_data.last_name,
-        'email': user_data.email,
-        'userid': user_data.user_id,
-        'profile_picture_url': user_data.profile_picture_url,
+        "first_name": user_data.first_name,
+        "last_name": user_data.last_name,
+        "email": user_data.email,
+        "userid": user_data.user_id,
+        "profile_picture_url": user_data.profile_picture_url,
         "token": token.token if token else "",
         "token_expires_at": token.expires_at if token else "",
-        "is_token_expired": not token.is_valid() if token else ""
-
+        "is_token_expired": not token.is_valid() if token else "",
     }
     return Response(data=user_json, status=status.HTTP_200_OK)
 
@@ -100,13 +96,7 @@ def get_datasource_list(request: Request) -> Response:
     data = []
     for adapter_name in adapters_list:
         icon = import_file(f"visitran.adapters.{adapter_name}").ICON
-        data.append(
-            {
-                "value": adapter_name,
-                "label": adapter_name.capitalize(),
-                "icon": icon
-            }
-        )
+        data.append({"value": adapter_name, "label": adapter_name.capitalize(), "icon": icon})
     response_data = {
         "datasource": sorted(data, key=lambda x: x["value"]),
         "datasource_count": data.__len__(),

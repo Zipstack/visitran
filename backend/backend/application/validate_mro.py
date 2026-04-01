@@ -1,5 +1,5 @@
 import json
-from typing import List, Dict, Set
+from typing import Dict, List, Set
 
 
 def detect_and_fix_mro_issues(no_code_model: dict[str, list[str]]) -> dict[str, list[str]]:
@@ -27,7 +27,6 @@ def detect_and_fix_mro_issues(no_code_model: dict[str, list[str]]) -> dict[str, 
         no_code_model[name] = valid_bases
 
     return no_code_model
-
 
 
 if __name__ == "__main__":

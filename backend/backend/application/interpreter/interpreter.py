@@ -5,6 +5,7 @@ from backend.application.file_explorer.file_explorer import FileExplorer
 from backend.application.interpreter.base_interpreter import BaseInterpreter
 from backend.application.interpreter.constants import TemplateNames
 from backend.application.interpreter.transformations.base_transformation import BaseTransformation
+from backend.application.interpreter.transformations.column_reorder import ColumnReorderTransformation
 from backend.application.interpreter.transformations.combine_column import CombineColumnTransformation
 from backend.application.interpreter.transformations.distinct import DistinctTransformation
 from backend.application.interpreter.transformations.filter import FiltersTransformation
@@ -14,7 +15,6 @@ from backend.application.interpreter.transformations.joins import JoinTransforma
 from backend.application.interpreter.transformations.pivot import PivotTransformation
 from backend.application.interpreter.transformations.reference import ReferenceTransformation
 from backend.application.interpreter.transformations.rename_columns import RenameColumnTransformation
-from backend.application.interpreter.transformations.column_reorder import ColumnReorderTransformation
 from backend.application.interpreter.transformations.sorts import SortsTransformation
 from backend.application.interpreter.transformations.source_model_transformation import SourceModelTransformation
 from backend.application.interpreter.transformations.synthesize import SynthesizeTransformation
@@ -103,14 +103,10 @@ class Interpreter(BaseInterpreter):
         self._transformation_statements.append(parent_declaration)
 
         # Parsing for model reference
-        reference_transformation = ReferenceTransformation(
-            config_parser=self.parser, context=self.context
-        )
+        reference_transformation = ReferenceTransformation(config_parser=self.parser, context=self.context)
         reference_transformation.transform()
         self._headers.extend(reference_transformation.headers)
-        source_model_transformation = SourceModelTransformation(
-            config_parser=self.parser, context=self.context
-        )
+        source_model_transformation = SourceModelTransformation(config_parser=self.parser, context=self.context)
         transformed_code = source_model_transformation.transform(reference_transformation.parent_class)
         self.add_parent_classes(self.source_class_name)
         self.add_content(transformed_code)
@@ -133,14 +129,10 @@ class Interpreter(BaseInterpreter):
                 self._parent_classes.extend(transformation_instance.parent_classes)
 
     def _parse_presentations(self):
-        sort = SortsTransformation(
-            config_parser=self.parser, context=self.context
-        )
+        sort = SortsTransformation(config_parser=self.parser, context=self.context)
         self._transformation_statements.append(sort.transform())
 
-        column_reorder = ColumnReorderTransformation(
-            config_parser=self.parser, context=self.context
-        )
+        column_reorder = ColumnReorderTransformation(config_parser=self.parser, context=self.context)
         self._transformation_statements.append(column_reorder.transform())
 
     def _resolve_parent_classes(self) -> str:
@@ -178,7 +170,7 @@ class Interpreter(BaseInterpreter):
             "transformation_statements": self._transformation_statements,
             "materialization_type": self.parser.materialization,
             "unique_keys": self.parser.unique_keys,
-            "delta_strategy": self.parser.delta_strategy
+            "delta_strategy": self.parser.delta_strategy,
         }
         content = self.template_render(
             template_file_name=TemplateNames.DESTINATION_TABLE, template_content=template_data

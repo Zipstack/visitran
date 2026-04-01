@@ -11,10 +11,10 @@ import socketio
 from django.conf import settings
 from django.core.handlers.wsgi import WSGIHandler
 
+from backend.core.redis_client import RedisClient
 from backend.core.routers.chat_message.constants import ChatMessageStatus
 from backend.core.socket_session_manager import SocketSessionContext
-from backend.core.utils import sanitize_data, redis_singleton_lock
-from backend.core.redis_client import RedisClient
+from backend.core.utils import redis_singleton_lock, sanitize_data
 from backend.errors import SQLExtractionError
 from backend.errors.visitran_backend_base_exceptions import VisitranBackendBaseException
 from backend.server.django_conf import load_conf
@@ -32,12 +32,12 @@ sio: socketio.Server = socketio.Server(
     client_manager=socketio.RedisManager(url=settings.SOCKET_IO_MANAGER_URL),
     # Connection health parameters - prevents dead connections from staying "alive"
     ping_interval=25,  # Send ping every 25 seconds (keeps connection alive through proxies)
-    ping_timeout=60,   # Wait 60 seconds for pong response before disconnecting
+    ping_timeout=60,  # Wait 60 seconds for pong response before disconnecting
     # Performance tuning
     max_http_buffer_size=1e8,  # 100MB for large messages (default 1MB)
-    http_compression=True,      # Compress large payloads
+    http_compression=True,  # Compress large payloads
     # Transport options - fallback to polling if WebSocket fails
-    transports=['websocket', 'polling'],
+    transports=["websocket", "polling"],
 )
 logging.info(f"SocketIO server started with async_mode: {sio.async_mode}")
 logging.info(f"SocketIO manager url : {settings.SOCKET_IO_MANAGER_URL}")
@@ -132,7 +132,8 @@ def disconnect(sid):
     logging.info(f"[disconnect] SID {sid} disconnecting. Active sessions: {context_manager.get_active_sessions()}")
     context_manager.clear_context(sid)
     logging.info(
-        f"[SOCKET] Disconnected SID {sid} - context cleared. Remaining sessions: {context_manager.get_session_count()}")
+        f"[SOCKET] Disconnected SID {sid} - context cleared. Remaining sessions: {context_manager.get_session_count()}"
+    )
 
 
 @sio.on("stream_logs")
@@ -207,10 +208,11 @@ def get_prompt_response(sid, data: dict):
 
         # Check if this is a structured AIServerError (auth/credit errors from AI server)
         from backend.application.ws_client import AIServerError
+
         ai_err = None
         if isinstance(e, AIServerError):
             ai_err = e
-        elif hasattr(e, '__cause__') and isinstance(e.__cause__, AIServerError):
+        elif hasattr(e, "__cause__") and isinstance(e.__cause__, AIServerError):
             ai_err = e.__cause__
 
         if ai_err:
@@ -296,8 +298,9 @@ def get_token_usage_data(organization_id: str, chat_message_id: str, chat_id: st
     """
     try:
         # Import here to avoid circular imports
-        from pluggable_apps.subscriptions.services.token_service import TokenBalanceService
         from pluggable_apps.subscriptions.models.token_balance import TokenUsageHistory
+        from pluggable_apps.subscriptions.services.token_service import TokenBalanceService
+
         from backend.core.models.organization_model import Organization
 
         # Get organization
@@ -308,19 +311,18 @@ def get_token_usage_data(organization_id: str, chat_message_id: str, chat_id: st
 
         # Get token consumption for this specific chat message using foreign key columns
         token_usage = TokenUsageHistory.objects.filter(
-            organization=organization,
-            chat_message_id=chat_message_id
+            organization=organization, chat_message_id=chat_message_id
         ).first()
 
         # Prepare response data
         token_data = {
             "organization_id": organization_id,
-            "remaining_balance": balance_info['current_balance'],
-            "total_consumed": balance_info['total_consumed'],
-            "total_purchased": balance_info['total_purchased'],
-            "utilization_percentage": balance_info.get('utilization_percentage', 0),
+            "remaining_balance": balance_info["current_balance"],
+            "total_consumed": balance_info["total_consumed"],
+            "total_purchased": balance_info["total_purchased"],
+            "utilization_percentage": balance_info.get("utilization_percentage", 0),
             "message_tokens_consumed": token_usage.tokens_used if token_usage else 0,
-            "token_usage_found": token_usage is not None
+            "token_usage_found": token_usage is not None,
         }
 
         return token_data
@@ -354,6 +356,7 @@ def handle_transformation_applied(sid, data):
 
     # Import here to avoid circular imports
     from backend.utils.tenant_context import TenantContext, _get_tenant_context
+
     try:
         from pluggable_apps.subscriptions.context import CloudLLMServerContext as LLMServerContext
     except ImportError:
@@ -436,8 +439,8 @@ def stop_chat_ai(sid, data):
     org_id = data["orgId"]
     try:
         # Import here to avoid circular imports
-        from backend.utils.tenant_context import TenantContext, _get_tenant_context
         from backend.application.context.chat_message_context import ChatMessageContext
+        from backend.utils.tenant_context import TenantContext, _get_tenant_context
 
         logging.info("\n=== STOP ChatAi ===\n")
 
@@ -494,8 +497,8 @@ def run_sql_query(sid, data):
     org_id = data["orgId"]
     try:
         # Import here to avoid circular imports
-        from backend.utils.tenant_context import TenantContext, _get_tenant_context
         from backend.application.context.chat_message_context import ChatMessageContext
+        from backend.utils.tenant_context import TenantContext, _get_tenant_context
 
         send_socket_message(
             sid=sid,

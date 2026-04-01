@@ -1,9 +1,9 @@
 """Serializers for account module - signup, login, session handling."""
 
-from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from rest_framework import serializers
 
 User = get_user_model()
 
@@ -43,9 +43,7 @@ class SignupSerializer(serializers.Serializer):
     def validate(self, attrs: dict) -> dict:
         """Validate password confirmation matches."""
         if attrs.get("password") != attrs.get("confirm_password"):
-            raise serializers.ValidationError(
-                {"confirm_password": "Passwords do not match."}
-            )
+            raise serializers.ValidationError({"confirm_password": "Passwords do not match."})
         return attrs
 
 
@@ -122,9 +120,7 @@ class ResetPasswordSerializer(serializers.Serializer):
 
     def validate(self, data):
         if data["password"] != data["confirm_password"]:
-            raise serializers.ValidationError(
-                {"confirm_password": "Passwords do not match."}
-            )
+            raise serializers.ValidationError({"confirm_password": "Passwords do not match."})
         # Validate password strength
         try:
             validate_password(data["password"])

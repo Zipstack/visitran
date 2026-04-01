@@ -8,6 +8,7 @@ that maps LLM models and chat intents to credit costs.
 try:
     from pluggable_apps.subscriptions.billing import calculate_chat_tokens
 except ImportError:
+
     def calculate_chat_tokens(*args, **kwargs) -> int:
         # OSS mode: no billing, return a neutral default
         return 1

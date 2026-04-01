@@ -8,6 +8,7 @@ table.
 try:
     from pluggable_apps.api_key_audit.service import log_api_key_event
 except ImportError:
+
     def log_api_key_event(*args, **kwargs):
         # OSS mode: audit logging is a cloud-only feature, intentional no-op
         pass

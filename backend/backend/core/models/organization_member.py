@@ -10,10 +10,7 @@ from django.db import models
 from backend.core.models.organization_model import Organization
 from backend.core.models.user_model import User
 from utils.models.base_model import BaseModel
-from utils.models.organization_mixin import (
-    DefaultOrganizationManagerMixin,
-    DefaultOrganizationMixin,
-)
+from utils.models.organization_mixin import DefaultOrganizationManagerMixin, DefaultOrganizationMixin
 
 
 class OrganizationMemberManager(DefaultOrganizationManagerMixin, models.Manager):

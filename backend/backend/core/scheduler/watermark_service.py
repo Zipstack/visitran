@@ -3,12 +3,13 @@ detection, tracking, and incremental data processing."""
 
 import logging
 from datetime import datetime
-from typing import Dict, Any, Optional, Tuple, List
+from typing import Any, Dict, List, Optional, Tuple
+
 from django.db import connection
 from django.utils import timezone
 
-from backend.core.models.environment_models import EnvironmentModels
 from backend.application.context.application import ApplicationContext
+from backend.core.models.environment_models import EnvironmentModels
 from backend.core.scheduler.models import UserTaskDetails
 
 try:
@@ -25,16 +26,21 @@ class WatermarkDetectionService:
 
     # Common timestamp column patterns
     TIMESTAMP_PATTERNS = [
-        'created_at', 'updated_at', 'modified_at', 'inserted_at',
-        'timestamp', 'date_created', 'date_modified', 'last_updated',
-        'creation_time', 'modification_time', 'event_time'
+        "created_at",
+        "updated_at",
+        "modified_at",
+        "inserted_at",
+        "timestamp",
+        "date_created",
+        "date_modified",
+        "last_updated",
+        "creation_time",
+        "modification_time",
+        "event_time",
     ]
 
     # Common ID column patterns
-    ID_PATTERNS = [
-        'id', 'primary_key', 'pk', 'row_id', 'record_id',
-        'sequence_id', 'auto_id', 'unique_id'
-    ]
+    ID_PATTERNS = ["id", "primary_key", "pk", "row_id", "record_id", "sequence_id", "auto_id", "unique_id"]
 
     def __init__(self, environment_id: str, project_id: str = None):
         self.environment_id = environment_id
@@ -64,8 +70,8 @@ class WatermarkDetectionService:
         try:
             if table_name:
                 # Analyze specific table - parse schema.table format
-                if '.' in table_name:
-                    schema_name, table_only = table_name.split('.', 1)
+                if "." in table_name:
+                    schema_name, table_only = table_name.split(".", 1)
                 else:
                     schema_name, table_only = "", table_name
                 return self._analyze_single_table(table_only, schema_name)
@@ -73,10 +79,10 @@ class WatermarkDetectionService:
             # --- Auto-detect from project models / environment tables ---
             if not self.app_context:
                 return {
-                    'error': 'Project context required for auto-detection',
-                    'timestamp_candidates': [],
-                    'sequence_candidates': [],
-                    'table_info': {},
+                    "error": "Project context required for auto-detection",
+                    "timestamp_candidates": [],
+                    "sequence_candidates": [],
+                    "table_info": {},
                 }
 
             source_tables = self._get_project_source_tables()
@@ -89,19 +95,19 @@ class WatermarkDetectionService:
                 available = self._get_available_tables_for_selection()
                 source_tables = [
                     {
-                        'model_name': t.get('table_name', ''),
-                        'schema_name': t.get('schema_name', t.get('table_schema', '')),
-                        'table_name': t.get('table_name', ''),
+                        "model_name": t.get("table_name", ""),
+                        "schema_name": t.get("schema_name", t.get("table_schema", "")),
+                        "table_name": t.get("table_name", ""),
                     }
                     for t in available
                 ]
 
             if not source_tables:
                 return {
-                    'timestamp_candidates': [],
-                    'sequence_candidates': [],
-                    'table_info': {},
-                    'message': 'No tables found in the environment',
+                    "timestamp_candidates": [],
+                    "sequence_candidates": [],
+                    "table_info": {},
+                    "message": "No tables found in the environment",
                 }
 
             # Merge candidates from all tables into flat lists.
@@ -111,45 +117,45 @@ class WatermarkDetectionService:
             total_cols = 0
 
             for tbl in source_tables:
-                schema_name = tbl['schema_name']
-                tbl_name = tbl['table_name']
+                schema_name = tbl["schema_name"]
+                tbl_name = tbl["table_name"]
                 analysis = self._analyze_single_table(tbl_name, schema_name)
 
                 # Tag each candidate with its source table
-                for c in analysis.get('timestamp_candidates', []):
-                    c['source_table'] = f"{schema_name}.{tbl_name}" if schema_name else tbl_name
+                for c in analysis.get("timestamp_candidates", []):
+                    c["source_table"] = f"{schema_name}.{tbl_name}" if schema_name else tbl_name
                     all_ts.append(c)
-                for c in analysis.get('sequence_candidates', []):
-                    c['source_table'] = f"{schema_name}.{tbl_name}" if schema_name else tbl_name
+                for c in analysis.get("sequence_candidates", []):
+                    c["source_table"] = f"{schema_name}.{tbl_name}" if schema_name else tbl_name
                     all_seq.append(c)
 
-                info = analysis.get('table_info', {})
-                total_rows += info.get('row_count', 0) or 0
-                total_cols += info.get('total_columns', 0) or 0
+                info = analysis.get("table_info", {})
+                total_rows += info.get("row_count", 0) or 0
+                total_cols += info.get("total_columns", 0) or 0
 
             # Sort merged lists by confidence
-            all_ts.sort(key=lambda x: x.get('confidence', 0), reverse=True)
-            all_seq.sort(key=lambda x: x.get('confidence', 0), reverse=True)
+            all_ts.sort(key=lambda x: x.get("confidence", 0), reverse=True)
+            all_seq.sort(key=lambda x: x.get("confidence", 0), reverse=True)
 
             return {
-                'timestamp_candidates': all_ts,
-                'sequence_candidates': all_seq,
-                'table_info': {
-                    'table_name': ', '.join(t['table_name'] for t in source_tables),
-                    'schema_name': source_tables[0]['schema_name'] if source_tables else '',
-                    'total_columns': total_cols,
-                    'row_count': total_rows,
-                    'tables_analyzed': len(source_tables),
+                "timestamp_candidates": all_ts,
+                "sequence_candidates": all_seq,
+                "table_info": {
+                    "table_name": ", ".join(t["table_name"] for t in source_tables),
+                    "schema_name": source_tables[0]["schema_name"] if source_tables else "",
+                    "total_columns": total_cols,
+                    "row_count": total_rows,
+                    "tables_analyzed": len(source_tables),
                 },
             }
 
         except Exception as e:
             logger.error(f"Error in watermark detection: {e}")
             return {
-                'error': str(e),
-                'timestamp_candidates': [],
-                'sequence_candidates': [],
-                'table_info': {},
+                "error": str(e),
+                "timestamp_candidates": [],
+                "sequence_candidates": [],
+                "table_info": {},
             }
 
     def _get_project_source_tables(self) -> list[dict[str, str]]:
@@ -171,12 +177,14 @@ class WatermarkDetectionService:
                     schema_name = source.get("schema_name", "")
                     table_name = source.get("table_name")
 
-                    source_tables.append({
-                        "model_name": model.model_name,
-                        "schema_name": schema_name,
-                        "table_name": table_name,
-                        "full_table_name": f"{schema_name}.{table_name}".strip('.')
-                    })
+                    source_tables.append(
+                        {
+                            "model_name": model.model_name,
+                            "schema_name": schema_name,
+                            "table_name": table_name,
+                            "full_table_name": f"{schema_name}.{table_name}".strip("."),
+                        }
+                    )
 
             logger.info(f"Found {len(source_tables)} source tables from project models")
             return source_tables
@@ -194,56 +202,61 @@ class WatermarkDetectionService:
             sequence_candidates = []
 
             for column in columns:
-                col_name = column['column_name'].lower()
-                col_type = column.get('column_dbtype', column.get('data_type', '')).lower()
+                col_name = column["column_name"].lower()
+                col_type = column.get("column_dbtype", column.get("data_type", "")).lower()
 
                 # Check for timestamp columns
                 if self._is_timestamp_column(col_name, col_type):
-                    timestamp_candidates.append({
-                        'column_name': column['column_name'],
-                        'data_type': column.get('column_dbtype', column.get('data_type', '')),
-                        'is_nullable': column.get('nullable', True),
-                        'confidence': self._calculate_timestamp_confidence(col_name, col_type),
-                        'sample_values': self._get_sample_values_via_app_context(schema_name, table_name, column['column_name'])
-                    })
+                    timestamp_candidates.append(
+                        {
+                            "column_name": column["column_name"],
+                            "data_type": column.get("column_dbtype", column.get("data_type", "")),
+                            "is_nullable": column.get("nullable", True),
+                            "confidence": self._calculate_timestamp_confidence(col_name, col_type),
+                            "sample_values": self._get_sample_values_via_app_context(
+                                schema_name, table_name, column["column_name"]
+                            ),
+                        }
+                    )
 
                 # Check for sequence/ID columns
                 if self._is_sequence_column(col_name, col_type):
-                    sequence_candidates.append({
-                        'column_name': column['column_name'],
-                        'data_type': column.get('column_dbtype', column.get('data_type', '')),
-                        'is_nullable': column.get('nullable', True),
-                        'confidence': self._calculate_sequence_confidence(col_name, col_type),
-                        'sample_values': self._get_sample_values_via_app_context(schema_name, table_name, column['column_name'])
-                    })
+                    sequence_candidates.append(
+                        {
+                            "column_name": column["column_name"],
+                            "data_type": column.get("column_dbtype", column.get("data_type", "")),
+                            "is_nullable": column.get("nullable", True),
+                            "confidence": self._calculate_sequence_confidence(col_name, col_type),
+                            "sample_values": self._get_sample_values_via_app_context(
+                                schema_name, table_name, column["column_name"]
+                            ),
+                        }
+                    )
 
             # Sort by confidence score
-            timestamp_candidates.sort(key=lambda x: x['confidence'], reverse=True)
-            sequence_candidates.sort(key=lambda x: x['confidence'], reverse=True)
+            timestamp_candidates.sort(key=lambda x: x["confidence"], reverse=True)
+            sequence_candidates.sort(key=lambda x: x["confidence"], reverse=True)
 
             return {
-                'timestamp_candidates': timestamp_candidates,
-                'sequence_candidates': sequence_candidates,
-                'table_info': {
-                    'table_name': table_name,
-                    'schema_name': schema_name,
-                    'total_columns': len(columns),
-                    'row_count': self._get_table_row_count_via_app_context(schema_name, table_name)
-                }
+                "timestamp_candidates": timestamp_candidates,
+                "sequence_candidates": sequence_candidates,
+                "table_info": {
+                    "table_name": table_name,
+                    "schema_name": schema_name,
+                    "total_columns": len(columns),
+                    "row_count": self._get_table_row_count_via_app_context(schema_name, table_name),
+                },
             }
 
         except Exception as e:
             logger.error(f"Error analyzing table {schema_name}.{table_name}: {e}")
-            return {'timestamp_candidates': [], 'sequence_candidates': [], 'table_info': {}}
+            return {"timestamp_candidates": [], "sequence_candidates": [], "table_info": {}}
 
     def _get_table_columns_via_app_context(self, schema_name: str, table_name: str) -> list[dict[str, Any]]:
         """Get column information using ApplicationContext."""
         if self.app_context:
             try:
-                return self.app_context.get_table_columns(
-                    schema_name=schema_name,
-                    table_name=table_name
-                )
+                return self.app_context.get_table_columns(schema_name=schema_name, table_name=table_name)
             except Exception as e:
                 logger.warning(f"Failed to get columns via ApplicationContext: {e}")
 
@@ -254,7 +267,8 @@ class WatermarkDetectionService:
         """Fallback method for getting table columns."""
         with connection.cursor() as cursor:
             # PostgreSQL-specific query (adapt for other databases)
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT
                     column_name,
                     data_type,
@@ -264,16 +278,18 @@ class WatermarkDetectionService:
                 FROM information_schema.columns
                 WHERE table_name = %s
                 ORDER BY ordinal_position
-            """, [table_name])
+            """,
+                [table_name],
+            )
 
             columns = cursor.fetchall()
             return [
                 {
-                    'column_name': col[0],
-                    'data_type': col[1],
-                    'is_nullable': col[2],
-                    'column_default': col[3],
-                    'ordinal_position': col[4]
+                    "column_name": col[0],
+                    "data_type": col[1],
+                    "is_nullable": col[2],
+                    "column_default": col[3],
+                    "ordinal_position": col[4],
                 }
                 for col in columns
             ]
@@ -284,9 +300,7 @@ class WatermarkDetectionService:
         name_match = any(pattern in col_name for pattern in self.TIMESTAMP_PATTERNS)
 
         # Check data type
-        type_match = any(ts_type in col_type for ts_type in [
-            'timestamp', 'datetime', 'date', 'time'
-        ])
+        type_match = any(ts_type in col_type for ts_type in ["timestamp", "datetime", "date", "time"])
 
         return name_match or type_match
 
@@ -296,9 +310,7 @@ class WatermarkDetectionService:
         name_match = any(pattern in col_name for pattern in self.ID_PATTERNS)
 
         # Check data type
-        type_match = any(id_type in col_type for id_type in [
-            'serial', 'bigserial', 'integer', 'bigint', 'int', 'uuid'
-        ])
+        type_match = any(id_type in col_type for id_type in ["serial", "bigserial", "integer", "bigint", "int", "uuid"])
 
         return name_match and type_match
 
@@ -307,19 +319,19 @@ class WatermarkDetectionService:
         score = 0.0
 
         # High confidence patterns
-        if col_name in ['created_at', 'updated_at', 'timestamp']:
+        if col_name in ["created_at", "updated_at", "timestamp"]:
             score += 0.5
 
         # Medium confidence patterns
-        elif any(pattern in col_name for pattern in ['created', 'updated', 'modified', 'time']):
+        elif any(pattern in col_name for pattern in ["created", "updated", "modified", "time"]):
             score += 0.3
 
         # Data type bonus
-        if 'timestamp' in col_type:
+        if "timestamp" in col_type:
             score += 0.4
-        elif 'datetime' in col_type:
+        elif "datetime" in col_type:
             score += 0.3
-        elif 'date' in col_type:
+        elif "date" in col_type:
             score += 0.2
 
         return min(score, 1.0)
@@ -329,32 +341,30 @@ class WatermarkDetectionService:
         score = 0.0
 
         # High confidence patterns
-        if col_name in ['id', 'pk', 'primary_key']:
+        if col_name in ["id", "pk", "primary_key"]:
             score += 0.5
 
         # Medium confidence patterns
-        elif col_name.endswith('_id') or 'sequence' in col_name:
+        elif col_name.endswith("_id") or "sequence" in col_name:
             score += 0.3
 
         # Data type bonus
-        if 'serial' in col_type:
+        if "serial" in col_type:
             score += 0.4
-        elif any(int_type in col_type for int_type in ['integer', 'bigint', 'int']):
+        elif any(int_type in col_type for int_type in ["integer", "bigint", "int"]):
             score += 0.3
 
         return min(score, 1.0)
 
-    def _get_sample_values_via_app_context(self, schema_name: str, table_name: str, column_name: str, limit: int = 5) -> list[Any]:
+    def _get_sample_values_via_app_context(
+        self, schema_name: str, table_name: str, column_name: str, limit: int = 5
+    ) -> list[Any]:
         """Get sample values using ApplicationContext."""
         if self.app_context:
             try:
                 # Get sample records from the table
                 records = self.app_context.visitran_context.get_table_records(
-                    schema_name=schema_name,
-                    table_name=table_name,
-                    selective_columns=[column_name],
-                    limit=limit,
-                    page=1
+                    schema_name=schema_name, table_name=table_name, selective_columns=[column_name], limit=limit, page=1
                 )
 
                 # Extract unique values from the column
@@ -385,7 +395,7 @@ class WatermarkDetectionService:
                     f"SELECT DISTINCT {column_name} FROM {table_name} "
                     f"WHERE {column_name} IS NOT NULL "
                     f"ORDER BY {column_name} DESC LIMIT %s",
-                    [limit]
+                    [limit],
                 )
                 return [row[0] for row in cursor.fetchall()]
         except Exception as e:
@@ -397,8 +407,7 @@ class WatermarkDetectionService:
         if self.app_context:
             try:
                 return self.app_context.visitran_context.get_table_record_count(
-                    schema_name=schema_name,
-                    table_name=table_name
+                    schema_name=schema_name, table_name=table_name
                 )
             except Exception as e:
                 logger.warning(f"Failed to get row count via ApplicationContext: {e}")
@@ -442,12 +451,14 @@ class WatermarkDetectionService:
                     for table in tables:
                         table_name = table[0] if isinstance(table, (list, tuple)) else str(table)
 
-                        available_tables.append({
-                            'table_name': table_name,
-                            'schema_name': schema_name,
-                            'full_table_name': f"{schema_name}.{table_name}",
-                            'row_count': self._get_table_row_count_via_app_context(schema_name, table_name)
-                        })
+                        available_tables.append(
+                            {
+                                "table_name": table_name,
+                                "schema_name": schema_name,
+                                "full_table_name": f"{schema_name}.{table_name}",
+                                "row_count": self._get_table_row_count_via_app_context(schema_name, table_name),
+                            }
+                        )
 
                 return available_tables
 
@@ -461,7 +472,8 @@ class WatermarkDetectionService:
         """Fallback method for getting available tables."""
         try:
             with connection.cursor() as cursor:
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT
                         table_name,
                         table_type,
@@ -469,16 +481,17 @@ class WatermarkDetectionService:
                     FROM information_schema.tables
                     WHERE table_schema NOT IN ('information_schema', 'pg_catalog')
                     ORDER BY table_name
-                """)
+                """
+                )
 
                 tables = cursor.fetchall()
                 return [
                     {
-                        'table_name': table[0],
-                        'table_type': table[1],
-                        'table_schema': table[2],
-                        'full_table_name': f"{table[2]}.{table[0]}",
-                        'row_count': self._get_table_row_count_fallback(table[0])
+                        "table_name": table[0],
+                        "table_type": table[1],
+                        "table_schema": table[2],
+                        "full_table_name": f"{table[2]}.{table[0]}",
+                        "row_count": self._get_table_row_count_fallback(table[0]),
                     }
                     for table in tables
                 ]
@@ -490,26 +503,27 @@ class WatermarkDetectionService:
         """Validate a specific column for watermark suitability."""
         try:
             # Parse schema and table name
-            if '.' in table_name:
-                schema_name, table_only = table_name.split('.', 1)
+            if "." in table_name:
+                schema_name, table_only = table_name.split(".", 1)
             else:
                 schema_name, table_only = "", table_name
             columns = self._get_table_columns_via_app_context(schema_name, table_only)
-            target_column = next((col for col in columns if col['column_name'] == column_name), None)
+            target_column = next((col for col in columns if col["column_name"] == column_name), None)
 
             if not target_column:
-                return {
-                    'valid': False,
-                    'error': f"Column '{column_name}' not found in table '{table_name}'"
-                }
+                return {"valid": False, "error": f"Column '{column_name}' not found in table '{table_name}'"}
 
             # Validate based on strategy
-            if strategy == 'TIMESTAMP':
-                is_valid = self._is_timestamp_column(column_name.lower(), target_column['data_type'].lower())
-                confidence = self._calculate_timestamp_confidence(column_name.lower(), target_column['data_type'].lower())
-            elif strategy == 'SEQUENCE':
-                is_valid = self._is_sequence_column(column_name.lower(), target_column['data_type'].lower())
-                confidence = self._calculate_sequence_confidence(column_name.lower(), target_column['data_type'].lower())
+            if strategy == "TIMESTAMP":
+                is_valid = self._is_timestamp_column(column_name.lower(), target_column["data_type"].lower())
+                confidence = self._calculate_timestamp_confidence(
+                    column_name.lower(), target_column["data_type"].lower()
+                )
+            elif strategy == "SEQUENCE":
+                is_valid = self._is_sequence_column(column_name.lower(), target_column["data_type"].lower())
+                confidence = self._calculate_sequence_confidence(
+                    column_name.lower(), target_column["data_type"].lower()
+                )
             else:  # CUSTOM
                 is_valid = True  # Allow any column for custom strategy
                 confidence = 0.5
@@ -517,33 +531,30 @@ class WatermarkDetectionService:
             sample_values = self._get_sample_values_via_app_context(schema_name, table_only, column_name)
 
             return {
-                'valid': is_valid,
-                'confidence': confidence,
-                'column_info': target_column,
-                'sample_values': sample_values,
-                'recommendations': self._get_column_recommendations(target_column, strategy)
+                "valid": is_valid,
+                "confidence": confidence,
+                "column_info": target_column,
+                "sample_values": sample_values,
+                "recommendations": self._get_column_recommendations(target_column, strategy),
             }
 
         except Exception as e:
             logger.error(f"Error validating watermark column: {e}")
-            return {
-                'valid': False,
-                'error': f"Error validating column: {str(e)}"
-            }
+            return {"valid": False, "error": f"Error validating column: {str(e)}"}
 
     def _get_column_recommendations(self, column_info: dict[str, Any], strategy: str) -> list[str]:
         """Get recommendations for using this column as watermark."""
         recommendations = []
 
-        if column_info['is_nullable'] == 'YES':
+        if column_info["is_nullable"] == "YES":
             recommendations.append("Column allows NULL values - ensure proper handling of NULL watermarks")
 
-        if strategy == 'TIMESTAMP':
-            if 'timestamp' not in column_info['data_type'].lower():
+        if strategy == "TIMESTAMP":
+            if "timestamp" not in column_info["data_type"].lower():
                 recommendations.append("Consider using a proper timestamp column for better performance")
 
-        if strategy == 'SEQUENCE':
-            if 'serial' not in column_info['data_type'].lower():
+        if strategy == "SEQUENCE":
+            if "serial" not in column_info["data_type"].lower():
                 recommendations.append("Auto-increment columns work best for sequence-based watermarking")
 
         return recommendations
@@ -586,8 +597,7 @@ class WatermarkProcessingService:
 
             # Execute the transformation
             self.app_context.execute_visitran_run_command(
-                current_model=self.user_task.task_name,
-                environment_id=environment_id
+                current_model=self.user_task.task_name, environment_id=environment_id
             )
 
             # Get new watermark value after processing
@@ -602,16 +612,16 @@ class WatermarkProcessingService:
                 watermark_value=new_watermark,
                 execution_time=start_time,
                 records_processed=records_processed,
-                execution_duration=(timezone.now() - start_time).total_seconds()
+                execution_duration=(timezone.now() - start_time).total_seconds(),
             )
 
             return {
-                'status': 'success',
-                'execution_type': 'incremental',
-                'previous_watermark': current_watermark,
-                'new_watermark': new_watermark,
-                'records_processed': records_processed,
-                'execution_duration_seconds': (timezone.now() - start_time).total_seconds()
+                "status": "success",
+                "execution_type": "incremental",
+                "previous_watermark": current_watermark,
+                "new_watermark": new_watermark,
+                "records_processed": records_processed,
+                "execution_duration_seconds": (timezone.now() - start_time).total_seconds(),
             }
 
         except Exception as e:
@@ -619,15 +629,14 @@ class WatermarkProcessingService:
 
             # Fallback to full execution on incremental failure
             self.app_context.execute_visitran_run_command(
-                current_model=self.user_task.task_name,
-                environment_id=environment_id
+                current_model=self.user_task.task_name, environment_id=environment_id
             )
 
             return {
-                'status': 'success',
-                'execution_type': 'full_fallback',
-                'error': str(e),
-                'execution_duration_seconds': (timezone.now() - start_time).total_seconds()
+                "status": "success",
+                "execution_type": "full_fallback",
+                "error": str(e),
+                "execution_duration_seconds": (timezone.now() - start_time).total_seconds(),
             }
 
     def _check_for_new_data(self) -> tuple[bool, int]:
@@ -642,15 +651,13 @@ class WatermarkProcessingService:
             last_watermark = self.user_task.last_watermark_value
 
             with connection.cursor() as cursor:
-                if self.user_task.watermark_strategy == 'TIMESTAMP':
+                if self.user_task.watermark_strategy == "TIMESTAMP":
                     cursor.execute(
-                        f"SELECT COUNT(*) FROM {source_table} WHERE {watermark_column} > %s",
-                        [last_watermark]
+                        f"SELECT COUNT(*) FROM {source_table} WHERE {watermark_column} > %s", [last_watermark]
                     )
                 else:  # SEQUENCE
                     cursor.execute(
-                        f"SELECT COUNT(*) FROM {source_table} WHERE {watermark_column} > %s",
-                        [int(last_watermark)]
+                        f"SELECT COUNT(*) FROM {source_table} WHERE {watermark_column} > %s", [int(last_watermark)]
                     )
 
                 count = cursor.fetchone()[0]
@@ -681,9 +688,7 @@ class WatermarkProcessingService:
             watermark_column = self.user_task.watermark_column
 
             with connection.cursor() as cursor:
-                cursor.execute(
-                    f"SELECT MAX({watermark_column}) FROM {source_table}"
-                )
+                cursor.execute(f"SELECT MAX({watermark_column}) FROM {source_table}")
                 result = cursor.fetchone()[0]
                 return str(result) if result else ""
 
@@ -707,17 +712,17 @@ class WatermarkProcessingService:
             watermark_column = self.user_task.watermark_column
 
             with connection.cursor() as cursor:
-                if self.user_task.watermark_strategy == 'TIMESTAMP':
+                if self.user_task.watermark_strategy == "TIMESTAMP":
                     cursor.execute(
                         f"SELECT COUNT(*) FROM {source_table} "
                         f"WHERE {watermark_column} > %s AND {watermark_column} <= %s",
-                        [old_watermark, new_watermark]
+                        [old_watermark, new_watermark],
                     )
                 else:  # SEQUENCE
                     cursor.execute(
                         f"SELECT COUNT(*) FROM {source_table} "
                         f"WHERE {watermark_column} > %s AND {watermark_column} <= %s",
-                        [int(old_watermark), int(new_watermark)]
+                        [int(old_watermark), int(new_watermark)],
                     )
 
                 return cursor.fetchone()[0]
@@ -729,10 +734,11 @@ class WatermarkProcessingService:
     def _update_task_watermark(self, new_watermark: str):
         """Update the task's watermark value."""
         self.user_task.last_watermark_value = new_watermark
-        self.user_task.save(update_fields=['last_watermark_value'])
+        self.user_task.save(update_fields=["last_watermark_value"])
 
-    def _record_watermark_history(self, watermark_value: str, execution_time: datetime,
-                                records_processed: int, execution_duration: float):
+    def _record_watermark_history(
+        self, watermark_value: str, execution_time: datetime, records_processed: int, execution_duration: float
+    ):
         """Record watermark execution in history."""
         if WatermarkHistory is None:
             return
@@ -745,7 +751,7 @@ class WatermarkProcessingService:
             strategy_used=self.user_task.watermark_strategy,
             organization_id=self.user_task.organization_id,
             metadata={
-                'watermark_column': self.user_task.watermark_column,
-                'incremental_enabled': self.user_task.incremental_enabled
-            }
+                "watermark_column": self.user_task.watermark_column,
+                "incremental_enabled": self.user_task.incremental_enabled,
+            },
         )

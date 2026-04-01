@@ -1,7 +1,7 @@
 from typing import Any
 
-from backend.application.interpreter.constants import Aggregations
 from backend.application.config_parser.base_parser import BaseParser
+from backend.application.interpreter.constants import Aggregations
 
 
 class PivotParser(BaseParser):

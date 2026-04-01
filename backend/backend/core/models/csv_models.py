@@ -1,18 +1,18 @@
+import logging
 import os
 import uuid
-import logging
+
+from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.db import models
 from django.utils.timezone import now
-from django.core.files.base import ContentFile
 
 from backend.core.models.project_details import ProjectDetails
+from backend.errors.exceptions import CSVFileNotExists, CSVRenameFailed, UnhandledErrorMessage
 from backend.utils.constants import FileConstants as Fc
 from backend.utils.tenant_context import get_current_user
-
-from backend.errors.exceptions import CSVFileNotExists, UnhandledErrorMessage, CSVRenameFailed
 from utils.models.base_model import BaseModel
-from utils.models.organization_mixin import DefaultOrganizationMixin, DefaultOrganizationManagerMixin
+from utils.models.organization_mixin import DefaultOrganizationManagerMixin, DefaultOrganizationMixin
 
 
 class CSVModelsManager(DefaultOrganizationManagerMixin, models.Manager):
@@ -42,17 +42,17 @@ class CSVModels(DefaultOrganizationMixin, BaseModel):
             self.csv_name = filename
             self.table_name = None
             self.table_schema = None
-            self.status = 'uploaded'
+            self.status = "uploaded"
             self.save()
         except FileNotFoundError:
             logging.error(f"failed to rename csv file {old_path}")
             raise CSVFileNotExists(self.csv_name)
         except OSError as e:
             logging.error(f"IOError: failed to rename csv file {old_path}. Error : {str(e)}")
-            raise CSVRenameFailed(csv_name=self.csv_name,  reason=str(e))
+            raise CSVRenameFailed(csv_name=self.csv_name, reason=str(e))
         except Exception as e:
             logging.critical(f"Exception: failed to rename csv file {old_path}, Error: {str(e)}")
-            raise CSVRenameFailed(csv_name=self.csv_name,  reason=str(e))
+            raise CSVRenameFailed(csv_name=self.csv_name, reason=str(e))
 
     def get_csv_upload_path(self, filename: str) -> str:
         # Using Django slugify to avoid path traversal

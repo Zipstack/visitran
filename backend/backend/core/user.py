@@ -3,8 +3,7 @@ import uuid
 from datetime import timedelta
 from typing import Any, Optional
 
-from django.db import IntegrityError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils.timezone import now
 
 from backend.core.models.api_tokens import APIToken

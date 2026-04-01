@@ -875,7 +875,7 @@ FORMULA_DICT = {
         ),
         "function_type": "Logic",
     },
-    'BETWEEN': {
+    "BETWEEN": {
         "key": "BETWEEN",
         "value": "BETWEEN",
         "description": (
@@ -884,7 +884,7 @@ FORMULA_DICT = {
         ),
         "function_type": "Logic",
     },
-    'DIFFERENCE': {
+    "DIFFERENCE": {
         "key": "DIFFERENCE",
         "value": "DIFFERENCE",
         "description": "Returns the difference of a supplied numbers. \n Example:  DIFFERENCE(1, 2) returns -1.",
@@ -915,8 +915,7 @@ FORMULA_DICT = {
         "key": "CUMSUM",
         "value": "CUMSUM",
         "description": (
-            "Returns the cumulative sum of values. \n"
-            "Example: CUMSUM(sales) returns running total of sales."
+            "Returns the cumulative sum of values. \n" "Example: CUMSUM(sales) returns running total of sales."
         ),
         "function_type": "Window",
     },
@@ -924,8 +923,7 @@ FORMULA_DICT = {
         "key": "CUMMEAN",
         "value": "CUMMEAN",
         "description": (
-            "Returns the cumulative mean of values. \n"
-            "Example: CUMMEAN(score) returns running average of scores."
+            "Returns the cumulative mean of values. \n" "Example: CUMMEAN(score) returns running average of scores."
         ),
         "function_type": "Window",
     },
@@ -933,8 +931,7 @@ FORMULA_DICT = {
         "key": "CUMMIN",
         "value": "CUMMIN",
         "description": (
-            "Returns the cumulative minimum value. \n"
-            "Example: CUMMIN(price) returns the minimum price seen so far."
+            "Returns the cumulative minimum value. \n" "Example: CUMMIN(price) returns the minimum price seen so far."
         ),
         "function_type": "Window",
     },
@@ -942,8 +939,7 @@ FORMULA_DICT = {
         "key": "CUMMAX",
         "value": "CUMMAX",
         "description": (
-            "Returns the cumulative maximum value. \n"
-            "Example: CUMMAX(price) returns the maximum price seen so far."
+            "Returns the cumulative maximum value. \n" "Example: CUMMAX(price) returns the maximum price seen so far."
         ),
         "function_type": "Window",
     },
@@ -951,8 +947,7 @@ FORMULA_DICT = {
         "key": "FIRST",
         "value": "FIRST",
         "description": (
-            "Returns the first value in a window. \n"
-            "Example: FIRST(name) returns the first name in the partition."
+            "Returns the first value in a window. \n" "Example: FIRST(name) returns the first name in the partition."
         ),
         "function_type": "Window",
     },
@@ -960,8 +955,7 @@ FORMULA_DICT = {
         "key": "LAST",
         "value": "LAST",
         "description": (
-            "Returns the last value in a window. \n"
-            "Example: LAST(name) returns the last name in the partition."
+            "Returns the last value in a window. \n" "Example: LAST(name) returns the last name in the partition."
         ),
         "function_type": "Window",
     },
@@ -999,18 +993,14 @@ FORMULA_DICT = {
     "QUARTER": {
         "key": "QUARTER",
         "value": "QUARTER",
-        "description": (
-            "Returns the quarter (1-4) from a date. \n"
-            "Example: QUARTER(DATE(2023, 6, 29)) returns 2."
-        ),
+        "description": ("Returns the quarter (1-4) from a date. \n" "Example: QUARTER(DATE(2023, 6, 29)) returns 2."),
         "function_type": "Date",
     },
     "DAY_OF_YEAR": {
         "key": "DAY_OF_YEAR",
         "value": "DAY_OF_YEAR",
         "description": (
-            "Returns the day of the year (1-366) from a date. \n"
-            "Example: DAY_OF_YEAR(DATE(2023, 2, 1)) returns 32."
+            "Returns the day of the year (1-366) from a date. \n" "Example: DAY_OF_YEAR(DATE(2023, 2, 1)) returns 32."
         ),
         "function_type": "Date",
     },
@@ -1066,8 +1056,7 @@ FORMULA_DICT = {
         "key": "MEDIAN",
         "value": "MEDIAN",
         "description": (
-            "Returns the median (middle) value of a column. \n"
-            "Example: MEDIAN(salary) returns the middle salary."
+            "Returns the median (middle) value of a column. \n" "Example: MEDIAN(salary) returns the middle salary."
         ),
         "function_type": "Statistics",
     },
@@ -1083,10 +1072,7 @@ FORMULA_DICT = {
     "VARIANCE": {
         "key": "VARIANCE",
         "value": "VARIANCE",
-        "description": (
-            "Returns the variance of a column. \n"
-            "Example: VARIANCE(price) returns the price variance."
-        ),
+        "description": ("Returns the variance of a column. \n" "Example: VARIANCE(price) returns the price variance."),
         "function_type": "Statistics",
     },
     "STDDEV": {
@@ -1102,8 +1088,7 @@ FORMULA_DICT = {
         "key": "COV",
         "value": "COV",
         "description": (
-            "Returns the covariance between two columns. \n"
-            "Example: COV(x, y) returns the covariance of x and y."
+            "Returns the covariance between two columns. \n" "Example: COV(x, y) returns the covariance of x and y."
         ),
         "function_type": "Statistics",
     },
@@ -1113,10 +1098,7 @@ FORMULA_DICT = {
     "LOG2": {
         "key": "LOG2",
         "value": "LOG2",
-        "description": (
-            "Returns the base-2 logarithm of a number. \n"
-            "Example: LOG2(8) returns 3."
-        ),
+        "description": ("Returns the base-2 logarithm of a number. \n" "Example: LOG2(8) returns 3."),
         "function_type": "Math",
     },
     "CLIP": {
@@ -1131,28 +1113,19 @@ FORMULA_DICT = {
     "NEGATE": {
         "key": "NEGATE",
         "value": "NEGATE",
-        "description": (
-            "Returns the negation of a number. \n"
-            "Example: NEGATE(5) returns -5."
-        ),
+        "description": ("Returns the negation of a number. \n" "Example: NEGATE(5) returns -5."),
         "function_type": "Math",
     },
     "RANDOM": {
         "key": "RANDOM",
         "value": "RANDOM",
-        "description": (
-            "Returns a random float between 0 and 1. \n"
-            "Example: RANDOM() returns 0.7234..."
-        ),
+        "description": ("Returns a random float between 0 and 1. \n" "Example: RANDOM() returns 0.7234..."),
         "function_type": "Math",
     },
     "E": {
         "key": "E",
         "value": "E",
-        "description": (
-            "Returns Euler's number (approximately 2.71828). \n"
-            "Example: E() returns 2.718281828..."
-        ),
+        "description": ("Returns Euler's number (approximately 2.71828). \n" "Example: E() returns 2.718281828..."),
         "function_type": "Math",
     },
     "GREATEST": {
@@ -1168,8 +1141,7 @@ FORMULA_DICT = {
         "key": "LEAST",
         "value": "LEAST",
         "description": (
-            "Returns the least value among the arguments. \n"
-            "Example: LEAST(a, b, c) returns the minimum of a, b, c."
+            "Returns the least value among the arguments. \n" "Example: LEAST(a, b, c) returns the minimum of a, b, c."
         ),
         "function_type": "Math",
     },
@@ -1210,8 +1182,7 @@ FORMULA_DICT = {
         "key": "CAPITALIZE",
         "value": "CAPITALIZE",
         "description": (
-            "Capitalizes the first letter of each word. \n"
-            "Example: CAPITALIZE('hello world') returns 'Hello World'."
+            "Capitalizes the first letter of each word. \n" "Example: CAPITALIZE('hello world') returns 'Hello World'."
         ),
         "function_type": "Text",
     },
@@ -1255,10 +1226,7 @@ FORMULA_DICT = {
     "ASCII": {
         "key": "ASCII",
         "value": "ASCII",
-        "description": (
-            "Returns the ASCII code of the first character. \n"
-            "Example: ASCII('A') returns 65."
-        ),
+        "description": ("Returns the ASCII code of the first character. \n" "Example: ASCII('A') returns 65."),
         "function_type": "Text",
     },
     "INITCAP": {
@@ -1295,8 +1263,7 @@ FORMULA_DICT = {
         "key": "FILL_NULL",
         "value": "FILL_NULL",
         "description": (
-            "Replaces null values with a specified value. \n"
-            "Example: FILL_NULL(column, 0) replaces nulls with 0."
+            "Replaces null values with a specified value. \n" "Example: FILL_NULL(column, 0) replaces nulls with 0."
         ),
         "function_type": "Logic",
     },
@@ -1304,8 +1271,7 @@ FORMULA_DICT = {
         "key": "NULLIF",
         "value": "NULLIF",
         "description": (
-            "Returns null if the two arguments are equal. \n"
-            "Example: NULLIF(a, 0) returns null if a equals 0."
+            "Returns null if the two arguments are equal. \n" "Example: NULLIF(a, 0) returns null if a equals 0."
         ),
         "function_type": "Logic",
     },
@@ -1313,8 +1279,7 @@ FORMULA_DICT = {
         "key": "ISNAN",
         "value": "ISNAN",
         "description": (
-            "Returns true if the value is NaN (Not a Number). \n"
-            "Example: ISNAN(value) returns TRUE if value is NaN."
+            "Returns true if the value is NaN (Not a Number). \n" "Example: ISNAN(value) returns TRUE if value is NaN."
         ),
         "function_type": "Logic",
     },
@@ -1322,8 +1287,7 @@ FORMULA_DICT = {
         "key": "ISINF",
         "value": "ISINF",
         "description": (
-            "Returns true if the value is infinite. \n"
-            "Example: ISINF(value) returns TRUE if value is infinity."
+            "Returns true if the value is infinite. \n" "Example: ISINF(value) returns TRUE if value is infinity."
         ),
         "function_type": "Logic",
     },
@@ -1331,8 +1295,7 @@ FORMULA_DICT = {
         "key": "TRY_CAST",
         "value": "TRY_CAST",
         "description": (
-            "Attempts to cast a value, returning null on failure. \n"
-            "Example: TRY_CAST('abc', 'int') returns null."
+            "Attempts to cast a value, returning null on failure. \n" "Example: TRY_CAST('abc', 'int') returns null."
         ),
         "function_type": "Logic",
     },

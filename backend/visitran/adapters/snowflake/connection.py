@@ -11,14 +11,15 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 import ibis
 from ibis.common.exceptions import IbisError
+
 from visitran.adapters.connection import BaseConnection
 from visitran.errors import (
     ConnectionFailedError,
-    SchemaAlreadyExist,
-    DatabasePermissionDeniedError,
-    SchemaCreationFailed,
-    InvalidConnectionUrlException,
     ConnectionFieldMissingException,
+    DatabasePermissionDeniedError,
+    InvalidConnectionUrlException,
+    SchemaAlreadyExist,
+    SchemaCreationFailed,
 )
 
 warnings.filterwarnings(
@@ -78,7 +79,9 @@ class SnowflakeConnection(BaseConnection):
         # URL-encode username and password to handle special characters like @, :, etc.
         encoded_username = urllib.parse.quote(str(self.username)) if self.username else ""
         encoded_password = urllib.parse.quote(str(self.password)) if self.password else ""
-        self._connection_string: str = f"snowflake://{encoded_username}:{encoded_password}@{self.account}/{self.database}/{self.schema}"
+        self._connection_string: str = (
+            f"snowflake://{encoded_username}:{encoded_password}@{self.account}/{self.database}/{self.schema}"
+        )
         # Append query parameters
         conn_params = []
         if self.warehouse:

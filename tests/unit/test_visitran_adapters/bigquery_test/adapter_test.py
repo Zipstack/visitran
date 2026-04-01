@@ -1,10 +1,10 @@
 from typing import Union
 
 import pytest
-
 from adapters.bigquery.adapter import BigQueryAdapter
 from adapters.bigquery.connection import BigQueryConnection
 from adapters.bigquery.model import BigQueryModel
+
 from visitran.templates.model import VisitranModel
 
 

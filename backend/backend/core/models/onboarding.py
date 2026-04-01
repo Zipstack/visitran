@@ -4,10 +4,7 @@ from django.utils import timezone
 from backend.core.models.project_details import ProjectDetails
 from backend.core.models.user_model import User
 from utils.models.base_model import BaseModel
-from utils.models.organization_mixin import (
-    DefaultOrganizationMixin,
-    DefaultOrganizationManagerMixin,
-)
+from utils.models.organization_mixin import DefaultOrganizationManagerMixin, DefaultOrganizationMixin
 
 
 class OnboardingTemplateManager(models.Manager):
@@ -16,6 +13,7 @@ class OnboardingTemplateManager(models.Manager):
 
 class OnboardingTemplate(BaseModel):
     """Master templates for different onboarding flows - Global templates"""
+
     template_id = models.CharField(max_length=50, unique=True)
     title = models.CharField(max_length=200)
     description = models.TextField()
@@ -30,7 +28,7 @@ class OnboardingTemplate(BaseModel):
         return f"{self.template_id}: {self.title}"
 
     class Meta:
-        db_table = 'core_onboarding_template'
+        db_table = "core_onboarding_template"
 
 
 class ProjectOnboardingSessionManager(DefaultOrganizationManagerMixin, models.Manager):
@@ -39,25 +37,14 @@ class ProjectOnboardingSessionManager(DefaultOrganizationManagerMixin, models.Ma
 
 class ProjectOnboardingSession(DefaultOrganizationMixin, BaseModel):
     """Active onboarding session for a project."""
-    project = models.ForeignKey(
-        ProjectDetails,
-        on_delete=models.CASCADE,
-        related_name="onboarding_sessions"
-    )
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="onboarding_sessions"
-    )
-    template = models.ForeignKey(
-        OnboardingTemplate,
-        on_delete=models.CASCADE,
-        related_name="sessions"
-    )
+
+    project = models.ForeignKey(ProjectDetails, on_delete=models.CASCADE, related_name="onboarding_sessions")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="onboarding_sessions")
+    template = models.ForeignKey(OnboardingTemplate, on_delete=models.CASCADE, related_name="sessions")
 
     # Progress tracking (no more sequential ordering)
     completed_tasks = models.JSONField(default=list)  # List of task IDs
-    skipped_tasks = models.JSONField(default=list)    # List of task IDs
+    skipped_tasks = models.JSONField(default=list)  # List of task IDs
 
     # Session state
     is_active = models.BooleanField(default=True)
@@ -72,8 +59,8 @@ class ProjectOnboardingSession(DefaultOrganizationMixin, BaseModel):
         return f"Onboarding: {self.project.project_name} - {self.user.email}"
 
     class Meta:
-        db_table = 'core_project_onboarding_session'
-        unique_together = ('project', 'user')
+        db_table = "core_project_onboarding_session"
+        unique_together = ("project", "user")
 
     @property
     def progress_percentage(self) -> float:
@@ -81,7 +68,7 @@ class ProjectOnboardingSession(DefaultOrganizationMixin, BaseModel):
         tasks."""
         # Get template to calculate total tasks
         try:
-            items = self.template.template_data.get('items', [])
+            items = self.template.template_data.get("items", [])
         except:
             return 0.0
 

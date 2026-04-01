@@ -1,11 +1,11 @@
-from typing import Dict, Any, Tuple, Optional
 import base64
 import logging
 import os
+from typing import Any, Dict, Optional, Tuple
 
-from cryptography.hazmat.primitives import serialization, hashes
-from cryptography.hazmat.primitives.asymmetric import rsa, padding
 from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -20,7 +20,8 @@ MAX_RSA_ENCRYPT_SIZE = 190  # For 2048-bit key
 def _load_pem_from_dotenv(key_name: str) -> Optional[str]:
     """Fallback: read a PEM key directly from the .env file using dotenv_values."""
     try:
-        from dotenv import find_dotenv, dotenv_values
+        from dotenv import dotenv_values, find_dotenv
+
         env_file = find_dotenv()
         if not env_file:
             return None
@@ -82,9 +83,7 @@ def get_rsa_private_key() -> Optional[rsa.RSAPrivateKey]:
             return None
 
         private_key = serialization.load_pem_private_key(
-            private_key_pem.encode('utf-8'),
-            password=None,
-            backend=default_backend()
+            private_key_pem.encode("utf-8"), password=None, backend=default_backend()
         )
         return private_key
     except Exception as e:
@@ -100,10 +99,7 @@ def get_rsa_public_key() -> Optional[rsa.RSAPublicKey]:
             logger.error("RSA public key not found in settings, env, or .env file")
             return None
 
-        public_key = serialization.load_pem_public_key(
-            public_key_pem.encode('utf-8'),
-            backend=default_backend()
-        )
+        public_key = serialization.load_pem_public_key(public_key_pem.encode("utf-8"), backend=default_backend())
         return public_key
     except Exception as e:
         logger.error(f"Error loading RSA public key: {e}", exc_info=True)
@@ -114,11 +110,7 @@ def generate_rsa_key_pair() -> tuple[str, str]:
     """Generate a new RSA key pair and return as PEM strings."""
     try:
         # Generate private key
-        private_key = rsa.generate_private_key(
-            public_exponent=65537,
-            key_size=RSA_KEY_SIZE,
-            backend=default_backend()
-        )
+        private_key = rsa.generate_private_key(public_exponent=65537, key_size=RSA_KEY_SIZE, backend=default_backend())
 
         # Get public key
         public_key = private_key.public_key()
@@ -127,13 +119,12 @@ def generate_rsa_key_pair() -> tuple[str, str]:
         private_pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=serialization.NoEncryption()
-        ).decode('utf-8')
+            encryption_algorithm=serialization.NoEncryption(),
+        ).decode("utf-8")
 
         public_pem = public_key.public_bytes(
-            encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.SubjectPublicKeyInfo
-        ).decode('utf-8')
+            encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo
+        ).decode("utf-8")
 
         logger.info("RSA key pair generated successfully")
         return private_pem, public_pem
@@ -152,7 +143,7 @@ def encrypt_with_public_key(data: str) -> Optional[str]:
             return None
 
         # Convert string to bytes
-        data_bytes = data.encode('utf-8')
+        data_bytes = data.encode("utf-8")
 
         # Check data size
         if len(data_bytes) > MAX_RSA_ENCRYPT_SIZE:
@@ -161,16 +152,11 @@ def encrypt_with_public_key(data: str) -> Optional[str]:
 
         # Encrypt data
         encrypted_bytes = public_key.encrypt(
-            data_bytes,
-            padding.OAEP(
-                mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                algorithm=hashes.SHA256(),
-                label=None
-            )
+            data_bytes, padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None)
         )
 
         # Convert to base64 for safe transmission
-        encrypted_b64 = base64.b64encode(encrypted_bytes).decode('utf-8')
+        encrypted_b64 = base64.b64encode(encrypted_bytes).decode("utf-8")
         logger.debug(f"Data encrypted successfully: {len(data_bytes)} bytes")
         return encrypted_b64
 
@@ -199,7 +185,7 @@ def decrypt_with_private_key(encrypted_data: str) -> Optional[str]:
         # Check if it looks like base64 data
         try:
             # Convert from base64
-            encrypted_bytes = base64.b64decode(encrypted_data.encode('utf-8'))
+            encrypted_bytes = base64.b64decode(encrypted_data.encode("utf-8"))
             logger.debug(f"Successfully decoded base64, length: {len(encrypted_bytes)} bytes")
         except Exception as e:
             logger.error(f"Failed to decode base64: {e}")
@@ -220,13 +206,9 @@ def decrypt_with_private_key(encrypted_data: str) -> Optional[str]:
             logger.debug("Attempting decryption with OAEP SHA256...")
             decrypted_bytes = private_key.decrypt(
                 encrypted_bytes,
-                padding.OAEP(
-                    mgf=padding.MGF1(algorithm=hashes.SHA256()),
-                    algorithm=hashes.SHA256(),
-                    label=None
-                )
+                padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None),
             )
-            decrypted_data = decrypted_bytes.decode('utf-8')
+            decrypted_data = decrypted_bytes.decode("utf-8")
             logger.debug(f"Successfully decrypted with OAEP SHA256: {len(decrypted_bytes)} bytes")
             return decrypted_data
         except Exception as e:
@@ -237,13 +219,9 @@ def decrypt_with_private_key(encrypted_data: str) -> Optional[str]:
             logger.debug("Attempting decryption with OAEP SHA1...")
             decrypted_bytes = private_key.decrypt(
                 encrypted_bytes,
-                padding.OAEP(
-                    mgf=padding.MGF1(algorithm=hashes.SHA1()),
-                    algorithm=hashes.SHA1(),
-                    label=None
-                )
+                padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA1()), algorithm=hashes.SHA1(), label=None),
             )
-            decrypted_data = decrypted_bytes.decode('utf-8')
+            decrypted_data = decrypted_bytes.decode("utf-8")
             logger.debug(f"Successfully decrypted with OAEP SHA1: {len(decrypted_bytes)} bytes")
             return decrypted_data
         except Exception as e:
@@ -252,11 +230,8 @@ def decrypt_with_private_key(encrypted_data: str) -> Optional[str]:
         # Method 3: PKCS1v15
         try:
             logger.debug("Attempting decryption with PKCS1v15...")
-            decrypted_bytes = private_key.decrypt(
-                encrypted_bytes,
-                padding.PKCS1v15()
-            )
-            decrypted_data = decrypted_bytes.decode('utf-8')
+            decrypted_bytes = private_key.decrypt(encrypted_bytes, padding.PKCS1v15())
+            decrypted_data = decrypted_bytes.decode("utf-8")
             logger.debug(f"Successfully decrypted with PKCS1v15: {len(decrypted_bytes)} bytes")
             return decrypted_data
         except Exception as e:
@@ -317,12 +292,7 @@ def validate_encrypted_data(encrypted_data: str) -> dict:
     Returns:
         Dictionary with validation results and analysis
     """
-    result = {
-        "is_valid": False,
-        "errors": [],
-        "warnings": [],
-        "analysis": {}
-    }
+    result = {"is_valid": False, "errors": [], "warnings": [], "analysis": {}}
 
     try:
         # Check if it's a string
@@ -341,7 +311,7 @@ def validate_encrypted_data(encrypted_data: str) -> dict:
             result["warnings"].append(f"Data seems too short for RSA encryption: {len(encrypted_data)} chars")
 
         # Check if it contains only base64 characters
-        valid_chars = set('ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=')
+        valid_chars = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=")
         invalid_chars = set(encrypted_data) - valid_chars
         if invalid_chars:
             result["errors"].append(f"Contains invalid base64 characters: {invalid_chars}")
@@ -398,7 +368,7 @@ Validation Results:
 Analysis:
 """
 
-    for key, value in validation['analysis'].items():
+    for key, value in validation["analysis"].items():
         debug_info += f"- {key}: {value}\n"
 
     return debug_info

@@ -1,11 +1,13 @@
-import sqlalchemy
 import concurrent.futures
-import time
 import logging
+import time
 from typing import Any, Dict
+
+import sqlalchemy
 
 from visitran.adapters.db_reader import BaseDBReader
 from visitran.adapters.snowflake.connection import SnowflakeConnection
+
 
 class SnowflakeDBReader(BaseDBReader):
     def __init__(self, db_connection: SnowflakeConnection) -> None:
@@ -42,10 +44,7 @@ class SnowflakeDBReader(BaseDBReader):
             # Process schemas in parallel for better performance
             with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
                 # Submit schema scanning tasks
-                future_to_schema = {
-                    executor.submit(self._scan_schema_tables, schema): schema
-                    for schema in schemas
-                }
+                future_to_schema = {executor.submit(self._scan_schema_tables, schema): schema for schema in schemas}
 
                 # Collect results as they complete
                 for future in concurrent.futures.as_completed(future_to_schema):
@@ -57,7 +56,9 @@ class SnowflakeDBReader(BaseDBReader):
             self._cache = result
             self._cache_timestamp = current_time
 
-            logging.info(f"Database metadata tree built successfully: {len(schemas)} schemas, {len(result['tables'])} tables")
+            logging.info(
+                f"Database metadata tree built successfully: {len(schemas)} schemas, {len(result['tables'])} tables"
+            )
             return result
 
         except Exception as e:
@@ -106,17 +107,17 @@ class SnowflakeDBReader(BaseDBReader):
 
             # Get primary key info
             primary_keys = self.inspector.get_pk_constraint(table, schema=schema)
-            pk_columns = primary_keys.get('constrained_columns', [])
+            pk_columns = primary_keys.get("constrained_columns", [])
 
             # Build column information
             columns = []
             for col in columns_info:
                 column_info = {
-                    "name": col['name'],
-                    "type": str(col['type']),
-                    "nullable": col.get('nullable', True),
-                    "default": col.get('default', None),
-                    "primary_key": col['name'] in pk_columns
+                    "name": col["name"],
+                    "type": str(col["type"]),
+                    "nullable": col.get("nullable", True),
+                    "default": col.get("default", None),
+                    "primary_key": col["name"] in pk_columns,
                 }
                 columns.append(column_info)
 
@@ -125,9 +126,7 @@ class SnowflakeDBReader(BaseDBReader):
             try:
                 # This is a lightweight query to get row count
                 with self.sqlalchemy_engine.connect() as conn:
-                    result = conn.execute(
-                        f"SELECT COUNT(*) as row_count FROM {schema}.{table}"
-                    ).fetchone()
+                    result = conn.execute(f"SELECT COUNT(*) as row_count FROM {schema}.{table}").fetchone()
                     table_size = result[0] if result else None
             except:
                 # Ignore size query errors, not critical
@@ -139,7 +138,7 @@ class SnowflakeDBReader(BaseDBReader):
                 "columns": columns,
                 "primary_keys": pk_columns,
                 "row_count": table_size,
-                "last_updated": time.time()
+                "last_updated": time.time(),
             }
 
         except Exception as e:

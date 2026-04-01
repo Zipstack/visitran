@@ -54,7 +54,6 @@ class AggregationColumnsParser(BaseParser):
         return errors
 
 
-
 class GroupsAndAggregationParser(BaseParser):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

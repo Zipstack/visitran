@@ -4,7 +4,7 @@ from typing import Any
 
 from celery import shared_task
 
-from backend.log_constant import LogProcessingTask, LogEventArgument
+from backend.log_constant import LogEventArgument, LogProcessingTask
 from backend.utils.log_events import handle_user_logs
 
 logger = logging.getLogger(__name__)
@@ -28,9 +28,8 @@ class TaskRegistry:
         log_message = kwargs.get(LogEventArgument.MESSAGE)
         room = kwargs.get(LogEventArgument.USER_SESSION_ID)
         event = kwargs.get(LogEventArgument.EVENT)
-        print("coming here ", log_message, " user session id ", room, "event = ", event, "trying to print kwargs ",
-              kwargs)
-        logger.debug(
-            f"[{os.getpid()}] Log message received: {log_message} for the room {room}"
+        print(
+            "coming here ", log_message, " user session id ", room, "event = ", event, "trying to print kwargs ", kwargs
         )
+        logger.debug(f"[{os.getpid()}] Log message received: {log_message} for the room {room}")
         handle_user_logs(room=room, event=event, message=log_message)

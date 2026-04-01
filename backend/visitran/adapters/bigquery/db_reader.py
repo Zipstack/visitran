@@ -2,6 +2,7 @@ import logging
 from typing import Any
 
 import sqlalchemy
+
 from visitran.adapters.bigquery.connection import BigQueryConnection
 from visitran.adapters.db_reader import BaseDBReader
 
@@ -48,14 +49,16 @@ class BigQueryDBReader(BaseDBReader):
         sqlalchemy_cols = self.inspector.get_columns(table_name, schema_name)
 
         for col in sqlalchemy_cols:
-            columns.append({
-                "name": col["name"],
-                "dtype": str(col["type"]),  # SQLAlchemy type as string (e.g., "INTERVAL")
-                "nullable": col.get("nullable", True),
-                "autoincrement": col.get("autoincrement", False),
-                "default": col.get("default"),
-                "comment": col.get("comment", "")
-            })
+            columns.append(
+                {
+                    "name": col["name"],
+                    "dtype": str(col["type"]),  # SQLAlchemy type as string (e.g., "INTERVAL")
+                    "nullable": col.get("nullable", True),
+                    "autoincrement": col.get("autoincrement", False),
+                    "default": col.get("default"),
+                    "comment": col.get("comment", ""),
+                }
+            )
 
         # Get constraints using inspector
         foreign_keys = self.inspector.get_foreign_keys(table_name, schema_name)

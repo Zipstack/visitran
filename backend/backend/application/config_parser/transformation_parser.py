@@ -6,7 +6,7 @@ from backend.application.config_parser.transformation_parsers.distinct_parser im
 from backend.application.config_parser.transformation_parsers.filter_parser import FilterParser
 from backend.application.config_parser.transformation_parsers.find_and_replace_parser import FindAndReplaceParser
 from backend.application.config_parser.transformation_parsers.groups_and_aggregation_parser import (
-    GroupsAndAggregationParser
+    GroupsAndAggregationParser,
 )
 from backend.application.config_parser.transformation_parsers.join_parser import JoinParsers
 from backend.application.config_parser.transformation_parsers.pivot_parser import PivotParser
@@ -39,11 +39,7 @@ class TransformationParser(BaseParser):
         }
         return transform_type_mapper[transform_type]
 
-    def _create_transform_parser(
-            self,
-            transform_id: str,
-            transform_payload: dict[str, Any]
-    ) -> BaseParser:
+    def _create_transform_parser(self, transform_id: str, transform_payload: dict[str, Any]) -> BaseParser:
         config_data = transform_payload.get(transform_id)
         if not config_data:
             raise ValueError(f"Transformation with ID {transform_id} not found in the transformation configuration.")
@@ -53,9 +49,7 @@ class TransformationParser(BaseParser):
         transform_data = config_data[transform_type]
         transform_data["transformation_type"] = transform_type
         transform_data["transformation_id"] = transform_id
-        return parser_class(
-            config_data=transform_data
-        )
+        return parser_class(config_data=transform_data)
 
     @property
     def transform_orders(self) -> list[str]:
@@ -86,8 +80,7 @@ class TransformationParser(BaseParser):
         for transform_id in self.transform_orders:
             if transform_id not in self._transforms_dict:
                 transform_parser: BaseParser = self._create_transform_parser(
-                    transform_id=transform_id,
-                    transform_payload=transforms
+                    transform_id=transform_id, transform_payload=transforms
                 )
                 self._transforms_dict[transform_id] = transform_parser
                 self._transforms.append(transform_parser)

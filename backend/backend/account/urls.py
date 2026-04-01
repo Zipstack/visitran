@@ -20,7 +20,6 @@ from backend.account.views import (
 urlpatterns = [
     # Landing page
     path("landing", landing, name="landing"),
-
     # Authentication endpoints
     path("signup", signup, name="signup"),
     path("login", login, name="login"),
@@ -29,10 +28,8 @@ urlpatterns = [
     path("forgot-password", forgot_password, name="forgot-password"),
     path("reset-password", reset_password, name="reset-password"),
     path("validate-reset-token", validate_reset_token, name="validate-reset-token"),
-
     # Session endpoints
     path("session", get_session_data, name="session"),
-
     # Organization endpoints
     path("organization", get_organizations, name="get_organizations"),
     path("organization/<str:id>/set", set_organization, name="set_organization"),

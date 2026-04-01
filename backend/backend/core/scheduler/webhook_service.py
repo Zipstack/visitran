@@ -28,20 +28,14 @@ def send_webhook(webhook_url, payload_dict, webhook_secret=None, max_retries=3):
 
     headers = {"Content-Type": "application/json"}
     if webhook_secret:
-        sig = hmac.new(
-            webhook_secret.encode(), payload_json.encode(), hashlib.sha256
-        ).hexdigest()
+        sig = hmac.new(webhook_secret.encode(), payload_json.encode(), hashlib.sha256).hexdigest()
         headers["X-Visitran-Signature"] = f"sha256={sig}"
 
     for attempt in range(max_retries):
         try:
-            resp = requests.post(
-                webhook_url, data=payload_json, headers=headers, timeout=10
-            )
+            resp = requests.post(webhook_url, data=payload_json, headers=headers, timeout=10)
             if resp.status_code < 400:
-                logger.info(
-                    "Webhook delivered to %s (status=%d)", webhook_url, resp.status_code
-                )
+                logger.info("Webhook delivered to %s (status=%d)", webhook_url, resp.status_code)
                 return True
             logger.warning(
                 "Webhook %s returned %d (attempt %d/%d)",
@@ -54,7 +48,7 @@ def send_webhook(webhook_url, payload_dict, webhook_secret=None, max_retries=3):
             logger.warning("Webhook attempt %d/%d failed: %s", attempt + 1, max_retries, e)
 
         if attempt < max_retries - 1:
-            time.sleep(2 ** attempt)  # 1s, 2s backoff
+            time.sleep(2**attempt)  # 1s, 2s backoff
 
     logger.error("Webhook to %s failed after %d attempts", webhook_url, max_retries)
     return False

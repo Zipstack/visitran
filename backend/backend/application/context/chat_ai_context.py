@@ -6,9 +6,7 @@ from backend.application.context.token_cost_service import TokenCostService
 from backend.core.models.chat_message import ChatMessage
 from backend.core.redis_client import RedisClient
 from backend.core.routers.chat_message.constants import ChatMessageStatus
-from backend.core.web_socket import (
-    send_socket_message,
-)
+from backend.core.web_socket import send_socket_message
 
 
 class ChatAiContext(TokenCostService):
@@ -26,16 +24,9 @@ class ChatAiContext(TokenCostService):
         self.redis_client = RedisClient()
 
     def send_and_persist_thought_chain(
-        self,
-        sid: str,
-        channel_id: str,
-        chat_id: str,
-        chat_message_id: str,
-        content: str,
-        prompt_status: str
+        self, sid: str, channel_id: str, chat_id: str, chat_message_id: str, content: str, prompt_status: str
     ):
-        self.persist_thought_chain(
-            chat_id=chat_id, chat_message_id=chat_message_id, thought_chain=content)
+        self.persist_thought_chain(chat_id=chat_id, chat_message_id=chat_message_id, thought_chain=content)
         send_socket_message(
             sid=sid,
             channel_id=channel_id,
@@ -46,14 +37,14 @@ class ChatAiContext(TokenCostService):
         )
 
     def send_and_persist_error(
-            self,
-            sid: str,
-            channel_id: str,
-            chat_id: str,
-            chat_message_id: str,
-            error_msg_content: dict,
-            prompt_status: str,
-            error_state: str,
+        self,
+        sid: str,
+        channel_id: str,
+        chat_id: str,
+        chat_message_id: str,
+        error_msg_content: dict,
+        prompt_status: str,
+        error_state: str,
     ):
         # Update status to FAILED if there's an error
         self.persist_prompt_status(
@@ -72,15 +63,15 @@ class ChatAiContext(TokenCostService):
         )
 
     def send_and_persist_response(
-            self,
-            sid: str,
-            channel_id: str,
-            chat_id: str,
-            chat_message_id: str,
-            content: str,
-            response: str,
-            chat_name: str,
-            is_append_response: bool = False,
+        self,
+        sid: str,
+        channel_id: str,
+        chat_id: str,
+        chat_message_id: str,
+        content: str,
+        response: str,
+        chat_name: str,
+        is_append_response: bool = False,
     ):
         self.persist_response(
             chat_id=chat_id,
@@ -127,8 +118,7 @@ class ChatAiContext(TokenCostService):
             elif isinstance(model, dict):
                 flattened_models.append(model)
             elif model is not None:
-                raise ValueError(
-                    f"Parsing Failure: Unexpected yaml response content type {type(model)}")
+                raise ValueError(f"Parsing Failure: Unexpected yaml response content type {type(model)}")
 
         return flattened_models
 
@@ -145,21 +135,14 @@ class ChatAiContext(TokenCostService):
             # Fetch SQL query for this model
             try:
                 sql_data = self.session.get_model_dependency_data(
-                    model_name=model.model_name,
-                    transformation_id="sql",
-                    default=None
+                    model_name=model.model_name, transformation_id="sql", default=None
                 )
                 sql_query = sql_data.get("sql") if sql_data else None
             except Exception:
                 sql_query = None
-            model_entry = {
-                "model_name": model.model_name,
-                "model": model_data,
-                "sql": sql_query
-            }
+            model_entry = {"model_name": model.model_name, "model": model_data, "sql": sql_query}
             all_models.append(model_entry)
-        visitran_models = yaml.dump(
-            all_models, default_flow_style=False, sort_keys=False)
+        visitran_models = yaml.dump(all_models, default_flow_style=False, sort_keys=False)
         self.session.redis_client.set(self.redis_model_key, visitran_models)
         return visitran_models
 
@@ -205,8 +188,7 @@ class ChatAiContext(TokenCostService):
             byte_size = len(content_bytes)
             self.byte_counter[chat_message_id] += byte_size
 
-            logging.info(
-                f"Accumulated bytes: {self.byte_counter[chat_message_id]}, Current:, {byte_size}")
+            logging.info(f"Accumulated bytes: {self.byte_counter[chat_message_id]}, Current:, {byte_size}")
 
             self.persist_response(
                 chat_id=chat_id,
@@ -216,8 +198,7 @@ class ChatAiContext(TokenCostService):
                 chat_name=chat_name,
                 discussion_status=discussion_status,
             )
-            self.persist_prompt_status(
-                chat_message_id=chat_message_id, status=ChatMessageStatus.RUNNING)
+            self.persist_prompt_status(chat_message_id=chat_message_id, status=ChatMessageStatus.RUNNING)
             send_socket_message(
                 sid=sid,
                 channel_id=channel_id,
@@ -245,7 +226,12 @@ class ChatAiContext(TokenCostService):
             discussion_status=discussion_status,
         )
         send_socket_message(
-            sid=sid, channel_id=channel_id, chat_id=chat_id, chat_message_id=chat_message_id, summary=content, discussion_status=discussion_status
+            sid=sid,
+            channel_id=channel_id,
+            chat_id=chat_id,
+            chat_message_id=chat_message_id,
+            summary=content,
+            discussion_status=discussion_status,
         )
 
     def _process_chat_name(self, *args, **kwargs):
@@ -279,6 +265,7 @@ class ChatAiContext(TokenCostService):
             # If content is a string, try to parse it as JSON
             try:
                 import json
+
                 parsed_content = json.loads(content)
                 if isinstance(parsed_content, dict):
                     token_usage_data = parsed_content.get("token_info", {})
@@ -288,9 +275,7 @@ class ChatAiContext(TokenCostService):
                 pass
 
         # Update status to SUCCESS when prompt response is complete
-        chat_message = self.persist_prompt_status(
-            chat_message_id=chat_message_id, status=ChatMessageStatus.SUCCESS
-        )
+        chat_message = self.persist_prompt_status(chat_message_id=chat_message_id, status=ChatMessageStatus.SUCCESS)
 
         # Store token cost information if provided
         if token_usage_data:
@@ -301,7 +286,7 @@ class ChatAiContext(TokenCostService):
                     token_data=token_usage_data,
                     chat_intent=chat_intent,
                     session_id=chat_id,
-                    processing_time_ms=processing_time_ms
+                    processing_time_ms=processing_time_ms,
                 )
 
                 if token_cost:
@@ -325,8 +310,7 @@ class ChatAiContext(TokenCostService):
         raise StopIteration
 
     def process_event(self, *args, **kwargs):
-        supported_events = ["thought_chain", "prompt_response",
-                            "summary", "chat_name", "completed"]
+        supported_events = ["thought_chain", "prompt_response", "summary", "chat_name", "completed"]
         event_type = kwargs.get("event_type")
         if event_type not in supported_events:
             raise ValueError(f"Unsupported event type: {event_type}")

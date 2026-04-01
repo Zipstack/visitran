@@ -11,7 +11,8 @@ from backend.application.model_validator.transformations.distinct_validator impo
 from backend.application.model_validator.transformations.filter_validator import FilterValidator
 from backend.application.model_validator.transformations.find_and_replace_validator import FindAndReplaceValidator
 from backend.application.model_validator.transformations.group_and_aggregation_validator import (
-    GroupAndAggregationValidator)
+    GroupAndAggregationValidator,
+)
 from backend.application.model_validator.transformations.join_validator import JoinValidator
 from backend.application.model_validator.transformations.merge_validator import MergeValidator
 from backend.application.model_validator.transformations.pivot_validator import PivotValidator
@@ -19,8 +20,7 @@ from backend.application.model_validator.transformations.rename_validator import
 from backend.application.model_validator.transformations.synthesis_validator import SynthesisValidator
 from backend.application.session.session import Session
 from backend.application.visitran_backend_context import VisitranBackendContext
-from backend.errors import ModelNotExists, \
-    ColumnDependency
+from backend.errors import ColumnDependency, ModelNotExists
 from backend.errors.dependency_exceptions import ModelTableDependency
 
 
@@ -33,7 +33,7 @@ class ModelValidator:
         "combine_columns": CombineColumnValidator,
         "pivot": PivotValidator,
         "groups_and_aggregation": GroupAndAggregationValidator,
-        "rename_column": RenameValidator
+        "rename_column": RenameValidator,
     }
 
     def __init__(
@@ -96,7 +96,7 @@ class ModelValidator:
                 schema_name=schema_name, table_name=table_name
             )
             for column in table_columns:
-                self._table_columns.append(column['column_name'])
+                self._table_columns.append(column["column_name"])
         return self._table_columns
 
     def _fetch_old_model_if_exists(self) -> ConfigParser | None:
@@ -120,15 +120,12 @@ class ModelValidator:
             visitran_context=self._visitran_context,
             current_parser=self.current_config_parser,
             old_parser=self.old_config_parser,
-            model_name=self._model_name
+            model_name=self._model_name,
         )
         response = model_config_validator.validate_source_config()
         if response:
             schema_name, table_name = response
-            self.old_table_details = {
-                "schema_name": schema_name,
-                "table_name": table_name
-            }
+            self.old_table_details = {"schema_name": schema_name, "table_name": table_name}
         model_config_validator.validate_destination_config()
         model_config_validator.validate_reference_config()
 
@@ -139,22 +136,19 @@ class ModelValidator:
             session=self._session,
             visitran_context=self._visitran_context,
             current_parser=self.current_config_parser,
-            old_parser=self.old_config_parser
+            old_parser=self.old_config_parser,
         )
         response = model_config_validator.validate_destination_config()
         if response:
             schema_name, table_name = response
-            self.old_table_details = {
-                "schema_name": schema_name,
-                "table_name": table_name
-            }
+            self.old_table_details = {"schema_name": schema_name, "table_name": table_name}
 
     def _validate_reference_config(self, **kwargs):
         model_config_validator = ModelConfigValidator(
             session=self._session,
             visitran_context=self._visitran_context,
             current_parser=self.current_config_parser,
-            old_parser=self.old_config_parser
+            old_parser=self.old_config_parser,
         )
         model_config_validator.validate_reference_config()
 
@@ -162,7 +156,7 @@ class ModelValidator:
         _transformation_mapper: dict[str, type[Validator]] = {
             "pivot": PivotValidator,
             "groups_and_aggregation": GroupAndAggregationValidator,
-            "rename_column": RenameValidator
+            "rename_column": RenameValidator,
         }
         if transformation_type in _transformation_mapper:
             transformation_cls: type[Validator] = _transformation_mapper[transformation_type]
@@ -173,7 +167,7 @@ class ModelValidator:
                 session=self._session,
                 visitran_context=self._visitran_context,
                 model_name=self._model_name,
-                current_parser=transform_parser
+                current_parser=transform_parser,
             )
             affected_columns = transformation_validator.validate_new_transform()
             if transformation_type in ["pivot", "groups_and_aggregation"]:
@@ -185,7 +179,7 @@ class ModelValidator:
                     model_name=self._model_name,
                     transformation_name=transformation_type,
                     affected_columns=dependent_columns,
-                    affected_transformation="sort"
+                    affected_transformation="sort",
                 )
             return affected_columns
         return None
@@ -204,14 +198,14 @@ class ModelValidator:
                 visitran_context=self._visitran_context,
                 model_name=self._model_name,
                 current_parser=transform_parser,
-                old_parser=old_transform_parser
+                old_parser=old_transform_parser,
             )
             affected_columns = transformation_validator.validate_updated_transform()
             if affected_columns:
                 self._validate_column_usage(
                     config_parser=self.current_config_parser,
                     affected_columns=affected_columns,
-                    transformation_id=transformation_id
+                    transformation_id=transformation_id,
                 )
             return affected_columns
         return None
@@ -226,14 +220,14 @@ class ModelValidator:
                 session=self._session,
                 visitran_context=self._visitran_context,
                 model_name=self._model_name,
-                old_parser=old_transform_parser
+                old_parser=old_transform_parser,
             )
             affected_columns = transformation_validator.validate_deleted_transform()
             if affected_columns:
                 self._validate_column_usage(
                     config_parser=self.current_config_parser,
                     affected_columns=affected_columns,
-                    transformation_id=transformation_id
+                    transformation_id=transformation_id,
                 )
             return affected_columns
         return None
@@ -252,9 +246,7 @@ class ModelValidator:
         old_transform_parser = self.old_config_parser.transform_parser
 
         for transformation_id in old_transform_parser.transform_orders:
-            parser = old_transform_parser.get_transformation_parser(
-                transformation_id=transformation_id
-            )
+            parser = old_transform_parser.get_transformation_parser(transformation_id=transformation_id)
             if parser is None:
                 continue
 
@@ -289,24 +281,20 @@ class ModelValidator:
             "groups_and_aggregation": GroupAndAggregationValidator,
             "distinct": DistinctValidator,
             "rename_column": RenameValidator,
-            "find_and_replace": FindAndReplaceValidator
+            "find_and_replace": FindAndReplaceValidator,
         }
         return _transformation_mapper[transform_type]
 
     def _validate_column_usage(
-            self,
-            config_parser: ConfigParser,
-            affected_columns: list[str],
-            transformation_id: str
+        self, config_parser: ConfigParser, affected_columns: list[str], transformation_id: str
     ) -> None:
         transform_parser: TransformationParser = config_parser.transform_parser
         transform_index = -1
         if transformation_id in transform_parser.transform_orders:
             transform_index = transform_parser.transform_orders.index(transformation_id)
-        for parser in transform_parser.get_transforms()[transform_index + 1:]:
+        for parser in transform_parser.get_transforms()[transform_index + 1 :]:
             dependent_columns = self._validate_column_in_transformation(
-                parser=parser,
-                affected_columns=affected_columns
+                parser=parser, affected_columns=affected_columns
             )
             if dependent_columns:
                 self.dependency_columns[config_parser.model_name][parser.transform_type] = dependent_columns
@@ -325,15 +313,12 @@ class ModelValidator:
             session=self._session,
             visitran_context=self._visitran_context,
             model_name=self._model_name,
-            current_parser=parser
+            current_parser=parser,
         )
         return validator.check_column_usage(columns=affected_columns)
 
     def validate(
-            self,
-            config_type: str = "all",
-            transformation_type: str = None,
-            transformation_id: str = None
+        self, config_type: str = "all", transformation_type: str = None, transformation_id: str = None
     ) -> list[str] | None:
         _validators: dict[str, Callable[..., None]] = {
             "source": self._validate_source_config,
@@ -342,13 +327,10 @@ class ModelValidator:
             "create_transformation": self._validate_new_transformation,
             "update_transformation": self._validate_updated_transformation,
             "delete_transformation": self._validate_deleted_transformation,
-            "clear_all": self._validate_all_transformations
+            "clear_all": self._validate_all_transformations,
         }
         validator_function: Callable[..., None] = _validators.get(config_type, self._validate_all_transformations)
-        kwargs = {
-            "transformation_type": transformation_type,
-            "transformation_id": transformation_id
-        }
+        kwargs = {"transformation_type": transformation_type, "transformation_id": transformation_id}
         affected_columns: list[str] | None = validator_function(**kwargs)
         return affected_columns
 
@@ -357,9 +339,7 @@ class ModelValidator:
             model_data: dict[str, Any] = self._session.fetch_model_data(model_name)
             config_parser = ConfigParser(model_data=model_data, file_name=model_name)
             self._validate_column_usage(
-                config_parser=config_parser,
-                affected_columns=affected_columns,
-                transformation_id="1"
+                config_parser=config_parser, affected_columns=affected_columns, transformation_id="1"
             )
 
     def validate_child_table_usage(self, child_model_names: list[str], affected_table: dict[str, str]) -> None:

@@ -43,7 +43,7 @@ class ProjectModelGraph:
     def get_parents(self, node, all_levels=False):
 
         if node not in self.graph:
-            return [] # return empty list if graph is invalid
+            return []  # return empty list if graph is invalid
 
         if all_levels:
             ancestors = set()
@@ -89,7 +89,7 @@ class ProjectModelGraph:
         return nx.node_link_data(self.graph)
 
     def deserialize(self, data):
-        if not data or 'nodes' not in data or 'links' not in data:
+        if not data or "nodes" not in data or "links" not in data:
             print("Empty or invalid data. Creating an empty graph.")
             return nx.DiGraph()  #
         # Deserialize from the saved format back to a graph

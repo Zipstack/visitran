@@ -2,10 +2,10 @@ import uuid
 
 from django.db import models
 
-from backend.utils.encryption import encrypt_connection_details, decrypt_connection_details, mask_connection_details
+from backend.utils.encryption import decrypt_connection_details, encrypt_connection_details, mask_connection_details
 from backend.utils.tenant_context import get_current_user
 from utils.models.base_model import BaseModel
-from utils.models.organization_mixin import DefaultOrganizationMixin, DefaultOrganizationManagerMixin
+from utils.models.organization_mixin import DefaultOrganizationManagerMixin, DefaultOrganizationMixin
 
 
 class ConnectionDetailsManager(DefaultOrganizationManagerMixin, models.Manager):

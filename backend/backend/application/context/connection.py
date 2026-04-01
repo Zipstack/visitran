@@ -2,11 +2,9 @@ import logging
 from typing import Any
 
 from backend.application.session.connection_session import ConnectionSession
-from backend.application.utils import test_connection_data, create_schema_if_not_exist, get_connection_data
+from backend.application.utils import create_schema_if_not_exist, get_connection_data, test_connection_data
 from backend.core.models.connection_models import ConnectionDetails
-from backend.utils.decryption_utils import (
-    decrypt_connection_details_robust
-)
+from backend.utils.decryption_utils import decrypt_connection_details_robust
 from backend.utils.encryption import SENSITIVE_FIELDS
 from visitran.errors import ConnectionFailedError
 

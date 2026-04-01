@@ -11,12 +11,12 @@ class NoCodeModel(ApplicationContext):
         super().__init__(project_id, environment_id)
 
     def _validate_and_update_model(
-            self,
-            model_data: dict[str, Any],
-            model_name: str,
-            config_type: str,
-            transformation_type: str = None,
-            transformation_id: str = None,
+        self,
+        model_data: dict[str, Any],
+        model_name: str,
+        config_type: str,
+        transformation_type: str = None,
+        transformation_id: str = None,
     ) -> dict[str, Any]:
         """Validating the model data before persisting and updating.
 
@@ -46,7 +46,7 @@ class NoCodeModel(ApplicationContext):
             model_name=model_name,
             transformation_type=transformation_type,
             transformation_id=transformation_id,
-            config_type=config_type
+            config_type=config_type,
         )
         # Converting the current model to python.
         return self.update_model(model_name=model_name, model_data=model_data)
@@ -68,7 +68,8 @@ class NoCodeModel(ApplicationContext):
 
             if not isinstance(model_dict, dict) or not isinstance(source_dict, dict):
                 raise InvalidModelConfigError(
-                    failure_reason="'model' and 'source' must be dictionaries in 'model_config'.")
+                    failure_reason="'model' and 'source' must be dictionaries in 'model_config'."
+                )
 
             # Fetch existing session model data
             existing_data = self.session.fetch_model_data(model_name=model_name) or {}
@@ -95,9 +96,7 @@ class NoCodeModel(ApplicationContext):
                 model_data = existing_data
                 model_data["reference"] = reference_config
             else:
-                raise InvalidModelConfigError(
-                    failure_reason="No changes detected in the given spec YAML"
-                )
+                raise InvalidModelConfigError(failure_reason="No changes detected in the given spec YAML")
 
             return self._validate_and_update_model(
                 model_data=model_data,
@@ -109,7 +108,6 @@ class NoCodeModel(ApplicationContext):
         except (KeyError, TypeError) as e:
             logging.error(f"Error while setting model config: {e}")
             raise InvalidModelConfigError(failure_reason=f"Invalid 'no_code_data' structure: {e}")
-
 
     def set_model_transformation(self, no_code_data: dict[str, Any], model_name: str):
         """Adds or updates the transformation in the model, based on the given
@@ -146,7 +144,7 @@ class NoCodeModel(ApplicationContext):
             model_name,
             config_type=config_type,
             transformation_type=transformation_type,
-            transformation_id=transformation_id
+            transformation_id=transformation_id,
         )
         update_model_data["step_id"] = transformation_id
         return update_model_data
@@ -212,17 +210,11 @@ class NoCodeModel(ApplicationContext):
 
         model_data["presentation"] = presentation_config
         return self._validate_and_update_model(
-            model_data,
-            model_name,
-            config_type="presentation",
-            transformation_type=""
+            model_data, model_name, config_type="presentation", transformation_type=""
         )
 
     def get_transformation_columns(
-            self,
-            model_name: str,
-            transformation_id: str,
-            transformation_type: str
+        self, model_name: str, transformation_id: str, transformation_type: str
     ) -> dict[str, Any]:
         """This method will return the list of available columns, and it’s
         metadata in the response.
@@ -234,7 +226,5 @@ class NoCodeModel(ApplicationContext):
 
         # If the transformation id is present, this will return the available columns for the specified columns.
         return self.get_model_table_details(
-            model_name=model_name,
-            transformation_id=transformation_id,
-            transformation_type=transformation_type
+            model_name=model_name, transformation_id=transformation_id, transformation_type=transformation_type
         )

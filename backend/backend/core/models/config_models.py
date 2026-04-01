@@ -1,5 +1,6 @@
 import os
 import uuid
+
 from django.core.files.storage import default_storage
 from django.db import models
 
@@ -7,7 +8,7 @@ from backend.core.models.project_details import ProjectDetails
 from backend.utils.constants import FileConstants as Fc
 from backend.utils.tenant_context import get_current_user
 from utils.models.base_model import BaseModel
-from utils.models.organization_mixin import DefaultOrganizationMixin, DefaultOrganizationManagerMixin
+from utils.models.organization_mixin import DefaultOrganizationManagerMixin, DefaultOrganizationMixin
 
 
 class ConfigModelsManager(DefaultOrganizationManagerMixin, models.Manager):

@@ -8,6 +8,7 @@ try:
 except:
     from abc import ABC as Base
 
+
 def ensure_typed_null(expr, fallback_type):
     """Checking for "empty" false/true branches if typed NULL the we sould to
     cast them.
@@ -19,12 +20,12 @@ def ensure_typed_null(expr, fallback_type):
     as a typed NULL with the fallback_type.
     """
     # direct None or ibis null()
-    if expr is None or (hasattr(expr, 'equals') and expr.equals(null())):
+    if expr is None or (hasattr(expr, "equals") and expr.equals(null())):
         return ibis.literal(None).cast(fallback_type)
 
     try:
-        empty_literal = ibis.literal('')
-        if hasattr(expr, 'equals') and expr.equals(empty_literal):
+        empty_literal = ibis.literal("")
+        if hasattr(expr, "equals") and expr.equals(empty_literal):
             return ibis.literal(None).cast(fallback_type)
     except Exception as e:
         print("cast convertion and fallback failed to load, returning default expression")
@@ -38,8 +39,8 @@ class Logics(Base):
 
     @staticmethod
     def if_(table, node, data_types, inter_exps):
-        params = node['inputs']
-        if node['inputs'].__len__() != 3:
+        params = node["inputs"]
+        if node["inputs"].__len__() != 3:
             raise Exception("IF function requires 3 parameters")
         e1 = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, params[0])
         e2 = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, params[1])
@@ -57,8 +58,8 @@ class Logics(Base):
 
     @staticmethod
     def ifna(table, node, data_types, inter_exps):
-        params = node['inputs']
-        if node['inputs'].__len__() != 2:
+        params = node["inputs"]
+        if node["inputs"].__len__() != 2:
             raise Exception("IFNA function requires 2 parameters")
         e1 = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, params[0])
         e2 = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, params[1])
@@ -68,7 +69,7 @@ class Logics(Base):
 
     @staticmethod
     def ifs(table, node, data_types, inter_exps):
-        params = node['inputs']
+        params = node["inputs"]
 
         # Handle Excel-style TRUE, "Other"
         if len(params) >= 4 and len(params) % 2 == 0:
@@ -87,7 +88,7 @@ class Logics(Base):
             default_expr = inter_exps[default_value]
         elif default_value.__contains__("'") or default_value.__contains__('"'):
             dv = default_value.strip('"').strip("'")
-            if dv.replace('.', '', 1).isdigit():
+            if dv.replace(".", "", 1).isdigit():
                 default_expr = ibis.literal(float(dv))
             else:
                 default_expr = ibis.literal(dv)
@@ -107,7 +108,7 @@ class Logics(Base):
                 true_val = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, true_expr_str)
             except Exception:
                 tv = str(true_expr_str).strip('"').strip("'")
-                if tv.replace('.', '', 1).isdigit():
+                if tv.replace(".", "", 1).isdigit():
                     true_val = ibis.literal(float(tv))
                 else:
                     true_val = ibis.literal(tv)
@@ -116,7 +117,7 @@ class Logics(Base):
 
     @staticmethod
     def switch(table, node, data_types, inter_exps):
-        params = node['inputs']
+        params = node["inputs"]
         # SWITCH(expression, val1, res1, val2, res2, ..., [default])
         # AST preserves user order: params[0]=expression, then val-result pairs,
         # with optional default as last odd param
@@ -174,60 +175,60 @@ class Logics(Base):
                 pass
             cond = s0 == val_expr
             oe = cond.ifelse(res_expr, oe)
-        data_types[node['outputs'][0]] = data_types.get(pairs[1], 'string')
+        data_types[node["outputs"][0]] = data_types.get(pairs[1], "string")
         return oe
 
     @staticmethod
     def choose(table, node, data_types, inter_exps):
-        if node['inputs'].__len__() < 2:
+        if node["inputs"].__len__() < 2:
             raise Exception("CHOOSE function requires at least 2 parameters")
-        idx = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node['inputs'][0])
+        idx = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node["inputs"][0])
         e = ibis.NA
-        for i in range(1, node['inputs'].__len__()):
-            cond = (idx == i)
-            e = cond.ifelse(FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node['inputs'][i]), e)
+        for i in range(1, node["inputs"].__len__()):
+            cond = idx == i
+            e = cond.ifelse(FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node["inputs"][i]), e)
         return e
 
     @staticmethod
     def isblank(table, node, data_types, inter_exps):
-        params = node['inputs']
-        if node['inputs'].__len__() != 1:
+        params = node["inputs"]
+        if node["inputs"].__len__() != 1:
             raise Exception("ISBLANK function requires 1 parameter")
-        e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node['inputs'][0])
+        e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node["inputs"][0])
         e = e.isnull()
-        data_types[node['outputs'][0]] = 'boolean'
+        data_types[node["outputs"][0]] = "boolean"
         return e
 
     @staticmethod
     def iseven(table, node, data_types, inter_exps):
-        params = node['inputs']
-        if node['inputs'].__len__() != 1:
+        params = node["inputs"]
+        if node["inputs"].__len__() != 1:
             raise Exception("ISEVEN function requires 1 parameter")
-        e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node['inputs'][0]) % 2 == 0
-        data_types[node['outputs'][0]] = 'boolean'
+        e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node["inputs"][0]) % 2 == 0
+        data_types[node["outputs"][0]] = "boolean"
         return e
 
     @staticmethod
     def isodd(table, node, data_types, inter_exps):
-        params = node['inputs']
-        if node['inputs'].__len__() != 1:
+        params = node["inputs"]
+        if node["inputs"].__len__() != 1:
             raise Exception("ISODD function requires 1 parameter")
-        e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node['inputs'][0]) % 2 == 1
-        data_types[node['outputs'][0]] = 'boolean'
+        e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node["inputs"][0]) % 2 == 1
+        data_types[node["outputs"][0]] = "boolean"
         return e
 
     @staticmethod
     def isna(table, node, data_types, inter_exps):
-        params = node['inputs']
-        if node['inputs'].__len__() != 1:
+        params = node["inputs"]
+        if node["inputs"].__len__() != 1:
             raise Exception("ISNA function requires 1 parameter")
-        e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node['inputs'][0]) == ibis.NA
-        data_types[node['outputs'][0]] = 'boolean'
+        e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node["inputs"][0]) == ibis.NA
+        data_types[node["outputs"][0]] = "boolean"
         return e
 
     @staticmethod
     def istext(table, node, data_types, inter_exps):
-        params = node['inputs']
+        params = node["inputs"]
         if len(params) != 1:
             raise Exception("ISTEXT requires 1 parameter")
 
@@ -240,7 +241,7 @@ class Logics(Base):
 
     @staticmethod
     def isnumber(table, node, data_types, inter_exps):
-        params = node['inputs']
+        params = node["inputs"]
         if len(params) != 1:
             raise Exception("ISNUMBER requires 1 parameter")
 
@@ -251,30 +252,30 @@ class Logics(Base):
             return ibis.literal(True)
 
         # Case 2: String type → check with regex
-        return e.re_search(r'^\d*\.?\d+$') == True
+        return e.re_search(r"^\d*\.?\d+$") == True
 
     @staticmethod
     def true_(table, node, data_types, inter_exps):
-        params = node['inputs']
-        if node['inputs'].__len__() != 1:
+        params = node["inputs"]
+        if node["inputs"].__len__() != 1:
             raise Exception("TRUE function requires 0 parameters")
         e = ibis.literal(True)
-        data_types[node['outputs'][0]] = 'boolean'
+        data_types[node["outputs"][0]] = "boolean"
         return e
 
     @staticmethod
     def false_(table, node, data_types, inter_exps):
-        params = node['inputs']
-        if node['inputs'].__len__() != 1:
+        params = node["inputs"]
+        if node["inputs"].__len__() != 1:
             raise Exception("TRUE function requires 0 parameters")
         e = ibis.literal(False)
-        data_types[node['outputs'][0]] = 'boolean'
+        data_types[node["outputs"][0]] = "boolean"
         return e
 
     @staticmethod
     def between(table, node, data_types, inter_exps):
-        params = node['inputs']
-        if node['inputs'].__len__() != 3:
+        params = node["inputs"]
+        if node["inputs"].__len__() != 3:
             raise Exception("BETWEEN function requires 3 parameters")
         e1 = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, params[0])
         e2 = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, params[1])
@@ -288,10 +289,10 @@ class Logics(Base):
     @staticmethod
     def fill_null(table, node, data_types, inter_exps):
         """Replaces null values with a specified value."""
-        if len(node['inputs']) != 2:
+        if len(node["inputs"]) != 2:
             raise Exception("FILL_NULL function requires 2 parameters: FILL_NULL(column, replacement)")
-        e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node['inputs'][0])
-        replacement = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node['inputs'][1])
+        e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node["inputs"][0])
+        replacement = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node["inputs"][1])
 
         # Cast replacement to match column type for compatibility
         # (e.g. string column with string replacement, numeric column with numeric replacement)
@@ -302,17 +303,17 @@ class Logics(Base):
             pass
 
         e = e.fill_null(replacement)
-        data_types[node['outputs'][0]] = data_types.get(node['inputs'][0], 'string')
+        data_types[node["outputs"][0]] = data_types.get(node["inputs"][0], "string")
         return e
 
     @staticmethod
     def nullif(table, node, data_types, inter_exps):
         """Returns null if the two arguments are equal, otherwise returns the
         first argument."""
-        if len(node['inputs']) != 2:
+        if len(node["inputs"]) != 2:
             raise Exception("NULLIF function requires 2 parameters")
-        e1 = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node['inputs'][0])
-        e2 = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node['inputs'][1])
+        e1 = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node["inputs"][0])
+        e2 = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node["inputs"][1])
 
         # Cast comparison value to match column type so equality check works correctly
         try:
@@ -322,64 +323,63 @@ class Logics(Base):
             pass
 
         e = e1.nullif(e2)
-        data_types[node['outputs'][0]] = data_types.get(node['inputs'][0], 'string')
+        data_types[node["outputs"][0]] = data_types.get(node["inputs"][0], "string")
         return e
 
     @staticmethod
     def isnan(table, node, data_types, inter_exps):
         """Returns true if the value is NaN (Not a Number)."""
-        if len(node['inputs']) != 1:
+        if len(node["inputs"]) != 1:
             raise Exception("ISNAN function requires 1 parameter")
-        e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node['inputs'][0])
+        e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node["inputs"][0])
 
         # isnan() requires floating-point type; cast integer columns to float64
         try:
             if e.type().is_integer():
-                e = e.cast('float64')
+                e = e.cast("float64")
         except Exception:
             pass
 
         e = e.isnan()
-        data_types[node['outputs'][0]] = 'boolean'
+        data_types[node["outputs"][0]] = "boolean"
         return e
 
     @staticmethod
     def isinf(table, node, data_types, inter_exps):
         """Returns true if the value is infinite."""
-        if len(node['inputs']) != 1:
+        if len(node["inputs"]) != 1:
             raise Exception("ISINF function requires 1 parameter")
-        e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node['inputs'][0])
+        e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node["inputs"][0])
 
         # isinf() requires floating-point type; cast integer columns to float64
         try:
             if e.type().is_integer():
-                e = e.cast('float64')
+                e = e.cast("float64")
         except Exception:
             pass
 
         e = e.isinf()
-        data_types[node['outputs'][0]] = 'boolean'
+        data_types[node["outputs"][0]] = "boolean"
         return e
 
     @staticmethod
     def try_cast(table, node, data_types, inter_exps):
         """Attempts to cast a value to a specified type, returning null on
         failure."""
-        if len(node['inputs']) != 2:
+        if len(node["inputs"]) != 2:
             raise Exception("TRY_CAST function requires 2 parameters: TRY_CAST(value, type)")
-        e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node['inputs'][0])
-        target_type = node['inputs'][1].strip('"').strip("'").lower()
+        e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node["inputs"][0])
+        target_type = node["inputs"][1].strip('"').strip("'").lower()
         e = e.try_cast(target_type)
-        data_types[node['outputs'][0]] = target_type
+        data_types[node["outputs"][0]] = target_type
         return e
 
     @staticmethod
     def coalesce(table, node, data_types, inter_exps):
         """Returns the first non-null value from the arguments."""
-        if len(node['inputs']) < 2:
+        if len(node["inputs"]) < 2:
             raise Exception("COALESCE function requires at least 2 parameters")
-        exprs = [FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, inp)
-                 for inp in node['inputs']]
+        exprs = [FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, inp) for inp in node["inputs"]]
         e = ibis.coalesce(*exprs)
-        data_types[node['outputs'][0]] = data_types.get(node['inputs'][0], 'string')
+        data_types[node["outputs"][0]] = data_types.get(node["inputs"][0], "string")
         return e

@@ -27,10 +27,12 @@ class PivotTransformation(BaseTransformation):
     def _parse_pivot(self):
         pivot_statement = ""
         if self.pivot_parser.to_rows:
-            pivot_statement = (f".pivot_wider("
-                               f"id_cols='{self.pivot_parser.to_rows}', "
-                               f"names_from='{self.pivot_parser.to_column_names}', "
-                               f"values_from='{self.pivot_parser.values_from}', ")
+            pivot_statement = (
+                f".pivot_wider("
+                f"id_cols='{self.pivot_parser.to_rows}', "
+                f"names_from='{self.pivot_parser.to_column_names}', "
+                f"values_from='{self.pivot_parser.values_from}', "
+            )
             if self.pivot_parser.aggregator:
                 pivot_statement += f"values_agg='{self.pivot_parser.aggregator}', "
             elif self.visitran_context.database_type == "postgres":
@@ -49,7 +51,6 @@ class PivotTransformation(BaseTransformation):
             template_file_name=TemplateNames.PIVOT, template_content=template_data
         )
         return self._transformed_code
-
 
     def transform(self) -> str:
         return self.compute_code()

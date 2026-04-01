@@ -12,9 +12,7 @@ class LogPublisher:
     kombu_conn = Connection(settings.CELERY_BROKER_URL)
 
     @classmethod
-    def _get_task_message(
-        cls, user_session_id: str, event: str, message: Any
-    ) -> dict[str, Any]:
+    def _get_task_message(cls, user_session_id: str, event: str, message: Any) -> dict[str, Any]:
 
         task_kwargs = {
             LogEventArgument.EVENT: event,

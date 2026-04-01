@@ -1,8 +1,10 @@
+import logging
 import os
 from typing import Any
+
 import openai
+
 from backend.application.context.application import ApplicationContext
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +19,7 @@ class FormulaContext(ApplicationContext):
         self.model = os.environ.get("MODEL")
         self.max_tokens = int(os.environ.get("MAX_TOKEN", 100))
         self.temperature = float(os.environ.get("TEMPERATURE", 0.5))
-        self.formulas = os.environ.get("FORMULA", "").split(',')
+        self.formulas = os.environ.get("FORMULA", "").split(",")
 
     def get_schema_details(self, model_name: str) -> list[dict[str, Any]]:
         no_code_model: dict = self.session.fetch_model_data(model_name=model_name)
@@ -38,24 +40,21 @@ class FormulaContext(ApplicationContext):
             openai.api_key = self.openai_api_key
             response = openai.ChatCompletion.create(
                 model=self.model,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ],
+                messages=[{"role": "user", "content": prompt}],
                 max_tokens=self.max_tokens,
-                temperature=self.temperature
+                temperature=self.temperature,
             )
             # Extract and return the result
-            return response['choices'][0]['message']['content']
+            return response["choices"][0]["message"]["content"]
         except Exception as e:
             logger.error(f"Error in ChatGPT API call: {e}")
             return ""
 
     def construct_prompt(self, user_prompt: str, schema_details: list[dict[str, Any]]) -> str:
         # Convert schema list to a readable format
-        schema_description = "\n".join([
-            f"Column Name: {col['column_name']}, Data Type: {col['data_type']}"
-            for col in schema_details
-        ])
+        schema_description = "\n".join(
+            [f"Column Name: {col['column_name']}, Data Type: {col['data_type']}" for col in schema_details]
+        )
         # Prepare the ChatGPT prompt
         prompt = f"""
         You are an Excel transformation assistant. Your task is to generate Excel formulas for requested

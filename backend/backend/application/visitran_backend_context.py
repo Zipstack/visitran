@@ -2,17 +2,12 @@ import json
 import logging
 import os
 from collections import defaultdict
-from typing import Dict, Any, List, Set, Union
+from typing import Any, Dict, List, Set, Union
 
 import yaml
 from ibis.common.exceptions import IbisTypeError
 from ibis.expr.types.relations import Table
 from sqlalchemy.exc import ProgrammingError
-from visitran.adapters.connection import BaseConnection
-from visitran.errors import ConnectionFailedError
-from visitran.singleton import Singleton
-from visitran.utils import get_adapter_connection_cls
-from visitran.visitran_context import VisitranContext
 
 from backend.application.database_explorer import DatabaseExplorerTree
 from backend.application.session.session import Session
@@ -21,6 +16,11 @@ from backend.errors import TableContentIssue
 from backend.utils.constants import FileConstants as Fc
 from backend.utils.decryption_utils import decrypt_sensitive_fields
 from backend.utils.utils import download_from_gcs
+from visitran.adapters.connection import BaseConnection
+from visitran.errors import ConnectionFailedError
+from visitran.singleton import Singleton
+from visitran.utils import get_adapter_connection_cls
+from visitran.visitran_context import VisitranContext
 
 CACHE_TTL_SECONDS = 1800  # 30 minutes idle timeout
 
@@ -117,7 +117,11 @@ class VisitranBackendContext(VisitranContext):
 
     @property
     def db_connection_details(self) -> dict[str, Union[str, int]]:
-        return self.env_data if self.env_data else self.session.project_instance.connection_model.decrypted_connection_details
+        return (
+            self.env_data
+            if self.env_data
+            else self.session.project_instance.connection_model.decrypted_connection_details
+        )
 
     def get_profile_schema(self) -> str:
         if self.database_type == "bigquery":
@@ -205,6 +209,7 @@ class VisitranBackendContext(VisitranContext):
         re-executed when the given model changes.
         """
         from backend.application.validate_references import ValidateReferences
+
         model_dict = {}
         models = self.session.fetch_all_models(fetch_all=True)
         for model in models:
@@ -236,10 +241,7 @@ class VisitranBackendContext(VisitranContext):
         if model_name not in model_dict:
             logging.warning(f"[get_model_execution_subgraph] Model '{model_name}' not found in database")
             # Return just the model itself - let downstream code handle the error
-            return {
-                "models_to_execute": [model_name],
-                "models_to_import": [model_name]
-            }
+            return {"models_to_execute": [model_name], "models_to_import": [model_name]}
 
         # Build reverse graph: model -> set of models that depend on it (children)
         children_of = defaultdict(set)
@@ -260,10 +262,7 @@ class VisitranBackendContext(VisitranContext):
 
         logging.info(f"[get_model_execution_subgraph] All upstream parents (materialize only): {ancestors}")
 
-        result = {
-            "models_to_execute": list(descendants),
-            "models_to_import": list(descendants | ancestors)
-        }
+        result = {"models_to_execute": list(descendants), "models_to_import": list(descendants | ancestors)}
         logging.info(f"[get_model_execution_subgraph] Result: {result}")
         return result
 
@@ -319,10 +318,7 @@ class VisitranBackendContext(VisitranContext):
 
         logging.info(f"[get_multi_model_execution_subgraph] Combined ancestors (materialize only): {all_ancestors}")
 
-        result = {
-            "models_to_execute": list(all_descendants),
-            "models_to_import": list(all_descendants | all_ancestors)
-        }
+        result = {"models_to_execute": list(all_descendants), "models_to_import": list(all_descendants | all_ancestors)}
         logging.info(f"[get_multi_model_execution_subgraph] Result: {result}")
         return result
 
@@ -350,7 +346,7 @@ class VisitranBackendContext(VisitranContext):
         return tables
 
     def get_table_records(
-            self, schema_name: str, table_name: str, selective_columns: list[str] | None, limit: int, page: int
+        self, schema_name: str, table_name: str, selective_columns: list[str] | None, limit: int, page: int
     ) -> list[Any]:
         try:
             return self.db_adapter.db_connection.get_table_records(
@@ -462,7 +458,7 @@ class VisitranBackendContext(VisitranContext):
         snapshot = {
             "ui_tree": ui_tree,
             "db_meta_json": db_metadata,
-            "db_meta_yaml": yaml.dump(db_metadata, default_flow_style=False, sort_keys=False, indent=2)
+            "db_meta_yaml": yaml.dump(db_metadata, default_flow_style=False, sort_keys=False, indent=2),
         }
         self._cache_set(db_snapshot_key, snapshot)
         return snapshot
@@ -496,7 +492,7 @@ class VisitranBackendContext(VisitranContext):
 
         Returns list of (source_model_name, target_model_name) tuples.
         """
-        if hasattr(self.session, 'model_graph') and self.session.model_graph:
+        if hasattr(self.session, "model_graph") and self.session.model_graph:
             return list(self.session.model_graph.graph.edges())
         return []
 
@@ -520,7 +516,9 @@ class VisitranBackendContext(VisitranContext):
             if not (self.schema_name or "").strip():
                 self._cache_delete(self._cache_key("tables", "list", "default"))
 
-            logging.info(f"Cleared data warehouse caches for org={self.session.tenant_id} project={self.session.project_id}")
+            logging.info(
+                f"Cleared data warehouse caches for org={self.session.tenant_id} project={self.session.project_id}"
+            )
         except Exception as e:
             logging.critical("Failed to clear data warehouse caches")
             logging.exception(e)

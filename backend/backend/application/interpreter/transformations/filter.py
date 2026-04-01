@@ -8,16 +8,38 @@ from backend.application.interpreter.transformations.base_transformation import 
 class FiltersTransformation(BaseTransformation):
     # Functions that return string/text type
     TEXT_FUNCTIONS = {
-        "MID", "LEFT", "RIGHT", "SUBSTRING", "SUBSTR",
-        "CONCAT", "CONCATENATE", "UPPER", "LOWER",
-        "TRIM", "LTRIM", "RTRIM", "REPLACE", "TEXT",
-        "CHAR", "REPT", "PROPER", "CLEAN", "SUBSTITUTE",
+        "MID",
+        "LEFT",
+        "RIGHT",
+        "SUBSTRING",
+        "SUBSTR",
+        "CONCAT",
+        "CONCATENATE",
+        "UPPER",
+        "LOWER",
+        "TRIM",
+        "LTRIM",
+        "RTRIM",
+        "REPLACE",
+        "TEXT",
+        "CHAR",
+        "REPT",
+        "PROPER",
+        "CLEAN",
+        "SUBSTITUTE",
     }
 
     # String/text data types that require quoted values
     STRING_TYPES = {
-        "string", "varchar", "text", "char", "nvarchar", "nchar",
-        "character varying", "character", "bpchar",
+        "string",
+        "varchar",
+        "text",
+        "char",
+        "nvarchar",
+        "nchar",
+        "character varying",
+        "character",
+        "bpchar",
     }
 
     def __init__(self, parser: FilterParser, *args, **kwargs) -> None:
@@ -231,7 +253,11 @@ class FiltersTransformation(BaseTransformation):
                 if rhs_value is None:
                     raise ValueError("RHS value is not provided for the condition.")
                 op_fragment = Operators.get_operator_type(op, value=rhs_value or "''")
-                expr = f"(~{lhs_expr}{op_fragment})" if op in Operators.NEGATIVE_OPERATORS else f"({lhs_expr}{op_fragment})"
+                expr = (
+                    f"(~{lhs_expr}{op_fragment})"
+                    if op in Operators.NEGATIVE_OPERATORS
+                    else f"({lhs_expr}{op_fragment})"
+                )
             # Combine with previous
             if filter_parts:
                 filter_parts.append(f"{ConditionTypes.get_condition_type(cond_type)} ({expr})")
@@ -250,10 +276,7 @@ class FiltersTransformation(BaseTransformation):
         if self._has_formula_expression:
             self.add_headers("from formulasql.formulasql import FormulaSQL")
 
-        template_data = {
-            "filters_content": filters_content,
-            "transformation_id": self.filter_parser.transform_id
-        }
+        template_data = {"filters_content": filters_content, "transformation_id": self.filter_parser.transform_id}
         self._transformed_code: str = self.template_render(
             template_file_name=TemplateNames.FILTER, template_content=template_data
         )

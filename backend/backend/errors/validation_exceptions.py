@@ -32,7 +32,7 @@ class DestinationTableAlreadyExist(VisitranBackendBaseException):
             schema_name=schema_name,
             table_name=table_name,
             current_model_name=current_model_name,
-            conflicting_model_name=conflicting_model_name
+            conflicting_model_name=conflicting_model_name,
         )
 
     @property
@@ -100,6 +100,7 @@ class InvalidSQLQuery(VisitranBackendBaseException):
     @property
     def severity(self) -> str:
         return "Warning"
+
 
 class SQLExtractionError(VisitranBackendBaseException):
     """Raised when no SQL query can be extracted from the given text."""

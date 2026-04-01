@@ -11,19 +11,19 @@ class ProjectNameConstants(BaseConstant):
     """
 
     RESERVED_NAMES = {
-        'test',
-        'visitran',
-        'snowflake',
-        'bigquery',
-        'duckdb',
-        'postgres',
-        'trino',
-        'django',
-        'flask',
-        'fastapi',
-        'redis',
-        'celery',
-        'time'
+        "test",
+        "visitran",
+        "snowflake",
+        "bigquery",
+        "duckdb",
+        "postgres",
+        "trino",
+        "django",
+        "flask",
+        "fastapi",
+        "redis",
+        "celery",
+        "time",
     }
 
     @classmethod

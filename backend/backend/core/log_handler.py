@@ -7,12 +7,12 @@ import pytz
 from django.conf import settings
 
 from backend.core.middlewares.log_aggregator import (
-    get_request_logs,
-    write_request_logs,
-    is_log_aggregation_enabled,
-    get_log_severity,
     get_log_level,
+    get_log_severity,
+    get_request_logs,
+    is_log_aggregation_enabled,
     set_log_level,
+    write_request_logs,
 )
 
 

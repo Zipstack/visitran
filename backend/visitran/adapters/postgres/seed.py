@@ -1,6 +1,7 @@
+from typing import Any
+
 import ibis
 import pandas as pd
-from typing import Any
 
 from visitran.adapters.postgres.connection import PostgresConnection
 from visitran.adapters.seed import BaseSeed

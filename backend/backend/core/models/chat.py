@@ -1,10 +1,11 @@
 import uuid
+
 from django.db import models
 
-from backend.core.models.user_model import User
-from backend.core.models.project_details import ProjectDetails
-from utils.models.base_model import BaseModel
 from backend.core.models.chat_intent import ChatIntent
+from backend.core.models.project_details import ProjectDetails
+from backend.core.models.user_model import User
+from utils.models.base_model import BaseModel
 
 
 class ChatManager(models.Manager):
@@ -23,32 +24,22 @@ class Chat(BaseModel):
       - delete(hard_delete=True) removes the record physically from the DB.
     """
 
-    chat_id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-        editable=False
-    )
-    chat_name = models.CharField(
-        max_length=255,
-        help_text="Human-readable name for the chat."
-    )
-    is_deleted = models.BooleanField(
-        default=False,
-        help_text="Flag for soft deletion. True means the chat is hidden."
-    )
+    chat_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    chat_name = models.CharField(max_length=255, help_text="Human-readable name for the chat.")
+    is_deleted = models.BooleanField(default=False, help_text="Flag for soft deletion. True means the chat is hidden.")
     project = models.ForeignKey(
         ProjectDetails,
         on_delete=models.CASCADE,
         null=True,
         related_name="chat_project",
-        help_text="Project to which this chat belongs."
+        help_text="Project to which this chat belongs.",
     )
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         null=True,
         related_name="chats_created",
-        help_text="User who created (owns) this chat."
+        help_text="User who created (owns) this chat.",
     )
     chat_intent = models.ForeignKey(
         ChatIntent,
@@ -57,7 +48,7 @@ class Chat(BaseModel):
         blank=True,
         editable=True,
         related_name="chats",
-        help_text="Optional intent associated with this chat."
+        help_text="Optional intent associated with this chat.",
     )
     llm_model_architect = models.CharField(
         max_length=255,
@@ -65,7 +56,7 @@ class Chat(BaseModel):
         null=False,
         blank=False,
         editable=True,
-        help_text="String identifier of the architect LLM model used for this chat."
+        help_text="String identifier of the architect LLM model used for this chat.",
     )
     llm_model_developer = models.CharField(
         max_length=255,
@@ -73,11 +64,11 @@ class Chat(BaseModel):
         null=False,
         blank=False,
         editable=True,
-        help_text="String identifier of the developer LLM model used for this chat."
+        help_text="String identifier of the developer LLM model used for this chat.",
     )
 
     # Custom Managers
-    objects = ChatManager()         # Hides soft-deleted chats
+    objects = ChatManager()  # Hides soft-deleted chats
     all_objects = models.Manager()  # Returns all chats (including soft-deleted)
 
     def delete(self, hard_delete: bool = False, *args, **kwargs) -> None:

@@ -1,7 +1,8 @@
 from copy import deepcopy
 
-from backend.application.config_parser.transformation_parsers.groups_and_aggregation_parser import \
-    GroupsAndAggregationParser
+from backend.application.config_parser.transformation_parsers.groups_and_aggregation_parser import (
+    GroupsAndAggregationParser,
+)
 from backend.application.model_validator.transformations.base_validator import Validator
 
 

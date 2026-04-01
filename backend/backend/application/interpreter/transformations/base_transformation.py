@@ -1,31 +1,30 @@
-from pathlib import Path
 import re
+from pathlib import Path
 from re import sub
 from typing import Any
 
 import ibis
 from ibis.common import exceptions as ib_exceptions
 from jinja2 import Environment, FileSystemLoader
-from visitran.errors import VisitranBaseExceptions
 
 from backend.application.config_parser.config_parser import ConfigParser
-from backend.application.utils import get_class_name
+from backend.application.utils import get_class_name, replace_in, replace_notin
 from backend.application.visitran_backend_context import VisitranBackendContext
-from backend.application.utils import replace_notin, replace_in
+from visitran.errors import VisitranBaseExceptions
 
-TEMPLATES_PATH = (f"{Path(__file__).parent.parent.parent.parent}"
-                  f"/application/interpreter/python_templates/transformations_template/")
+TEMPLATES_PATH = (
+    f"{Path(__file__).parent.parent.parent.parent}"
+    f"/application/interpreter/python_templates/transformations_template/"
+)
 
 
 class BaseTransformation:
-    def __init__(
-            self,
-            config_parser: ConfigParser,
-            context: VisitranBackendContext
-    ):
+    def __init__(self, config_parser: ConfigParser, context: VisitranBackendContext):
         self.config_parser = config_parser
         self.visitran_context = context
-        self.source_file_name = f"{self.config_parser.destination_schema_name}_{self.config_parser.destination_table_name}"
+        self.source_file_name = (
+            f"{self.config_parser.destination_schema_name}_{self.config_parser.destination_table_name}"
+        )
         self.source_class_name = self.build_source_class_name()
         self._headers: list[str] = []
         self._content: list[str] = []
@@ -68,7 +67,7 @@ class BaseTransformation:
 
     @property
     def default_database(self) -> str:
-        if self.visitran_context.db_adapter.db_connection.dbtype == 'bigquery':
+        if self.visitran_context.db_adapter.db_connection.dbtype == "bigquery":
             return self.visitran_context.db_adapter.db_connection.dataset_id
         return self.visitran_context.db_adapter.db_connection.dbname
 
@@ -84,7 +83,7 @@ class BaseTransformation:
         try:
             return self.visitran_context.get_table_columns_with_type(
                 schema_name=self.config_parser.destination_schema_name,
-                table_name=self.config_parser.destination_table_name
+                table_name=self.config_parser.destination_table_name,
             )
         except (VisitranBaseExceptions, ib_exceptions.IbisError):
             return []
@@ -93,19 +92,17 @@ class BaseTransformation:
         all_columns = []
         if transformation_id:
             transformation_columns: dict[str, Any] = self.visitran_context.session.get_model_dependency_data(
-                model_name=self.config_parser.model_name,
-                transformation_id=transformation_id,
-                default=dict()
+                model_name=self.config_parser.model_name, transformation_id=transformation_id, default=dict()
             )
             all_columns = [values for _, values in transformation_columns.get("column_description", {}).items()]
         if not all_columns:
             all_columns = self.get_table_columns_with_type(
                 schema_name=self.config_parser.destination_schema_name,
-                table_name=self.config_parser.destination_table_name
+                table_name=self.config_parser.destination_table_name,
             )
         column_details = {}
         for column in all_columns:
-            column_details[column['column_name']] = column['column_dbtype'].lower()
+            column_details[column["column_name"]] = column["column_dbtype"].lower()
 
         col_db_type = column_details.get(column_name) or "string"
         if col_db_type.startswith("int") or col_db_type.startswith("number"):
@@ -192,7 +189,7 @@ class BaseTransformation:
         formula = re.sub(r"FIXED\(\s*(MONTH\([^)]*\))\s*,\s*0\s*\)", r"\1", formula, flags=re.IGNORECASE)
         formula = re.sub(r"FIXED\(\s*(DAY\([^)]*\))\s*,\s*0\s*\)", r"\1", formula, flags=re.IGNORECASE)
 
-        #Fallback: generic FIXED(x, 0) → ROUND(x, 0)
+        # Fallback: generic FIXED(x, 0) → ROUND(x, 0)
         # This safely handles expressions like FIXED(FLOOR(YEAR(date)/10)*10, 0)
         formula = re.sub(r"\bFIXED\s*\(\s*([^,]+)\s*,\s*0\s*\)", r"ROUND(\1,0)", formula, flags=re.IGNORECASE)
 
@@ -201,10 +198,7 @@ class BaseTransformation:
         formula = re.sub(r"\bNOW\b(?!\s*\()", "NOW()", formula)
 
         formula = re.sub(
-            r"\bFIND\s*\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*1\s*\)",
-            r"FIND(\1, \2)",
-            formula,
-            flags=re.IGNORECASE
+            r"\bFIND\s*\(\s*([^,]+)\s*,\s*([^,]+)\s*,\s*1\s*\)", r"FIND(\1, \2)", formula, flags=re.IGNORECASE
         )
 
         return formula

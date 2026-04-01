@@ -29,9 +29,7 @@ urlpatterns = [
         "project/<str:project_id>/explorer",
         include("backend.core.routers.explorer.urls"),
     ),
-    path(
-        "project/<str:project_id>/execute", include("backend.core.routers.execute.urls")
-    ),
+    path("project/<str:project_id>/execute", include("backend.core.routers.execute.urls")),
     # Chat
     path("project/<str:project_id>/chat", include("backend.core.routers.chat.urls")),
     path(

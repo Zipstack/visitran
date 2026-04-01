@@ -23,50 +23,50 @@ class FormulaSQL:
         self.inter_exps = {}
 
     def print_ast(self):
-        print('AST:')
+        print("AST:")
         nodes = self.ast.dsp.solution.nodes
-        for (key, node) in nodes.items():
-            print(key, '|', node)
+        for key, node in nodes.items():
+            print(key, "|", node)
 
     def __get_data_type(self, key: str):
         try:
             float(key)
-            return 'numeric'
+            return "numeric"
         except ValueError:
             if key.isnumeric():
-                return 'numeric'
-            elif key.startswith("\"") and key.endswith("\""):
-                return 'string'
-            elif key == 'NULL' or key == 'NONE':
-                return 'none'
-            elif key == 'true' or key == 'false' or key == 'TRUE' or key == 'FALSE' or key == 'True' or key == 'False':
-                return 'boolean'
+                return "numeric"
+            elif key.startswith('"') and key.endswith('"'):
+                return "string"
+            elif key == "NULL" or key == "NONE":
+                return "none"
+            elif key == "true" or key == "false" or key == "TRUE" or key == "FALSE" or key == "True" or key == "False":
+                return "boolean"
             else:
-                return 'column'
+                return "column"
 
     def ibis_column(self):
         nodes = self.ast.dsp.solution.nodes
 
         exp = None
-        for (key, node) in nodes.items():
+        for key, node in nodes.items():
             # print(key, '|', node)
-            if node['type'] == 'data':
+            if node["type"] == "data":
                 self.data_types[key] = self.__get_data_type(key)
 
-            if node['type'] == 'function':
-                function_name = re.sub('<(.*?)>', '', key).lower()
+            if node["type"] == "function":
+                function_name = re.sub("<(.*?)>", "", key).lower()
                 function_found = False
                 if key.startswith("bypass"):
-                    input_key = node['inputs'][0]
-                    output_key = node['outputs'][0]
+                    input_key = node["inputs"][0]
+                    output_key = node["outputs"][0]
 
                     # Pass the expression from input to output
 
                     self.inter_exps[output_key] = self.inter_exps[input_key]
                     continue
 
-                if node['inputs'].__len__() > 1:
-                    self.data_types[node['outputs'][0]] = self.data_types[node['inputs'][1]]
+                if node["inputs"].__len__() > 1:
+                    self.data_types[node["outputs"][0]] = self.data_types[node["inputs"][1]]
                 # -----------------------------------------------------------------
                 # Basic math operations
                 # -----------------------------------------------------------------
@@ -155,20 +155,20 @@ class FormulaSQL:
                                 pass
 
                 if not function_found:
-                    raise Exception('Formula not supported - ' + key)
+                    raise Exception("Formula not supported - " + key)
 
                 if exp is None:
-                    raise Exception('Formula not supported - ' + key)
-                self.inter_exps[node['outputs'][0]] = exp
+                    raise Exception("Formula not supported - " + key)
+                self.inter_exps[node["outputs"][0]] = exp
 
                 # print('inter_exps', self.inter_exps)
 
         if exp is None:
-            if key.lower() in ('true', 'false'):
-                exp = ibis.literal(key.lower() == 'true')
+            if key.lower() in ("true", "false"):
+                exp = ibis.literal(key.lower() == "true")
             elif key.isnumeric():
-                exp =  ibis.literal(float(key))
+                exp = ibis.literal(float(key))
             else:
-                exp =  ibis.literal(key)
+                exp = ibis.literal(key)
         exp = exp.name(self.column_name)
         return exp

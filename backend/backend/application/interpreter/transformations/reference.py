@@ -40,7 +40,9 @@ class ReferenceTransformation(BaseTransformation):
             for model in self.config_parser.reference:
                 class_name = get_class_name(model)
                 model_name = model.replace(" ", "_")
-                self.add_headers(f"from {self.visitran_context.project_py_name}.models.{model_name} import {class_name}")
+                self.add_headers(
+                    f"from {self.visitran_context.project_py_name}.models.{model_name} import {class_name}"
+                )
                 imported_models.add(model)
 
         # Determine parent class based on source_model (not first reference)
@@ -55,7 +57,9 @@ class ReferenceTransformation(BaseTransformation):
             # by MRO optimization, but we MUST import it since it's the parent class
             if source_model not in imported_models:
                 model_name = source_model.replace(" ", "_")
-                self.add_headers(f"from {self.visitran_context.project_py_name}.models.{model_name} import {self._parent_class}")
+                self.add_headers(
+                    f"from {self.visitran_context.project_py_name}.models.{model_name} import {self._parent_class}"
+                )
         # else: source_model is None, meaning source is a raw DB table
         # Keep parent as VisitranModel (read from database via source_table_obj)
 

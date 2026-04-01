@@ -24,9 +24,7 @@ class FilterBuilder:
         raw_s = str(raw_val).strip()
 
         # Already quoted
-        if (raw_s.startswith("'") and raw_s.endswith("'")) or (
-            raw_s.startswith('"') and raw_s.endswith('"')
-        ):
+        if (raw_s.startswith("'") and raw_s.endswith("'")) or (raw_s.startswith('"') and raw_s.endswith('"')):
             return raw_s
 
         # Boolean strings
@@ -78,7 +76,7 @@ class FilterBuilder:
         # For operators that don't need RHS (NULL, NOTNULL, TRUE, FALSE)
         if operator in Operators.NO_RHS_OPERATORS:
             ibis_op = Operators.get_operator_type(operator, value=None)
-            return f'{lhs}{ibis_op}'
+            return f"{lhs}{ibis_op}"
 
         # Handle RHS based on type
         if condition.rhs_type == "COLUMN" and condition.rhs_column:
@@ -166,7 +164,7 @@ class FilterBuilder:
 
         # Build combined filter expression
         if len(filter_conditions) == 1:
-            return f'{class_obj} = {class_obj}.filter({filter_conditions[0]})'
+            return f"{class_obj} = {class_obj}.filter({filter_conditions[0]})"
 
         # Combine multiple conditions with AND/OR
         # Pattern: condition[i]'s logical_operator specifies how it connects to condition[i-1]
@@ -177,4 +175,4 @@ class FilterBuilder:
             op_symbol = " & " if logical_operators[i] == "AND" else " | "
             combined += f"{op_symbol}({condition_str})"
 
-        return f'{class_obj} = {class_obj}.filter({combined})'
+        return f"{class_obj} = {class_obj}.filter({combined})"

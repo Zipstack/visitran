@@ -6,7 +6,7 @@ from typing import Any
 
 from visitran.adapters.connection import BaseConnection
 from visitran.constants import SnapshotConstants
-from visitran.errors import InvalidSnapshotFields, InvalidSnapshotColumns
+from visitran.errors import InvalidSnapshotColumns, InvalidSnapshotFields
 from visitran.templates.snapshot import VisitranSnapshot
 from visitran.utils import generate_tmp_name
 

@@ -1,5 +1,5 @@
-from backend.application.config_parser.transformation_parsers.union_parser import UnionParsers, UnionBranchParser
 from backend.application.config_parser.transformation_parsers.filter_parser import FilterParser
+from backend.application.config_parser.transformation_parsers.union_parser import UnionBranchParser, UnionParsers
 from backend.application.interpreter.constants import TemplateConstants, TemplateNames
 from backend.application.interpreter.transformations.base_transformation import BaseTransformation
 from backend.application.interpreter.utils.filter_builder import FilterBuilder
@@ -70,7 +70,9 @@ class UnionTransformation(BaseTransformation):
         self.add_content(content)
         return False, class_name
 
-    def _get_union_declaration(self, class_name: str, mapping: list[dict], filter_parser: FilterParser = None) -> list[str]:
+    def _get_union_declaration(
+        self, class_name: str, mapping: list[dict], filter_parser: FilterParser = None
+    ) -> list[str]:
         _class_obj = self.get_class_var_str(class_name=class_name)
         table = _class_obj + f": Table = {class_name}().select() "
 
@@ -146,12 +148,12 @@ class UnionTransformation(BaseTransformation):
                 else:
                     quoted_val = literal_val
 
-                base_expr = f'ibis.literal({quoted_val})'
+                base_expr = f"ibis.literal({quoted_val})"
 
             elif expr_type == "FORMULA":
                 # Formula (future enhancement)
                 formula = col_expr.formula
-                base_expr = f'({formula})'
+                base_expr = f"({formula})"
 
             else:
                 # Default fallback
@@ -204,9 +206,7 @@ class UnionTransformation(BaseTransformation):
                 if not flag:
                     self.parent_classes.append(class_name)
             parent_classes_declarations += self._get_union_declaration(
-                class_name,
-                mapping=mapping.get(_table_name),
-                filter_parser=table_filters.get(_table_name)
+                class_name, mapping=mapping.get(_table_name), filter_parser=table_filters.get(_table_name)
             )
 
             rhs_class_name: str = self.get_class_var_str(class_name)
@@ -233,7 +233,9 @@ class UnionTransformation(BaseTransformation):
         # Validate: need at least 2 branches for UNION (branch 0 is source, branch 1 is first user branch)
         # Note: Frontend now sends source table as branch 0 automatically
         if len(branches) < 2:
-            raise ValueError(f"UNION requires at least 2 branches (source + 1 user branch), but only {len(branches)} found")
+            raise ValueError(
+                f"UNION requires at least 2 branches (source + 1 user branch), but only {len(branches)} found"
+            )
 
         # Apply source-level filters if present
         source_filters = self.union_parsers.source_filters
@@ -252,7 +254,9 @@ class UnionTransformation(BaseTransformation):
         # Build UNION statement
         if branch_vars and len(branch_vars) >= 2:
             distinct_flag = self.union_parsers.unions_duplicate
-            union_statement = f"source_table = {branch_vars[0]}.union({', '.join(branch_vars[1:])}, distinct={distinct_flag})"
+            union_statement = (
+                f"source_table = {branch_vars[0]}.union({', '.join(branch_vars[1:])}, distinct={distinct_flag})"
+            )
             self.union_statements.append(union_statement)
 
     def _parse_union_transformations(self, join_classes=None):

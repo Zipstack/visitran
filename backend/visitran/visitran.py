@@ -11,21 +11,22 @@ from collections.abc import ValuesView
 from inspect import isclass
 from os import path
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, TypeVar, Union, Optional, Dict, List
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, TypeVar, Union
 
 import ibis
 import networkx as nx
+
 from visitran import utils
 from visitran.adapters.adapter import BaseAdapter
 from visitran.adapters.seed import BaseSeed
 from visitran.errors import (
-    ModelNotFound,
     ModelExecutionFailed,
+    ModelImportError,
+    ModelNotFound,
     ObjectForClassNotFoundError,
     RelativePathError,
-    ModelImportError,
-    VisitranBaseExceptions,
     RunSeedFailedException,
+    VisitranBaseExceptions,
 )
 from visitran.events.functions import fire_event
 from visitran.events.local_context import StateStore
@@ -75,10 +76,10 @@ warnings.filterwarnings("ignore", message=".*?pkg_resources.*?")
 from matplotlib import pyplot as plt  # noqa: E402
 
 if TYPE_CHECKING:  # pragma: no cover
+    from adapters.connection import BaseConnection
     from ibis.expr.types.relations import Table
     from networkx.classes.digraph import DiGraph
 
-    from adapters.connection import BaseConnection
     from visitran.visitran_context import VisitranContext
 
     BASE_SQL = TypeVar("BASE_SQL", bound=BaseConnection)
@@ -155,12 +156,12 @@ class Visitran:
             module = model_obj.__class__.__module__
             # Extract model name from module path (last part before class name)
             # e.g., 'project.models.stg_order_summaries' -> 'stg_order_summaries'
-            if '.models.' in module:
-                model_name = module.split('.models.')[-1]
+            if ".models." in module:
+                model_name = module.split(".models.")[-1]
             else:
                 # Fallback: convert class name to snake_case
                 class_name = model_obj.__class__.__name__
-                model_name = ''.join(['_' + c.lower() if c.isupper() else c for c in class_name]).lstrip('_')
+                model_name = "".join(["_" + c.lower() if c.isupper() else c for c in class_name]).lstrip("_")
 
             if model_name not in model_name_to_classes:
                 model_name_to_classes[model_name] = []
@@ -179,7 +180,7 @@ class Visitran:
         classes to ensure proper ordering.
         """
         # Check if context has project model graph access
-        if not hasattr(self.context, 'get_project_model_graph_edges'):
+        if not hasattr(self.context, "get_project_model_graph_edges"):
             return
 
         try:
@@ -220,10 +221,7 @@ class Visitran:
         def sort_func(node_key: str):
             obj: VisitranModel = self.dag.nodes[node_key]["model_object"]
             cls = obj.__class__
-            return (
-                self.get_inheritance_level(cls),
-                obj.destination_table_name or obj.source_table_name
-            )
+            return (self.get_inheritance_level(cls), obj.destination_table_name or obj.source_table_name)
 
         self.sorted_dag_nodes = list(nx.lexicographical_topological_sort(self.dag, key=sort_func))
         fire_event(SortedDAGNodes(sorted_dag_nodes=str(self.sorted_dag_nodes)))
@@ -317,19 +315,19 @@ class Visitran:
             node: The VisitranModel instance to configure
         """
         # Get model_configs from context
-        model_configs = getattr(self.context, 'model_configs', {})
+        model_configs = getattr(self.context, "model_configs", {})
         if not model_configs:
             return
 
         # Extract model name from the class module
         # e.g., 'project.models.stg_order_summaries.StgOrderSummaries' -> 'stg_order_summaries'
         module = node.__class__.__module__
-        if '.models.' in module:
-            model_name = module.split('.models.')[-1]
+        if ".models." in module:
+            model_name = module.split(".models.")[-1]
         else:
             # Fallback: convert class name to snake_case
             class_name = node.__class__.__name__
-            model_name = ''.join(['_' + c.lower() if c.isupper() else c for c in class_name]).lstrip('_')
+            model_name = "".join(["_" + c.lower() if c.isupper() else c for c in class_name]).lstrip("_")
 
         # Check if there's config for this model
         config = model_configs.get(model_name)
@@ -337,34 +335,34 @@ class Visitran:
             return
 
         # Override materialization if specified
-        materialization_str = config.get('materialization')
+        materialization_str = config.get("materialization")
         if materialization_str:
             materialization_map = {
-                'TABLE': Materialization.TABLE,
-                'VIEW': Materialization.VIEW,
-                'INCREMENTAL': Materialization.INCREMENTAL,
-                'EPHEMERAL': Materialization.EPHEMERAL,
+                "TABLE": Materialization.TABLE,
+                "VIEW": Materialization.VIEW,
+                "INCREMENTAL": Materialization.INCREMENTAL,
+                "EPHEMERAL": Materialization.EPHEMERAL,
             }
             if materialization_str.upper() in materialization_map:
                 node.materialization = materialization_map[materialization_str.upper()]
                 logging.info(f"Model {model_name}: Overriding materialization to {materialization_str}")
 
         # Apply incremental configuration if switching to INCREMENTAL
-        incremental_config = config.get('incremental_config', {})
+        incremental_config = config.get("incremental_config", {})
         if incremental_config:
             # Override primary_key
-            if 'primary_key' in incremental_config:
-                node.primary_key = incremental_config['primary_key']
+            if "primary_key" in incremental_config:
+                node.primary_key = incremental_config["primary_key"]
                 logging.info(f"Model {model_name}: Setting primary_key to {node.primary_key}")
 
             # Override delta_strategy
-            if 'delta_strategy' in incremental_config:
-                delta_cfg = incremental_config['delta_strategy']
+            if "delta_strategy" in incremental_config:
+                delta_cfg = incremental_config["delta_strategy"]
                 node.delta_strategy = {
-                    'type': delta_cfg.get('type', ''),
-                    'column': delta_cfg.get('column', ''),
-                    'key_columns': delta_cfg.get('key_columns', []),
-                    'custom_logic': delta_cfg.get('custom_logic'),
+                    "type": delta_cfg.get("type", ""),
+                    "column": delta_cfg.get("column", ""),
+                    "key_columns": delta_cfg.get("key_columns", []),
+                    "custom_logic": delta_cfg.get("custom_logic"),
                 }
                 logging.info(f"Model {model_name}: Setting delta_strategy to {node.delta_strategy}")
 

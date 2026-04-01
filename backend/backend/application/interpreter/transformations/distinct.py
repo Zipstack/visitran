@@ -6,7 +6,7 @@ from backend.application.interpreter.transformations.base_transformation import 
 class DistinctTransformation(BaseTransformation):
     def __init__(self, parser: DistinctParser, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.distinct_parser: DistinctParser  = parser
+        self.distinct_parser: DistinctParser = parser
 
     @staticmethod
     def _get_ordered_statements(format_contents: dict) -> str:
@@ -28,10 +28,7 @@ class DistinctTransformation(BaseTransformation):
         group_columns = ""
 
         for column in distinct_parser.columns:
-            format_contents = {
-                'column_name': column,
-                'order_by': "desc"
-            }
+            format_contents = {"column_name": column, "order_by": "desc"}
             statements += self._get_ordered_statements(format_contents)
         return statements
 
@@ -51,7 +48,7 @@ class DistinctTransformation(BaseTransformation):
         template_data = {
             "group_columns": f'[{", ".join(groups_content)}]',
             "order_by": self.distinct_parser.columns[0],
-            "transformation_id": self.distinct_parser.transform_id
+            "transformation_id": self.distinct_parser.transform_id,
         }
         self._transformed_code: str = self.template_render(
             template_file_name=TemplateNames.DISTINCT, template_content=template_data

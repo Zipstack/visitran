@@ -4,10 +4,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
-from google.cloud.exceptions import NotFound
-
 from adapters.bigquery.adapter import BigQueryAdapter
 from adapters.bigquery.seed import BigQuerySeed
+from google.cloud.exceptions import NotFound
+
 from tests.unit.test_visitran_adapters.bigquery_test.adapter_test import TestBigQueryAdapter
 from visitran import DoesNotExistError, EmptyFileError, NotSupportedError
 

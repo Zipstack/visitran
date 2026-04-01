@@ -1,7 +1,7 @@
-import fsspec
-from typing import List
 import logging
+from typing import List
 
+import fsspec
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -22,7 +22,7 @@ class FileSystemHandler:
         try:
             path = f"{self.file_path_prefix}{path}"
             logger.info(f"Reading file: {path}")
-            with self.fs.open(path, 'r') as f:
+            with self.fs.open(path, "r") as f:
                 content = f.read()
             return content
         except FileNotFoundError:
@@ -36,7 +36,7 @@ class FileSystemHandler:
         try:
             path = f"{self.file_path_prefix}{path}"
             logger.info(f"Writing to file: {path}")
-            with self.fs.open(path, 'w') as f:
+            with self.fs.open(path, "w") as f:
                 f.write(data)
             logger.info(f"Successfully wrote to {path}")
         except Exception as e:

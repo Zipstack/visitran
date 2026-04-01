@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 from backend.application.context.chat_message_context import ChatMessageContext
 from backend.core.models.chat_message import ChatMessage
@@ -12,12 +12,12 @@ class TokenCostService(ChatMessageContext):
     """Service to handle token cost persistence and session management."""
 
     def create_token_cost_record(
-            self,
-            chat_message: ChatMessage,
-            token_data: dict[str, Any],
-            chat_intent: str,
-            session_id: str,
-            processing_time_ms: int = 0
+        self,
+        chat_message: ChatMessage,
+        token_data: dict[str, Any],
+        chat_intent: str,
+        session_id: str,
+        processing_time_ms: int = 0,
     ) -> Optional[ChatTokenCost]:
         """Create a ChatTokenCost record from token data received from
         visitran_ai.
@@ -45,24 +45,21 @@ class TokenCostService(ChatMessageContext):
                 user=chat_message.user,
                 session_id=session_id,
                 chat_intent=chat_intent,
-
                 # Architect LLM data
                 architect_model_name=architect_usage.get("model_name", chat_message.llm_model_architect),
                 architect_input_tokens=architect_usage.get("input_tokens", 0),
                 architect_output_tokens=architect_usage.get("output_tokens", 0),
                 architect_total_tokens=architect_usage.get("total_tokens", 0),
                 architect_estimated_cost=Decimal(str(architect_usage.get("estimated_cost", 0))),
-
                 # Developer LLM data
                 developer_model_name=developer_usage.get("model_name", chat_message.llm_model_developer),
                 developer_input_tokens=developer_usage.get("input_tokens", 0),
                 developer_output_tokens=developer_usage.get("output_tokens", 0),
                 developer_total_tokens=developer_usage.get("total_tokens", 0),
                 developer_estimated_cost=Decimal(str(developer_usage.get("estimated_cost", 0))),
-
                 # Processing metadata
                 processing_time_ms=processing_time_ms,
-                pricing_config=token_data.get("pricing_config", {})
+                pricing_config=token_data.get("pricing_config", {}),
             )
 
             logging.info(
@@ -95,13 +92,13 @@ class TokenCostService(ChatMessageContext):
             session_cost = ChatSessionCost.objects.filter(session_id=session_id).first()
             if session_cost:
                 return {
-                    'session_id': session_id,
-                    'total_messages': session_cost.total_messages,
-                    'total_tokens': session_cost.total_tokens,
-                    'total_cost': float(session_cost.total_estimated_cost),
-                    'architect_cost': float(session_cost.architect_total_cost),
-                    'developer_cost': float(session_cost.developer_total_cost),
-                    'is_active': session_cost.is_active
+                    "session_id": session_id,
+                    "total_messages": session_cost.total_messages,
+                    "total_tokens": session_cost.total_tokens,
+                    "total_cost": float(session_cost.total_estimated_cost),
+                    "architect_cost": float(session_cost.architect_total_cost),
+                    "developer_cost": float(session_cost.developer_total_cost),
+                    "is_active": session_cost.is_active,
                 }
             return None
         except Exception as e:

@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 import ibis
 import pandas as pd
+
 from visitran.adapters.connection import BaseConnection
 from visitran.errors import InvalidCSVHeaders, SeedFailureException
 

@@ -1,3 +1,4 @@
+import logging
 import re
 from typing import Any
 from uuid import uuid4
@@ -6,16 +7,16 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
-from visitran.singleton import Singleton
-import logging
 
 from backend.application.context.application import ApplicationContext
 from backend.core.utils import handle_http_request, sanitize_data
 from backend.utils.cache_service.decorators.cache_decorator import clear_cache
 from backend.utils.constants import HTTPMethods
+from visitran.singleton import Singleton
 
 _VALID_MODEL_NAME_RE = re.compile(r"^[a-zA-Z0-9_\-]+$")
 logger = logging.getLogger(__name__)
+
 
 @api_view([HTTPMethods.POST])
 @handle_http_request
@@ -55,7 +56,9 @@ def execute_run_command(request: Request, project_id: str) -> Response:
             data={"error_message": "Invalid model name"},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    logger.info(f"[execute_run_command] API called - project_id={project_id}, file_name={file_name}, environment_id={environment_id}")
+    logger.info(
+        f"[execute_run_command] API called - project_id={project_id}, file_name={file_name}, environment_id={environment_id}"
+    )
     app = ApplicationContext(project_id=project_id)
     app.execute_visitran_run_command(current_model=file_name, environment_id=environment_id)
     app.visitran_context.close_db_connection()
@@ -63,7 +66,6 @@ def execute_run_command(request: Request, project_id: str) -> Response:
     logger.info(f"[execute_run_command] Completed successfully for file_name={file_name}")
     _data = {"status": "success"}
     return Response(data=_data)
-
 
 
 @api_view([HTTPMethods.POST])
@@ -82,9 +84,9 @@ def execute_sql_command(request: Request, project_id: str) -> Response:
 
     bigquery_proj_id = None
 
-    connection_details= app.get_connection_details()
-    if app.connection.datasource_name == 'bigquery':
-        bigquery_proj_id = connection_details['project_id']
+    connection_details = app.get_connection_details()
+    if app.connection.datasource_name == "bigquery":
+        bigquery_proj_id = connection_details["project_id"]
     try:
         for model in sql_models:
             model_name = model["model_name"]
@@ -106,26 +108,23 @@ def execute_sql_command(request: Request, project_id: str) -> Response:
 
             # Inner failure handling
             if isinstance(result, dict) and result.get("status") == "failed":
-                logger.warning(
-                    f"Model execution failed for {model_name}. "
-                    f"Error: {result.get('error_message')}"
-                )
+                logger.warning(f"Model execution failed for {model_name}. " f"Error: {result.get('error_message')}")
                 return Response(result, status=200)
 
         return Response({"status": "success"}, status=200)
 
     except Exception as err:
-        logger.error(
-            f"[EXCEPTION] run_id={run_id} encountered an error: {str(err)}",
-            exc_info=True
+        logger.error(f"[EXCEPTION] run_id={run_id} encountered an error: {str(err)}", exc_info=True)
+        return Response(
+            {
+                "status": "failed",
+                "error_message": (
+                    f'**SQL Transformation Error** failed with error: "{str(err)}".\n'
+                    f"Review the SQL syntax or the referenced columns and tables."
+                ),
+            },
+            status=200,
         )
-        return Response({
-            "status": "failed",
-            "error_message": (
-                f'**SQL Transformation Error** failed with error: "{str(err)}".\n'
-                f'Review the SQL syntax or the referenced columns and tables.'
-            )
-        }, status=200)
 
     finally:
         logger.info(f"[CLEANUP] Dropping created tables for run_id={run_id}")

@@ -7,13 +7,10 @@ from django.db import models
 
 from backend.core.models.connection_models import ConnectionDetails
 from backend.core.models.environment_models import EnvironmentModels
-from backend.utils.tenant_context import get_current_user, get_current_tenant
+from backend.utils.tenant_context import get_current_tenant, get_current_user
 from backend.utils.utils import get_project_base_path
 from utils.models.base_model import BaseModel
-from utils.models.organization_mixin import (
-    DefaultOrganizationMixin,
-    DefaultOrganizationManagerMixin,
-)
+from utils.models.organization_mixin import DefaultOrganizationManagerMixin, DefaultOrganizationMixin
 
 
 class ProjectDetailsManager(DefaultOrganizationManagerMixin, models.Manager):
@@ -84,7 +81,7 @@ class ProjectDetails(DefaultOrganizationMixin, BaseModel):
             self.connection_model.delete()
 
             # Delete environment_model if it exists
-            if hasattr(self, 'environment_model') and self.environment_model:
+            if hasattr(self, "environment_model") and self.environment_model:
                 self.environment_model.delete()
 
         super().delete(*args, **kwargs)
@@ -114,14 +111,13 @@ class ProjectDetails(DefaultOrganizationMixin, BaseModel):
     is_sample = models.BooleanField(default=False)
     is_completed = models.BooleanField(default=False)
     onboarding_enabled = models.BooleanField(
-        default=False,
-        db_comment="Flag to enable/disable onboarding for this project"
+        default=False, db_comment="Flag to enable/disable onboarding for this project"
     )
     project_type = models.CharField(
         max_length=50,
         null=True,
         blank=True,
-        db_comment="Type of project: jaffle_shop_starter, jaffle_shop_finalize, dvd_rental_starter, dvd_rental_finalizer, or null for normal projects"
+        db_comment="Type of project: jaffle_shop_starter, jaffle_shop_finalize, dvd_rental_starter, dvd_rental_finalizer, or null for normal projects",
     )
 
     # Manager

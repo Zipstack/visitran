@@ -1,11 +1,11 @@
 import os
 
 import pytest
-
 from adapters.postgres.adapter import PostgresAdapter
 from adapters.postgres.connection import PostgresConnection
 from adapters.postgres.model import PostgresModel
 from adapters.postgres.scd import PostgresSCD
+
 from visitran.templates.model import VisitranModel
 from visitran.templates.snapshot import VisitranSnapshot
 

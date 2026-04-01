@@ -7,6 +7,7 @@ Uses the synchronous `websocket-client` library (not async `websockets`)
 because the OSS backend runs under eventlet, whose monkey-patching
 breaks asyncio-based WebSocket libraries.
 """
+
 import json
 import logging
 import socket
@@ -60,9 +61,7 @@ class AIServerError(Exception):
 
     @staticmethod
     def _not_configured_message() -> str:
-        platform_url = getattr(
-            settings, "VISITRAN_PLATFORM_URL", "https://app.visitran.com"
-        )
+        platform_url = getattr(settings, "VISITRAN_PLATFORM_URL", "https://app.visitran.com")
         return (
             "**AI Features Not Configured**\n\n"
             "To use Visitran AI, you need an API key. "
@@ -146,48 +145,59 @@ def _connection_error(error: Exception) -> AIServerError:
 
     if isinstance(error, ssl.SSLError) or "ssl" in err_str or "certificate" in err_str:
         logger.error(f"SSL error connecting to AI server: {error}")
-        return AIServerError(user_message=(
-            "**SSL Connection Error**\n\n"
-            "Could not establish a secure connection to the AI server. "
-            "Please verify that `AI_SERVER_BASE_URL` in your `.env` uses the correct "
-            "protocol (`https://`) and that your network allows SSL connections."
-        ))
+        return AIServerError(
+            user_message=(
+                "**SSL Connection Error**\n\n"
+                "Could not establish a secure connection to the AI server. "
+                "Please verify that `AI_SERVER_BASE_URL` in your `.env` uses the correct "
+                "protocol (`https://`) and that your network allows SSL connections."
+            )
+        )
 
-    if (isinstance(error, socket.gaierror)
-            or "nodename" in err_str
-            or "name or service not known" in err_str
-            or "getaddrinfo" in err_str):
+    if (
+        isinstance(error, socket.gaierror)
+        or "nodename" in err_str
+        or "name or service not known" in err_str
+        or "getaddrinfo" in err_str
+    ):
         logger.error(f"DNS resolution failed for AI server: {error}")
-        return AIServerError(user_message=(
-            "**Cannot Resolve AI Server Address**\n\n"
-            "The AI server hostname could not be resolved. "
-            "Please check that `AI_SERVER_BASE_URL` in your `.env` is correct "
-            "and that your network/DNS configuration is working."
-        ))
+        return AIServerError(
+            user_message=(
+                "**Cannot Resolve AI Server Address**\n\n"
+                "The AI server hostname could not be resolved. "
+                "Please check that `AI_SERVER_BASE_URL` in your `.env` is correct "
+                "and that your network/DNS configuration is working."
+            )
+        )
 
-    if (isinstance(error, ConnectionRefusedError)
-            or "connection refused" in err_str
-            or "connect call failed" in err_str):
-        return AIServerError(user_message=(
-            "**AI Server Unavailable**\n\n"
-            "Cannot connect to the AI server. Please ensure the Visitran AI server "
-            "is running and the `AI_SERVER_BASE_URL` in your `.env` is correct."
-        ))
+    if isinstance(error, ConnectionRefusedError) or "connection refused" in err_str or "connect call failed" in err_str:
+        return AIServerError(
+            user_message=(
+                "**AI Server Unavailable**\n\n"
+                "Cannot connect to the AI server. Please ensure the Visitran AI server "
+                "is running and the `AI_SERVER_BASE_URL` in your `.env` is correct."
+            )
+        )
 
     if "timed out" in err_str or "timeout" in err_str:
-        return AIServerError(is_warning=True, user_message=(
-            "**Request Timed Out**\n\n"
-            "The AI server did not respond in time. This can happen with "
-            "complex queries or during high load. Please try again."
-        ))
+        return AIServerError(
+            is_warning=True,
+            user_message=(
+                "**Request Timed Out**\n\n"
+                "The AI server did not respond in time. This can happen with "
+                "complex queries or during high load. Please try again."
+            ),
+        )
 
     # Unclassified — generic message
     logger.error(f"Unexpected WebSocket error ({type(error).__name__}): {error}")
-    return AIServerError(user_message=(
-        "**AI Connection Error**\n\n"
-        f"An unexpected error occurred: {error}\n\n"
-        "Please check your `.env` configuration and try again."
-    ))
+    return AIServerError(
+        user_message=(
+            "**AI Connection Error**\n\n"
+            f"An unexpected error occurred: {error}\n\n"
+            "Please check your `.env` configuration and try again."
+        )
+    )
 
 
 def _process_ws_messages(ws, payload: dict[str, Any]) -> None:
@@ -215,11 +225,15 @@ def _process_ws_messages(ws, payload: dict[str, Any]) -> None:
             )
         elif msg_type == "sql_exec":
             sql_result = _execute_local_sql(msg, payload)
-            ws.send(json.dumps({
-                "type": "sql_result",
-                "request_id": msg.get("request_id"),
-                "result": sql_result,
-            }))
+            ws.send(
+                json.dumps(
+                    {
+                        "type": "sql_result",
+                        "request_id": msg.get("request_id"),
+                        "result": sql_result,
+                    }
+                )
+            )
         elif msg_type == "stream":
             _publish_stream_to_local_redis(msg)
         elif msg_type == "status":
@@ -234,25 +248,32 @@ def _handle_bad_status(e) -> AIServerError:
     logger.error(f"AI server rejected connection (HTTP {status_code}): {e}")
     platform_url = getattr(settings, "VISITRAN_PLATFORM_URL", "https://app.visitran.com")
     if status_code in (401, 403):
-        return AIServerError(user_message=(
-            "**Invalid API Key**\n\n"
-            "Your API key was rejected by the AI server. "
-            f"Please verify your `VISITRAN_AI_KEY` in your `.env` file, "
-            f"or generate a new key at [{platform_url}]({platform_url}) "
-            "under **Settings → API Keys**."
-        ))
+        return AIServerError(
+            user_message=(
+                "**Invalid API Key**\n\n"
+                "Your API key was rejected by the AI server. "
+                f"Please verify your `VISITRAN_AI_KEY` in your `.env` file, "
+                f"or generate a new key at [{platform_url}]({platform_url}) "
+                "under **Settings → API Keys**."
+            )
+        )
     if status_code and 500 <= status_code < 600:
-        return AIServerError(is_warning=True, user_message=(
-            "**AI Server Error**\n\n"
-            f"The AI server returned HTTP {status_code}. "
-            "This is usually a temporary issue. Please try again in a few minutes."
-        ))
-    return AIServerError(user_message=(
-        "**Connection Rejected**\n\n"
-        f"The AI server rejected the connection (HTTP {status_code}). "
-        "Please verify your `AI_SERVER_BASE_URL` and `VISITRAN_AI_KEY` "
-        "in your `.env` file are correct."
-    ))
+        return AIServerError(
+            is_warning=True,
+            user_message=(
+                "**AI Server Error**\n\n"
+                f"The AI server returned HTTP {status_code}. "
+                "This is usually a temporary issue. Please try again in a few minutes."
+            ),
+        )
+    return AIServerError(
+        user_message=(
+            "**Connection Rejected**\n\n"
+            f"The AI server rejected the connection (HTTP {status_code}). "
+            "Please verify your `AI_SERVER_BASE_URL` and `VISITRAN_AI_KEY` "
+            "in your `.env` file are correct."
+        )
+    )
 
 
 def _send_prompt_ws(payload: dict[str, Any]) -> None:
@@ -285,18 +306,24 @@ def _send_prompt_ws(payload: dict[str, Any]) -> None:
         raise _handle_bad_status(e)
     except websocket.WebSocketTimeoutException as e:
         logger.error(f"AI server request timed out: {e}")
-        raise AIServerError(is_warning=True, user_message=(
-            "**Request Timed Out**\n\n"
-            "The AI server did not respond in time. This can happen with "
-            "complex queries or during high load. Please try again."
-        ))
+        raise AIServerError(
+            is_warning=True,
+            user_message=(
+                "**Request Timed Out**\n\n"
+                "The AI server did not respond in time. This can happen with "
+                "complex queries or during high load. Please try again."
+            ),
+        )
     except websocket.WebSocketConnectionClosedException as e:
         logger.error(f"AI server closed connection: {e}")
-        raise AIServerError(is_warning=True, user_message=(
-            "**Connection Lost**\n\n"
-            "The connection to the AI server was interrupted. "
-            "This is usually a temporary issue. Please try again."
-        ))
+        raise AIServerError(
+            is_warning=True,
+            user_message=(
+                "**Connection Lost**\n\n"
+                "The connection to the AI server was interrupted. "
+                "This is usually a temporary issue. Please try again."
+            ),
+        )
     except Exception as e:
         raise _connection_error(e)
     finally:
@@ -326,6 +353,7 @@ def _publish_stream_to_local_redis(msg: dict) -> None:
     """
     try:
         from backend.core.redis_client import RedisClient
+
         redis_client = RedisClient().redis_client
         if redis_client:
             channel_id = msg.get("channel_id")

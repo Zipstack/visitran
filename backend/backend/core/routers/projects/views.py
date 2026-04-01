@@ -6,7 +6,6 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
-from visitran.errors import TableNotFound
 
 from backend.application.context.application import ApplicationContext
 from backend.application.context.formula_context import FormulaContext
@@ -14,23 +13,17 @@ from backend.application.context.model_graph import ModelGraph
 from backend.application.context.no_code_model import NoCodeModel
 from backend.application.context.token_cost_service import TokenCostService
 from backend.application.sample_project.dvd_rental_final import DvdRentalProjectFinal
-from backend.application.sample_project.dvd_rental_starter import (
-    DvdRentalProjectStarter,
-)
+from backend.application.sample_project.dvd_rental_starter import DvdRentalProjectStarter
 from backend.application.sample_project.jaffle_shop_final import JaffleShopProjectFinal
-from backend.application.sample_project.jaffle_shop_starter import (
-    JaffleShopProjectStarter,
-)
+from backend.application.sample_project.jaffle_shop_starter import JaffleShopProjectStarter
 from backend.application.utils import set_transformation_sequence
 from backend.core.utils import handle_http_request, sanitize_data
 from backend.errors import CsvDownloadFailed
-from backend.utils.cache_service.decorators.cache_decorator import (
-    cache_response,
-    clear_cache,
-)
+from backend.utils.cache_service.decorators.cache_decorator import cache_response, clear_cache
 from backend.utils.constants import HTTPMethods
 from backend.utils.tenant_context import get_current_user
 from rbac.factory import handle_permission
+from visitran.errors import TableNotFound
 
 RESOURCE_NAME = "projectdetails"
 
@@ -97,8 +90,8 @@ def _create_starter_projects():
             sample_project_data = project_loader.load_sample_project()
 
             # Enable onboarding and set project type for this project
-            from backend.core.models.project_details import ProjectDetails
             from backend.application.utils import get_filter
+            from backend.core.models.project_details import ProjectDetails
 
             project_id = sample_project_data.get("project_id")
             if not project_id:
@@ -162,9 +155,7 @@ def get_projects_list(request: Request) -> Response:
         page_size = 20
     sort_by = request.query_params.get("sort_by", "modified")
 
-    project_list = ApplicationContext.get_project_lists(
-        search=search, page=page, page_size=page_size, sort_by=sort_by
-    )
+    project_list = ApplicationContext.get_project_lists(search=search, page=page, page_size=page_size, sort_by=sort_by)
     return Response(data=project_list, status=status.HTTP_200_OK)
 
 
@@ -180,9 +171,7 @@ def create_sample_project(request) -> Response:
         "jaffleshop_final": JaffleShopProjectFinal,
     }
     if load_project_name not in _mapper:
-        raise ValueError(
-            "Invalid project name specified, Please select valid project to load"
-        )
+        raise ValueError("Invalid project name specified, Please select valid project to load")
 
     project_loader = _mapper[load_project_name]
 
@@ -192,8 +181,8 @@ def create_sample_project(request) -> Response:
     sample_project_data = sample_project.load_sample_project()
 
     # Set project_type for all sample projects; enable onboarding for starters
-    from backend.core.models.project_details import ProjectDetails
     from backend.application.utils import get_filter
+    from backend.core.models.project_details import ProjectDetails
 
     project_id = sample_project_data.get("project_id")
     if project_id:
@@ -277,21 +266,15 @@ def get_lineage_info(request: Request, project_id: str, model_name: str) -> Resp
     content_type = request.query_params.get("type", "sql")
 
     app = ApplicationContext(project_id=project_id)
-    table_details = app.get_lineage_model_details(
-        model_name=model_name, content_type=content_type
-    )
+    table_details = app.get_lineage_model_details(model_name=model_name, content_type=content_type)
     _data = {"status": "success", "data": table_details}
     return Response(data=_data)
 
 
 @api_view([HTTPMethods.GET])
 @handle_http_request
-@cache_response(
-    key_prefix="model_content", key_params=["project_id", "model_name", "page", "limit"]
-)
-def get_model_file_content(
-    request: Request, project_id: str, model_name: str
-) -> Response:
+@cache_response(key_prefix="model_content", key_params=["project_id", "model_name", "page", "limit"])
+def get_model_file_content(request: Request, project_id: str, model_name: str) -> Response:
     """This API is used to retrieve the model table content inside the
     project."""
 
@@ -300,18 +283,13 @@ def get_model_file_content(
     page = request.query_params.get("page", 1)
     limit = request.query_params.get("limit", 100)
 
-
     try:
-        response_data = app.get_model_content(
-            model_name, page=int(page), limit=int(limit)
-        )
+        response_data = app.get_model_content(model_name, page=int(page), limit=int(limit))
     except TableNotFound as table_err:
         logging.warning(f"Table not found, Making run call to make sure the table is recreated - {str(table_err)}")
         app.execute_visitran_run_command()
         app.backup_current_no_code_model()
-        response_data = app.get_model_content(
-            model_name, page=int(page), limit=int(limit)
-        )
+        response_data = app.get_model_content(model_name, page=int(page), limit=int(limit))
         app.visitran_context.close_db_connection()
 
         TokenCostService.get_session_summary(session_id="1")
@@ -322,9 +300,7 @@ def get_model_file_content(
 
 @api_view([HTTPMethods.GET])
 @handle_http_request
-def export_model_content_csv(
-    request: Request, project_id: str, model_name: str
-) -> Response:
+def export_model_content_csv(request: Request, project_id: str, model_name: str) -> Response:
     """Export full model content for CSV download without pagination.
 
     Args:
@@ -340,9 +316,7 @@ def export_model_content_csv(
         application_context = ApplicationContext(project_id=project_id)
 
         # Get full model content for export
-        export_data = application_context.get_full_model_content_for_export(
-            model_name=model_name
-        )
+        export_data = application_context.get_full_model_content_for_export(model_name=model_name)
 
         # Structure the response to match frontend expectations
         response_data = {
@@ -365,6 +339,7 @@ def export_model_content_csv(
             status=500,
         )
 
+
 @api_view([HTTPMethods.POST])
 @handle_http_request
 def set_project_schema(request: Request, project_id: str) -> Response:
@@ -373,6 +348,7 @@ def set_project_schema(request: Request, project_id: str) -> Response:
     app.project_instance.project_schema = schema_name
     app.project_instance.save()
     return Response(data={"status": "success"}, status=status.HTTP_200_OK)
+
 
 @api_view([HTTPMethods.GET])
 @handle_http_request
@@ -402,9 +378,7 @@ def get_project_schemas(request: Request, project_id: str) -> Response:
     return Response(data=data, status=status.HTTP_200_OK)
 
 
-def _get_schema_tables(
-    app: ApplicationContext, schema_name: str = ""
-) -> tuple[list[str], list[str]]:
+def _get_schema_tables(app: ApplicationContext, schema_name: str = "") -> tuple[list[str], list[str]]:
     """Process tables for a schema and return table_names_list and full table
     names."""
     table_names_list = []
@@ -413,9 +387,7 @@ def _get_schema_tables(
 
     for table_name in table_names:
         table_names_list.append(table_name)
-        schema_and_table_name = (
-            f"{schema_name}.{table_name}" if schema_name else table_name
-        )
+        schema_and_table_name = f"{schema_name}.{table_name}" if schema_name else table_name
         full_table_names.append(schema_and_table_name)
 
     return table_names_list, full_table_names
@@ -441,11 +413,7 @@ def _get_filtered_tables(app: ApplicationContext, unsupported_tables) -> dict[st
             schema_table_names.extend(schema_table_list)
 
         # Filter out unsupported tables
-        filtered_table_names = [
-            table
-            for table in schema_table_names
-            if table.split(".")[-1] not in unsupported_tables
-        ]
+        filtered_table_names = [table for table in schema_table_names if table.split(".")[-1] not in unsupported_tables]
 
         data = {
             "schema_names": schema_names,
@@ -457,11 +425,7 @@ def _get_filtered_tables(app: ApplicationContext, unsupported_tables) -> dict[st
     except NotImplementedError:
         # Handle databases without schema support
         _, table_names = _get_schema_tables(app)
-        data = {
-            "table_names": [
-                name for name in table_names if name not in unsupported_tables
-            ]
-        }
+        data = {"table_names": [name for name in table_names if name not in unsupported_tables]}
     return data
 
 
@@ -482,21 +446,14 @@ def get_project_schemas_and_tables(request: Request, project_id: str) -> Respons
 def _unsupported_tables(app, model_name):
     reference_models = app.get_model_reference_details(model_name=model_name)
     all_models = app.get_all_model_details()
-    unsupported_models: list[str] = list(
-        set(all_models.keys()) - set(reference_models.keys())
-    )
-    unsupported_tables = {
-        all_models[model_name].get("destination_table")
-        for model_name in unsupported_models
-    }
+    unsupported_models: list[str] = list(set(all_models.keys()) - set(reference_models.keys()))
+    unsupported_tables = {all_models[model_name].get("destination_table") for model_name in unsupported_models}
     return unsupported_tables
 
 
 @api_view([HTTPMethods.GET])
 @handle_http_request
-def get_project_table_columns(
-    request, schema_name: str, project_id: str, table_name: str
-) -> Response:
+def get_project_table_columns(request, schema_name: str, project_id: str, table_name: str) -> Response:
     if schema_name == "~":
         schema_name = ""
 
@@ -528,9 +485,7 @@ def get_project_table_columns(
 
 @api_view([HTTPMethods.GET])
 @handle_http_request
-def get_project_table_content(
-    request, schema_name: str, project_id: str, table_name: str
-) -> Response:
+def get_project_table_content(request, schema_name: str, project_id: str, table_name: str) -> Response:
     if schema_name == "~":
         schema_name = ""
 
@@ -603,9 +558,7 @@ def get_project_tables(request: Request, project_id: str, schema_name: str) -> R
         destination_table_name = app.get_destination_table_name(model_name=model)
 
     table_details = app.get_all_tables(schema_name=schema_name)
-    table_names, table_description = _get_table_name_and_description(
-        table_details, schema_name, destination_table_name
-    )
+    table_names, table_description = _get_table_name_and_description(table_details, schema_name, destination_table_name)
 
     data = {
         "schema_name": schema_name or "default",
@@ -668,9 +621,7 @@ def reload_model(request: Request, project_id: str) -> Response:
 
 @api_view([HTTPMethods.GET])
 @handle_http_request
-def rollback_model_file_content(
-    request: Request, project_id: str, model_name: str
-) -> Response:
+def rollback_model_file_content(request: Request, project_id: str, model_name: str) -> Response:
     # This method is used to save the model file inside the project
     app = ApplicationContext(project_id=project_id)
     data = app.rollback_model_content(model_name=model_name)
@@ -686,9 +637,7 @@ def save_model_file(request: Request, project_id: str, file_name: str) -> Respon
     request_data = request.data
     file_name = file_name.replace(" ", "_")
     app = ApplicationContext(project_id=project_id)
-    sequence_orders, sequence_lineage = app.save_model_file(
-        request_data, model_name=file_name, is_chat_response=False
-    )
+    sequence_orders, sequence_lineage = app.save_model_file(request_data, model_name=file_name, is_chat_response=False)
     response_json = {
         "status": "success",
         "sequence_orders": sequence_orders,
@@ -700,9 +649,7 @@ def save_model_file(request: Request, project_id: str, file_name: str) -> Respon
 @api_view([HTTPMethods.POST])
 @clear_cache(patterns=["model_content_{project_id}_*"])
 @handle_http_request
-def set_model_config_and_reference(
-    request: Request, project_id: str, file_name: str
-) -> Response:
+def set_model_config_and_reference(request: Request, project_id: str, file_name: str) -> Response:
     """API to set the configuration for a given model.
 
     ### Payload Structure:
@@ -756,9 +703,7 @@ def set_model_config_and_reference(
     request_data = request.data
     file_name = file_name.replace(" ", "_")
     no_code_model = NoCodeModel(project_id=project_id)
-    response_json = no_code_model.set_model_config_and_reference(
-        request_data, model_name=file_name
-    )
+    response_json = no_code_model.set_model_config_and_reference(request_data, model_name=file_name)
     response_json["status"] = "success"
     return Response(data=response_json)
 
@@ -766,16 +711,12 @@ def set_model_config_and_reference(
 @api_view([HTTPMethods.POST])
 @clear_cache(patterns=["model_content_{project_id}_*"])
 @handle_http_request
-def set_model_transformation(
-    request: Request, project_id: str, file_name: str
-) -> Response:
+def set_model_transformation(request: Request, project_id: str, file_name: str) -> Response:
     # This method is used to save the model file inside the project
     request_data = request.data
     file_name = file_name.replace(" ", "_")
     no_code_model = NoCodeModel(project_id=project_id)
-    response_json = no_code_model.set_model_transformation(
-        request_data, model_name=file_name
-    )
+    response_json = no_code_model.set_model_transformation(request_data, model_name=file_name)
     response_json["status"] = "success"
     return Response(data=response_json)
 
@@ -783,9 +724,7 @@ def set_model_transformation(
 @api_view([HTTPMethods.DELETE])
 @clear_cache(patterns=["model_content_{project_id}_*"])
 @handle_http_request
-def delete_model_transformation(
-    request: Request, project_id: str, file_name: str
-) -> Response:
+def delete_model_transformation(request: Request, project_id: str, file_name: str) -> Response:
     # This method is used to remove a transformation
     request_data = request.data
     file_name = file_name.replace(" ", "_")
@@ -804,30 +743,22 @@ def delete_model_transformation(
 @api_view([HTTPMethods.POST])
 @clear_cache(patterns=["model_content_{project_id}_*"])
 @handle_http_request
-def set_model_presentation(
-    request: Request, project_id: str, file_name: str
-) -> Response:
+def set_model_presentation(request: Request, project_id: str, file_name: str) -> Response:
     # This method is used to set or unset the presentation
     request_data = request.data
     file_name = file_name.replace(" ", "_")
     no_code_model = NoCodeModel(project_id=project_id)
-    response_json = no_code_model.set_model_presentation(
-        no_code_data=request_data, model_name=file_name
-    )
+    response_json = no_code_model.set_model_presentation(no_code_data=request_data, model_name=file_name)
     response_json["status"] = "success"
     return Response(data=response_json)
 
 
 @api_view([HTTPMethods.GET])
 @handle_http_request
-def get_transformation_columns(
-    request: Request, project_id: str, file_name: str
-) -> Response:
+def get_transformation_columns(request: Request, project_id: str, file_name: str) -> Response:
     # This method is used to set or unset the presentation
     transformation_id = request.query_params.get("transformation_id")
-    transformation_type = (
-        request.query_params.get("transformation_type", "current") or "current"
-    )
+    transformation_type = request.query_params.get("transformation_type", "current") or "current"
     model_name = file_name.replace(" ", "_")
     no_code_model = NoCodeModel(project_id=project_id)
     response_json = no_code_model.get_transformation_columns(
