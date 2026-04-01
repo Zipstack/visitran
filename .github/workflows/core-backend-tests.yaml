@@ -36,17 +36,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Cache pre-commit hooks
-        uses: actions/cache@v4
-        if: github.ref != 'refs/heads/main'
-        with:
-          path: ~/.cache/pre-commit
-          key: ${{ runner.os }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
-
-      - name: Check pre-commit
-        if: github.ref != 'refs/heads/main'
-        working-directory: .
-        run: uv run --directory backend pre-commit run --all-files
+      # pre-commit checks handled by pre-commit.ci
 
       - name: Run tests
         run: |
