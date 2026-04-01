@@ -39,6 +39,8 @@ jobs:
       # pre-commit checks handled by pre-commit.ci
 
       - name: Run tests
+        env:
+          DJANGO_SETTINGS_MODULE: backend.server.settings.dev
         run: |
           uv run coverage run --rcfile=pyproject.toml --source=. -m \
           pytest -x -vv ../tests/unit \
