@@ -2,6 +2,7 @@ from typing import Any
 
 from visitran.adapters.duckdb.connection import DuckDbConnection
 from visitran.adapters.seed import BaseSeed
+from visitran.errors import SeedFailureException
 
 
 class DuckDbSeed(BaseSeed):
@@ -21,6 +22,20 @@ class DuckDbSeed(BaseSeed):
         Overiding the base execute method to use the duckdb inbuild method
         """
 
+        if self.db_connection is None:
+            raise SeedFailureException(
+                seed_file_name=self.csv_file_name,
+                error_message="Database connection is not available. Please check your connection settings.",
+            )
+
         # The drop SQL query will drop the table if it is only exists !
         # Constructing SQL statement for CSV schema in target adapters
-        self.db_connection.insert_csv_records(abs_path=self.abs_path, table_name=self.destination_table_name)
+        try:
+            self.db_connection.insert_csv_records(abs_path=self.abs_path, table_name=self.destination_table_name)
+        except SeedFailureException:
+            raise
+        except Exception as err:
+            raise SeedFailureException(
+                seed_file_name=self.csv_file_name,
+                error_message=f'Failed to seed table "{self.destination_table_name}": {err}',
+            )
