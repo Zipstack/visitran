@@ -82,6 +82,14 @@ const IdeExplorer = ({
     setCurrentSchema,
   } = useProjectStore();
   const currentSchema = useProjectStore((state) => state.currentSchema);
+
+  // Reset currentSchema on unmount to prevent stale data
+  useEffect(() => {
+    return () => {
+      setCurrentSchema("");
+    };
+  }, [setCurrentSchema]);
+
   const expService = explorerService();
   const [tree, setTree] = useState([]);
   const [expandedKeys, setExpandedKeys] = useState([]);
