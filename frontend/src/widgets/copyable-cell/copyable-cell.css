@@ -1,0 +1,30 @@
+/* Copyable Cell - hover tooltip with copy for table cells */
+
+.copyable-cell {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: default;
+}
+
+/* Tooltip content layout */
+.copyable-cell-tooltip {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-family: var(--font-family);
+}
+
+.copyable-cell-tooltip-text {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+  white-space: pre-wrap;
+  user-select: text;
+  font-size: 12px;
+  line-height: 1.5;
+}

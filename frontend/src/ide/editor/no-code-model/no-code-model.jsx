@@ -91,6 +91,7 @@ import {
   OpenTab,
 } from "../../../base/icons/index.js";
 import { SpinnerLoader } from "../../../widgets/spinner_loader/index.js";
+import { CopyableCell } from "../../../widgets/copyable-cell/index.js";
 import "./no-code-model.css";
 import "reactflow/dist/style.css";
 import { useNotificationService } from "../../../service/notification-service.js";
@@ -736,7 +737,9 @@ function NoCodeModel({ nodeData }) {
         setConfigApply(true);
         handleModalClose("ok");
       })
-      .catch(() => {
+      .catch((error) => {
+        notify({ error });
+        setIsLoading(false);
         handleModalClose();
       });
   };
@@ -1353,23 +1356,33 @@ function NoCodeModel({ nodeData }) {
               ? JSON.stringify(text)
               : text;
 
+          const formattedValue =
+            displayValue === null || displayValue === undefined
+              ? ""
+              : ["Boolean", "boolean"].includes(dataType)
+              ? String(displayValue)
+              : dataType === "Number"
+              ? formatNumber(displayValue)
+              : displayValue;
+
+          const alignClass =
+            dataType === "Number"
+              ? "flex-justify-right"
+              : ["Boolean", "boolean"].includes(dataType)
+              ? "flex-justify-center"
+              : "";
+
           return (
-            <span
-              className={`column-title
-                ${formCol(isFormulaColumn, isAlias)} ${
-                dataType === "Number"
-                  ? "flex-justify-right"
-                  : ["Boolean", "boolean"].includes(dataType)
-                  ? "flex-justify-center"
-                  : ""
-              }`}
+            <CopyableCell
+              value={displayValue}
+              className={`column-title ${formCol(
+                isFormulaColumn,
+                isAlias,
+                isWindowColumn
+              )} ${alignClass}`}
             >
-              {["Boolean", "boolean"].includes(dataType)
-                ? String(displayValue)
-                : dataType === "Number"
-                ? formatNumber(displayValue)
-                : displayValue}
-            </span>
+              {formattedValue}
+            </CopyableCell>
           );
         },
       };
