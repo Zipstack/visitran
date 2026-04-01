@@ -58,10 +58,10 @@ class Session(BaseSession):
 
     def update_project_connection(self, connection_details: dict[str, Any]) -> dict[str, Any]:
         # TODO - Need to remove the project_connection update from project level
-
+        
         # Decrypt sensitive fields from frontend encrypted data
         decrypted_connection_details = decrypt_sensitive_fields(connection_details)
-
+        
         connection_model = self.project_instance.connection_model
         connection_model.connection_details = decrypted_connection_details
         connection_model.save()
@@ -71,7 +71,10 @@ class Session(BaseSession):
         return decrypted_connection_details
 
     def delete_project(self):
-        """This method will delete the current project instance :return:"""
+        """
+        This method will delete the current project instance
+        :return:
+        """
         if UserTaskDetails is not None:
             active_jobs = UserTaskDetails.objects.filter(project_id=self.project_id)
             active_jobs_list = [job.task_name for job in active_jobs]
@@ -88,7 +91,9 @@ class Session(BaseSession):
         self.project_instance.delete()
 
     def check_model_exists(self, model_name: str) :
-        """Checks if the model exists and returns it if found, else None."""
+        """
+        Checks if the model exists and returns it if found, else None.
+        """
         return self.fetch_model_if_exists(model_name=model_name)
 
     def create_model(self, model_name: str, is_generate_ai_request: bool) -> str:
@@ -124,7 +129,7 @@ class Session(BaseSession):
 
     def fetch_all_models_name(self) -> list[str]:
         children = []
-        models: list[ConfigModels] = self.fetch_all_models(fetch_all=True)
+        models: List[ConfigModels] = self.fetch_all_models(fetch_all=True)
         for model in models:
             children.append(model.model_name)
         # CACHE: store names list

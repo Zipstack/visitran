@@ -36,42 +36,41 @@ RESOURCE_NAME = "projectdetails"
 
 
 def _create_starter_projects_if_needed():
-    """Create starter projects for new users if they haven't been created
-    yet."""
+    """Create starter projects for new users if they haven't been created yet."""
     logging.info("Starting starter projects creation check")
-
+    
     try:
         # Get current user
         from pluggable_apps.tenant_account.organization_member_service import OrganizationMemberService
 
         current_user = get_current_user()
-
+        
         if not current_user:
             logging.warning("No current user found in context - skipping starter projects creation")
             return
-
+            
         if not current_user.get("username"):
             logging.warning("Current user has no username - skipping starter projects creation")
             return
-
+        
         username = current_user.get("username")
         logging.info(f"Checking starter projects for user: {username}")
-
+        
         # Check if starter projects have been created using service with cache
         if OrganizationMemberService.is_starter_projects_created(username):
             logging.info(f"Starter projects already created for user {username} - skipping creation")
             return
-
+        
         logging.info(f"Starter projects not created for user {username} - proceeding with creation")
-
+        
         # Create starter projects
         _create_starter_projects()
-
+        
         # Mark as created using service (updates both DB and cache)
         OrganizationMemberService.mark_starter_projects_created(username)
-
+        
         logging.info(f"Successfully created and marked starter projects for user {username}")
-
+        
     except Exception as e:
         logging.error(f"Error creating starter projects: {str(e)}", exc_info=True)
         # Don't raise exception to avoid breaking the project list API
@@ -80,46 +79,46 @@ def _create_starter_projects_if_needed():
 def _create_starter_projects():
     """Create starter projects using mapper."""
     logging.info("Starting creation of starter projects")
-
+    
     # Mapper for starter projects only
     starter_project_mapper = {
         "dvd_starter": DvdRentalProjectStarter,
         "jaffleshop_starter": JaffleShopProjectStarter,
     }
-
+    
     logging.info(f"Will create {len(starter_project_mapper)} starter projects: {list(starter_project_mapper.keys())}")
-
+    
     for project_key, project_class in starter_project_mapper.items():
         logging.info(f"Creating {project_key} starter project")
-
+        
         try:
             project_loader = project_class()
             sample_project_data = project_loader.load_sample_project()
-
+            
             # Enable onboarding and set project type for this project
             from backend.core.models.project_details import ProjectDetails
             from backend.application.utils import get_filter
-
+            
             project_id = sample_project_data.get("project_id")
             if not project_id:
                 logging.warning(f"No project_id returned for {project_key} - skipping project configuration")
                 continue
-
+                
             logging.info(f"Configuring project {project_key} with ID: {project_id}")
-
+            
             filter_condition = get_filter()
             filter_condition["project_uuid"] = project_id
-
+            
             project = ProjectDetails.objects.get(**filter_condition)
             project.onboarding_enabled = True
             project.project_type = project_key
             project.save()
-
+            
             logging.info(f"Successfully created and configured {project_key} starter project with ID: {project_id}")
-
+            
         except Exception as e:
             logging.error(f"Error creating {project_key} starter project: {str(e)}", exc_info=True)
-
+    
     logging.info("Completed starter projects creation process")
 
 
@@ -190,7 +189,7 @@ def create_sample_project(request) -> Response:
 
     # create connection with postgres for project
     sample_project_data = sample_project.load_sample_project()
-
+    
     # Set project_type for all sample projects; enable onboarding for starters
     from backend.core.models.project_details import ProjectDetails
     from backend.application.utils import get_filter
@@ -897,9 +896,10 @@ def generate_formula(request: Request, project_id: str, model_name: str) -> Resp
 @api_view([HTTPMethods.GET])
 @handle_http_request
 def get_sql_flow(request: Request, project_id: str) -> Response:
-    """Get table-level lineage (SQL Flow) for the entire project. Shows JOIN
-    relationships between tables across all models in an ER-diagram style
-    visualization with column-level join indicators.
+    """
+    Get table-level lineage (SQL Flow) for the entire project.
+    Shows JOIN relationships between tables across all models in an
+    ER-diagram style visualization with column-level join indicators.
 
     Returns:
         - nodes: List of table cards with schema, columns, and join key indicators
@@ -915,3 +915,5 @@ def get_sql_flow(request: Request, project_id: str) -> Response:
 
 
 # ===== TRANSFORMATION VERSIONING API ENDPOINTS =====
+
+

@@ -7,7 +7,9 @@ from backend.errors.exceptions import VisitranBackendBaseException
 
 
 class RequestHandlingMixin:
-    """Global exception handling and response formatting."""
+    """
+    Global exception handling and response formatting
+    """
 
     def dispatch(self, request, *args, **kwargs):
         try:

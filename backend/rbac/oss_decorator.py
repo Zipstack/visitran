@@ -1,4 +1,4 @@
-from backend.rbac.base_decorator import BasePermissionDecorator
+from .base_decorator import BasePermissionDecorator
 
 
 class OSSPermissionDecorator(BasePermissionDecorator):

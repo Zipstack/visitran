@@ -31,3 +31,4 @@ class FilterParser(BaseParser):
     # Inside BaseParser or FilterParser
     def has_column(self, column_name: str) -> bool:
         return column_name in self.column_names
+

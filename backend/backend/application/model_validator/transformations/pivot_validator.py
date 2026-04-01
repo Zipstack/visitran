@@ -47,7 +47,9 @@ class PivotValidator(Validator):
         return [column for column in new_columns if column not in old_columns]
 
     def check_column_usage(self, columns: list[str]) -> list[str]:
-        """Checks if any columns are used in the pivot transformation."""
+        """
+        Checks if any columns are used in the pivot transformation.
+        """
         affected_columns = [
             column for column in columns
             if column in {self.current_parser.to_rows, self.current_parser.to_column_names, self.current_parser.values_from}

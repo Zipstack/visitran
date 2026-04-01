@@ -12,8 +12,8 @@ class ReferenceTransformation(BaseTransformation):
         return self._parent_class
 
     def _parse_references(self) -> str:
-        """Parse reference models and determine the parent class for
-        inheritance.
+        """
+        Parse reference models and determine the parent class for inheritance.
 
         CRITICAL: The parent class is determined by `source_model`, NOT by the first
         reference in the list. This is important because:

@@ -150,14 +150,13 @@ def stream_logs(sid, data):
 @sio.event
 @with_tenant_context
 def get_prompt_response(sid, data: dict):
-    """This method is called from frontend when a prompt is given by the user
-    from socket The prompt will be saved initially using chat API and then this
-    method will be called to generate the prompt response, This method will
-    internally call AI service and persist the response and thought_chain.
-
-    :param sid: The current connected client address
-    :param data: The payload (dict) from frontend, contains chatId,
-        projectId, chatMessageId
+    """
+    This method is called from frontend when a prompt is given by the user from socket
+    The prompt will be saved initially using chat API and then this method will be called
+    to generate the prompt response, This method will internally call AI service and persist
+    the response and thought_chain.
+    :param sid:  The current connected client address
+    :param data: The payload (dict) from frontend, contains chatId, projectId, chatMessageId
     :return:
     """
     needed_args = ["chatId", "projectId", "chatMessageId", "channelId", "orgId"]
@@ -290,8 +289,8 @@ def send_socket_message(sid, channel_id, **kwargs):
 
 
 def get_token_usage_data(organization_id: str, chat_message_id: str, chat_id: str = None):
-    """Get token usage data for a specific chat message and organization.
-
+    """
+    Get token usage data for a specific chat message and organization.
     Returns balance info and token consumption data.
     """
     try:
@@ -336,9 +335,11 @@ def get_token_usage_data(organization_id: str, chat_message_id: str, chat_id: st
 @with_tenant_context
 @redis_singleton_lock(ttl=600)
 def handle_transformation_applied(sid, data):
-    """Handle the transformation applied event from frontend :param sid: The
-    current connected client address :param data: The payload from frontend
-    containing channelId, chatId, chatMessageId, projectId."""
+    """
+    Handle the transformation applied event from frontend
+    :param sid: The current connected client address
+    :param data: The payload from frontend containing channelId, chatId, chatMessageId, projectId
+    """
     chat_id = data["chatId"]
     project_id = data["projectId"]
     chat_message_id = data["chatMessageId"]
@@ -385,9 +386,11 @@ def handle_transformation_applied(sid, data):
 
 @sio.on("transformation_retry")
 def transform_retry(sid, data):
-    """Handle the transformation applied event from frontend :param sid: The
-    current connected client address :param data: The payload from frontend
-    containing channelId, chatId, chatMessageId, projectId."""
+    """
+    Handle the transformation applied event from frontend
+    :param sid: The current connected client address
+    :param data: The payload from frontend containing channelId, chatId, chatMessageId, projectId
+    """
     from backend.application.context.chat_message_context import ChatMessageContext
     from backend.utils.tenant_context import TenantContext, _get_tenant_context
 
@@ -426,9 +429,11 @@ def transform_retry(sid, data):
 @sio.on("stop_chat_ai")
 @with_tenant_context
 def stop_chat_ai(sid, data):
-    """Stop entire chatAi flow trhough frontend :param sid: The current
-    connected client address :param data: The payload from frontend containing
-    channelId, chatId, chatMessageId, projectId."""
+    """
+    Stop entire chatAi flow trhough frontend
+    :param sid: The current connected client address
+    :param data: The payload from frontend containing channelId, chatId, chatMessageId, projectId
+    """
     chat_id = data["chatId"]
     project_id = data["projectId"]
     chat_message_id = data["chatMessageId"]
@@ -577,11 +582,9 @@ def run_socket_server():
 @sio.on("subscribe_channel")
 @with_tenant_context
 def subscribe_channel(sid, data: dict):
-    """Lightweight subscription to join a channel (room) to receive future
-    streamed tokens.
-
-    Frontend should call this on reconnect/reload to join existing in-
-    flight stream's room.
+    """
+    Lightweight subscription to join a channel (room) to receive future streamed tokens.
+    Frontend should call this on reconnect/reload to join existing in-flight stream's room.
     """
     channel_id = data.get("channelId") or data.get("channel_id")
     if not channel_id:

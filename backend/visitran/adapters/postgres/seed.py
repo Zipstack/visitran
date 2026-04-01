@@ -15,3 +15,4 @@ class PostgresSeed(BaseSeed):
     @property
     def db_connection(self) -> PostgresConnection:
         return self._db_connection
+

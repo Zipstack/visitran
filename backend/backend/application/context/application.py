@@ -38,7 +38,7 @@ class ApplicationContext(ModelGraph):
         return schema_list
 
     def create_schema(self):
-        """This method will create schema for current connection."""
+        """This method will create schema for current connection"""
         self.visitran_context.create_schema()
 
     def get_all_tables(self, schema_name: str) -> list[Any]:
@@ -376,9 +376,9 @@ class ApplicationContext(ModelGraph):
             models: dict[str, Any] = None,
             model_dict: dict[str,Any] = None
     ) -> dict[str, Any]:
-        """This will return all reference models for the current model :param
-        model_name:
-
+        """
+        This will return all reference models for the current model
+        :param model_name:
         :param models: Optional
         :param model_dict: Optional
         :return:
@@ -398,7 +398,9 @@ class ApplicationContext(ModelGraph):
         return referenced_models
 
     def get_all_model_details(self):
-        """This will return all reference models."""
+        """
+        This will return all reference models
+        """
         config_models: list[ConfigModels] = self.session.fetch_all_models(fetch_all=True)
         models = {}
         for config_model in config_models:
@@ -424,10 +426,9 @@ class ApplicationContext(ModelGraph):
     ) -> set[str]:
         """Find models whose source table matches the given destination table.
 
-        This catches table-based dependencies that may not be captured
-        in the reference graph — e.g. when Model B sources from Model
-        A's destination table but Model A was never added to Model B's
-        reference list.
+        This catches table-based dependencies that may not be captured in the
+        reference graph — e.g. when Model B sources from Model A's destination
+        table but Model A was never added to Model B's reference list.
         """
         if not dest_table:
             return set()
@@ -499,7 +500,8 @@ class ApplicationContext(ModelGraph):
         transformation_type: str = None,
         transformation_id: str = None,
     ) -> None:
-        """Validates a model's configuration and handles dependency resolution.
+        """
+        Validates a model's configuration and handles dependency resolution.
 
         Args:
             new_model_data (dict[str, Any]): The dict of the metadata of the model
@@ -704,7 +706,8 @@ class ApplicationContext(ModelGraph):
         return self._parser, executor
 
     def execute_run(self, environment_id=None, model_name: str = None, model_names: list = None):
-        """Execute the visitran run command.
+        """
+        Execute the visitran run command.
 
         Args:
             environment_id: Optional environment ID for connection details
@@ -735,7 +738,8 @@ class ApplicationContext(ModelGraph):
             self.session.remove_sys_path()
 
     def execute_visitran_run_command(self, current_model: str = "", current_models: list = None, environment_id=None) -> None:
-        """Execute the visitran run command with selective model execution.
+        """
+        Execute the visitran run command with selective model execution.
 
         Args:
             current_model: Single model name for selective execution (right-click Run)
@@ -1143,7 +1147,8 @@ class ApplicationContext(ModelGraph):
         no_code_model: dict[str, Any],
         sequence_orders: dict[str, int]
     ) -> dict[str, Any]:
-        """Extract detailed information about each transformation in the model.
+        """
+        Extract detailed information about each transformation in the model.
 
         Args:
             no_code_model: The complete no-code model configuration
@@ -1410,3 +1415,4 @@ class ApplicationContext(ModelGraph):
         logging.info(f"Details keys: {list(details.keys())}")
 
         return details
+

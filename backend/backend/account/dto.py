@@ -1,7 +1,6 @@
 """Data transfer objects for account module.
 
-These DTOs provide a common interface for both OSS and cloud
-authentication.
+These DTOs provide a common interface for both OSS and cloud authentication.
 """
 
 from dataclasses import dataclass

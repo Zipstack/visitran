@@ -101,3 +101,4 @@ def clear_cache(patterns: list[str]):
 
         return wrapped
     return decorator
+

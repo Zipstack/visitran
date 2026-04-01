@@ -13,7 +13,7 @@ class ModelNotFound(VisitranBaseExceptions):
 
 
 class ModelImportError(VisitranBaseExceptions):
-    """Raised when a python model is unable to import."""
+    """Raised when a python model is unable to import"""
 
     def __init__(self, model_name: str, error_message: str):
         super().__init__(

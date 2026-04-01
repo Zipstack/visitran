@@ -1,5 +1,5 @@
-"""Comprehensive tests for incremental materialization across all databases and
-strategies.
+"""
+Comprehensive tests for incremental materialization across all databases and strategies.
 
 Tests cover:
 - All priority databases: PostgreSQL, Snowflake, BigQuery, Databricks

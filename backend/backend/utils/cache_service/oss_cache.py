@@ -16,8 +16,8 @@ class OssCacheService:
 
     @classmethod
     def _get_registry(cls) -> set:
-        """Get key registry from shared cache (Redis) if available, fall back
-        to local in-memory set for single-process dev."""
+        """Get key registry from shared cache (Redis) if available,
+        fall back to local in-memory set for single-process dev."""
         try:
             registry = cache.get(_REGISTRY_CACHE_KEY)
             if registry is not None:
@@ -65,3 +65,4 @@ class OssCacheService:
     @staticmethod
     def delete_a_key(key: str, version: Any = None) -> None:
         cache.delete(key, version)
+

@@ -25,7 +25,9 @@ def beautify_transformation_name(transformation_name: str) -> str:
 
 
 class ColumnDependency(VisitranBackendBaseException):
-    """Raised if the model is configured with invalid source table."""
+    """
+    Raised if the model is configured with invalid source table.
+    """
 
     def __init__(
             self,
@@ -49,7 +51,9 @@ class ColumnDependency(VisitranBackendBaseException):
 
 
 class MultipleColumnDependency(VisitranBackendBaseException):
-    """Raised if the model is configured with invalid source table."""
+    """
+    Raised if the model is configured with invalid source table.
+    """
 
     def __init__(
             self,
@@ -101,7 +105,9 @@ class ModelTableDependency(VisitranBackendBaseException):
 
 
 class TransformationDependency(VisitranBackendBaseException):
-    """Raised if the model is configured with invalid source table."""
+    """
+        Raised if the model is configured with invalid source table.
+        """
 
     def __init__(
             self,
@@ -125,8 +131,9 @@ class TransformationDependency(VisitranBackendBaseException):
 
 
 class ModelDependency(VisitranBackendBaseException):
-    """Raised if the current model is dependent on another model when the
-    current model is tried to delete."""
+    """
+    Raised if the current model is dependent on another model when the current model is tried to delete.
+    """
 
     def __init__(self, child_models: list[str], model_name: str) -> None:
         super().__init__(
@@ -142,7 +149,9 @@ class ModelDependency(VisitranBackendBaseException):
 
 
 class ProjectDependencyException(VisitranBackendBaseException):
-    """Raised when attempting to delete a project that has associated jobs."""
+    """
+    Raised when attempting to delete a project that has associated jobs.
+    """
 
     def __init__(self, project_name: str, jobs: list[str]) -> None:
         super().__init__(

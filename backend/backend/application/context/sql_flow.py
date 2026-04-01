@@ -14,7 +14,8 @@ from backend.core.models.dependent_models import DependentModels
 
 
 class SQLFlowGenerator(BaseContext):
-    """Generates table-level lineage graph from model definitions.
+    """
+    Generates table-level lineage graph from model definitions.
 
     Shows:
     - Source tables (raw database tables)
@@ -25,22 +26,22 @@ class SQLFlowGenerator(BaseContext):
 
     def __init__(self, project_id: str):
         super().__init__(project_id=project_id)
-        self.nodes: dict[str, dict] = {}  # table_key -> node
-        self.edges: list[dict] = []
-        self.join_targets: set[str] = set()  # Tables used as JOIN targets or referenced
-        self.schemas: set[str] = set()  # Track all schemas encountered
+        self.nodes: Dict[str, dict] = {}  # table_key -> node
+        self.edges: List[dict] = []
+        self.join_targets: Set[str] = set()  # Tables used as JOIN targets or referenced
+        self.schemas: Set[str] = set()  # Track all schemas encountered
         # Track model name -> output table key mapping for reference resolution
-        self.model_to_output: dict[str, str] = {}
+        self.model_to_output: Dict[str, str] = {}
         # Track model references for building inheritance edges
-        self.model_references: dict[str, list[str]] = {}
+        self.model_references: Dict[str, List[str]] = {}
         # Track model output -> source table key for column inheritance
-        self.model_source_map: dict[str, str] = {}
+        self.model_source_map: Dict[str, str] = {}
         # Track table key -> compiled SQL for model outputs
-        self.model_sql_map: dict[str, str] = {}
+        self.model_sql_map: Dict[str, str] = {}
 
-    def generate_flow(self) -> dict[str, Any]:
-        """Main entry point. Returns nodes and edges for SQL Flow
-        visualization.
+    def generate_flow(self) -> Dict[str, Any]:
+        """
+        Main entry point. Returns nodes and edges for SQL Flow visualization.
 
         Returns:
             Dictionary containing:
@@ -281,8 +282,7 @@ class SQLFlowGenerator(BaseContext):
         })
 
     def _process_model_references(self):
-        """Create edges for model references (when one model references
-        another)."""
+        """Create edges for model references (when one model references another)."""
         for model_name, references in self.model_references.items():
             current_output = self.model_to_output.get(model_name)
             if not current_output:
@@ -295,7 +295,8 @@ class SQLFlowGenerator(BaseContext):
                     self._add_edge(ref_output, current_output, model_name, "reference")
 
     def _classify_nodes(self):
-        """Classify nodes as source, model, or terminal.
+        """
+        Classify nodes as source, model, or terminal.
 
         - source: Raw database tables (purple border)
         - model: Intermediate models (blue border)
@@ -311,7 +312,7 @@ class SQLFlowGenerator(BaseContext):
             else:
                 node["data"]["tableType"] = "model"
 
-    def _fetch_table_columns(self, schema_name: str, table_name: str) -> list[dict]:
+    def _fetch_table_columns(self, schema_name: str, table_name: str) -> List[dict]:
         """Fetch columns for a table from the database."""
         try:
             columns = self.visitran_context.get_table_columns_with_type(
@@ -326,9 +327,8 @@ class SQLFlowGenerator(BaseContext):
             logging.warning(f"Failed to fetch columns for {schema_name}.{table_name}: {e}")
             return []
 
-    def _get_columns_for_table(self, key: str, visited: set[str] = None) -> list[dict]:
-        """Get columns for a table, with fallback to source table for model
-        outputs."""
+    def _get_columns_for_table(self, key: str, visited: Set[str] = None) -> List[dict]:
+        """Get columns for a table, with fallback to source table for model outputs."""
         if visited is None:
             visited = set()
         if key in visited:

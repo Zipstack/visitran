@@ -59,27 +59,27 @@ class BaseModel(ABC):
 
     def _has_schema_changed(self) -> bool:
         """Detect if schema has changed significantly.
-
+        
         This method compares the current table columns with the new SELECT statement
         columns to determine if a full refresh is needed due to schema changes.
-
+        
         Returns:
             True if schema has changed significantly, False otherwise
         """
         try:
             # Get current table columns
             current_columns = set(self.db_connection.get_table_columns(
-                schema_name=self.model.destination_schema_name,
+                schema_name=self.model.destination_schema_name, 
                 table_name=self.model.destination_table_name
             ))
-
+            
             # Get new columns from SELECT statement
             new_columns = set(self.model.select_statement.columns)
-
+            
             # Check for changes
             added_columns = new_columns - current_columns
             removed_columns = current_columns - new_columns
-
+            
             # Log schema change details
             if added_columns or removed_columns:
                 logging.info(f"Schema change detected for {self.model.destination_schema_name}.{self.model.destination_table_name}")
@@ -88,9 +88,9 @@ class BaseModel(ABC):
                 if removed_columns:
                     logging.info(f"  Removed columns: {list(removed_columns)}")
                 return True
-
+            
             return False
-
+            
         except Exception as e:
             # If we can't determine schema, assume it changed (safe default)
             logging.warning(f"Could not determine schema for {self.model.destination_schema_name}.{self.model.destination_table_name}: {str(e)}")

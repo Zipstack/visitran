@@ -42,15 +42,15 @@ def fetch_abs_path(csv_files, csv_model):
 class VisitranBackendContext(VisitranContext):
     def __init__(
         self,
-        project_config: dict[str, Any],
+        project_config: Dict[str, Any],
         session: Session,
         is_api_call: bool = False,
-        env_data: dict[str, Any] = None,
+        env_data: Dict[str, Any] = None,
     ):
         self.session = session
         self._select_models: list = []
         self._exclude_models: list = []
-        self._model_configs: dict[str, Any] = {}  # Per-model deployment configuration
+        self._model_configs: Dict[str, Any] = {}  # Per-model deployment configuration
         super().__init__(project_config, is_api_call, env_data)
 
     # --------------- CACHE: Key helpers using BaseSession's tenant/project ---------------
@@ -103,12 +103,12 @@ class VisitranBackendContext(VisitranContext):
         return self._exclude_models
 
     @property
-    def model_configs(self) -> dict[str, Any]:
+    def model_configs(self) -> Dict[str, Any]:
         """Per-model deployment configuration for materialization overrides."""
         return self._model_configs
 
     @model_configs.setter
-    def model_configs(self, value: dict[str, Any]):
+    def model_configs(self, value: Dict[str, Any]):
         self._model_configs = value or {}
 
     @property
@@ -133,7 +133,7 @@ class VisitranBackendContext(VisitranContext):
         fetch_abs_path(csv_files, csv_model)
         return csv_files
 
-    def get_seed_files(self) -> list[dict[str, Any]]:
+    def get_seed_files(self) -> List[Dict[str, Any]]:
         csv_models = self.session.fetch_all_csv_files()
         csv_files = []
         for csv_model in csv_models:
@@ -153,7 +153,7 @@ class VisitranBackendContext(VisitranContext):
         csv_model.save()
 
     # -------------------- Model files --------------------
-    def get_model_files(self) -> list[dict[str, Any]]:
+    def get_model_files(self) -> List[Dict[str, Any]]:
         Singleton.reset_cache()
         no_code_models = []
         models = self.session.fetch_all_models()
@@ -174,7 +174,7 @@ class VisitranBackendContext(VisitranContext):
         return no_code_models
 
     @staticmethod
-    def _collect_downstream(model_name: str, children_of: dict[str, set[str]]) -> set[str]:
+    def _collect_downstream(model_name: str, children_of: Dict[str, Set[str]]) -> Set[str]:
         """Collect all downstream dependents (children) of a model via BFS."""
         result = set()
         stack = [model_name]
@@ -187,7 +187,7 @@ class VisitranBackendContext(VisitranContext):
         return result
 
     @staticmethod
-    def _collect_upstream(model_name: str, model_dict: dict[str, set[str]]) -> set[str]:
+    def _collect_upstream(model_name: str, model_dict: Dict[str, Set[str]]) -> Set[str]:
         """Collect all upstream parents of a model via BFS."""
         result = set()
         stack = list(model_dict.get(model_name, set()))
@@ -198,11 +198,11 @@ class VisitranBackendContext(VisitranContext):
                 stack.extend(model_dict.get(current, set()) - result)
         return result
 
-    def get_model_child_references(self, model_name: str) -> list[str]:
-        """Get all downstream dependents (children) of a model.
-
-        These are models that depend on the given model and need to be
-        re-executed when the given model changes.
+    def get_model_child_references(self, model_name: str) -> List[str]:
+        """
+        Get all downstream dependents (children) of a model.
+        These are models that depend on the given model and need to be re-executed
+        when the given model changes.
         """
         from backend.application.validate_references import ValidateReferences
         model_dict = {}
@@ -214,8 +214,9 @@ class VisitranBackendContext(VisitranContext):
         child_references.append(model_name)
         return child_references
 
-    def get_model_execution_subgraph(self, model_name: str) -> dict[str, list[str]]:
-        """Get the complete subgraph for executing a model.
+    def get_model_execution_subgraph(self, model_name: str) -> Dict[str, List[str]]:
+        """
+        Get the complete subgraph for executing a model.
 
         Returns:
             dict with:
@@ -267,8 +268,9 @@ class VisitranBackendContext(VisitranContext):
         logging.info(f"[get_model_execution_subgraph] Result: {result}")
         return result
 
-    def get_multi_model_execution_subgraph(self, model_names: list[str]) -> dict[str, list[str]]:
-        """Get the combined subgraph for executing multiple models.
+    def get_multi_model_execution_subgraph(self, model_names: List[str]) -> Dict[str, List[str]]:
+        """
+        Get the combined subgraph for executing multiple models.
 
         This is used when AI generates/updates multiple models at once.
         Computes the union of all subgraphs to avoid redundant executions.
@@ -362,9 +364,8 @@ class VisitranBackendContext(VisitranContext):
             )
         except (ProgrammingError, IbisTypeError) as err:
             if selective_columns:
-                """Sometimes the table may not have the columns that are
-                specified in the selective_columns.
-
+                """
+                Sometimes the table may not have the columns that are specified in the selective_columns.
                 So, we need to fetch all the columns from the table.
                 """
                 logging.warning(f"Failed to fetch selective columns from table {table_name}. Fetching all columns.")
@@ -413,10 +414,10 @@ class VisitranBackendContext(VisitranContext):
         db_type = db_type or self.database_type
         if not connection_data:
             connection_data = {"file_path": f"{self.project_path}{os.path.sep}models/local.db"}
-
+        
         # Decrypt sensitive fields from frontend encrypted data
         decrypted_connection_data = decrypt_sensitive_fields(connection_data)
-
+        
         connection_cls: type[BaseConnection] = get_adapter_connection_cls(db_type)
         old_connection = self._conn_details
         self._conn_details = decrypted_connection_data
@@ -435,9 +436,8 @@ class VisitranBackendContext(VisitranContext):
         return self._cache_key("db", "snapshot")
 
     def _get_or_build_snapshot_from_db_meta(self) -> dict:
-        """Load unified snapshot from cache, or build it using
-        get_db_metadata() as the single source.
-
+        """
+        Load unified snapshot from cache, or build it using get_db_metadata() as the single source.
         Snapshot shape:
           {
             "ui_tree": {...},
@@ -492,8 +492,8 @@ class VisitranBackendContext(VisitranContext):
 
     # -------------------- Clear only database caches --------------------
     def get_project_model_graph_edges(self) -> list[tuple[str, str]]:
-        """Get edges from the project model graph.
-
+        """
+        Get edges from the project model graph.
         Returns list of (source_model_name, target_model_name) tuples.
         """
         if hasattr(self.session, 'model_graph') and self.session.model_graph:

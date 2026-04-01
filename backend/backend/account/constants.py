@@ -6,8 +6,8 @@ import os
 class DefaultOrg:
     """Default organization constants.
 
-    Used for OSS mode when auto-creating a personal organization. Legacy
-    mock user support retained for backward compatibility.
+    Used for OSS mode when auto-creating a personal organization.
+    Legacy mock user support retained for backward compatibility.
     """
     # Legacy mock user support (for backward compatibility with env-based auth)
     ORGANIZATION_NAME = "default_org"

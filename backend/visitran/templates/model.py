@@ -56,12 +56,12 @@ class VisitranModel(metaclass=Singleton):
         # class with incremental materialization
         # this is get only
         self.destination_table_exists: bool = False
-
+        
         # Primary key for efficient upserts (especially for BigQuery)
         # This should be set to the column name(s) that uniquely identify records
         # Can be a single column name (str) or list of column names for composite keys
         self.primary_key: Union[str, list[str]] = ""
-
+        
         # Delta detection strategy for incremental processing
         # This defines how to identify new/changed records for incremental updates
         self.delta_strategy: dict[str, Any] = {
@@ -72,8 +72,7 @@ class VisitranModel(metaclass=Singleton):
 
     @property
     def source_table_obj(self) -> Table | None:
-        """Lazy initialization of source_table_obj using shared
-        db_connection."""
+        """Lazy initialization of source_table_obj using shared db_connection."""
         if self._source_table_obj is None and VisitranModel._shared_db_connection is not None:
             if self.source_schema_name and self.source_table_name:
                 try:
@@ -145,32 +144,32 @@ class VisitranModel(metaclass=Singleton):
         if self.primary_key:
             return 'merge'
         return 'append'
-
+    
     def _validate_delta_strategy_config(self) -> None:
         """Validate delta strategy configuration."""
         strategy_type = self.delta_strategy.get("type")
-
+        
         if strategy_type == "timestamp":
             if not self.delta_strategy.get("column"):
                 raise ValueError(
                     f"Timestamp strategy requires 'column' configuration. "
                     f"Example: create_timestamp_strategy(column='updated_at')"
                 )
-
+        
         elif strategy_type == "date":
             if not self.delta_strategy.get("column"):
                 raise ValueError(
                     f"Date strategy requires 'column' configuration. "
                     f"Example: create_date_strategy(column='created_date')"
                 )
-
+        
         elif strategy_type == "sequence":
             if not self.delta_strategy.get("column"):
                 raise ValueError(
                     f"Sequence strategy requires 'column' configuration. "
                     f"Example: create_sequence_strategy(column='id')"
                 )
-
+        
         elif strategy_type == "checksum":
             if not self.delta_strategy.get("column"):
                 raise ValueError(
@@ -182,7 +181,7 @@ class VisitranModel(metaclass=Singleton):
                     f"Checksum strategy requires 'key_columns' configuration. "
                     f"Example: create_checksum_strategy(checksum_column='content_hash', key_columns=['product_id'])"
                 )
-
+        
         elif strategy_type == "custom":
             if not self.delta_strategy.get("custom_logic"):
                 raise ValueError(
@@ -193,41 +192,41 @@ class VisitranModel(metaclass=Singleton):
                 raise ValueError(
                     f"Custom strategy 'custom_logic' must be a callable function."
                 )
-
+        
         elif strategy_type == "full_scan":
             # No additional validation needed for full scan
             pass
-
+        
         else:
             raise ValueError(
                 f"Unknown delta strategy type: {strategy_type}. "
                 f"Available strategies: {DeltaStrategyFactory.get_available_strategies()}"
             )
-
+    
     def _execute_delta_strategy(self) -> Table:
         """Execute the configured delta strategy to get incremental data."""
         if not self.destination_table_exists:
             # First run - return all data
             return self.select()
-
+        
         # Get the delta strategy
         strategy_type = self.delta_strategy["type"]
         strategy = DeltaStrategyFactory.get_strategy(strategy_type)
-
+        
         # Execute the strategy
         source_table = self.select()
         destination_table = self.destination_table_obj
-
+        
         # Get incremental data from strategy
         incremental_data = strategy.get_incremental_data(
             source_table=source_table,
             destination_table=destination_table,
             strategy_config=self.delta_strategy
         )
-
+        
         # Return incremental data as-is (no additional transformation needed)
         return incremental_data
-
+    
     def __str__(self) -> str:
         return f"{self.destination_schema_name}.{self.destination_table_name}"
 
@@ -280,13 +279,11 @@ class VisitranModel(metaclass=Singleton):
             self._initialize_ancestor_singletons(db_connection)
 
     def _initialize_ancestor_singletons(self, db_connection: BaseConnection) -> None:
-        """Initialize source_table_obj for all ancestor class Singletons in the
-        MRO.
+        """Initialize source_table_obj for all ancestor class Singletons in the MRO.
 
-        This ensures that when select() calls ParentClass().select(),
-        the parent Singleton has its source_table_obj properly
-        initialized, regardless of whether it was discovered and
-        executed as a separate DAG node.
+        This ensures that when select() calls ParentClass().select(), the parent
+        Singleton has its source_table_obj properly initialized, regardless of
+        whether it was discovered and executed as a separate DAG node.
         """
         for ancestor_class in self.__class__.__mro__:
             if not self._is_valid_ancestor(ancestor_class):
@@ -294,8 +291,7 @@ class VisitranModel(metaclass=Singleton):
             self._initialize_ancestor_source_table(ancestor_class, db_connection)
 
     def _is_valid_ancestor(self, ancestor_class: type) -> bool:
-        """Check if an ancestor class should have its source_table_obj
-        initialized."""
+        """Check if an ancestor class should have its source_table_obj initialized."""
         if ancestor_class is VisitranModel or ancestor_class is self.__class__:
             return False
         if not isinstance(ancestor_class, type) or ancestor_class.__name__ == 'object':
@@ -306,8 +302,7 @@ class VisitranModel(metaclass=Singleton):
             return False
 
     def _initialize_ancestor_source_table(self, ancestor_class: type, db_connection: BaseConnection) -> None:
-        """Initialize source_table_obj for a single ancestor class
-        Singleton."""
+        """Initialize source_table_obj for a single ancestor class Singleton."""
         try:
             ancestor_instance = ancestor_class()
             if ancestor_instance.source_table_obj is not None:
@@ -331,9 +326,8 @@ class VisitranModel(metaclass=Singleton):
 
     @staticmethod
     def prepare_child_table(child_obj: Table, parent_obj: Table, mappings: dict):
-        """This method is used by Unions transformations to add the existing
-        columns from the parent table.
-
+        """
+        This method is used by Unions transformations to add the existing columns from the parent table.
         :param child_obj:
         :param parent_obj:
         :param mappings:

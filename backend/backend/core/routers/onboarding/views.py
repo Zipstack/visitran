@@ -17,15 +17,16 @@ logger = logging.getLogger(__name__)
 
 
 class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
-    """ViewSet for managing onboarding templates and project onboarding
-    sessions."""
+    """
+    ViewSet for managing onboarding templates and project onboarding sessions
+    """
 
     @action(detail=False, methods=["GET"])
     def get_onboarding_template(self, request: Request, template_id: str) -> Response:
         """Get onboarding template by ID - Global templates"""
         try:
             template = OnboardingTemplate.objects.get(
-                template_id=template_id,
+                template_id=template_id, 
                 is_active=True
             )
             return Response({
@@ -40,8 +41,7 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
 
     @action(detail=False, methods=["GET"])
     def get_project_onboarding_status(self, request: Request, project_id: str) -> Response:
-        """Get project onboarding status with auto-initialization and all tasks
-        status."""
+        """Get project onboarding status with auto-initialization and all tasks status"""
         try:
             # Get project details
             try:
@@ -90,7 +90,7 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
             completed_count = len(onboarding_session.completed_tasks)
             skipped_count = len(onboarding_session.skipped_tasks)
             progress_percentage = int((completed_count + skipped_count) / total_tasks * 100) if total_tasks > 0 else 0
-
+            
             # Check if onboarding is completed (only check session status, not progress)
             is_completed = onboarding_session.is_completed
 
@@ -121,7 +121,7 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
 
     @action(detail=False, methods=["POST"])
     def start_onboarding(self, request: Request, project_id: str) -> Response:
-        """Start onboarding for a project."""
+        """Start onboarding for a project"""
         try:
 
             # Get project details
@@ -196,7 +196,7 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
 
             # Get project and user
             project = ProjectDetails.objects.get(project_uuid=project_id)
-
+            
             try:
                 user = self._get_user_from_context()
             except ValueError as e:
@@ -233,7 +233,7 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
             completed_count = len(onboarding_session.completed_tasks)
             skipped_count = len(onboarding_session.skipped_tasks)
             progress_percentage = int((completed_count + skipped_count) / total_tasks * 100) if total_tasks > 0 else 0
-
+            
             # Don't auto-complete onboarding when progress reaches 100%
             # Use separate API endpoint to mark as complete
             is_completed = onboarding_session.is_completed
@@ -276,7 +276,7 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
 
             # Get project and user
             project = ProjectDetails.objects.get(project_uuid=project_id)
-
+            
             try:
                 user = self._get_user_from_context()
             except ValueError as e:
@@ -313,7 +313,7 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
             completed_count = len(onboarding_session.completed_tasks)
             skipped_count = len(onboarding_session.skipped_tasks)
             progress_percentage = int((completed_count + skipped_count) / total_tasks * 100) if total_tasks > 0 else 0
-
+            
             # Don't auto-complete onboarding when progress reaches 100%
             # Use separate API endpoint to mark as complete
             is_completed = onboarding_session.is_completed
@@ -347,7 +347,7 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
 
     @action(detail=False, methods=["POST"])
     def reset_onboarding(self, request: Request, project_id: str) -> Response:
-        """Reset onboarding session for a project."""
+        """Reset onboarding session for a project"""
         try:
 
             # Get project details
@@ -411,7 +411,7 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
 
     @action(detail=False, methods=["POST"])
     def toggle_project_onboarding(self, request: Request, project_id: str) -> Response:
-        """Toggle onboarding enabled status for a project."""
+        """Toggle onboarding enabled status for a project"""
         try:
 
             # Get project details
@@ -435,28 +435,28 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
             return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def _get_template_for_project(self, project: ProjectDetails) -> OnboardingTemplate:
-        """Get template based on project type."""
+        """Get template based on project type"""
         if not project.project_type:
             # Default to jaffleshop_starter if no project type
             template_id = "jaffleshop_starter"
         else:
             template_id = project.project_type
-
+        
         try:
             return OnboardingTemplate.objects.get(template_id=template_id)
         except OnboardingTemplate.DoesNotExist:
             # Fallback to jaffle_shop_starter if template not found
             return OnboardingTemplate.objects.get(template_id="jaffleshop_starter")
 
-    def _build_tasks_with_status(self, template: OnboardingTemplate, session: ProjectOnboardingSession) -> list[dict]:
-        """Build tasks list with individual status for each task."""
+    def _build_tasks_with_status(self, template: OnboardingTemplate, session: ProjectOnboardingSession) -> List[Dict]:
+        """Build tasks list with individual status for each task"""
         tasks = []
-
+        
         for task in template.template_data.get('items', []):
             task_id = task.get("id")
             if not task_id:
                 continue
-
+                
             # Determine task status
             if task_id in session.completed_tasks:
                 status = "completed"
@@ -464,7 +464,7 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
                 status = "skipped"
             else:
                 status = "pending"
-
+            
             tasks.append({
                 "id": task_id,
                 "title": task.get("title", ""),
@@ -473,12 +473,12 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
                 "mode": task.get("mode", ""),
                 "status": status
             })
-
+        
         return tasks
 
     @action(detail=False, methods=["POST"])
     def mark_complete(self, request: Request, project_id: str) -> Response:
-        """Manually mark onboarding as complete."""
+        """Manually mark onboarding as complete"""
         try:
             # Get project
             try:
@@ -518,18 +518,18 @@ class OnboardingViewSet(RequestHandlingMixin, viewsets.ViewSet):
             return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def _task_exists_in_template(self, template: OnboardingTemplate, task_id: str) -> bool:
-        """Check if task exists in template."""
+        """Check if task exists in template"""
         for task in template.template_data.get('items', []):
             if task.get("id") == task_id:
                 return True
         return False
 
     def _get_user_from_context(self) -> User:
-        """Get user object from current context."""
+        """Get user object from current context"""
         current_user = get_current_user()
         if not current_user or not current_user.get("username"):
             raise ValueError("User not found in context")
-
+        
         username = current_user.get("username")
         try:
             return User.objects.get(email=username)

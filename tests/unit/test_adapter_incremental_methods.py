@@ -1,12 +1,12 @@
-"""Tests for verifying incremental materialization methods exist in all
-adapters."""
+"""
+Tests for verifying incremental materialization methods exist in all adapters.
+"""
 
 import pytest
 
 
 class TestAdapterIncrementalMethods:
-    """Verify all adapters have required incremental materialization
-    methods."""
+    """Verify all adapters have required incremental materialization methods."""
 
     def test_base_model_has_schema_changed(self):
         """Test BaseModel has _has_schema_changed method."""

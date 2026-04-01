@@ -60,8 +60,7 @@ class SnowflakeModel(BaseModel):
         self.model.destination_table_obj = table_obj
 
     def execute_incremental(self) -> None:
-        """Executes an incremental materialization using Snowflake's MERGE INTO
-        for upsert."""
+        """Executes an incremental materialization using Snowflake's MERGE INTO for upsert."""
         if self.model.destination_table_exists:
             # Incremental update path
             fire_event(
@@ -70,22 +69,22 @@ class SnowflakeModel(BaseModel):
                     self.model.destination_table_name,
                 )
             )
-
+            
             # Get incremental data
             self.model.select_statement = self.model.select_if_incremental()
-
+            
             # Check for schema changes first
             if self._has_schema_changed():
                 logging.info(f"Schema change detected for {self.model.destination_schema_name}.{self.model.destination_table_name}, performing full refresh")
                 self._full_refresh_table()
                 return
-
+            
             # Continue with incremental logic if no schema changes
             logging.info(f"No schema changes detected for {self.model.destination_schema_name}.{self.model.destination_table_name}, using incremental update")
-
+            
             # Get primary key for upsert
             primary_key = getattr(self.model, 'primary_key', None)
-
+            
             if primary_key:
                 # MERGE mode: Upsert with primary key (updates existing, inserts new)
                 logging.info(f"Incremental MERGE mode: upserting with primary_key={primary_key}")
@@ -111,10 +110,10 @@ class SnowflakeModel(BaseModel):
                     self.model.destination_table_name,
                 )
             )
-
+            
             # Get all data for first run
             self.model.select_statement = self.model.select()
-
+            
             # Create table with all data
             self.db_connection.drop_table_if_exist(
                 table_name=self.model.destination_table_name,
@@ -139,22 +138,22 @@ class SnowflakeModel(BaseModel):
         """Perform full refresh using existing table transformation methods."""
         try:
             logging.info(f"Starting full refresh for {self.model.destination_schema_name}.{self.model.destination_table_name}")
-
+            
             # Drop existing table
             self.db_connection.drop_table_if_exist(
                 table_name=self.model.destination_table_name,
                 schema_name=self.model.destination_schema_name,
             )
-
+            
             # Create new table with current transformation logic
             self.db_connection.create_table(
                 table_name=self.model.destination_table_name,
                 table_statement=self.model.select_statement,
                 schema_name=self.model.destination_schema_name,
             )
-
+            
             logging.info(f"Full refresh completed for {self.model.destination_schema_name}.{self.model.destination_table_name}")
-
+            
         except Exception as e:
             logging.error(f"Full refresh failed for {self.model.destination_schema_name}.{self.model.destination_table_name}: {str(e)}")
             raise Exception(

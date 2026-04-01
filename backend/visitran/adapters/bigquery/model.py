@@ -76,22 +76,22 @@ class BigQueryModel(BaseModel):
                     self.model.destination_table_name,
                 )
             )
-
+            
 
             # Check for schema changes first
             if self._has_schema_changed():
                 logging.info(f"Schema change detected for {self.model.destination_schema_name}.{self.model.destination_table_name}, performing full refresh")
                 self._full_refresh_table()
-
+            
             else:
                 # Continue with incremental logic if no schema changes
                 self.model.select_statement = self.model.select_if_incremental()
-
+                
                 logging.info(f"No schema changes detected for {self.model.destination_schema_name}.{self.model.destination_table_name}, using incremental update")
 
                 # Get primary key from model if available
                 primary_key = getattr(self.model, 'primary_key', None)
-
+                
                 self.db_connection.merge_into_table(
                     schema_name=self.model.destination_schema_name,
                     target_table_name=self.model.destination_table_name,
@@ -123,16 +123,16 @@ class BigQueryModel(BaseModel):
         """Perform full refresh using existing table transformation methods."""
         try:
             logging.info(f"Starting full refresh for {self.model.destination_schema_name}.{self.model.destination_table_name}")
-
+            
             # Use BigQuery's create_or_replace_table which handles full refresh
             self.db_connection.create_or_replace_table(
                 schema_name=self.model.destination_schema_name,
                 table_name=self.model.destination_table_name,
                 select_statement=self.model.select_statement,
             )
-
+            
             logging.info(f"Full refresh completed for {self.model.destination_schema_name}.{self.model.destination_table_name}")
-
+            
         except Exception as e:
             logging.error(f"Full refresh failed for {self.model.destination_schema_name}.{self.model.destination_table_name}: {str(e)}")
             raise Exception(

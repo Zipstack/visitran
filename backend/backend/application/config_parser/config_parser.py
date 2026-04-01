@@ -10,8 +10,9 @@ class ConfigParser(BaseParser):
     _instances: dict[str, "ConfigParser"] = {}
 
     def __new__(cls, model_data: dict[str, Any], file_name: str, *args, **kwargs) -> "ConfigParser":
-        """Overrides the __new__ method to implement a singleton pattern based
-        on the file_name parameter.
+        """
+        Overrides the __new__ method to implement a singleton pattern
+        based on the file_name parameter.
 
         Args:
             model_data (dict[str, Any]): Configuration data for the model.
@@ -90,7 +91,7 @@ class ConfigParser(BaseParser):
     @property
     def delta_strategy(self) -> dict[str, Any]:
         return self.incremental_config.get("delta_strategy", {})
-
+    
     @property
     def reference(self) -> list[str]:
         if not self._reference:
@@ -99,8 +100,8 @@ class ConfigParser(BaseParser):
 
     @property
     def source_model(self) -> str | None:
-        """Returns the model name that produces this model's source table, if
-        any.
+        """
+        Returns the model name that produces this model's source table, if any.
 
         This is set by validate_table_usage_references() when the source table
         matches another model's destination. It explicitly tracks which model

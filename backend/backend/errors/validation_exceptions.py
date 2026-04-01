@@ -5,7 +5,9 @@ from backend.errors.visitran_backend_base_exceptions import VisitranBackendBaseE
 
 
 class SourceTableDoesNotExist(VisitranBackendBaseException):
-    """Raised if the model is configured with invalid source table."""
+    """
+    Raised if the model is configured with invalid source table.
+    """
 
     def __init__(self, schema_name: str, table_name: str, model_name: str) -> None:
         super().__init__(
@@ -22,8 +24,9 @@ class SourceTableDoesNotExist(VisitranBackendBaseException):
 
 
 class DestinationTableAlreadyExist(VisitranBackendBaseException):
-    """Raised if the model is configured with the same destination table
-    name."""
+    """
+    Raised if the model is configured with the same destination table name.
+    """
 
     def __init__(self, schema_name: str, table_name: str, current_model_name: str, conflicting_model_name: str) -> None:
         super().__init__(
@@ -41,8 +44,9 @@ class DestinationTableAlreadyExist(VisitranBackendBaseException):
 
 
 class JoinTableDoesNotExist(VisitranBackendBaseException):
-    """Raised if the model is configured with the same destination table
-    name."""
+    """
+    Raised if the model is configured with the same destination table name.
+    """
 
     def __init__(self, table_name: str, model_name: str) -> None:
         super().__init__(
@@ -58,8 +62,9 @@ class JoinTableDoesNotExist(VisitranBackendBaseException):
 
 
 class MergeTableDoesNotExist(VisitranBackendBaseException):
-    """Raised if the model is configured with the same destination table
-    name."""
+    """
+    Raised if the model is configured with the same destination table name.
+    """
 
     def __init__(self, table_name: str, model_name: str) -> None:
         super().__init__(
@@ -75,8 +80,9 @@ class MergeTableDoesNotExist(VisitranBackendBaseException):
 
 
 class CircularDependencyReference(VisitranBackendBaseException):
-    """Raised if the model is configured with the same destination table
-    name."""
+    """
+    Raised if the model is configured with the same destination table name.
+    """
 
     def __init__(self, model_name: str, traversed_path: list[str]) -> None:
         super().__init__(
@@ -88,7 +94,9 @@ class CircularDependencyReference(VisitranBackendBaseException):
 
 
 class InvalidSQLQuery(VisitranBackendBaseException):
-    """Raised if the given sql query is invalid."""
+    """
+    Raised if the given sql query is invalid.
+    """
 
     def __init__(self, sql_query: str) -> None:
         super().__init__(
@@ -102,7 +110,9 @@ class InvalidSQLQuery(VisitranBackendBaseException):
         return "Warning"
 
 class SQLExtractionError(VisitranBackendBaseException):
-    """Raised when no SQL query can be extracted from the given text."""
+    """
+    Raised when no SQL query can be extracted from the given text.
+    """
 
     def __init__(self, text: str) -> None:
         super().__init__(
@@ -117,8 +127,9 @@ class SQLExtractionError(VisitranBackendBaseException):
 
 
 class ProhibitedSqlQuery(VisitranBackendBaseException):
-    """Raised if the given sql query is prohibited, if it contains any
-    prohibited keywords."""
+    """
+    Raised if the given sql query is prohibited, if it contains any prohibited keywords.
+    """
 
     def __init__(self, prohibited_action: str, prohibited_actions: list[str]) -> None:
         super().__init__(

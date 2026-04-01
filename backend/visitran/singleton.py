@@ -12,8 +12,8 @@ class Singleton(type):
     which inherits from Singleton class, then both B and C share same class A
     not a different invocation.
 
-    Here as a class storage we are using a weakener dictionary instead
-    of normal because, weakener dictionary will clean up the singleton
+    Here as a class storage we are using a weakener dictionary instead of
+    normal because, weakener dictionary will clean up the singleton
     references between each invocation when we invoke visitran run
     commands in quick succession like in testcases.
     """

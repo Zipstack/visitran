@@ -1,8 +1,8 @@
 """Authentication service for OSS mode.
 
 Follows the same interface as ScalekitService to ensure compatibility.
-Handles user signup, login, logout, and session management using
-Django's built-in authentication system.
+Handles user signup, login, logout, and session management using Django's
+built-in authentication system.
 """
 
 import logging
@@ -41,8 +41,7 @@ class AuthenticationService:
     """Authentication service for OSS mode.
 
     Implements the same interface as ScalekitService for compatibility.
-    Provides signup, login, logout, and session management using Django
-    sessions.
+    Provides signup, login, logout, and session management using Django sessions.
     """
 
     def __init__(self) -> None:
@@ -339,19 +338,13 @@ class AuthenticationService:
     def add_organization_user_role(
         self, organization_id: str, user: Any, user_role_name: str
     ) -> Optional[list]:
-        """Add role to user.
-
-        OSS stub.
-        """
+        """Add role to user. OSS stub."""
         return None  # Not supported in OSS
 
     def assign_role_to_org_user(
         self, organization_id: str, user: Any, user_role_name: str = "admin"
     ) -> list:
-        """Assign role to organization user.
-
-        OSS stub.
-        """
+        """Assign role to organization user. OSS stub."""
         return []  # Not supported in OSS
 
     def get_organization_role_of_user(
@@ -367,19 +360,13 @@ class AuthenticationService:
     def invite_user(
         self, admin: Any, org_id: str, email: str, role: str = "admin"
     ) -> bool:
-        """Invite a user to organization.
-
-        OSS stub.
-        """
+        """Invite a user to organization. OSS stub."""
         return False  # Not supported in OSS
 
     def remove_users_from_organization(
         self, admin: Any, organization_id: str, user_emails: list
     ) -> list:
-        """Remove users from organization.
-
-        OSS stub.
-        """
+        """Remove users from organization. OSS stub."""
         return []  # Not supported in OSS
 
     def get_organizations_users(self, org_id: str) -> list:
@@ -393,17 +380,11 @@ class AuthenticationService:
         ]
 
     def get_invitations(self, organization_id: str) -> list:
-        """Get pending invitations.
-
-        OSS returns empty.
-        """
+        """Get pending invitations. OSS returns empty."""
         return []
 
     def delete_invitation(self, organization_id: str, invitation_id: str) -> bool:
-        """Delete invitation.
-
-        OSS stub.
-        """
+        """Delete invitation. OSS stub."""
         return False
 
     # =========================================================================
@@ -437,17 +418,11 @@ class AuthenticationService:
         ]
 
     def create_roles(self, role: Any) -> Any:
-        """Create role.
-
-        OSS stub.
-        """
+        """Create role. OSS stub."""
         return None
 
     def delete_role(self, role_id: str) -> bool:
-        """Delete role.
-
-        OSS stub.
-        """
+        """Delete role. OSS stub."""
         return False
 
     def forgot_password(self, request: HttpRequest) -> Response:
@@ -575,10 +550,7 @@ class AuthenticationService:
         )
 
     def reset_user_password(self, user: Any) -> Response:
-        """Reset user password.
-
-        OSS stub (legacy interface).
-        """
+        """Reset user password. OSS stub (legacy interface)."""
         return Response(
             status=status.HTTP_400_BAD_REQUEST,
             data={"error": "Password reset not supported in OSS mode."},

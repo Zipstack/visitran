@@ -7,11 +7,14 @@ from backend.core.routers.chat_message.serializers import ChatMessageSerializer
 
 
 class ChatMessageView(viewsets.ViewSet):
-    """Custom ViewSet handling retrieval of ChatMessages through
-    ChatMessageContext."""
+    """
+    Custom ViewSet handling retrieval of ChatMessages through ChatMessageContext.
+    """
 
     def list_messages(self, request, project_id=None, chat_id=None, *args, **kwargs) -> Response:
-        """Retrieve all chat messages for the given project_id and chat_id."""
+        """
+        Retrieve all chat messages for the given project_id and chat_id.
+        """
         user_id = str(request.user.id)
         ctx = ChatMessageContext(project_id=project_id)
         messages = ctx.get_chat_messages(chat_id=chat_id)
@@ -20,7 +23,8 @@ class ChatMessageView(viewsets.ViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def persist_prompt(self, request: Request, *args, **kwargs) -> Response:
-        """Create a new prompt (ChatMessage) using data from the request body.
+        """
+        Create a new prompt (ChatMessage) using data from the request body.
 
         Expects JSON with keys:
           - "project_id"

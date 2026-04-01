@@ -12,3 +12,4 @@ urlpatterns = [
     path('/update/<str:chat_id>', update_chat, name='update_chat'),
     path('/list-llm-models', list_llm_models, name='list_llm_models'),
 ]
+

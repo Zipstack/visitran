@@ -26,7 +26,7 @@ def mysql_sakila_db():
     engine =sa.create_engine(
             f"mysql+pymysql://visitran:{mysql_password}@localhost:3307/sakila?charset=utf8mb4"
             )
-
+    
     mysqldata = ConnectionData(
         "localhost",
         3307,
@@ -40,5 +40,8 @@ def mysql_sakila_db():
     )
 
     yield mysqldata
-
+    
     engine.dispose()
+
+
+

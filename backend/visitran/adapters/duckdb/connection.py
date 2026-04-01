@@ -57,7 +57,7 @@ class DuckDbConnection(BaseConnection):
     @classmethod
     def connection_fields(cls) -> dict[str, Any]:
         """Load the connection fields JSON schema from the file."""
-        with open(SCHEMA_FILE_PATH, encoding="utf-8") as file:
+        with open(SCHEMA_FILE_PATH, "r", encoding="utf-8") as file:
             connection_fields = json.load(file)
         return connection_fields
 
@@ -98,11 +98,11 @@ class DuckDbConnection(BaseConnection):
         self.connection.create_view(view_name, table_statement)
 
     def drop_table_if_exist(self, table_name: str) -> None:
-        """Drop Table in DuckDB."""
+        """Drop Table in DuckDB"""
         self.connection.drop_table(table_name, force=True)
 
     def drop_view_if_exist(self, view_name: str) -> None:
-        """Drop a view in DuckDB."""
+        """Drop a view in DuckDB"""
         self.connection.drop_view(view_name, force=True)
 
     def export_database(self, export_path: str) -> Any:
@@ -125,8 +125,10 @@ class DuckDbConnection(BaseConnection):
             raise TableNotFound(table_name=table_name, schema_name=schema_name, failure_reason=str(err)) from err
 
     def insert_csv_records(self, abs_path: str, table_name: str) -> str:
-        """Keeping the header and auto_detect true will make the first column
-        of the CSV as header."""
+        """
+        Keeping the header and auto_detect true will make the first column
+        of the CSV as header.
+        """
         qi = self.quote_identifier
         self.connection.raw_sql(
             f"CREATE OR REPLACE TABLE {qi(table_name)} AS "

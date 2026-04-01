@@ -212,8 +212,7 @@ class BaseConnection(ABC):
         return list(table_obj.columns)
 
     def get_table_columns_with_type(self, schema_name: str, table_name: str) -> list[dict[str, Any]]:
-        """Returns the list of columns with their DB type from the table
-        name."""
+        """Returns the list of columns with their DB type from the table name."""
         columns = []
         table_obj: Table = self.get_table_obj(schema_name=schema_name, table_name=table_name)
         column_names = table_obj.columns
@@ -317,13 +316,17 @@ class BaseConnection(ABC):
             self.connection.create_view(view_name, table_statement, database=schema_name)
 
     def insert_into_table(self, schema_name: str, table_name: str, table_statement: Table) -> str:
-        """Insert into Table."""
+        """
+        Insert into Table.
+        """
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             self.connection.insert(table_name, table_statement, database=schema_name)
 
     def bulk_execute_statements(self, statements: list[Any]) -> bool:
-        """Executes the given list of statements in DB one by one."""
+        """
+        Executes the given list of statements in DB one by one.
+        """
         try:
             for sql in statements:
                 with warnings.catch_warnings():
@@ -348,8 +351,8 @@ class BaseConnection(ABC):
         return {"status": "failed", "error_message": "Unknown database engine type"}
 
     def execute_sql_query(self, sql_query: str, limit: int = 100) -> dict[str, Any]:
-        """Executes the sql query in DB.
-
+        """
+        Executes the sql query in DB.
         Fetches and returns both column names and query result rows.
         """
         try:
@@ -560,7 +563,9 @@ class BaseConnection(ABC):
                     pass
 
     def close_connection(self) -> None:
-        """This terminates the IBIS connection."""
+        """
+        This terminates the IBIS connection
+        """
         try:
             # Trying to close the db connections, This fails for duckdb kind of databases,.
             self.connection.disconnect()

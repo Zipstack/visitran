@@ -148,7 +148,7 @@ class BaseSession:
         logging.info(f" All the sys path - {sys.path}")
 
     # ------------------------------ Cached fetches ------------------------------
-    def fetch_all_models(self, fetch_all=False) -> list[ConfigModels]:
+    def fetch_all_models(self, fetch_all=False) -> List[ConfigModels]:
         cache_key = self._cache_key("models", "all" if fetch_all else "active")
         cached = self._cache_get(cache_key)
         if cached is not None:
@@ -217,7 +217,7 @@ class BaseSession:
         self._cache_set(cache_key, bool(config_model))
         return config_model
 
-    def fetch_all_csv_files(self) -> list[CSVModels]:
+    def fetch_all_csv_files(self) -> List[CSVModels]:
         cache_key = self._cache_key("csv", "all")
         cached = self._cache_get(cache_key)
         if cached is not None:

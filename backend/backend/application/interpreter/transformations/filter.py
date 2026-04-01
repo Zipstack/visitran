@@ -68,13 +68,13 @@ class FiltersTransformation(BaseTransformation):
 
     @staticmethod
     def _like_pattern(rhs_value: str, prefix: str = "%", suffix: str = "%") -> str:
-        """Prepare properly quoted LIKE pattern for
-        CONTAINS/STARTSWITH/ENDSWITH."""
+        """Prepare properly quoted LIKE pattern for CONTAINS/STARTSWITH/ENDSWITH."""
         clean_val = rhs_value.strip("'")
         return f"'{prefix}{clean_val}{suffix}'"
 
     def _build_formula_expression(self, expression: str, expr_id: str) -> str:
-        """Build a FormulaSQL expression for use in filter conditions.
+        """
+        Build a FormulaSQL expression for use in filter conditions.
 
         Args:
             expression: The formula expression (e.g., "YEAR(order_date)", "col1 * col2")
@@ -178,7 +178,8 @@ class FiltersTransformation(BaseTransformation):
             raise ValueError(f"Unsupported LIKE operator: {op}")
 
     def _get_lhs_expression(self, condition: ConditionParser, condition_idx: int) -> str:
-        """Get the LHS expression for a filter condition.
+        """
+        Get the LHS expression for a filter condition.
 
         Returns either a column reference or a FormulaSQL expression.
         """
@@ -196,7 +197,7 @@ class FiltersTransformation(BaseTransformation):
         return f"_['{lhs_name}']"
 
     def parse_filter(self) -> str:
-        conditions: list[ConditionParser] = self.filter_parser.conditions
+        conditions: List[ConditionParser] = self.filter_parser.conditions
         if not conditions:
             return ""
 

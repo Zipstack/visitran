@@ -16,13 +16,14 @@ from backend.utils.calculate_chat_tokens import calculate_chat_tokens
 
 
 class ChatView(RequestHandlingMixin, viewsets.ViewSet):
-    """Custom ViewSet handling chat listing (with optional chat_id) and
-    deletion through ChatMessageContext."""
+    """
+    Custom ViewSet handling chat listing (with optional chat_id) and deletion
+    through ChatMessageContext.
+    """
 
     def list_chats(self, request, project_id=None, *args, **kwargs):
-        """If 'chat_id' is provided in query params (?chat_id=xxx), return that
-        specific chat.
-
+        """
+        If 'chat_id' is provided in query params (?chat_id=xxx), return that specific chat.
         Otherwise, return all chats belonging to the given project_id.
         """
         chat_id = request.query_params.get("chat_id")
@@ -41,14 +42,17 @@ class ChatView(RequestHandlingMixin, viewsets.ViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
     def delete_chat(self, request, project_id=None, chat_id=None, *args, **kwargs):
-        """Soft-delete the chat specified by chat_id, if the current user is
-        the owner."""
+        """
+        Soft-delete the chat specified by chat_id, if the current user is the owner.
+        """
         chat_ctx = ChatMessageContext(project_id=project_id)
         chat_ctx.delete_chat(chat_id=chat_id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def update_chat_name(self, request, project_id=None, chat_id=None, *args, **kwargs):
-        """Update the chat name for the specified chat_id."""
+        """
+        Update the chat name for the specified chat_id.
+        """
         chat_ctx = ChatMessageContext(project_id=project_id)
         new_name = request.data.get('chat_name')
 
@@ -108,7 +112,8 @@ class ChatView(RequestHandlingMixin, viewsets.ViewSet):
             pass
 
     def persist_prompt(self, request: Request, project_id: str, *args, **kwargs) -> Response:
-        """Create a new prompt (ChatMessage) using data from the request body.
+        """
+        Create a new prompt (ChatMessage) using data from the request body.
 
         Expects JSON with keys:
           - "project_id"
@@ -178,8 +183,8 @@ class ChatView(RequestHandlingMixin, viewsets.ViewSet):
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     def list_llm_models(self, request: Request, project_id: str, *args, **kwargs) -> Response:
-        """Retrieve the list of available LLM models configured for use in the
-        system.
+        """
+        Retrieve the list of available LLM models configured for use in the system.
 
         This reads the model definitions from an internal constant variable and returns
         them as a JSON response. Intended for populating model selection options in the UI.

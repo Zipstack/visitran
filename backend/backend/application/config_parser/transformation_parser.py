@@ -59,25 +59,25 @@ class TransformationParser(BaseParser):
 
     @property
     def transform_orders(self) -> list[str]:
-        """Returns list of transformation ID 's."""
+        """Returns list of transformation ID 's"""
         return self.get("transform_order", [])
 
     def get_transforms(self) -> list[BaseParser]:
-        """Generate and yield transformation parsers in the order defined by
-        the configuration.
-
-        This method processes the `transform_order` list and corresponding `transform` dictionary
+        """
+        Generate and yield transformation parsers in the order defined by the configuration.
+    
+        This method processes the `transform_order` list and corresponding `transform` dictionary 
         from the configuration to create parser instances of appropriate types for each transformation.
-
+    
         - It iterates through the `transform_order` to ensure transformations are applied sequentially.
         - For each transformation, it determines the type and maps it to the corresponding parser class.
-        - Certain transformation types (`combine_columns`, `group`, `find_and_replace`, and `distinct`)
-          require special handling for their configuration. These are instantiated with a modified
+        - Certain transformation types (`combine_columns`, `group`, `find_and_replace`, and `distinct`) 
+          require special handling for their configuration. These are instantiated with a modified 
           configuration structure.
         - Other transformations are instantiated normally with their respective configuration data.
-
+    
         Yields:
-            BaseParser: An instance of the transformation parser for each transformation in the order
+            BaseParser: An instance of the transformation parser for each transformation in the order 
             defined by `transform_order`.
         """
         if self._transforms:

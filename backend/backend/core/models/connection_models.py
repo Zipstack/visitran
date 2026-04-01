@@ -13,9 +13,10 @@ class ConnectionDetailsManager(DefaultOrganizationManagerMixin, models.Manager):
 
 
 class ConnectionDetails(DefaultOrganizationMixin, BaseModel):
-    """This project_connection details model is used to create a table called
-    Core_ConnectionDetails in DB to manage the project_connection fields and
-    datasource type."""
+    """
+    This project_connection details model is used to create a table called Core_ConnectionDetails in DB to manage the
+    project_connection fields and datasource type
+    """
 
     @property
     def description(self) -> str:
@@ -55,7 +56,7 @@ class ConnectionDetails(DefaultOrganizationMixin, BaseModel):
             self.connection_details = encrypt_connection_details(self.connection_details)
 
         # Finally, call the parent save method
-        super().save(*args, **kwargs)
+        super(ConnectionDetails, self).save(*args, **kwargs)
 
     @property
     def decrypted_connection_details(self) -> dict:

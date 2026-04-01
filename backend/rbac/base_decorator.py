@@ -11,3 +11,4 @@ class BasePermissionDecorator(ABC):
     def has_permission(self, request, view_func):
         """Subclasses must implement this method to define permission logic."""
         pass
+

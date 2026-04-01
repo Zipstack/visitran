@@ -17,8 +17,7 @@ def _is_bigquery_backend(table):
 
 
 def _bq_timestamp_cast(table, expr):
-    """Cast to timezone-aware timestamp for BigQuery, plain timestamp
-    otherwise."""
+    """Cast to timezone-aware timestamp for BigQuery, plain timestamp otherwise."""
     if _is_bigquery_backend(table):
         return expr.cast(dt.Timestamp(timezone="UTC"))
     return expr.cast("timestamp")
@@ -91,8 +90,8 @@ class DateTime:
 
     @staticmethod
     def days(table, node, data_types, inter_exps):
-        """Returns the number of days between two dates as an integer.
-
+        """
+        Returns the number of days between two dates as an integer.
         Uses epoch_seconds to avoid interval-to-int cast issues that
         occur on PostgreSQL and DuckDB when date subtraction involves
         interval expressions (e.g. from EDATE).
@@ -388,8 +387,7 @@ class DateTime:
 
     @staticmethod
     def date_trunc(table, node, data_types, inter_exps):
-        """Truncates a timestamp to the specified unit (year, month, day, hour,
-        minute, second)."""
+        """Truncates a timestamp to the specified unit (year, month, day, hour, minute, second)."""
         if node['inputs'].__len__() != 2:
             raise Exception("DATE_TRUNC function requires 2 parameters: DATE_TRUNC(date, unit)")
         e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node['inputs'][0])

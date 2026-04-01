@@ -17,13 +17,13 @@ class Validator:
         old_parser: ParserType=None,
         **kwargs
     ):
-        """Initializes a new instance of the class.
+        """
+        Initializes a new instance of the class.
 
-        This constructor sets up the initial state of the object by
-        initializing its attributes based on the provided parameters. It
-        prepares parsers for configuration management, establishes a
-        session for handling backend operations, and integrates the
-        visitran context for the application runtime.
+        This constructor sets up the initial state of the object by initializing its
+        attributes based on the provided parameters. It prepares parsers for configuration
+        management, establishes a session for handling backend operations, and integrates
+        the visitran context for the application runtime.
         """
         self._all_parsers: list[ConfigParser] = []
         self._session = session
@@ -50,9 +50,9 @@ class Validator:
 
     @property
     def all_parsers(self) -> list[ConfigParser]:
-        """Fetches and caches all parsers associated with models fetched from
-        the session. If the parser corresponding to the current `model_name`
-        exists, it is excluded.
+        """
+        Fetches and caches all parsers associated with models fetched from the session. If
+        the parser corresponding to the current `model_name` exists, it is excluded.
 
         :return: A list of ConfigParser objects representing the parsers for the models
             excluding the parser for the current `model_name`.
@@ -78,3 +78,4 @@ class Validator:
 
     def check_column_usage(self, columns: list[str]) -> list[str]:
         raise NotImplementedError
+

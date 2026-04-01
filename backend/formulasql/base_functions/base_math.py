@@ -22,3 +22,4 @@ class BaseMath:
         e = (e1 >= e2).ifelse(1, 0)
         data_types[node['outputs'][0]] = 'numeric'
         return e
+

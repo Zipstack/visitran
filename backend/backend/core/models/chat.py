@@ -8,15 +8,17 @@ from backend.core.models.chat_intent import ChatIntent
 
 
 class ChatManager(models.Manager):
-    """Default manager that excludes soft-deleted chats (is_deleted=True)."""
+    """
+    Default manager that excludes soft-deleted chats (is_deleted=True).
+    """
 
     def get_queryset(self):
         return super().get_queryset().filter(is_deleted=False)
 
 
 class Chat(BaseModel):
-    """Represents a chat session for a given project, with optional soft
-    deletion.
+    """
+    Represents a chat session for a given project, with optional soft deletion.
 
     Soft Delete:
       - delete(hard_delete=False) sets is_deleted=True but keeps the record in DB (hidden by ChatManager).
@@ -81,7 +83,8 @@ class Chat(BaseModel):
     all_objects = models.Manager()  # Returns all chats (including soft-deleted)
 
     def delete(self, hard_delete: bool = False, *args, **kwargs) -> None:
-        """Soft or hard delete this Chat.
+        """
+        Soft or hard delete this Chat.
 
         Args:
             hard_delete (bool): If True, permanently remove this Chat from DB.

@@ -1,3 +1,4 @@
+
 class PluginConfig:
     PLUGINS_APP = "plugins"
     STORAGE_MODULE_PREFIX = "gcp_bucket"

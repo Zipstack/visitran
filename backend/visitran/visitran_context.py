@@ -7,9 +7,9 @@ from visitran.utils import get_adapter_cls
 class VisitranContext:
     def __init__(
         self,
-        project_config: dict[str, Any],
+        project_config: Dict[str, Any],
         is_api_call: bool = False,
-        env_data: dict[str, Any] = None,
+        env_data: Dict[str, Any] = None,
     ) -> None:
         self.env_data = env_data or {}
         self.project_conf: dict[str, Any] = project_config or {}
@@ -47,10 +47,10 @@ class VisitranContext:
     def __update_connection_details(self, env_data: dict[str, Any]):
         if self._db_type == "duckdb":
             return self._db_details.copy()
-
+        
         # Create a copy to avoid modifying the original project config
         conn_details = self._db_details.copy()
-
+        
         if env_data:
             conn_details.update(env_data)
         elif self.project_conf.get("project_schema"):
@@ -87,5 +87,7 @@ class VisitranContext:
         return self.db_adapter.db_connection.get_table_columns(schema_name=schema_name, table_name=table_name)
 
     def close_db_connection(self) -> None:
-        """Closes the database connection."""
+        """
+        Closes the database connection.
+        """
         self.db_adapter.db_connection.close_connection()

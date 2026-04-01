@@ -8,8 +8,9 @@ from backend.application.interpreter.transformations.base_transformation import 
 
 
 class AggregateFormulaParser:
-    """Parser for aggregate formulas like SUM(col)/COUNT(*) or ROUND(AVG(col),
-    2). Converts expression strings to Ibis expression code strings.
+    """
+    Parser for aggregate formulas like SUM(col)/COUNT(*) or ROUND(AVG(col), 2).
+    Converts expression strings to Ibis expression code strings.
 
     Supports two types of aggregate patterns:
     1. Calculations BETWEEN aggregates: SUM(a) / COUNT(*), ROUND(AVG(col), 2)
@@ -60,8 +61,8 @@ class AggregateFormulaParser:
 
     @classmethod
     def parse(cls, expression: str, alias: str) -> str:
-        """Parse an aggregate expression and return Ibis expression code
-        string.
+        """
+        Parse an aggregate expression and return Ibis expression code string.
 
         Args:
             expression: Expression string like "SUM(amount)/COUNT(*)" or "SUM(amount * qty)"
@@ -82,8 +83,7 @@ class AggregateFormulaParser:
 
     @classmethod
     def _is_bare_column(cls, content: str) -> bool:
-        """Check if content is a bare column name (no operators or
-        functions)."""
+        """Check if content is a bare column name (no operators or functions)."""
         content = content.strip()
         # Bare column: just alphanumeric and underscores, no operators or parentheses
         if content == '*':
@@ -102,9 +102,9 @@ class AggregateFormulaParser:
 
     @classmethod
     def _extract_function_args(cls, expr: str, func_name: str) -> tuple:
-        """Extract arguments from a function call using proper parenthesis
-        matching. Returns (arg1, arg2, ...) or None if not a matching function
-        call.
+        """
+        Extract arguments from a function call using proper parenthesis matching.
+        Returns (arg1, arg2, ...) or None if not a matching function call.
 
         Handles nested parentheses correctly, e.g.:
         - COALESCE(price, 0) -> ('price', '0')
@@ -162,7 +162,8 @@ class AggregateFormulaParser:
 
     @classmethod
     def _convert_inner_expression(cls, expr: str) -> str:
-        """Convert an expression inside an aggregate to Ibis code string.
+        """
+        Convert an expression inside an aggregate to Ibis code string.
 
         Examples:
             "amount * quantity" -> "_['amount'] * _['quantity']"
@@ -375,11 +376,9 @@ class AggregateFormulaParser:
 
     @classmethod
     def _check_for_window_function(cls, expr: str) -> None:
-        """Check if expression contains a window function and raise an error if
-        found.
-
-        Window functions should use the Window transformation, not
-        aggregate formulas.
+        """
+        Check if expression contains a window function and raise an error if found.
+        Window functions should use the Window transformation, not aggregate formulas.
         """
         # Check for window function at the start of expression
         func_match = re.match(r'^(\w+)\s*\(', expr.strip())
@@ -474,8 +473,7 @@ class AggregateFormulaParser:
 
     @classmethod
     def _find_matching_paren(cls, s: str, start: int) -> int:
-        """Find the matching closing parenthesis for the opening paren at
-        start."""
+        """Find the matching closing parenthesis for the opening paren at start."""
         depth = 1
         i = start + 1
         while i < len(s) and depth > 0:
@@ -551,8 +549,8 @@ class AggregateFormulaParser:
 
     @classmethod
     def _parse_cast_content(cls, content: str) -> tuple:
-        """Parse CAST content into (expression, type_string).
-
+        """
+        Parse CAST content into (expression, type_string).
         Handles: 'expr AS TYPE' and 'expr, TYPE' syntaxes.
         Returns (None, None) if parsing fails.
         """

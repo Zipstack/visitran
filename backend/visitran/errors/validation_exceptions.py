@@ -3,8 +3,7 @@ from visitran.errors.error_codes import ErrorCodeConstants
 
 
 class InvalidSnapshotFields(VisitranBaseExceptions):
-    """Raised if the configurations file passed for snapshot is not
-    adequate."""
+    """Raised if the configurations file passed for snapshot is not adequate."""
 
     def __init__(self, invalid_fields: list[str]) -> None:
         super().__init__(error_code=ErrorCodeConstants.INVALID_SNAPSHOT_FIELDS, invalid_fields=invalid_fields)
@@ -53,7 +52,7 @@ class DatabasePermissionDeniedError(VisitranBaseExceptions):
 
 
 class SchemaAlreadyExist(VisitranBaseExceptions):
-    """Raised when db schema arleray exist."""
+    """Raised when db schema arleray exist"""
 
     def __init__(self, schema_name: str, error_message: str) -> None:
         super().__init__(

@@ -12,10 +12,9 @@ from utils.models.base_model import BaseModel
 
 
 class ChatTokenCost(BaseModel):
-    """Tracks token usage and cost information for each chat message.
-
-    Stores detailed breakdown of tokens used by architect and developer
-    LLMs.
+    """
+    Tracks token usage and cost information for each chat message.
+    Stores detailed breakdown of tokens used by architect and developer LLMs.
     """
 
     token_cost_id = models.UUIDField(
@@ -193,7 +192,7 @@ class ChatTokenCost(BaseModel):
 
     @property
     def architect_cost_breakdown(self):
-        """Return architect cost breakdown as dict."""
+        """ Return architect cost breakdown as dict."""
         return {
             'model_name': self.architect_model_name,
             'input_tokens': self.architect_input_tokens,

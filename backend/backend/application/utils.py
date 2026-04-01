@@ -85,8 +85,7 @@ def get_filter() -> dict[str, Any]:
 
 
 def get_connection_data(datasource: str, connection_data: dict[str, Any]) -> dict[str, Any]:
-    """Returns the normalized (unredacted) connection data for the specified
-    datasource.
+    """Returns the normalized (unredacted) connection data for the specified datasource.
 
     This is used before persisting to the database — sensitive fields must NOT
     be masked here because the model's save() encrypts them with Fernet.
@@ -104,8 +103,9 @@ def get_connection_data(datasource: str, connection_data: dict[str, Any]) -> dic
 
 
 def test_connection_data(datasource: str, connection_data: dict[str, Any]):
-    """Raises an exception if the connection fails, mentioning incorrect
-    credentials if applicable. Returns None if the connection is successful.
+    """
+    Raises an exception if the connection fails, mentioning incorrect credentials if applicable.
+    Returns None if the connection is successful.
 
     :param datasource: The type of database being connected to.
     :param connection_data: A dictionary containing connection details.
@@ -188,7 +188,7 @@ def assign_id_to_model_graph(model_graph: dict[str, Any]) -> dict[str, Any]:
 
 
 def get_class_name(file_name: str) -> str:
-    """This method converts file name to python class name."""
+    """This method converts file name to python class name"""
     return file_name.replace("_", " ").replace("-", " ").title().replace(" ", "")
 
 

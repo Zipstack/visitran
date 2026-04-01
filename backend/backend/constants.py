@@ -20,7 +20,7 @@ class RequestHeader:
 
 
 class DataTypeIcon:
-    """Icon constant for database explorer."""
+    """Icon constant for database explorer"""
 
     STRING = "FontColorsOutlined"
     NUMBER = "NumberOutlined"

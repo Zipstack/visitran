@@ -557,8 +557,8 @@ class Math(Base):
         """Returns the median value.
 
         PostgreSQL does not support percentile_cont with OVER (window).
-        We eagerly compute the scalar aggregate and return it as a
-        literal to broadcast across all rows.
+        We eagerly compute the scalar aggregate and return it as a literal
+        to broadcast across all rows.
         """
         if len(node['inputs']) != 1:
             raise Exception("MEDIAN function requires 1 parameter")
@@ -582,8 +582,7 @@ class Math(Base):
         """Returns the value at a given quantile (0-1).
 
         PostgreSQL does not support percentile_cont with OVER (window).
-        We eagerly compute the scalar aggregate and return it as a
-        literal.
+        We eagerly compute the scalar aggregate and return it as a literal.
         """
         if len(node['inputs']) != 2:
             raise Exception("QUANTILE function requires 2 parameters: QUANTILE(column, quantile)")

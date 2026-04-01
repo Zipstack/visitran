@@ -1,8 +1,7 @@
 """API Key audit logging dispatcher.
 
 On OSS, this is a no-op. On Cloud, pluggable_apps.api_key_audit.service
-provides the real implementation that writes to the APIKeyAuditLog DB
-table.
+provides the real implementation that writes to the APIKeyAuditLog DB table.
 """
 
 try:

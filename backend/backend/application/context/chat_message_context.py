@@ -18,11 +18,14 @@ from backend.errors import (
 
 
 class ChatMessageContext(ApplicationContext):
-    """Context class for creating, updating, listing, and deleting
-    Chat/ChatMessage records within a given project."""
+    """
+    Context class for creating, updating, listing, and deleting Chat/ChatMessage
+    records within a given project.
+    """
 
     def __init__(self, project_id: str) -> None:
-        """Initialize the ChatMessageContext with a specific project_id.
+        """
+        Initialize the ChatMessageContext with a specific project_id.
 
         Args:
             project_id (str): The UUID of the project context.
@@ -34,10 +37,9 @@ class ChatMessageContext(ApplicationContext):
         self.pubsub = self.session.redis_client.pubsub()
 
     def _get_chat_or_raise(self, chat_id: str, must_be_active: bool = True) -> Chat:
-        """Retrieve a single Chat within the given project.
-
-        Raise an error if not found. If must_be_active=True, the chat
-        must not be soft-deleted.
+        """
+        Retrieve a single Chat within the given project. Raise an error if not found.
+        If must_be_active=True, the chat must not be soft-deleted.
         """
         filters = {"chat_id": chat_id, "project": self.project_instance}
         if must_be_active:
@@ -61,21 +63,28 @@ class ChatMessageContext(ApplicationContext):
             )
 
     def get_all_chats(self):
-        """Return all non-deleted chats for self.project_id."""
+        """
+        Return all non-deleted chats for self.project_id.
+        """
         return Chat.objects.filter(project=self.project_instance, is_deleted=False).order_by("-modified_at")
 
     def get_single_chat(self, chat_id: str):
-        """Return a single non-deleted chat matching chat_id."""
+        """
+        Return a single non-deleted chat matching chat_id.
+        """
         return self._get_chat_or_raise(chat_id=chat_id, must_be_active=True)
 
     def delete_chat(self, chat_id: str) -> None:
-        """Soft-delete the specified chat."""
+        """
+        Soft-delete the specified chat.
+        """
         chat = self._get_chat_or_raise(chat_id=chat_id, must_be_active=False)
         chat.is_deleted = True
         chat.save()
 
     def update_chat_name(self, chat_id: str, chat_name: str) -> Chat:
-        """Update the name of the specified chat.
+        """
+        Update the name of the specified chat.
 
         Args:
             chat_id (str): The unique ID of the chat to update.
@@ -90,9 +99,11 @@ class ChatMessageContext(ApplicationContext):
         chat.save(update_fields=["chat_name"])
         return chat
 
-    def get_chat_messages(self, chat_id: str) -> list[ChatMessage]:
-        """Return all messages for the given chat, ensuring the chat is valid
-        and active, sorted by creation time (ascending)."""
+    def get_chat_messages(self, chat_id: str) -> List[ChatMessage]:
+        """
+        Return all messages for the given chat, ensuring the chat is valid and active,
+        sorted by creation time (ascending).
+        """
         chat = self._get_chat_or_raise(chat_id)
         return ChatMessage.objects.filter(chat=chat).order_by("created_at")
 
@@ -137,10 +148,9 @@ class ChatMessageContext(ApplicationContext):
         chat_id: str = None,
         user=None,
     ) -> ChatMessage:
-        """Create a new prompt within a Chat.
-
-        If chat_id is None, create a new Chat. Return the
-        chat_message_id of the newly created ChatMessage.
+        """
+        Create a new prompt within a Chat. If chat_id is None, create a new Chat.
+        Return the chat_message_id of the newly created ChatMessage.
         """
         if not prompt.strip():
             raise InvalidChatPrompt()
@@ -188,7 +198,8 @@ class ChatMessageContext(ApplicationContext):
 
     @staticmethod
     def get_llm_models() -> list:
-        """Return the list of LLM models from CHAT_LLM_MODELS constant.
+        """
+        Return the list of LLM models from CHAT_LLM_MODELS constant.
 
         Returns:
             list: A list of LLM model definitions from the JSON file.
@@ -197,7 +208,8 @@ class ChatMessageContext(ApplicationContext):
 
     @staticmethod
     def get_chat_intents() -> list[ChatIntent]:
-        """Retrieve all available chat intents.
+        """
+        Retrieve all available chat intents.
 
         Returns:
             list[ChatIntent]: A list of all defined ChatIntent objects.
@@ -215,7 +227,8 @@ class ChatMessageContext(ApplicationContext):
         chat_name: str = None,
         discussion_status: str = None,
     ) -> ChatMessage:
-        """Update a ChatMessage with a response. Optionally rename the Chat.
+        """
+        Update a ChatMessage with a response. Optionally rename the Chat.
 
         Args:
             chat_id (str): The unique ID of the chat to update.
@@ -235,7 +248,7 @@ class ChatMessageContext(ApplicationContext):
             fields_to_update.append("discussion_type")
             if discussion_status == 'GENERATE':
                 chat_message.transformation_type = 'TRANSFORM'
-                fields_to_update.append('transformation_type')
+                fields_to_update.append('transformation_type') 
         if response:
             if is_append_response:
                 chat_message.response = (chat_message.response or "") + response
@@ -285,8 +298,9 @@ class ChatMessageContext(ApplicationContext):
         return chat_message
 
     def persist_prompt_status(self, chat_message_id: str, status: str, error_message: dict = None) -> ChatMessage:
-        """Update the prompt_status and prompt_error_message fields in
-        ChatMessage."""
+        """
+        Update the prompt_status and prompt_error_message fields in ChatMessage.
+        """
         return self._persist_status_field(
             chat_message_id=chat_message_id,
             status_field="prompt_status",
@@ -298,8 +312,9 @@ class ChatMessageContext(ApplicationContext):
     def persist_transformation_status(
         self, chat_message_id: str, status: str, error_message: dict = None, generated_models: list = None,
     ) -> ChatMessage:
-        """Update the transformation_status and transformation_error_message
-        fields in ChatMessage."""
+        """
+        Update the transformation_status and transformation_error_message fields in ChatMessage.
+        """
         return self._persist_status_field(
             chat_message_id=chat_message_id,
             status_field="transformation_status",
@@ -309,9 +324,8 @@ class ChatMessageContext(ApplicationContext):
             generated_models=generated_models,
         )
     def persist_thought_chain(self, chat_id: str, chat_message_id: str, thought_chain: str):
-        """thought_chain (str): The thoughts that went into generating the
-        response.
-
+        """
+        thought_chain (str): The thoughts that went into generating the response.
         :param chat_id:
         :param chat_message_id:
         :param thought_chain:

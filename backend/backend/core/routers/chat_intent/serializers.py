@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from backend.core.models.chat_intent import ChatIntent
-
+        
 class ChatIntentSerializer(serializers.ModelSerializer):
     class Meta:
         model = ChatIntent

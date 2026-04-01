@@ -6,8 +6,9 @@ from backend.core.models.csv_models import CSVModels
 from backend.core.models.project_details import ProjectDetails
 
 
-def topological_sort_models(models_with_refs: list[dict[str, Any]]) -> list[str]:
-    """Sort models by execution order (DAG order) using topological sort.
+def topological_sort_models(models_with_refs: List[Dict[str, Any]]) -> List[str]:
+    """
+    Sort models by execution order (DAG order) using topological sort.
 
     Models with no dependencies come first, followed by models that depend on them.
     This ensures the file explorer shows models in the order they would be executed.
@@ -24,8 +25,8 @@ def topological_sort_models(models_with_refs: list[dict[str, Any]]) -> list[str]
 
     # Build adjacency list and in-degree count
     # model_name -> list of models that depend on it
-    graph: dict[str, list[str]] = {}
-    in_degree: dict[str, int] = {}
+    graph: Dict[str, List[str]] = {}
+    in_degree: Dict[str, int] = {}
     all_model_names = set()
 
     for item in models_with_refs:
@@ -48,7 +49,7 @@ def topological_sort_models(models_with_refs: list[dict[str, Any]]) -> list[str]
     # Kahn's algorithm for topological sort
     # Start with models that have no dependencies (in_degree == 0)
     queue = deque([m for m in all_model_names if in_degree.get(m, 0) == 0])
-    sorted_models: list[str] = []
+    sorted_models: List[str] = []
 
     while queue:
         model = queue.popleft()
@@ -81,7 +82,7 @@ class FileExplorer:
         all_models = session.fetch_all_models(fetch_all=True)
 
         # Build list with model names and their references
-        models_with_refs: list[dict[str, Any]] = []
+        models_with_refs: List[Dict[str, Any]] = []
         for model in all_models:
             references = model.model_data.get("reference", []) or []
             models_with_refs.append({
@@ -122,7 +123,7 @@ class FileExplorer:
         return model_structure
 
     def load_csv(self, session: Session):
-        csv_models: list[CSVModels] = session.fetch_all_csv_files()
+        csv_models: List[CSVModels] = session.fetch_all_csv_files()
         seed_file_structure = []
         for csv_model in csv_models:
             seed_file_structure.append(
@@ -147,7 +148,7 @@ class FileExplorer:
         }
         return seed_structure
 
-    def load_children_structure(self, session) -> list[dict[str, Any]]:
+    def load_children_structure(self, session) -> List[Dict[str, Any]]:
         return [self.load_models(session), self.load_csv(session)]
 
     def get_project_file_structure(self, session: Session) -> dict[str, Any]:

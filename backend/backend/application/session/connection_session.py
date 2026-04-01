@@ -71,7 +71,7 @@ class ConnectionSession:
                     "is_connection_valid": con_model.is_connection_valid,
                     "connection_flag": con_model.connection_flag,
                     "is_sample_project": is_sample_project,
-                    # "connection_details": con_model.connection_details, # skipping connection_details
+                    # "connection_details": con_model.connection_details, # skipping connection_details 
                 }
             )
 

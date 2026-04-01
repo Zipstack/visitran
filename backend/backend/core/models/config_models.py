@@ -15,11 +15,13 @@ class ConfigModelsManager(DefaultOrganizationManagerMixin, models.Manager):
 
 
 class ConfigModels(DefaultOrganizationMixin, BaseModel):
-    """This model is used to store the no code models."""
+    """
+    This model is used to store the no code models.
+    """
 
     def get_model_upload_path(self, filename: str) -> str:
-        """This returns the file path based on the org and project dynamically.
-
+        """
+        This returns the file path based on the org and project dynamically.
         :param filename: name of the file
         :return: a string type file path location
         """
@@ -63,7 +65,7 @@ class ConfigModels(DefaultOrganizationMixin, BaseModel):
             pass
         finally:
             # Saving the current instance
-            super().save(*args, **kwargs)
+            super(ConfigModels, self).save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         # Removing the file while deleting the record
@@ -74,7 +76,7 @@ class ConfigModels(DefaultOrganizationMixin, BaseModel):
             except FileNotFoundError:
                 # No need to delete when the file is not found
                 pass
-        super().delete(*args, **kwargs)
+        super(ConfigModels, self).delete(*args, **kwargs)
 
     class Meta:
         # Ensures model_name is unique per project

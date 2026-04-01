@@ -84,7 +84,7 @@ class TrinoQEConnection(BaseConnection):
     @classmethod
     def connection_fields(cls) -> dict[str, Any]:
         """Load the connection fields JSON schema from the file."""
-        with open(SCHEMA_FILE_PATH, encoding="utf-8") as file:
+        with open(SCHEMA_FILE_PATH, "r", encoding="utf-8") as file:
             connection_fields = json.load(file)
         return connection_fields
 
@@ -145,7 +145,7 @@ class TrinoQEConnection(BaseConnection):
         self,
         schema_name: str,
         table_name: str,
-        select_statement: Table,
+        select_statement: "Table",
         primary_key: Union[str, list[str]],
     ) -> None:
         """Efficient upsert using DELETE + INSERT strategy for Trino.

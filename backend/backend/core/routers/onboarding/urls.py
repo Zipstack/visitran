@@ -52,7 +52,7 @@ onboarding_mark_complete = OnboardingViewSet.as_view(
 urlpatterns = [
     # Template management (no org required)
     path('templates/<str:template_id>/', onboarding_template, name='get_onboarding_template'),
-
+    
     # Project-level onboarding management (org handled by middleware)
     path('status/', onboarding_status, name='get_project_onboarding_status'),
     path('start/', onboarding_start, name='start_onboarding'),

@@ -110,7 +110,7 @@ class JoinTransformation(BaseTransformation):
         for join_parser in join_list:
             # Parse the left join
             join_successful, class_name = self.__parse_left_joins(join_parser=join_parser)
-
+            
             # If join parsing failed, store parent class
             if not join_successful:
                 self.parent_classes.append(class_name)

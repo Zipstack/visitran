@@ -122,7 +122,8 @@ class BaseTransformation:
 
     @staticmethod
     def synthesis_formula_checks(formula: str) -> str:
-        """Normalize SQL-style operators in formulas into Excel-style syntax
+        """
+        Normalize SQL-style operators in formulas into Excel-style syntax
         compatible with the `formulas` parser (FormulaSQL safe).
 
         Transformations performed:

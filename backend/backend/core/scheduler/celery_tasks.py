@@ -1,4 +1,5 @@
-"""Celery tasks for the Job Scheduler.
+"""
+Celery tasks for the Job Scheduler.
 
 Entry-point task: ``trigger_scheduled_run``
   – called by django-celery-beat (periodic) and by the manual "Run now" API.
@@ -46,8 +47,8 @@ def _timeout_guard(seconds: int):
     """Context manager that raises ``_RunTimeout`` after *seconds*.
 
     Uses SIGALRM on the main thread (prefork pool) and falls back to a
-    threading.Timer for worker threads (thread/gevent/eventlet pools). A
-    value of 0 disables the timeout.
+    threading.Timer for worker threads (thread/gevent/eventlet pools).
+    A value of 0 disables the timeout.
     """
     if seconds <= 0:
         yield
@@ -89,8 +90,7 @@ def _timeout_guard(seconds: int):
 # ---------------------------------------------------------------------------
 
 def _send_slack_notification(user_task: UserTaskDetails, run: TaskRunHistory, success: bool):
-    """Send Slack notification via the org-level Slack integration (if
-    configured)."""
+    """Send Slack notification via the org-level Slack integration (if configured)."""
     if SlackIntegrationController is None:
         return
 

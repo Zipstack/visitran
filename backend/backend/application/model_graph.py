@@ -98,3 +98,4 @@ class ProjectModelGraph:
     def is_empty(self):
         """Check if the graph has any nodes."""
         return self.graph.number_of_nodes() == 0
+

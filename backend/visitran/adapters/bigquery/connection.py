@@ -90,7 +90,7 @@ class BigQueryConnection(BaseConnection):
     @classmethod
     def connection_fields(cls) -> dict[str, Any]:
         """Load the connection fields JSON schema from the file."""
-        with open(SCHEMA_FILE_PATH, encoding="utf-8") as file:
+        with open(SCHEMA_FILE_PATH, "r", encoding="utf-8") as file:
             connection_fields = json.load(file)
         return connection_fields
 
@@ -167,9 +167,8 @@ class BigQueryConnection(BaseConnection):
 
     def is_table_exists(self, schema_name: str, table_name: str) -> bool:
         """Returns TRUE if table exists in DB.
-
-        Falls back to BigQuery client API if Ibis fails (e.g., for
-        tables with INTERVAL columns).
+        
+        Falls back to BigQuery client API if Ibis fails (e.g., for tables with INTERVAL columns).
         """
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", category=DeprecationWarning)
@@ -190,14 +189,12 @@ class BigQueryConnection(BaseConnection):
                 raise
 
     def _is_table_exists_via_client(self, schema_name: str, table_name: str) -> bool:
-        """Check table existence using BigQuery client (bypasses Ibis schema
-        parsing).
-
-        This is a fallback for tables with INTERVAL columns that Ibis
-        can't handle.
+        """Check table existence using BigQuery client (bypasses Ibis schema parsing).
+        
+        This is a fallback for tables with INTERVAL columns that Ibis can't handle.
         """
         from google.api_core.exceptions import NotFound
-
+        
         try:
             client = bigquery.Client(project=self.project_id, credentials=self.credentials)
             table_ref = f"{self.project_id}.{schema_name}.{table_name}"
@@ -209,12 +206,10 @@ class BigQueryConnection(BaseConnection):
             return False
 
     def get_table_obj(self, schema_name: str, table_name: str):
-        """Return table object, handling INTERVAL columns that Ibis can't
-        parse.
-
-        If Ibis fails due to INTERVAL columns, creates a temporary view
-        that casts INTERVAL columns to STRING, allowing the table to be
-        used in transformations.
+        """Return table object, handling INTERVAL columns that Ibis can't parse.
+        
+        If Ibis fails due to INTERVAL columns, creates a temporary view that casts
+        INTERVAL columns to STRING, allowing the table to be used in transformations.
         """
         try:
             return super().get_table_obj(schema_name, table_name)
@@ -226,23 +221,23 @@ class BigQueryConnection(BaseConnection):
 
     def _get_table_obj_with_interval_workaround(self, schema_name: str, table_name: str):
         """Create a table object for tables with INTERVAL columns.
-
+        
         Creates a temporary view that casts INTERVAL columns to STRING,
         allowing Ibis to work with the table.
         """
         import logging
         import uuid
-
+        
         logging.warning(
             f"Table '{schema_name}.{table_name}' has INTERVAL columns that Ibis can't handle. "
             "Creating a workaround view with INTERVAL columns cast to STRING."
         )
-
+        
         # Get table schema using BigQuery client
         client = bigquery.Client(project=self.project_id, credentials=self.credentials)
         table_ref = f"{self.project_id}.{schema_name}.{table_name}"
         bq_table = client.get_table(table_ref)
-
+        
         qi = self.quote_identifier
 
         # Build SELECT with INTERVAL columns cast to STRING
@@ -262,9 +257,9 @@ class BigQueryConnection(BaseConnection):
             OPTIONS(expiration_timestamp=TIMESTAMP_ADD(CURRENT_TIMESTAMP(), INTERVAL 1 HOUR))
             AS SELECT {', '.join(select_columns)} FROM {qi(schema_name)}.{qi(table_name)}
         """
-
+        
         self.connection.raw_sql(create_view_sql)
-
+        
         # Return the view as a table object
         return self.connection.table(temp_view_name, database=schema_name)
 
@@ -276,12 +271,12 @@ class BigQueryConnection(BaseConnection):
         primary_key: Union[str, list[str]] = None,
     ) -> None:
         """Efficient upsert using DELETE + INSERT for BigQuery.
-
+        
         This approach is more efficient than MERGE for BigQuery because:
         1. BigQuery is optimized for bulk operations
         2. DELETE + INSERT performs better than UPDATE operations
         3. Works better with BigQuery's partitioning strategy
-
+        
         Args:
             primary_key: Can be a single column name (str) or list of column names for composite keys
         """
@@ -293,9 +288,9 @@ class BigQueryConnection(BaseConnection):
                     temp_table_name=f"{target_table_name}__temp",
                 )
             )
-
-
-
+            
+            
+            
             # 1. Create temporary table with incremental data (includes transformations)
             self.create_or_replace_table(
                 schema_name=schema_name,
@@ -306,10 +301,10 @@ class BigQueryConnection(BaseConnection):
 
             # 2. Get target table columns
             target_columns = self.get_table_columns(schema_name=schema_name, table_name=target_table_name)
-
+            
             if not target_columns:
                 raise ValueError(f"No columns found in target table {schema_name}.{target_table_name}")
-
+            
             qi = self.quote_identifier
 
             # 3. If primary key is provided, use efficient DELETE + INSERT
@@ -378,7 +373,7 @@ class BigQueryConnection(BaseConnection):
                 self.connection.raw_sql(f"DROP TABLE IF EXISTS {qi(schema_name)}.{qi(target_table_name + '__temp')}")
             except Exception:
                 pass  # Ignore cleanup errors
-
+            
             # Re-raise the original error with context
             raise Exception(
                 f"BigQuery incremental upsert failed for {schema_name}.{target_table_name}: {str(e)}"
@@ -386,7 +381,7 @@ class BigQueryConnection(BaseConnection):
 
 
 
-
+    
 
     def create_schema(self, schema_name: str) -> None:
         try:
@@ -404,7 +399,7 @@ class BigQueryConnection(BaseConnection):
                 raise SchemaCreationFailed(dataset_name, f"Failed to create dataset_id {dataset_id} in BigQuery {str(e)}")
 
     def _parse_url(self, url: str) -> None:
-        """Parse BigQuery connection URL."""
+        """Parse BigQuery connection URL"""
         try:
             # Pattern: bigquery://project_id/dataset?params
             pattern = re.compile(r"bigquery://([^/]+)(?:/([^?]+))?(?:\?(.*))?")
@@ -454,7 +449,8 @@ class BigQueryConnection(BaseConnection):
         return self._build_connection_dict()
 
     def build_bigquery_url(self) -> str:
-        """Constructs a BigQuery URL with Base64-encoded credentials.
+        """
+        Constructs a BigQuery URL with Base64-encoded credentials.
 
         Returns:
             bigquery:// URL with encoded credentials
@@ -485,19 +481,19 @@ class BigQueryConnection(BaseConnection):
             "dataset_id": self.dataset_id,
             "credentials": self.credentials,
         }
-
+        
         for field, value in required.items():
             if not value:
                 raise ConnectionFieldMissingException(missing_fields=field)
-
+        
         # Then, validate that the dataset exists in the project
         try:
             # Get the BigQuery client
             client = self.connection.client
-
+            
             # Get the dataset reference
             dataset_ref = client.dataset(self.dataset_id, project=self.project_id)
-
+            
             # Try to get the dataset - this will raise an exception if it doesn't exist
             client.get_dataset(dataset_ref)
         except Exception as e:

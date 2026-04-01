@@ -18,7 +18,9 @@ class UnhandledErrorMessage(VisitranBackendBaseException):
 
 
 class VisitranCoreExceptions(VisitranBackendBaseException):
-    """This is a wrapper for all the exceptions raised from visitran."""
+    """
+    This is a wrapper for all the exceptions raised from visitran
+    """
 
     def __init__(self, error_message: str) -> None:
         super().__init__(
@@ -29,7 +31,9 @@ class VisitranCoreExceptions(VisitranBackendBaseException):
 
 
 class ProjectNotExist(VisitranBackendBaseException):
-    """Raised if the project is not found."""
+    """
+    Raised if the project is not found.
+    """
 
     def __init__(self, project_id: str) -> None:
         super().__init__(
@@ -44,7 +48,9 @@ class ProjectNotExist(VisitranBackendBaseException):
 
 
 class ProjectNameReservedError(VisitranBackendBaseException):
-    """Raised when attempting to create a project with a reserved name."""
+    """
+    Raised when attempting to create a project with a reserved name.
+    """
 
     def __init__(self, project_name: str) -> None:
         super().__init__(
@@ -59,7 +65,9 @@ class ProjectNameReservedError(VisitranBackendBaseException):
 
 
 class ProjectAlreadyExists(VisitranBackendBaseException):
-    """Raised if the project already exists with the same name."""
+    """
+    Raised if the project already exists with the same name.
+    """
 
     def __init__(self, project_name: str, created_at) -> None:
         super().__init__(
@@ -75,7 +83,9 @@ class ProjectAlreadyExists(VisitranBackendBaseException):
 
 
 class ConnectionAlreadyExists(VisitranBackendBaseException):
-    """Raised if the connection already exists with the same name."""
+    """
+    Raised if the connection already exists with the same name.
+    """
 
     def __init__(self, connection_name: str, created_at: str) -> None:
         super().__init__(
@@ -91,7 +101,9 @@ class ConnectionAlreadyExists(VisitranBackendBaseException):
 
 
 class ConnectionNotExists(VisitranBackendBaseException):
-    """Raised if the connection does not exist."""
+    """
+    Raised if the connection does not exist.
+    """
 
     def __init__(self, connection_id: str) -> None:
         super().__init__(
@@ -106,7 +118,9 @@ class ConnectionNotExists(VisitranBackendBaseException):
 
 
 class ConnectionDependencyError(VisitranBackendBaseException):
-    """Raised if the connection has any dependency with any projects."""
+    """
+    Raised if the connection has any dependency with any projects
+    """
 
     def __init__(self, connection_id: str, connection_name: str, affected_projects: list[str]) -> None:
         super().__init__(
@@ -123,7 +137,9 @@ class ConnectionDependencyError(VisitranBackendBaseException):
 
 
 class ModelAlreadyExists(VisitranBackendBaseException):
-    """Raised if the model already exists with the same name."""
+    """
+    Raised if the model already exists with the same name.
+    """
 
     def __init__(self, model_name: str, created_at: datetime) -> None:
         super().__init__(
@@ -139,12 +155,13 @@ class ModelAlreadyExists(VisitranBackendBaseException):
 
 
 class ModelNotExists(VisitranBackendBaseException):
-    """Exception raised when a specific model does not exist.
+    """
+    Exception raised when a specific model does not exist.
 
-    This exception is used to indicate that the requested model cannot
-    be found within the current context or configuration. It may be
-    helpful to handle this exception in cases where dynamic or user-
-    defined models are being accessed.
+    This exception is used to indicate that the requested model cannot be found
+    within the current context or configuration. It may be helpful to handle
+    this exception in cases where dynamic or user-defined models are being
+    accessed.
 
     :type model_name: str
     """
@@ -173,7 +190,9 @@ class CSVRenameFailed(VisitranBackendBaseException):
 
 
 class CSVFileAlreadyExists(VisitranBackendBaseException):
-    """Raised if the csv file already exists with the same name."""
+    """
+    Raised if the csv file already exists with the same name.
+    """
 
     def __init__(self, csv_name: str, created_at: str) -> None:
         super().__init__(
@@ -189,7 +208,9 @@ class CSVFileAlreadyExists(VisitranBackendBaseException):
 
 
 class CSVFileNotUploaded(VisitranBackendBaseException):
-    """Raised if the csv file already exists with the same name."""
+    """
+    Raised if the csv file already exists with the same name.
+    """
 
     def __init__(self, csv_name: str, reason: str) -> None:
         super().__init__(
@@ -200,7 +221,9 @@ class CSVFileNotUploaded(VisitranBackendBaseException):
 
 
 class CSVFileNotExists(VisitranBackendBaseException):
-    """Raised if the csv file does not exist."""
+    """
+    Raised if the csv file does not exist.
+    """
 
     def __init__(self, csv_name: str) -> None:
         super().__init__(
@@ -215,14 +238,18 @@ class CSVFileNotExists(VisitranBackendBaseException):
 
 
 class InvalidUserException(VisitranBackendBaseException):
-    """Raised if the user is invalid."""
+    """
+    Raised if the user is invalid.
+    """
 
     def __init__(self) -> None:
         super().__init__(error_code=BackendErrorMessages.INVALID_USER, http_status_code=status.HTTP_401_UNAUTHORIZED)
 
 
 class BackupNotExistException(VisitranBackendBaseException):
-    """Raised if the backup does not exist."""
+    """
+    Raised if the backup does not exist.
+    """
 
     def __init__(self, model_name) -> None:
         super().__init__(
@@ -233,7 +260,9 @@ class BackupNotExistException(VisitranBackendBaseException):
 
 
 class EnvironmentNotExists(VisitranBackendBaseException):
-    """Raised if the environment does not exist."""
+    """
+    Raised if the environment does not exist.
+    """
 
     def __init__(self, environment_id: str) -> None:
         super().__init__(
@@ -248,7 +277,9 @@ class EnvironmentNotExists(VisitranBackendBaseException):
 
 
 class EnvironmentAlreadyExist(VisitranBackendBaseException):
-    """Raised if the environment already exists."""
+    """
+    Raised if the environment already exists.
+    """
 
     def __init__(self, env_name: str, created_at: str) -> None:
         super().__init__(
@@ -264,7 +295,9 @@ class EnvironmentAlreadyExist(VisitranBackendBaseException):
 
 
 class SampleProjectLimitExceed(VisitranBackendBaseException):
-    """Raised if sample project limit exceed."""
+    """
+    Raised if sample project limit exceed
+    """
 
     def __init__(self, project_base_name: str, sample_project_count: str, sample_project_limit: str) -> None:
         super().__init__(
@@ -277,7 +310,9 @@ class SampleProjectLimitExceed(VisitranBackendBaseException):
 
 
 class SampleProjectConnectionFailed(VisitranBackendBaseException):
-    """Raised if the connection data is invalid."""
+    """
+    Raised if the connection data is invalid.
+    """
 
     def __init__(self) -> None:
         super().__init__(
@@ -287,7 +322,9 @@ class SampleProjectConnectionFailed(VisitranBackendBaseException):
 
 
 class MasterDbNotExist(VisitranBackendBaseException):
-    """Raised if the master db does not exist."""
+    """
+    Raised if the master db does not exist.
+    """
 
     def __init__(self) -> None:
         super().__init__(
@@ -350,7 +387,9 @@ class SchemaMissingInSeedUpload(VisitranBackendBaseException):
 
 
 class CsvDownloadFailed(VisitranBackendBaseException):
-    """Raised when CSV download/export fails."""
+    """
+    Raised when CSV download/export fails.
+    """
 
     def __init__(self, table_name: str, reason: str) -> None:
         super().__init__(

@@ -116,7 +116,7 @@ def order_transform(transform_dict: dict) -> list:
     return ordered + extras
 
 def process_file(path: str):
-    with open(path) as f:
+    with open(path, "r") as f:
         data = json.load(f)
 
     model_data = data.get("model_data", {})

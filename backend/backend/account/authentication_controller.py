@@ -1,7 +1,7 @@
 """Authentication controller that delegates to plugin or OSS service.
 
-Uses the same interface as ScalekitService for compatibility. If an
-authentication plugin is available (cloud), it uses the plugin.
+Uses the same interface as ScalekitService for compatibility.
+If an authentication plugin is available (cloud), it uses the plugin.
 Otherwise, it falls back to the default AuthenticationService (OSS).
 """
 
@@ -179,9 +179,8 @@ class AuthenticationController:
     ) -> list:
         """Invite user(s) to organization.
 
-        Accepts either a user_list (from the view) or a single
-        email+role. Returns a list of {email, status, message} dicts for
-        failed invites.
+        Accepts either a user_list (from the view) or a single email+role.
+        Returns a list of {email, status, message} dicts for failed invites.
         """
         if user_list is None and email:
             user_list = [{"email": email, "role": role}]
@@ -208,9 +207,8 @@ class AuthenticationController:
     ) -> list:
         """Remove users from organization by email.
 
-        Looks up users by email, deletes their OrganizationMember
-        records, and delegates to auth service for any cloud-specific
-        cleanup.
+        Looks up users by email, deletes their OrganizationMember records,
+        and delegates to auth service for any cloud-specific cleanup.
 
         Returns a list of failed removals.
         """
@@ -399,8 +397,8 @@ class AuthenticationController:
     def _resolve_role_name(role: str) -> str:
         """Resolve a role_id to its role name if needed.
 
-        If 'role' is already a name (e.g. 'admin'), return as-is. If
-        'role' is a role_id (e.g. 'rol_123'), look up the Roles table.
+        If 'role' is already a name (e.g. 'admin'), return as-is.
+        If 'role' is a role_id (e.g. 'rol_123'), look up the Roles table.
         """
         try:
             from pluggable_apps.user_access_control.models.roles import Roles
@@ -416,8 +414,8 @@ class AuthenticationController:
     ) -> Optional[dict]:
         """Change a user's role in an organization.
 
-        Looks up the user by email, updates the OrganizationMember
-        record, and delegates to Scalekit if available.
+        Looks up the user by email, updates the OrganizationMember record,
+        and delegates to Scalekit if available.
         """
         from backend.core.models.organization_member import OrganizationMember
         from django.contrib.auth import get_user_model

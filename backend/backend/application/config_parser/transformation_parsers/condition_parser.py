@@ -60,10 +60,7 @@ class ConditionParser(BaseParser):
 
     @property
     def rhs_between_values(self) -> tuple:
-        """Return (low, high) values for BETWEEN operator.
-
-        Falls back to (None, None).
-        """
+        """Return (low, high) values for BETWEEN operator. Falls back to (None, None)."""
         val = self._rhs_data.get("value", [])
         if isinstance(val, list) and len(val) >= 2:
             return (val[0], val[1])
