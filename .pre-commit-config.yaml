@@ -10,8 +10,6 @@ ci:
     - pycln # Path resolution bug in pre-commit.ci sandbox
     - flake8 # Pre-existing violations — will clean up separately
     - markdownlint # Pre-existing violations — will clean up separately
-    - yamllint # Pre-existing violations — will clean up separately
-    - actionlint # Pre-existing violations — will clean up separately
     - absolufy-imports # Incorrectly rewrites relative imports in monorepo structure
     - black # Large-scale reformatting — will clean up in dedicated PR
     - pyupgrade # Pre-existing across 43 files
