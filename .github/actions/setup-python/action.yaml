@@ -1,5 +1,5 @@
 name: 'Setup Python'
-description: 'Prints a greeting message'
+description: 'Sets up Python, uv, and installs backend dependencies'
 inputs:
   python-version:
     required: true
@@ -16,7 +16,8 @@ runs:
       with:
         python-version: ${{ inputs.python-version }}
         enable-cache: true
-        cache-dependency-path: ./uv.lock
-    - name: Install visitran-cloud dependencies
+        cache-dependency-path: backend/uv.lock
+    - name: Install backend dependencies
       shell: bash
+      working-directory: backend
       run: uv sync

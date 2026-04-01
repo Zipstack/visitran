@@ -1,73 +1,74 @@
 ---
+name: Minimal Tests
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+concurrency:
+  group: ${{ github.repository }}-${{ github.head_ref || github.sha }}-${{ github.workflow }}
+  cancel-in-progress: true
+
+env:
+  FORCE_COLOR: "1"
+
+jobs:
+  minimal_tests:
     name: Minimal Tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ["3.11"]
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
 
-    on:
-      workflow_dispatch:
-      push:
-        branches: ["main"]
-      pull_request:
-        branches: [ "main"]
+      - name: Setup Python
+        uses: ./.github/actions/setup-python/
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    concurrency:
-      group: ${{ github.repository }}-${{ github.head_ref || github.sha }}-${{ github.workflow }}
-      cancel-in-progress: true
-    env:
-      FORCE_COLOR: "1"
-    jobs:
-      minimal_tests:
-        name: Minimal Tests
-        runs-on: ubuntu-latest
-        strategy:
-          fail-fast: true
-          matrix:
-            python-version: ["3.11"] #,"3.9","3.10"]
-        steps:
-          #----------------------------------------------
-          #       check-out repo and set-up python
-          #----------------------------------------------
-          - uses: actions/checkout@v4
-            with:
-              lfs: true
-          - name: Setup Python
-            uses: ./.github/actions/setup-python/
-            with:
-              python-version: ${{ matrix.python-version }}
-          - name: Cache pre-commit hooks
-            uses: actions/cache@v4
-            if: github.ref != 'refs/heads/main'
-            with:
-              path: ~/.cache/pre-commit
-              key: ${{ runner.os }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+      - name: Cache pre-commit hooks
+        uses: actions/cache@v4
+        if: github.ref != 'refs/heads/main'
+        with:
+          path: ~/.cache/pre-commit
+          key: ${{ runner.os }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
 
-          - name: Check pre-commit
-            if: github.ref != 'refs/heads/main'
-            run: |
-              uv run pre-commit run --all-files
-          - name: Run minimal core tests
-            run: |
-              uv run coverage run --rcfile=pyproject.toml --data-file=minimal.cov --context="minimal" --source=. -m \
-              pytest -x -vv -m "not snowflake and not bigquery and not trino and not postgres"
-          - name: Run backend tests
-            run: |
-              uv run coverage run --rcfile=pyproject.toml --data-file=backend.cov --context="backend" --source=. -m \
-              pytest -x -vv ./visitran_backend
+      - name: Check pre-commit
+        if: github.ref != 'refs/heads/main'
+        working-directory: .
+        run: uv run --directory backend pre-commit run --all-files
 
-          - name: Combine to coverage xml
-            run: |
-              uv run coverage combine backend.cov minimal.cov
-              uv run coverage report -m
-              uv run coverage xml
-          - name: Git fetch unshallow
-            run: |
-              git fetch --unshallow
+      - name: Run tests
+        run: |
+          uv run coverage run --rcfile=pyproject.toml --source=. -m \
+          pytest -x -vv -m "not snowflake and not bigquery and not trino and not postgres"
 
-          - name: Core SonarCloud Scan
-            uses: SonarSource/sonarcloud-github-action@master
-            if: ${{ github.actor != 'dependabot[bot]' }}
-            env:
-              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
-              SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-            with:
-              projectBaseDir: ./
-              args: >
-                -Dproject.settings=./sonar-project.properties
+      - name: Generate coverage report
+        run: |
+          uv run coverage report -m
+          uv run coverage xml
+
+      - name: Git fetch unshallow
+        working-directory: .
+        run: git fetch --unshallow
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: ./
+          args: >
+            -Dproject.settings=./sonar-project.properties
