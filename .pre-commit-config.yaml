@@ -36,6 +36,7 @@ repos:
       - id: check-toml
       - id: debug-statements
       - id: detect-private-key
+        exclude: sample\.env$
       # - id: detect-aws-credentials
       #   args: ["--allow-missing-credentials"]
       - id: check-merge-conflict
@@ -54,7 +55,7 @@ repos:
     rev: 24.1.1
     hooks:
       - id: black
-        args: [--config=pyproject.toml]
+        args: [--config=backend/pyproject.toml]
   # - id: black
   #   alias: black-check
   #   stages: [manual]
@@ -82,13 +83,13 @@ repos:
     rev: v2.4.0
     hooks:
       - id: pycln
-        args: [--config=pyproject.toml]
+        args: [--config=backend/pyproject.toml]
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
     hooks:
       - id: isort
         files: "\\.(py)$"
-        args: [--settings-path=pyproject.toml]
+        args: [--settings-path=backend/pyproject.toml]
   - repo: https://github.com/pycqa/flake8
     rev: 7.0.0
     hooks:
