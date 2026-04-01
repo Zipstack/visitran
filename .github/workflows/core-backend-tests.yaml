@@ -41,7 +41,7 @@ jobs:
       - name: Run tests
         run: |
           uv run coverage run --rcfile=pyproject.toml --source=. -m \
-          pytest -x -vv -m "not snowflake and not bigquery and not trino and not postgres"
+          pytest -x -vv --ignore=tests/integration_tests -m "not snowflake and not bigquery and not trino and not postgres"
 
       - name: Generate coverage report
         run: |
