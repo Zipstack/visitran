@@ -79,9 +79,9 @@ const IdeExplorer = ({
     previewTimeTravel,
     projectName,
     projectId,
-    setCurrentSchema,
   } = useProjectStore();
   const currentSchema = useProjectStore((state) => state.currentSchema);
+  const setCurrentSchema = useProjectStore((state) => state.setCurrentSchema);
 
   // Reset currentSchema on unmount to prevent stale data
   useEffect(() => {
