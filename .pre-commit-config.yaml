@@ -32,7 +32,10 @@ repos:
       - id: trailing-whitespace
         exclude_types:
           - "markdown"
+          - "svg"
       - id: end-of-file-fixer
+        exclude_types:
+          - "svg"
       - id: check-yaml
         args: [--unsafe]
       - id: check-added-large-files
