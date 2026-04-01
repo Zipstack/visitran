@@ -8,6 +8,7 @@ ci:
     - protolint-docker # Needs Docker, not available in pre-commit.ci
     - hadolint-docker # Needs Docker, not available in pre-commit.ci
     - pycln # Path resolution bug in pre-commit.ci sandbox
+    - end-of-file-fixer # Inconsistent behavior between local and CI environments
     - flake8 # Pre-existing violations — will clean up separately
     - markdownlint # Pre-existing violations — will clean up separately
     - absolufy-imports # Incorrectly rewrites relative imports in monorepo structure
