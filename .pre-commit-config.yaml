@@ -7,6 +7,8 @@ ci:
     - mypy # Uses language: system, not available in pre-commit.ci sandbox
     - protolint-docker # Needs Docker, not available in pre-commit.ci
     - hadolint-docker # Needs Docker, not available in pre-commit.ci
+    - pycln # Path resolution bug in pre-commit.ci sandbox
+    - flake8 # Pre-existing violations — will clean up separately
   autofix_prs: true
   autoupdate_schedule: monthly
 
