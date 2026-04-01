@@ -440,6 +440,14 @@
 .chat-ai-info-chip-clickable {
   cursor: pointer;
 }
+.chat-ai-info-chip-error {
+  background-color: var(--ant-color-error-bg);
+  border-color: var(--ant-color-error-border);
+}
+.chat-ai-info-chip-error .chat-ai-info-chip-icon,
+.chat-ai-info-chip-error .chat-ai-info-chip-text {
+  color: var(--ant-color-error);
+}
 .chat-ai-manage-credits-link:hover {
   color: var(--icons-color);
   border-color: var(--icons-color);
