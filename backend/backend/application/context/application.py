@@ -456,6 +456,16 @@ class ApplicationContext(ModelGraph):
         :return:
         """
         self.session.update_model(model_name=model_name, model_data=model_data)
+        # Dual-write: keep UserDraft in sync so draft status is accurate
+        try:
+            from backend.core.services.draft_service import (
+                get_or_create_draft, save_draft_data,
+            )
+            config_model = self.session.fetch_model(model_name=model_name)
+            draft = get_or_create_draft(config_model=config_model)
+            save_draft_data(draft=draft, model_data=model_data)
+        except Exception:
+            logger.debug("Draft dual-write failed for %s — non-blocking", model_name)
         # Updating the model spec in cache
         if visitran_models := self.session.redis_client.get(self.redis_model_key):
             models = yaml.safe_load(visitran_models)

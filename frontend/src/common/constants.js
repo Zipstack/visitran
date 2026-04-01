@@ -35,6 +35,7 @@ const DRAWER_TYPES = {
   SQL: "SQL",
   PYTHON: "PYTHON",
   SEQUENCE: "SEQUENCE",
+  VERSION_HISTORY: "VERSION_HISTORY",
 };
 
 const runHistoryTagColor = {

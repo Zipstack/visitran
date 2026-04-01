@@ -487,3 +487,124 @@ class ProjectConnectionInvalidData(VisitranBackendBaseException):
     @property
     def severity(self) -> str:
         return "Warning"
+
+
+# ------------------------------------------------------------------
+# Version Control Exceptions
+# ------------------------------------------------------------------
+
+
+class VersionNotFoundException(VisitranBackendBaseException):
+    def __init__(self, version_number: int = 0) -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.VERSION_NOT_FOUND,
+            http_status_code=status.HTTP_404_NOT_FOUND,
+            version_number=version_number,
+        )
+
+
+class CommitFailedException(VisitranBackendBaseException):
+    def __init__(self, model_name: str = "") -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.COMMIT_FAILED,
+            http_status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            model_name=model_name,
+        )
+
+
+class VersionConflictException(VisitranBackendBaseException):
+    def __init__(self, current_version: int = 0, expected_version: int = 0) -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.VERSION_CONFLICT,
+            http_status_code=status.HTTP_409_CONFLICT,
+            current_version=current_version,
+            expected_version=expected_version,
+        )
+
+
+class DuplicateContentCommitException(VisitranBackendBaseException):
+    def __init__(self, existing_version: int = 0) -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.DUPLICATE_CONTENT_COMMIT,
+            http_status_code=status.HTTP_409_CONFLICT,
+            existing_version=existing_version,
+        )
+
+
+class ConcurrentModificationException(VisitranBackendBaseException):
+    def __init__(self, model_name: str = "") -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.CONCURRENT_MODIFICATION,
+            http_status_code=status.HTTP_409_CONFLICT,
+            model_name=model_name,
+        )
+
+
+class NoChangesToCommitException(VisitranBackendBaseException):
+    def __init__(self) -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.NO_CHANGES_TO_COMMIT,
+            http_status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+class GitConnectionFailedException(VisitranBackendBaseException):
+    def __init__(self, error_message: str = "") -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.GIT_CONNECTION_FAILED,
+            http_status_code=status.HTTP_502_BAD_GATEWAY,
+            error_message=error_message,
+        )
+
+
+class GitPushFailedException(VisitranBackendBaseException):
+    def __init__(self, model_name: str = "", error_message: str = "") -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.GIT_PUSH_FAILED,
+            http_status_code=status.HTTP_502_BAD_GATEWAY,
+            model_name=model_name,
+            error_message=error_message,
+        )
+
+
+class GitRateLimitException(VisitranBackendBaseException):
+    def __init__(self) -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.GIT_RATE_LIMIT,
+            http_status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        )
+
+
+class GitTokenExpiredException(VisitranBackendBaseException):
+    def __init__(self) -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.GIT_TOKEN_EXPIRED,
+            http_status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        )
+
+
+class UnsupportedGitProviderException(VisitranBackendBaseException):
+    def __init__(self, repo_url: str = "") -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.UNSUPPORTED_GIT_PROVIDER,
+            http_status_code=status.HTTP_400_BAD_REQUEST,
+            repo_url=repo_url,
+        )
+
+
+class GitConfigurationNotFoundException(VisitranBackendBaseException):
+    def __init__(self, project_id: str = "") -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.GIT_CONFIG_NOT_FOUND,
+            http_status_code=status.HTTP_404_NOT_FOUND,
+            project_id=project_id,
+        )
+
+
+class GitConfigAlreadyExistsException(VisitranBackendBaseException):
+    def __init__(self, project_id: str = "") -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.GIT_CONFIG_ALREADY_EXISTS,
+            http_status_code=status.HTTP_409_CONFLICT,
+            project_id=project_id,
+        )

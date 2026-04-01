@@ -413,6 +413,50 @@ class BackendErrorMessages(BaseConstant):
         "The project owner already has full access and cannot be added as a shared user."
     )
 
+    # Version Control Error Messages
+    VERSION_NOT_FOUND = (
+        '**Version Not Found!**\nVersion {version_number} was not found in this project.'
+    )
+    COMMIT_FAILED = (
+        '**Commit Failed!**\nFailed to create version for model "{model_name}". Please try again.'
+    )
+    VERSION_CONFLICT = (
+        '**Version Conflict!**\nExpected version {expected_version} but current is {current_version}. '
+        'Another user may have committed. Please refresh and retry.'
+    )
+    DUPLICATE_CONTENT_COMMIT = (
+        '**No Changes!**\nContent is identical to version {existing_version}. Nothing to commit.'
+    )
+    CONCURRENT_MODIFICATION = (
+        '**Concurrent Edit!**\nModel "{model_name}" was modified by another session. '
+        'Please refresh and retry.'
+    )
+    NO_CHANGES_TO_COMMIT = (
+        '**No Changes!**\nNo changes detected since the last version. Nothing to commit.'
+    )
+    GIT_CONNECTION_FAILED = (
+        '**Git Connection Failed!**\n{error_message}'
+    )
+    GIT_PUSH_FAILED = (
+        '**Git Push Failed!**\nFailed to push "{model_name}" to git.\n{error_message}'
+    )
+    GIT_RATE_LIMIT = (
+        '**Rate Limited!**\nGitHub API rate limit exceeded. Please wait and try again.'
+    )
+    GIT_TOKEN_EXPIRED = (
+        '**Token Expired!**\nGit authentication token has expired. Please update your credentials.'
+    )
+    UNSUPPORTED_GIT_PROVIDER = (
+        '**Unsupported Provider!**\nGit provider for URL "{repo_url}" is not supported. '
+        'Currently only GitHub is supported.'
+    )
+    GIT_CONFIG_NOT_FOUND = (
+        '**Git Config Not Found!**\nNo git configuration found for project "{project_id}".'
+    )
+    GIT_CONFIG_ALREADY_EXISTS = (
+        '**Git Config Exists!**\nProject "{project_id}" already has an active git configuration.'
+    )
+
     # Token Balance Error Messages
     INSUFFICIENT_TOKEN_BALANCE = (
         "**Insufficient Token Balance!**\n"

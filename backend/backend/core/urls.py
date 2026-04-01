@@ -50,6 +50,16 @@ urlpatterns = [
     # path("webhooks/", include("pluggable_apps.subscriptions.routers.webhooks.urls")),
     # AI Context Rules
     path("ai-context/", include("backend.core.routers.ai_context.urls")),
+    # Version History
+    path(
+        "project/<str:project_id>/version",
+        include("backend.core.routers.version_history.urls"),
+    ),
+    # Git Config
+    path(
+        "project/<str:project_id>/git-config",
+        include("backend.core.routers.git_config.urls"),
+    ),
     # # Urls about static list data's
     path("datasource", get_datasource_list, name="get-datasource-list"),
     path("profile", get_user_profile, name="get_user_profile"),

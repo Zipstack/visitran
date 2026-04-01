@@ -8,6 +8,7 @@ import {
 import PropTypes from "prop-types";
 import { Layout, Tooltip } from "antd";
 import {
+  HistoryOutlined,
   RightCircleFilled,
   PlusOutlined,
   LeftCircleFilled,
@@ -38,6 +39,7 @@ import { ChatAI } from "./ChatAI";
 import { SQLDrawer } from "../sql-drawer/SQLDrawer";
 import { PythonDrawer } from "../python-drawer/PythonDrawer";
 import { SequenceDrawer } from "../sequence-drawer/SequenceDrawer";
+import { VersionHistoryDrawer } from "../version-history/VersionHistoryDrawer";
 import { DRAWER_TYPES } from "../../common/constants";
 import { useNoCodeModelDrawerStore } from "../../store/no-code-model-drawer-store";
 import "./ChatAI.css";
@@ -343,6 +345,15 @@ function ChatLayout({ children }) {
       );
     }
 
+    if (drawerType === DRAWER_TYPES.VERSION_HISTORY) {
+      return (
+        <VersionHistoryDrawer
+          isVersionDrawerOpen={isRightDrawerOpen}
+          closeVersionDrawer={closeDrawer}
+        />
+      );
+    }
+
     return null;
   };
 
@@ -380,6 +391,19 @@ function ChatLayout({ children }) {
                 onKeyDown={(e) => e.key === "Enter" && handleNewChat()}
               >
                 <PlusOutlined />
+              </div>
+            </Tooltip>
+
+            {/* Version History button */}
+            <Tooltip title="Version History" placement="left">
+              <div
+                className="collapsed-bar-item collapsed-bar-action"
+                onClick={() => handleRightDrawer(DRAWER_TYPES.VERSION_HISTORY)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === "Enter" && handleRightDrawer(DRAWER_TYPES.VERSION_HISTORY)}
+              >
+                <HistoryOutlined />
               </div>
             </Tooltip>
 
