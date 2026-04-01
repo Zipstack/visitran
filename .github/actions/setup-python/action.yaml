@@ -20,4 +20,4 @@ runs:
     - name: Install backend dependencies
       shell: bash
       working-directory: backend
-      run: uv sync
+      run: uv sync --group test
