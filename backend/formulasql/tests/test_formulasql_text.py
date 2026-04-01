@@ -31,7 +31,7 @@ class TestFormulaSQLText:
                                                    database='sakila')
         self.payment = self.connection_mysql.table('payment')
 
-    
+
 
     def test_numbervalue(self):
         formula = FormulaSQL(self.countries, 'test_col1', '=NUMBERVALUE("84000")')
@@ -58,7 +58,7 @@ class TestFormulaSQLText:
         countries_x = self.countries.mutate(formula.ibis_column())
         row = countries_x['name', 'continent', 'population', 'area_km2', 'test_col1'].head().execute().iloc[0]
         assert (row['test_col1']== 581)
-        
+
     def test_concatenate(self):
         formula = FormulaSQL(self.countries, 'test_col1', '=CONCATENATE("Visitran", " says hello world!")')
         countries_x = self.countries.mutate(formula.ibis_column())
@@ -367,5 +367,3 @@ class TestFormulaSQLText:
         payment_x = self.payment.mutate(formula.ibis_column())
         row = payment_x['payment_id', 'customer_id', 'amount', 'test_col1'].head().execute().iloc[0]
         assert (row['test_col1']== pd.Timestamp('2019-06-05 00:00:00+0000', tz='UTC'))
-
-

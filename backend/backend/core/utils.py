@@ -16,7 +16,8 @@ from backend.errors.exceptions import VisitranBackendBaseException
 
 
 def handle_http_request(func) -> Any:
-    """This decorator is used to handle the router exceptions and some pre-request validations if needed."""
+    """This decorator is used to handle the router exceptions and some pre-
+    request validations if needed."""
 
     lock_endpoints = ["execute-seed-command", "execute-run-command"]
 
@@ -81,8 +82,7 @@ def handle_http_request(func) -> Any:
 
 
 def sanitize_data(data):
-    """
-    Recursively convert any Python structure into a JSON‑serialisable form.
+    """Recursively convert any Python structure into a JSON‑serialisable form.
 
     ── Rules applied ──────────────────────────────────────────────────────
     • decimal.Decimal → int (if integral) or float
@@ -131,7 +131,7 @@ def redis_singleton_lock(ttl: int = 600):
             if not chat_message_id:
                 return func(*args, **kwargs)
 
-            redis = RedisClient().redis_client  
+            redis = RedisClient().redis_client
 
             key = f"transformation:{chat_message_id}:lock"
 

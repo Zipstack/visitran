@@ -30,8 +30,8 @@ DISCUSSION_TYPE_CHOICES = [
 
 
 class ChatMessageManager(models.Manager):
-    """
-    Default manager excluding messages from soft-deleted chats.
+    """Default manager excluding messages from soft-deleted chats.
+
     Returns only ChatMessages where chat.is_deleted=False.
     """
 
@@ -40,10 +40,8 @@ class ChatMessageManager(models.Manager):
 
 
 class ChatMessage(BaseModel):
-    """
-    Represents a single message in a Chat, with a prompt, optional response,
-    and status tracking for prompt and transformation stages.
-    """
+    """Represents a single message in a Chat, with a prompt, optional response,
+    and status tracking for prompt and transformation stages."""
 
     chat_message_id = models.UUIDField(
         primary_key=True,
@@ -183,32 +181,32 @@ class ChatMessage(BaseModel):
         editable=True,
         help_text="String identifier of the developer LLM model used for this chat."
     )
-    
+
     # Feedback fields for response quality
     has_feedback = models.BooleanField(
         default=False,
         help_text="Indicates whether this message has received user feedback."
     )
-    
+
     FEEDBACK_CHOICES = [
         ('0', 'Neutral'),
         ('P', 'Positive'),
         ('N', 'Negative')
     ]
-    
+
     feedback = models.CharField(
         max_length=1,
         choices=FEEDBACK_CHOICES,
         default='0',
         help_text="Feedback value: 0=Neutral, P=Positive, N=Negative"
     )
-    
+
     feedback_timestamp = models.DateTimeField(
         null=True,
         blank=True,
         help_text="When the feedback was provided."
     )
-    
+
     feedback_comment = models.TextField(
         null=True,
         blank=True,
@@ -223,9 +221,8 @@ class ChatMessage(BaseModel):
         return self.chat.chat_name
 
     def __str__(self) -> str:
-        """
-        Descriptive name showing the message UUID and the parent Chat UUID (or 'None' if missing).
-        """
+        """Descriptive name showing the message UUID and the parent Chat UUID
+        (or 'None' if missing)."""
         chat_id = self.chat.chat_id if self.chat else 'None'
         return f"Message {self.chat_message_id} for Chat {chat_id}"
 

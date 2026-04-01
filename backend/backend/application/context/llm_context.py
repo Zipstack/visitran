@@ -21,8 +21,7 @@ from backend.core.models.ai_context_rules import UserAIContextRules, ProjectAICo
 
 class LLMServerContext(ChatAiContext):
     def __init__(self, project_id: str) -> None:
-        """
-        Initialize the ChatMessageContext with a specific project_id.
+        """Initialize the ChatMessageContext with a specific project_id.
 
         Args:
             project_id (str): The UUID of the project context.
@@ -197,13 +196,15 @@ class LLMServerContext(ChatAiContext):
                 break
 
     def listen_to_redis_stream(self, sid: str, channel_id: str, chat_id: str, chat_message_id: str, chat_intent: str, discussion_status: str):
-        """Listens to the Redis stream from llm server and processes the messages."""
+        """Listens to the Redis stream from llm server and processes the
+        messages."""
         group_id = f"group_{chat_id}_{chat_message_id}"
         self.create_redis_xgroup(channel_id, group_id)
         self.__stream_listener(sid, channel_id, chat_id, chat_message_id, chat_intent, group_id, discussion_status)
 
     def stream_prompt_response(self, sid: str, channel_id: str, chat_id: str, chat_message_id: str, chat_intent: str, discussion_status: str):
-        """Starts a background thread to listen redis pubsub channel from AI server"""
+        """Starts a background thread to listen redis pubsub channel from AI
+        server."""
         args = (sid, channel_id, chat_id, chat_message_id, chat_intent, discussion_status)
         try:
             sio.start_background_task(self.listen_to_redis_stream, *args)
@@ -212,15 +213,10 @@ class LLMServerContext(ChatAiContext):
             raise e
 
     def process_prompt(self, sid: str, channel_id: str, chat_id: str, chat_message_id: str, is_retry: bool, org_id: str):
-        """
-        Returns the prompt response from the chat message
-        :param is_retry: second attempt
-        :param sid: The socket client id
-        :param channel_id: The channel id
-        :param chat_id: The chat id
-        :param chat_message_id: The chat message id
-        :return: The prompt response
-        """
+        """Returns the prompt response from the chat message :param is_retry:
+        second attempt :param sid: The socket client id :param channel_id: The
+        channel id :param chat_id: The chat id :param chat_message_id: The chat
+        message id :return: The prompt response."""
         try:
             chat_message = self._get_chat_message(chat_id=chat_id, chat_message_id=chat_message_id)
             chat_id = str(chat_message.chat.chat_id)
@@ -380,8 +376,8 @@ class LLMServerContext(ChatAiContext):
         self.transformation_save(sid=sid, channel_id=channel_id, chat_id=chat_id, chat_message_id=chat_message_id)
 
     def transformation_save(self, chat_id: str, chat_message_id: str, channel_id: str, sid: str) -> dict:
-        """
-        Get chat message details and extract the response for transformation.
+        """Get chat message details and extract the response for
+        transformation.
 
         Args:
             chat_id (str): The unique ID of the chat.

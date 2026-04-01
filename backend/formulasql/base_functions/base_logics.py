@@ -36,4 +36,3 @@ class BaseLogics:
         for index, ele in enumerate(params[1:]):
             arr.append(FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, ele))
         return e.notin(arr)
-

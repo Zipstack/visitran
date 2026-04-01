@@ -14,13 +14,13 @@ class TokenCostService(ChatMessageContext):
     def create_token_cost_record(
             self,
             chat_message: ChatMessage,
-            token_data: Dict[str, Any],
+            token_data: dict[str, Any],
             chat_intent: str,
             session_id: str,
             processing_time_ms: int = 0
     ) -> Optional[ChatTokenCost]:
-        """
-        Create a ChatTokenCost record from token data received from visitran_ai.
+        """Create a ChatTokenCost record from token data received from
+        visitran_ai.
 
         Args:
             chat_message: The ChatMessage instance
@@ -89,7 +89,7 @@ class TokenCostService(ChatMessageContext):
             return None
 
     @staticmethod
-    def get_session_summary(session_id: str) -> Optional[Dict[str, Any]]:
+    def get_session_summary(session_id: str) -> Optional[dict[str, Any]]:
         """Get session cost summary."""
         try:
             session_cost = ChatSessionCost.objects.filter(session_id=session_id).first()

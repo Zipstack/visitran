@@ -24,12 +24,14 @@ class AggregationColumnsParser(BaseParser):
 
     @property
     def expression(self) -> str:
-        """Expression field for formula-based aggregates (e.g., 'SUM(revenue)/COUNT(*)')."""
+        """Expression field for formula-based aggregates (e.g.,
+        'SUM(revenue)/COUNT(*)')."""
         return self.get("expression", "")
 
     @property
     def is_formula_aggregate(self) -> bool:
-        """Check if this is a formula-based aggregate (has expression field)."""
+        """Check if this is a formula-based aggregate (has expression
+        field)."""
         return bool(self.expression)
 
     def validate(self) -> list[str]:

@@ -9,8 +9,9 @@ except:
     from abc import ABC as Base
 
 def ensure_typed_null(expr, fallback_type):
-    """
-    Checking for "empty" false/true branches if typed NULL the we sould to cast them.
+    """Checking for "empty" false/true branches if typed NULL the we sould to
+    cast them.
+
     Treats:
       - None
       - ibis.NA / null()
@@ -43,7 +44,7 @@ class Logics(Base):
         e1 = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, params[0])
         e2 = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, params[1])
         e3 = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, params[2])
-        
+
         # Infer types where possible
         if e2 is not None and not e2.equals(null()):
             e3 = ensure_typed_null(e3, e2.type())
@@ -269,7 +270,7 @@ class Logics(Base):
         e = ibis.literal(False)
         data_types[node['outputs'][0]] = 'boolean'
         return e
-    
+
     @staticmethod
     def between(table, node, data_types, inter_exps):
         params = node['inputs']
@@ -306,7 +307,8 @@ class Logics(Base):
 
     @staticmethod
     def nullif(table, node, data_types, inter_exps):
-        """Returns null if the two arguments are equal, otherwise returns the first argument."""
+        """Returns null if the two arguments are equal, otherwise returns the
+        first argument."""
         if len(node['inputs']) != 2:
             raise Exception("NULLIF function requires 2 parameters")
         e1 = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node['inputs'][0])
@@ -361,7 +363,8 @@ class Logics(Base):
 
     @staticmethod
     def try_cast(table, node, data_types, inter_exps):
-        """Attempts to cast a value to a specified type, returning null on failure."""
+        """Attempts to cast a value to a specified type, returning null on
+        failure."""
         if len(node['inputs']) != 2:
             raise Exception("TRY_CAST function requires 2 parameters: TRY_CAST(value, type)")
         e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node['inputs'][0])

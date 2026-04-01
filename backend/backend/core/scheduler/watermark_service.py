@@ -1,7 +1,5 @@
-"""
-Watermark Service for Incremental Job Processing
-Handles watermark detection, tracking, and incremental data processing
-"""
+"""Watermark Service for Incremental Job Processing Handles watermark
+detection, tracking, and incremental data processing."""
 
 import logging
 from datetime import datetime
@@ -23,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class WatermarkDetectionService:
-    """Service for detecting suitable watermark columns in database tables"""
+    """Service for detecting suitable watermark columns in database tables."""
 
     # Common timestamp column patterns
     TIMESTAMP_PATTERNS = [
@@ -55,9 +53,8 @@ class WatermarkDetectionService:
             logger.warning("No project_id provided, ApplicationContext not initialized")
             self.app_context = None
 
-    def detect_watermark_columns(self, table_name: str = None) -> Dict[str, Any]:
-        """
-        Detect watermark columns.
+    def detect_watermark_columns(self, table_name: str = None) -> dict[str, Any]:
+        """Detect watermark columns.
 
         When *table_name* is provided, analyse that single table.
         When *table_name* is ``None``, analyse all project source tables
@@ -108,8 +105,8 @@ class WatermarkDetectionService:
                 }
 
             # Merge candidates from all tables into flat lists.
-            all_ts: List[Dict] = []
-            all_seq: List[Dict] = []
+            all_ts: list[dict] = []
+            all_seq: list[dict] = []
             total_rows = 0
             total_cols = 0
 
@@ -155,8 +152,8 @@ class WatermarkDetectionService:
                 'table_info': {},
             }
 
-    def _get_project_source_tables(self) -> List[Dict[str, str]]:
-        """Extract source tables from all project models"""
+    def _get_project_source_tables(self) -> list[dict[str, str]]:
+        """Extract source tables from all project models."""
         if not self.app_context:
             return []
 
@@ -188,8 +185,8 @@ class WatermarkDetectionService:
             logger.error(f"Error extracting source tables from project models: {e}")
             return []
 
-    def _analyze_single_table(self, table_name: str, schema_name: str = "") -> Dict[str, Any]:
-        """Analyze a single table for watermark candidates"""
+    def _analyze_single_table(self, table_name: str, schema_name: str = "") -> dict[str, Any]:
+        """Analyze a single table for watermark candidates."""
         try:
             columns = self._get_table_columns_via_app_context(schema_name, table_name)
 
@@ -239,8 +236,8 @@ class WatermarkDetectionService:
             logger.error(f"Error analyzing table {schema_name}.{table_name}: {e}")
             return {'timestamp_candidates': [], 'sequence_candidates': [], 'table_info': {}}
 
-    def _get_table_columns_via_app_context(self, schema_name: str, table_name: str) -> List[Dict[str, Any]]:
-        """Get column information using ApplicationContext"""
+    def _get_table_columns_via_app_context(self, schema_name: str, table_name: str) -> list[dict[str, Any]]:
+        """Get column information using ApplicationContext."""
         if self.app_context:
             try:
                 return self.app_context.get_table_columns(
@@ -253,8 +250,8 @@ class WatermarkDetectionService:
         # Fallback to direct query
         return self._get_table_columns_fallback(table_name)
 
-    def _get_table_columns_fallback(self, table_name: str) -> List[Dict[str, Any]]:
-        """Fallback method for getting table columns"""
+    def _get_table_columns_fallback(self, table_name: str) -> list[dict[str, Any]]:
+        """Fallback method for getting table columns."""
         with connection.cursor() as cursor:
             # PostgreSQL-specific query (adapt for other databases)
             cursor.execute("""
@@ -282,7 +279,7 @@ class WatermarkDetectionService:
             ]
 
     def _is_timestamp_column(self, col_name: str, col_type: str) -> bool:
-        """Check if column is likely a timestamp column"""
+        """Check if column is likely a timestamp column."""
         # Check name patterns
         name_match = any(pattern in col_name for pattern in self.TIMESTAMP_PATTERNS)
 
@@ -294,7 +291,7 @@ class WatermarkDetectionService:
         return name_match or type_match
 
     def _is_sequence_column(self, col_name: str, col_type: str) -> bool:
-        """Check if column is likely a sequence/ID column"""
+        """Check if column is likely a sequence/ID column."""
         # Check name patterns
         name_match = any(pattern in col_name for pattern in self.ID_PATTERNS)
 
@@ -347,8 +344,8 @@ class WatermarkDetectionService:
 
         return min(score, 1.0)
 
-    def _get_sample_values_via_app_context(self, schema_name: str, table_name: str, column_name: str, limit: int = 5) -> List[Any]:
-        """Get sample values using ApplicationContext"""
+    def _get_sample_values_via_app_context(self, schema_name: str, table_name: str, column_name: str, limit: int = 5) -> list[Any]:
+        """Get sample values using ApplicationContext."""
         if self.app_context:
             try:
                 # Get sample records from the table
@@ -380,8 +377,8 @@ class WatermarkDetectionService:
         # Fallback to direct query
         return self._get_sample_values_fallback(table_name, column_name, limit)
 
-    def _get_sample_values_fallback(self, table_name: str, column_name: str, limit: int = 5) -> List[Any]:
-        """Fallback method for getting sample values"""
+    def _get_sample_values_fallback(self, table_name: str, column_name: str, limit: int = 5) -> list[Any]:
+        """Fallback method for getting sample values."""
         try:
             with connection.cursor() as cursor:
                 cursor.execute(
@@ -396,7 +393,7 @@ class WatermarkDetectionService:
             return []
 
     def _get_table_row_count_via_app_context(self, schema_name: str, table_name: str) -> int:
-        """Get table row count using ApplicationContext"""
+        """Get table row count using ApplicationContext."""
         if self.app_context:
             try:
                 return self.app_context.visitran_context.get_table_record_count(
@@ -410,7 +407,7 @@ class WatermarkDetectionService:
         return self._get_table_row_count_fallback(table_name)
 
     def _get_table_row_count_fallback(self, table_name: str) -> int:
-        """Fallback method for getting table row count"""
+        """Fallback method for getting table row count."""
         try:
             with connection.cursor() as cursor:
                 cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
@@ -419,7 +416,7 @@ class WatermarkDetectionService:
             return 0
 
     def _get_primary_source_table(self, project_id: str) -> Optional[str]:
-        """Get the primary source table from project configuration"""
+        """Get the primary source table from project configuration."""
         try:
             # This would parse the project's transformation configuration
             # to determine the main source table
@@ -428,8 +425,8 @@ class WatermarkDetectionService:
         except Exception:
             return None
 
-    def _get_available_tables_for_selection(self) -> List[Dict[str, Any]]:
-        """Get list of available tables for user selection"""
+    def _get_available_tables_for_selection(self) -> list[dict[str, Any]]:
+        """Get list of available tables for user selection."""
         if self.app_context:
             try:
                 # Get all schemas
@@ -460,8 +457,8 @@ class WatermarkDetectionService:
         # Fallback to direct query
         return self._get_available_tables_fallback()
 
-    def _get_available_tables_fallback(self) -> List[Dict[str, Any]]:
-        """Fallback method for getting available tables"""
+    def _get_available_tables_fallback(self) -> list[dict[str, Any]]:
+        """Fallback method for getting available tables."""
         try:
             with connection.cursor() as cursor:
                 cursor.execute("""
@@ -489,8 +486,8 @@ class WatermarkDetectionService:
             logger.error(f"Error getting available tables: {e}")
             return []
 
-    def _validate_watermark_column(self, table_name: str, column_name: str, strategy: str) -> Dict[str, Any]:
-        """Validate a specific column for watermark suitability"""
+    def _validate_watermark_column(self, table_name: str, column_name: str, strategy: str) -> dict[str, Any]:
+        """Validate a specific column for watermark suitability."""
         try:
             # Parse schema and table name
             if '.' in table_name:
@@ -534,8 +531,8 @@ class WatermarkDetectionService:
                 'error': f"Error validating column: {str(e)}"
             }
 
-    def _get_column_recommendations(self, column_info: Dict[str, Any], strategy: str) -> List[str]:
-        """Get recommendations for using this column as watermark"""
+    def _get_column_recommendations(self, column_info: dict[str, Any], strategy: str) -> list[str]:
+        """Get recommendations for using this column as watermark."""
         recommendations = []
 
         if column_info['is_nullable'] == 'YES':
@@ -553,17 +550,15 @@ class WatermarkDetectionService:
 
 
 class WatermarkProcessingService:
-    """Service for processing incremental data using watermarks"""
+    """Service for processing incremental data using watermarks."""
 
     def __init__(self, user_task: UserTaskDetails):
         self.user_task = user_task
         self.app_context = ApplicationContext(project_id=user_task.project_id)
 
-    def should_execute_incremental(self) -> Tuple[bool, str]:
-        """
-        Determine if incremental execution should proceed
-        Returns (should_execute, reason)
-        """
+    def should_execute_incremental(self) -> tuple[bool, str]:
+        """Determine if incremental execution should proceed Returns
+        (should_execute, reason)"""
         if not self.user_task.incremental_enabled:
             return True, "incremental_disabled"
 
@@ -578,10 +573,8 @@ class WatermarkProcessingService:
 
         return True, f"new_data_available_count_{new_count}"
 
-    def execute_incremental_run(self, environment_id: str) -> Dict[str, Any]:
-        """
-        Execute incremental data processing using watermarks
-        """
+    def execute_incremental_run(self, environment_id: str) -> dict[str, Any]:
+        """Execute incremental data processing using watermarks."""
         start_time = timezone.now()
 
         try:
@@ -637,8 +630,8 @@ class WatermarkProcessingService:
                 'execution_duration_seconds': (timezone.now() - start_time).total_seconds()
             }
 
-    def _check_for_new_data(self) -> Tuple[bool, int]:
-        """Check if new data exists since last watermark"""
+    def _check_for_new_data(self) -> tuple[bool, int]:
+        """Check if new data exists since last watermark."""
         if not self.user_task.last_watermark_value:
             return True, 0  # First run, assume data exists
 
@@ -668,11 +661,11 @@ class WatermarkProcessingService:
             return True, 0  # Assume data exists on error
 
     def _get_current_watermark_value(self) -> Optional[str]:
-        """Get the current watermark value for filtering"""
+        """Get the current watermark value for filtering."""
         return self.user_task.last_watermark_value
 
     def _apply_watermark_filter(self, watermark_value: Optional[str]):
-        """Apply watermark filtering to the transformation"""
+        """Apply watermark filtering to the transformation."""
         if not watermark_value or not self.user_task.watermark_column:
             return
 
@@ -682,7 +675,7 @@ class WatermarkProcessingService:
         logger.info(f"Applying watermark filter: {self.user_task.watermark_column} > {watermark_value}")
 
     def _get_new_watermark_value(self) -> str:
-        """Get the new watermark value after processing"""
+        """Get the new watermark value after processing."""
         try:
             source_table = self._get_source_table_name()
             watermark_column = self.user_task.watermark_column
@@ -699,13 +692,13 @@ class WatermarkProcessingService:
             return ""
 
     def _get_source_table_name(self) -> str:
-        """Extract source table name from transformation configuration"""
+        """Extract source table name from transformation configuration."""
         # This would parse the transformation config to get source table
         # Placeholder implementation
         return "source_table"
 
     def _count_processed_records(self, old_watermark: Optional[str], new_watermark: str) -> int:
-        """Count records processed in this incremental run"""
+        """Count records processed in this incremental run."""
         if not old_watermark:
             return 0
 
@@ -734,13 +727,13 @@ class WatermarkProcessingService:
             return 0
 
     def _update_task_watermark(self, new_watermark: str):
-        """Update the task's watermark value"""
+        """Update the task's watermark value."""
         self.user_task.last_watermark_value = new_watermark
         self.user_task.save(update_fields=['last_watermark_value'])
 
     def _record_watermark_history(self, watermark_value: str, execution_time: datetime,
                                 records_processed: int, execution_duration: float):
-        """Record watermark execution in history"""
+        """Record watermark execution in history."""
         if WatermarkHistory is None:
             return
         WatermarkHistory.objects.create(

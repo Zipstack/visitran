@@ -11,7 +11,8 @@ from visitran.templates.snapshot import VisitranSnapshot
 
 
 class DatabricksAdapter(BaseAdapter):
-    """Databricks adapter for Visitran with Unity Catalog and Delta Lake support."""
+    """Databricks adapter for Visitran with Unity Catalog and Delta Lake
+    support."""
 
     def __init__(self, conn_details: dict[str, Union[str, int]]) -> None:
         super().__init__(conn_details=conn_details)

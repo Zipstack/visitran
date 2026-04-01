@@ -2,7 +2,7 @@ from visitran.constants import BaseConstant
 
 
 class BackendSuccessMessages(BaseConstant):
-    """Success messages for API responses"""
+    """Success messages for API responses."""
 
     # Project Sharing Success Messages
     PROJECT_SHARED_WITH_ORG = (
@@ -31,17 +31,17 @@ class BackendSuccessMessages(BaseConstant):
         "**Personal Rules Updated!**\n"
         "Your personal AI context rules have been saved successfully and will apply to all future conversations."
     )
-    
+
     AI_CONTEXT_RULES_PROJECT_UPDATED = (
         "**Project Rules Updated!**\n"
         "Project AI context rules have been saved successfully and are now shared with all team members."
     )
-    
+
     AI_CONTEXT_RULES_PERSONAL_RETRIEVED = (
         "**Personal Rules Retrieved!**\n"
         "Your personal AI context rules have been loaded successfully."
     )
-    
+
     AI_CONTEXT_RULES_PROJECT_RETRIEVED = (
         "**Project Rules Retrieved!**\n"
         "Project AI context rules have been loaded successfully."
@@ -267,17 +267,17 @@ class BackendErrorMessages(BaseConstant):
     FEEDBACK_SUBMISSION_FAILED = (
         "**Feedback Error!**\nCouldn't save feedback for message ID \"{chat_message_id}\". Please try again."
     )
-    
+
     ORGANIZATION_REQUIRED = "**Organization Required!**\nOrganization ID is required for this operation."
-    
+
     INVALID_FEEDBACK_FORMAT = (
         "**Invalid Feedback!**\nFeedback format is invalid. Use 'P' for positive, 'N' for negative, or '0' for neutral."
     )
-    
+
     FEEDBACK_RETRIEVAL_FAILED = (
         "**Feedback Retrieval Failed!**\nUnable to retrieve feedback for message ID \"{chat_message_id}\". Please try again."
     )
-    
+
     INVALID_CHAT_MESSAGE_STATUS = (
         '**Invalid Status!**\nStatus "{invalid_status}" is invalid. Valid statuses: {valid_status}.'
     )
@@ -291,7 +291,7 @@ class BackendErrorMessages(BaseConstant):
     )
 
     SQL_EXTRACTION_FAILED = "**SQL Query Extraction Failed**\nUnable to extract SQL query from the provided text."
-    
+
     LLM_SERVER_FAILURE = (
         "**AI Server Error!**\n"
         "Failed while answering your prompt \n "
@@ -326,23 +326,23 @@ class BackendErrorMessages(BaseConstant):
         "**Context Rules Fetch Failed!**\n"
         "Unable to retrieve AI context rules. Please try again or contact support if the issue persists."
     )
-    
+
     AI_CONTEXT_RULES_UPDATE_FAILED = (
         "**Context Rules Update Failed!**\n"
         "Failed to save AI context rules. Please verify your input and try again."
     )
-    
+
     AI_CONTEXT_RULES_INVALID_PROJECT = (
         '**Invalid Project!**\nProject with ID "{project_id}" not found or you don\'t have access to it. '
         "Verify the project ID and your permissions."
     )
-    
+
     AI_CONTEXT_RULES_PERMISSION_DENIED = (
         "**Permission Denied!**\n"
         "You don't have permission to modify AI context rules for this project. "
         "Contact your project administrator for access."
     )
-    
+
     AI_CONTEXT_RULES_INVALID_INPUT = (
         "**Invalid Input!**\n"
         "The context rules format is invalid. Please check your input and try again."
@@ -419,4 +419,3 @@ class BackendErrorMessages(BaseConstant):
         "You need **{tokens_required}** tokens for this operation, but only have **{tokens_available}** tokens remaining.\n\n"
         "Please purchase more tokens to continue using AI features."
     )
-

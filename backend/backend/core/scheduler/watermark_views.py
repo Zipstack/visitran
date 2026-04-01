@@ -1,6 +1,4 @@
-"""
-API views for watermark column detection
-"""
+"""API views for watermark column detection."""
 
 import logging
 import json
@@ -19,8 +17,7 @@ logger = logging.getLogger(__name__)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def detect_watermark_columns(request, project_id):
-    """
-    Detect suitable watermark columns in project's database tables
+    """Detect suitable watermark columns in project's database tables.
 
     POST /api/v1/visitran/{org_id}/project/{project_id}/jobs/watermark/detect/
     {

@@ -64,8 +64,9 @@ class Interpreter(BaseInterpreter):
         return self._python_file_content
 
     @staticmethod
-    def _transformation_mapper(transformation_type: str) -> Type[BaseTransformation]:
-        """This method will map the transformation type to the transformation class and return it."""
+    def _transformation_mapper(transformation_type: str) -> type[BaseTransformation]:
+        """This method will map the transformation type to the transformation
+        class and return it."""
         _transformation_mapper = {
             "join": JoinTransformation,
             "union": UnionTransformation,
@@ -118,7 +119,7 @@ class Interpreter(BaseInterpreter):
     def _parse_transformations(self) -> None:
         params = {"config_parser": self.parser, "context": self.context}
         for transformation_parser in self.parser.transform_parser.get_transforms():
-            transformation_class: Type[BaseTransformation] = self._transformation_mapper(
+            transformation_class: type[BaseTransformation] = self._transformation_mapper(
                 transformation_parser.transform_type
             )
             params["parser"] = transformation_parser
@@ -143,8 +144,8 @@ class Interpreter(BaseInterpreter):
         self._transformation_statements.append(column_reorder.transform())
 
     def _resolve_parent_classes(self) -> str:
-        """
-        Resolve parent classes to avoid MRO (Method Resolution Order) conflicts.
+        """Resolve parent classes to avoid MRO (Method Resolution Order)
+        conflicts.
 
         When multiple parent classes are collected (from JOINs, UNIONs, etc.),
         they may have conflicting inheritance chains that Python cannot linearize.

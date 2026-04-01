@@ -67,7 +67,8 @@ class InvalidChatMessageStatus(VisitranBackendBaseException):
 
 
 class InsufficientTokenBalance(VisitranBackendBaseException):
-    """Raised when organization doesn't have sufficient token balance for the operation."""
+    """Raised when organization doesn't have sufficient token balance for the
+    operation."""
 
     def __init__(self, tokens_required: int, tokens_available: float):
         super().__init__(

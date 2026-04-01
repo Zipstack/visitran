@@ -21,9 +21,8 @@ class ProjectDetailsManager(DefaultOrganizationManagerMixin, models.Manager):
 
 
 class ProjectDetails(DefaultOrganizationMixin, BaseModel):
-    """
-    This model creates a Core_ProjectDetails table which is used to manage the project information
-    """
+    """This model creates a Core_ProjectDetails table which is used to manage
+    the project information."""
 
     @staticmethod
     def generate_project_py_name(project_name):
@@ -71,7 +70,7 @@ class ProjectDetails(DefaultOrganizationMixin, BaseModel):
         self.last_modified_by = current_user  # Update last_modified_by for existing instances
 
         # Finally, call the parent save method
-        super(ProjectDetails, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         # Delete files stored by the config parser
@@ -88,7 +87,7 @@ class ProjectDetails(DefaultOrganizationMixin, BaseModel):
             if hasattr(self, 'environment_model') and self.environment_model:
                 self.environment_model.delete()
 
-        super(ProjectDetails, self).delete(*args, **kwargs)
+        super().delete(*args, **kwargs)
 
     # Attributes for project details
     project_uuid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

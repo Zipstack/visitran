@@ -11,8 +11,8 @@ from utils.models.base_model import BaseModel
 
 
 class ChatSessionCost(BaseModel):
-    """
-    Aggregates token costs at the session level for better analytics.
+    """Aggregates token costs at the session level for better analytics.
+
     Auto-updated when ChatTokenCost records are created/updated.
     """
 

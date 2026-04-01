@@ -108,7 +108,10 @@ class Window(Base):
 
     @staticmethod
     def first(table, node, data_types, inter_exps):
-        """Returns the first value in a window. Empty strings are treated as NULL."""
+        """Returns the first value in a window.
+
+        Empty strings are treated as NULL.
+        """
         if len(node['inputs']) != 1:
             raise Exception("FIRST function requires 1 parameter")
 
@@ -123,7 +126,10 @@ class Window(Base):
 
     @staticmethod
     def last(table, node, data_types, inter_exps):
-        """Returns the last value in a window. Empty strings are treated as NULL."""
+        """Returns the last value in a window.
+
+        Empty strings are treated as NULL.
+        """
         if len(node['inputs']) != 1:
             raise Exception("LAST function requires 1 parameter")
 

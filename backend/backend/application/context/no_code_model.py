@@ -18,8 +18,8 @@ class NoCodeModel(ApplicationContext):
             transformation_type: str = None,
             transformation_id: str = None,
     ) -> dict[str, Any]:
-        """
-        Validating the model data before persisting and updating
+        """Validating the model data before persisting and updating.
+
         Possible transformation type
         - model_config
         - join
@@ -52,9 +52,8 @@ class NoCodeModel(ApplicationContext):
         return self.update_model(model_name=model_name, model_data=model_data)
 
     def set_model_config_and_reference(self, no_code_data: dict[str, Any], model_name: str):
-        """
-        Update or initialize the model configuration in the session for a given model name.
-        """
+        """Update or initialize the model configuration in the session for a
+        given model name."""
         try:
             model_config = no_code_data.get("model_config")
             reference_config = no_code_data.get("reference_config")
@@ -113,9 +112,8 @@ class NoCodeModel(ApplicationContext):
 
 
     def set_model_transformation(self, no_code_data: dict[str, Any], model_name: str):
-        """
-        Adds or updates the transformation in the model, based on the given transformation config.
-        """
+        """Adds or updates the transformation in the model, based on the given
+        transformation config."""
         transformation_config = no_code_data["step_config"]
         transformation_type = transformation_config["type"]
         model_data = self.session.fetch_model_data(model_name=model_name)
@@ -154,11 +152,12 @@ class NoCodeModel(ApplicationContext):
         return update_model_data
 
     def delete_model_transformation(self, model_name: str, transformation_id: str, is_clear_all: bool = False):
-        """
-        This method deletes a transformation from the model.
+        """This method deletes a transformation from the model.
+
         :param is_clear_all:
         :param model_name: The name of the model.
-        :param transformation_id: The ID of the transformation to be deleted.
+        :param transformation_id: The ID of the transformation to be
+            deleted.
         :return: The validation result after updating the model.
         """
         # Fetch the current model data from the session
@@ -195,9 +194,10 @@ class NoCodeModel(ApplicationContext):
         )
 
     def set_model_presentation(self, no_code_data: dict[str, Any], model_name: str):
-        """
-        Updates the 'presentation' configuration of the model. Only updates keys present in 'no_code_data' 
-        without affecting other keys.
+        """Updates the 'presentation' configuration of the model.
+
+        Only updates keys present in 'no_code_data' without affecting
+        other keys.
         """
         model_data = self.session.fetch_model_data(model_name=model_name)
         presentation_config = model_data.get("presentation", {})
@@ -224,10 +224,12 @@ class NoCodeModel(ApplicationContext):
             transformation_id: str,
             transformation_type: str
     ) -> dict[str, Any]:
-        """
-        This method will return the list of available columns, and it’s metadata in the response.  If the
-        transformation
-        ID is sent, then the list of columns which are available at that particular step will be sent in the response.
+        """This method will return the list of available columns, and it’s
+        metadata in the response.
+
+        If the transformation ID is sent, then the list of columns which
+        are available at that particular step will be sent in the
+        response.
         """
 
         # If the transformation id is present, this will return the available columns for the specified columns.

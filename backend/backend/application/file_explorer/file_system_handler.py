@@ -43,7 +43,7 @@ class FileSystemHandler:
             logger.error(f"Failed to write to file: {e}")
             raise
 
-    def list_files(self, path: str) -> List[str]:
+    def list_files(self, path: str) -> list[str]:
         try:
             path = f"{self.file_path_prefix}{path}"
             logger.info(f"Listing files in directory: {path}")

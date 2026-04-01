@@ -6,9 +6,7 @@ class RenameValidator(Validator):
 
     @staticmethod
     def _get_renamed_columns(parser: RenameParsers) -> list[str]:
-        """
-        Extracts the original (old) column names from rename mappings.
-        """
+        """Extracts the original (old) column names from rename mappings."""
         return parser.column_names
 
     def validate_new_transform(self) -> list[str]:

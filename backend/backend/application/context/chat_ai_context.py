@@ -13,8 +13,7 @@ from backend.core.web_socket import (
 
 class ChatAiContext(TokenCostService):
     def __init__(self, project_id: str) -> None:
-        """
-        Initialize the ChatMessageContext with a specific project_id.
+        """Initialize the ChatMessageContext with a specific project_id.
 
         Args:
             project_id (str): The UUID of the project context.
@@ -102,8 +101,7 @@ class ChatAiContext(TokenCostService):
 
     @staticmethod
     def extract_yaml_text(raw_response: str):
-        """
-        Parses all YAML content into a single flat list of dict objects.
+        """Parses all YAML content into a single flat list of dict objects.
 
         Supports:
         - Single YAML object
@@ -272,7 +270,7 @@ class ChatAiContext(TokenCostService):
         content = kwargs.get("content")
         token_usage_data = {}
         processing_time_ms = 0
-        
+
         # Check if content is a dictionary and contains token_info
         if isinstance(content, dict):
             token_usage_data = content.get("token_info", {})

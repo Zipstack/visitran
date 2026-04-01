@@ -2,7 +2,7 @@ from rbac.oss_decorator import OSSPermissionDecorator
 
 
 class EnvironmentAwarePermission:
-    """Handles both cloud and OSS permission logic"""
+    """Handles both cloud and OSS permission logic."""
 
     def __init__(self):
         try:

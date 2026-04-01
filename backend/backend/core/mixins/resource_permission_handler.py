@@ -3,9 +3,7 @@ from rbac.EnvironmentAwarePermission import EnvironmentAwarePermission
 
 
 class UserAccessControlMixin:
-    """
-    Handles resource access permissions
-    """
+    """Handles resource access permissions."""
 
     RESOURCE_NAME = None  # Override in child classes
 

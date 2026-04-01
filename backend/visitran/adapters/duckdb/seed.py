@@ -14,11 +14,11 @@ class DuckDbSeed(BaseSeed):
         return self._db_connection
 
     def execute(self) -> None:
-        """
-        This checks the CSV file is exist in DB, and creates schema in the
-        target database from project configuration and inserts the CSV
-        records.
-        Overiding the base execute method to use the duckdb inbuild method
+        """This checks the CSV file is exist in DB, and creates schema in the
+        target database from project configuration and inserts the CSV records.
+
+        Overiding the base execute method to use the duckdb inbuild
+        method
         """
 
         # The drop SQL query will drop the table if it is only exists !

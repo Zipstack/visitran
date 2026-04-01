@@ -38,33 +38,33 @@ class ProjectOnboardingSessionManager(DefaultOrganizationManagerMixin, models.Ma
 
 
 class ProjectOnboardingSession(DefaultOrganizationMixin, BaseModel):
-    """Active onboarding session for a project"""
+    """Active onboarding session for a project."""
     project = models.ForeignKey(
-        ProjectDetails, 
+        ProjectDetails,
         on_delete=models.CASCADE,
         related_name="onboarding_sessions"
     )
     user = models.ForeignKey(
-        User, 
+        User,
         on_delete=models.CASCADE,
         related_name="onboarding_sessions"
     )
     template = models.ForeignKey(
-        OnboardingTemplate, 
+        OnboardingTemplate,
         on_delete=models.CASCADE,
         related_name="sessions"
     )
-    
+
     # Progress tracking (no more sequential ordering)
     completed_tasks = models.JSONField(default=list)  # List of task IDs
     skipped_tasks = models.JSONField(default=list)    # List of task IDs
-    
+
     # Session state
     is_active = models.BooleanField(default=True)
     is_completed = models.BooleanField(default=False)
     started_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
-    
+
     # Manager
     objects = ProjectOnboardingSessionManager()
 
@@ -77,25 +77,26 @@ class ProjectOnboardingSession(DefaultOrganizationMixin, BaseModel):
 
     @property
     def progress_percentage(self) -> float:
-        """Calculate completion percentage based on completed + skipped tasks"""
+        """Calculate completion percentage based on completed + skipped
+        tasks."""
         # Get template to calculate total tasks
         try:
             items = self.template.template_data.get('items', [])
         except:
             return 0.0
-        
+
         total_tasks = len(items)
         if total_tasks == 0:
             return 0.0
-        
+
         completed_count = len(self.completed_tasks)
         skipped_count = len(self.skipped_tasks)
         total_progress = completed_count + skipped_count
-        
+
         return round((total_progress / total_tasks) * 100, 2)
 
     def reset_session(self):
-        """Reset the onboarding session"""
+        """Reset the onboarding session."""
         self.completed_tasks = []
         self.skipped_tasks = []
         self.is_completed = False

@@ -9,4 +9,3 @@ class FilterValidator(Validator):
 
         # Intersection with columns that should have been removed
         return list(used_columns.intersection(columns))
-

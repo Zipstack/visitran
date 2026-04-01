@@ -6,14 +6,13 @@ from backend.errors.visitran_backend_base_exceptions import VisitranBackendBaseE
 class ModelConfigValidator(Validator):
 
     def validate_source_config(self) -> None | tuple[str, str]:
-        """
-        Validates the source configuration by checking the existence of the
+        """Validates the source configuration by checking the existence of the
         specified source table in the database. If the table does not exist,
         raises an appropriate exception.
 
-        :raises SourceTableDoesNotExist: If the source table specified in the
-            configuration does not exist in the database and not in any
-            destination configuration in all models
+        :raises SourceTableDoesNotExist: If the source table specified
+            in the configuration does not exist in the database and not
+            in any destination configuration in all models
         """
         src_table_name = self.current_parser.source_table_name
         src_schema_name = self.current_parser.source_schema_name
@@ -47,12 +46,11 @@ class ModelConfigValidator(Validator):
         return None
 
     def validate_destination_config(self) -> None | tuple[str, str]:
-        """
-        Validates the destination table configuration for all parsers to ensure that no conflicting
-        destination schema or table names exist.
+        """Validates the destination table configuration for all parsers to
+        ensure that no conflicting destination schema or table names exist.
 
-        :raises DestinationTableAlreadyExist:
-            If there is a conflict between destination schema or table names in the
+        :raises DestinationTableAlreadyExist: If there is a conflict
+            between destination schema or table names in the
             configuration.
         """
         new_dest_schema = self.current_parser.destination_schema_name

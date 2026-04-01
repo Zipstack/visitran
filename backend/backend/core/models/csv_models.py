@@ -22,9 +22,8 @@ class CSVModelsManager(DefaultOrganizationManagerMixin, models.Manager):
 class CSVModels(DefaultOrganizationMixin, BaseModel):
 
     def rename_csv_file(self, filename: str):
-        """
-            Rename the file to `filename` while keeping the same extension and folder.
-        """
+        """Rename the file to `filename` while keeping the same extension and
+        folder."""
         if not self.csv_field:
             return
         old_path = self.csv_field.name
@@ -48,7 +47,7 @@ class CSVModels(DefaultOrganizationMixin, BaseModel):
         except FileNotFoundError:
             logging.error(f"failed to rename csv file {old_path}")
             raise CSVFileNotExists(self.csv_name)
-        except IOError as e:
+        except OSError as e:
             logging.error(f"IOError: failed to rename csv file {old_path}. Error : {str(e)}")
             raise CSVRenameFailed(csv_name=self.csv_name,  reason=str(e))
         except Exception as e:
@@ -67,7 +66,7 @@ class CSVModels(DefaultOrganizationMixin, BaseModel):
         # Removing the file while deleting the record
         if self.csv_field.file:
             default_storage.delete(self.csv_field.file.name)
-        super(CSVModels, self).delete(*args, **kwargs)
+        super().delete(*args, **kwargs)
 
     def save(self, *args, **kwargs):
         # Check if there is an existing file with the same name
@@ -83,7 +82,7 @@ class CSVModels(DefaultOrganizationMixin, BaseModel):
             self.uploaded_by = get_current_user()
         finally:
             # Saving the current instance
-            super(CSVModels, self).save(*args, **kwargs)
+            super().save(*args, **kwargs)
 
     class Meta:
         # Ensures csv_name is unique per project

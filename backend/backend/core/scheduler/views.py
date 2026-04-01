@@ -21,7 +21,8 @@ logger = logging.getLogger(__name__)
 
 
 def _is_valid_project_id(project_id):
-    """Check if project_id is a real UUID (not a placeholder like '_all' or 'all')."""
+    """Check if project_id is a real UUID (not a placeholder like '_all' or
+    'all')."""
     try:
         uuid.UUID(str(project_id))
         return True

@@ -3,9 +3,7 @@ from visitran.errors.error_codes import ErrorCodeConstants
 
 
 class ColumnNotExist(VisitranBaseExceptions):
-    """
-    Raised if the column is not found
-    """
+    """Raised if the column is not found."""
 
     def __init__(self, column_name: str, transformation_name: str, model_name: str) -> None:
         super().__init__(
