@@ -4,12 +4,13 @@ from backend.core.routers.explorer.views import (
     create_folder_explorer,
     create_model_explorer,
     delete_a_file_or_folder,
-    get_database_table_explorer,
     get_project_file_content,
     get_project_file_explorer,
     rename_a_file_or_folder,
     upload_a_file,
+    get_database_table_explorer,
 )
+
 
 # This API will return the files and sub-folders from the project.
 GET_LIST = path(
@@ -63,13 +64,4 @@ GET_TABLE_LIST = path(
 UPLOAD_A_FILE = path("/upload", upload_a_file, name="get-file-content")
 
 
-urlpatterns = [
-    GET_LIST,
-    CREATE_A_FOLDER,
-    CREATE_A_MODEL,
-    DELETE_A_FILE,
-    RENAME_A_FILE,
-    GET_FILE_CONTENT,
-    UPLOAD_A_FILE,
-    GET_TABLE_LIST,
-]
+urlpatterns = [GET_LIST, CREATE_A_FOLDER, CREATE_A_MODEL, DELETE_A_FILE, RENAME_A_FILE, GET_FILE_CONTENT, UPLOAD_A_FILE, GET_TABLE_LIST]

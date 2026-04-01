@@ -2,6 +2,7 @@ import logging
 
 from visitran.adapters.model import BaseModel
 from visitran.adapters.trino.connection import TrinoQEConnection
+from visitran.templates.model import VisitranModel
 from visitran.events.functions import fire_event
 from visitran.events.types import (
     ExecuteEphemeral,
@@ -10,7 +11,6 @@ from visitran.events.types import (
     ExecuteTable,
     ExecuteView,
 )
-from visitran.templates.model import VisitranModel
 
 
 class TrinoModel(BaseModel):
@@ -71,20 +71,16 @@ class TrinoModel(BaseModel):
 
             # Check for schema changes first
             if self._has_schema_changed():
-                logging.info(
-                    f"Schema change detected for {self.model.destination_schema_name}.{self.model.destination_table_name}, performing full refresh"
-                )
+                logging.info(f"Schema change detected for {self.model.destination_schema_name}.{self.model.destination_table_name}, performing full refresh")
                 self._full_refresh_table()
             else:
                 self.model.select_statement = self.model.select_if_incremental()
 
                 # Continue with incremental logic if no schema changes
-                logging.info(
-                    f"No schema changes detected for {self.model.destination_schema_name}.{self.model.destination_table_name}, using incremental update"
-                )
+                logging.info(f"No schema changes detected for {self.model.destination_schema_name}.{self.model.destination_table_name}, using incremental update")
 
                 # Get primary key for upsert
-                primary_key = getattr(self.model, "primary_key", None)
+                primary_key = getattr(self.model, 'primary_key', None)
 
                 if primary_key:
                     # MERGE mode: Upsert with primary key (updates existing, inserts new)
@@ -133,12 +129,12 @@ class TrinoModel(BaseModel):
         )
         self.model.destination_table_obj = table_obj
 
+
+
     def _full_refresh_table(self) -> None:
         """Perform full refresh using existing table transformation methods."""
         try:
-            logging.info(
-                f"Starting full refresh for {self.model.destination_schema_name}.{self.model.destination_table_name}"
-            )
+            logging.info(f"Starting full refresh for {self.model.destination_schema_name}.{self.model.destination_table_name}")
 
             # Drop existing table
             self.db_connection.drop_table_if_exist(
@@ -153,14 +149,10 @@ class TrinoModel(BaseModel):
                 table_statement=self.model.select_statement,
             )
 
-            logging.info(
-                f"Full refresh completed for {self.model.destination_schema_name}.{self.model.destination_table_name}"
-            )
+            logging.info(f"Full refresh completed for {self.model.destination_schema_name}.{self.model.destination_table_name}")
 
         except Exception as e:
-            logging.error(
-                f"Full refresh failed for {self.model.destination_schema_name}.{self.model.destination_table_name}: {str(e)}"
-            )
+            logging.error(f"Full refresh failed for {self.model.destination_schema_name}.{self.model.destination_table_name}: {str(e)}")
             raise Exception(
                 f"Trino full refresh failed for {self.model.destination_schema_name}.{self.model.destination_table_name}: {str(e)}"
             ) from e

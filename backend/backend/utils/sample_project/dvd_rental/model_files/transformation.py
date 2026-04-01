@@ -9,7 +9,7 @@ WRAP_MAP = {
     "distinct": "columns",
     "combine_columns": "columns",
     "rename_column": "mappings",
-    "find_and_replace": "replacements",
+    "find_and_replace": "replacements"
 }
 
 DEPENDENT_STATUS_MAP = {
@@ -17,7 +17,7 @@ DEPENDENT_STATUS_MAP = {
     "joins": "join",
     "combine_columns": "combine_columns",
     "synthesis": "synthesize",
-    "groups": "groups_and_aggregation",
+    "groups": "groups_and_aggregation"
 }
 
 # ❌ Skip these completely
@@ -33,17 +33,14 @@ TRANSFORM_PRIORITY_ORDER = [
     "find_and_replace",
     "distinct",
     "filter",
-    "sort",
+    "sort"
 ]
-
 
 def generate_step_id(t_type: str) -> str:
     return f"{t_type}-{uuid.uuid4()}"
 
-
 def wrap_if_needed(t_type: str, content):
     return {WRAP_MAP[t_type]: content} if t_type in WRAP_MAP else content
-
 
 def convert_legacy_transform(transform: dict) -> dict:
     new_transform = {}
@@ -55,31 +52,38 @@ def convert_legacy_transform(transform: dict) -> dict:
                 "group": transform["group"],
                 "aggregate_columns": transform["aggregate"].get("aggregate_columns", []),
                 "having": {"criteria": []},
-                "filter": {"criteria": []},
-            },
+                "filter": {"criteria": []}
+            }
         }
         step_id += 1
     else:
         if "group" in transform:
-            new_transform[f"step-{step_id}"] = {"type": "group", "group": transform["group"]}
+            new_transform[f"step-{step_id}"] = {
+                "type": "group",
+                "group": transform["group"]
+            }
             step_id += 1
         if "aggregate" in transform:
-            new_transform[f"step-{step_id}"] = {"type": "aggregate", "aggregate": transform["aggregate"]}
+            new_transform[f"step-{step_id}"] = {
+                "type": "aggregate",
+                "aggregate": transform["aggregate"]
+            }
             step_id += 1
     for t_type, content in transform.items():
         if t_type in SKIP_TYPES or t_type in {"group", "aggregate"}:
             continue
-        new_transform[f"step-{step_id}"] = {"type": t_type, t_type: content}
+        new_transform[f"step-{step_id}"] = {
+            "type": t_type,
+            t_type: content
+        }
         step_id += 1
     return new_transform
-
 
 def convert_column_details(obj):
     if not obj or "column_details" not in obj:
         return
     obj["column_description"] = {col["column_name"]: col for col in obj["column_details"]}
     del obj["column_details"]
-
 
 def clean_dependent_models(dep_models, transform_map):
     updated = []
@@ -102,7 +106,6 @@ def clean_dependent_models(dep_models, transform_map):
                 updated.append(model)
     return updated
 
-
 def order_transform(transform_dict: dict) -> list:
     typed_items = [(step["type"], step_id) for step_id, step in transform_dict.items()]
     ordered = []
@@ -111,7 +114,6 @@ def order_transform(transform_dict: dict) -> list:
     listed_ids = set(ordered)
     extras = [step_id for _, step_id in typed_items if step_id not in listed_ids]
     return ordered + extras
-
 
 def process_file(path: str):
     with open(path) as f:
@@ -131,7 +133,10 @@ def process_file(path: str):
             continue
         uid = generate_step_id(t_type)
         content = step[t_type] if t_type == "groups_and_aggregation" else wrap_if_needed(t_type, step[t_type])
-        uuid_transform[uid] = {"type": t_type, t_type: content}
+        uuid_transform[uid] = {
+            "type": t_type,
+            t_type: content
+        }
 
     transform_order = order_transform(uuid_transform)
     model_data["transform"] = uuid_transform
@@ -147,12 +152,10 @@ def process_file(path: str):
 
     print(f"✅ Overwritten & cleaned: {os.path.basename(path)}")
 
-
 def run_all():
     for file in os.listdir(INPUT_DIR):
         if file.endswith(".json"):
             process_file(os.path.join(INPUT_DIR, file))
-
 
 if __name__ == "__main__":
     run_all()

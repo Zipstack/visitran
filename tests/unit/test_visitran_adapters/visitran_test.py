@@ -5,8 +5,8 @@ from unittest import mock
 import pytest
 from pytest_mock.plugin import MockerFixture
 
-from visitran import ModelNotFoundError, NodeExecuteError
 from visitran.events.types import ImportModelsFailed
+from visitran import ModelNotFoundError, NodeExecuteError
 from visitran.visitran import Visitran
 
 

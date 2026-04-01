@@ -5,7 +5,7 @@ from django.utils.timezone import now
 
 from backend.core.models.user_model import User
 from utils.models.base_model import BaseModel
-from utils.models.organization_mixin import DefaultOrganizationManagerMixin, DefaultOrganizationMixin
+from utils.models.organization_mixin import DefaultOrganizationMixin, DefaultOrganizationManagerMixin
 
 
 class APITokenManager(DefaultOrganizationManagerMixin, models.Manager):

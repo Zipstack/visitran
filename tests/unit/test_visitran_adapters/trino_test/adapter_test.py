@@ -1,8 +1,8 @@
 import pytest
+
 from adapters.trino.adapter import TrinoQEAdapter
 from adapters.trino.connection import TrinoQEConnection
 from adapters.trino.model import TrinoModel
-
 from visitran.templates.model import VisitranModel
 
 

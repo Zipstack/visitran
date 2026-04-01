@@ -14,18 +14,18 @@ from backend.core.models.backup_models import BackupModels
 from backend.core.models.config_models import ConfigModels
 from backend.core.models.csv_models import CSVModels
 from backend.core.models.dependent_models import DependentModels
-
-# Import scheduler models (now core OSS)
-from backend.core.scheduler.models import UserTaskDetails
 from backend.errors import (
-    BackupNotExistException,
     CSVFileAlreadyExists,
+    BackupNotExistException,
     ModelAlreadyExists,
-    ModelNotExists,
     ProjectDependencyException,
+    ModelNotExists,
 )
 from backend.errors.exceptions import CSVFileNotUploaded, ProjectNameReservedError
 from backend.utils.decryption_utils import decrypt_sensitive_fields
+
+# Import scheduler models (now core OSS)
+from backend.core.scheduler.models import UserTaskDetails
 
 
 class Session(BaseSession):
@@ -76,7 +76,10 @@ class Session(BaseSession):
             active_jobs = UserTaskDetails.objects.filter(project_id=self.project_id)
             active_jobs_list = [job.task_name for job in active_jobs]
             if active_jobs:
-                raise ProjectDependencyException(project_name=self.project_instance.project_name, jobs=active_jobs_list)
+                raise ProjectDependencyException(
+                    project_name=self.project_instance.project_name,
+                    jobs=active_jobs_list
+                )
         # CACHE: delete known keys for this project
         self._invalidate_models_cache()
         self._invalidate_csv_cache()
@@ -84,7 +87,7 @@ class Session(BaseSession):
 
         self.project_instance.delete()
 
-    def check_model_exists(self, model_name: str):
+    def check_model_exists(self, model_name: str) :
         """Checks if the model exists and returns it if found, else None."""
         return self.fetch_model_if_exists(model_name=model_name)
 
@@ -185,7 +188,8 @@ class Session(BaseSession):
         try:
             model = self.fetch_model(model_name=model_name)
             dependent_model: DependentModels = self.project_instance.dependent_model.get(
-                model=model, transformation_id=transformation_id
+                model=model,
+                transformation_id=transformation_id
             )
             return dependent_model.model_data
         except DependentModels.DoesNotExist as model_not_exist:  # Raising exception if default is none
@@ -196,15 +200,11 @@ class Session(BaseSession):
     def update_model_dependency(self, model_name: str, transformation_id: str, model_data: dict[str, Any]):
         model = self.fetch_model(model_name=model_name)
         try:
-            dependent_model = self.project_instance.dependent_model.get(
-                model=model, transformation_id=transformation_id
-            )
+            dependent_model = self.project_instance.dependent_model.get(model=model, transformation_id=transformation_id)
             dependent_model.model_data = model_data
             dependent_model.save()
         except DependentModels.DoesNotExist:
-            self.project_instance.dependent_model.create(
-                model=model, transformation_id=transformation_id, model_data=model_data
-            )
+            self.project_instance.dependent_model.create(model=model, transformation_id=transformation_id, model_data=model_data)
         # CACHE: dependency updated — invalidate model cache
         self._invalidate_model_key(model_name)
 

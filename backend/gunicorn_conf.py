@@ -27,7 +27,9 @@ def post_fork(server, worker):
         )
 
         tracer_provider = TracerProvider(resource=resource)
-        tracer_provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=collector_endpoint)))
+        tracer_provider.add_span_processor(
+            BatchSpanProcessor(OTLPSpanExporter(endpoint=collector_endpoint))
+        )
         trace.set_tracer_provider(tracer_provider)
     except Exception as e:
         server.log.error("OTEL Error: %s", e)

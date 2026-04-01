@@ -1,5 +1,5 @@
-import logging
 import uuid
+import logging
 
 from pydantic import UUID1
 from rest_framework import status, viewsets
@@ -7,10 +7,10 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from backend.application.context.chat_message_context import ChatMessageContext
-from backend.core.mixins.http_request_handler import RequestHandlingMixin
 from backend.core.models.project_details import ProjectDetails
 from backend.core.routers.chat.serializers import ChatSerializer
 from backend.core.routers.chat_message.serializers import ChatMessageSerializer
+from backend.core.mixins.http_request_handler import RequestHandlingMixin
 from backend.errors.chat_exceptions import InsufficientTokenBalance
 from backend.utils.calculate_chat_tokens import calculate_chat_tokens
 
@@ -50,38 +50,54 @@ class ChatView(RequestHandlingMixin, viewsets.ViewSet):
     def update_chat_name(self, request, project_id=None, chat_id=None, *args, **kwargs):
         """Update the chat name for the specified chat_id."""
         chat_ctx = ChatMessageContext(project_id=project_id)
-        new_name = request.data.get("chat_name")
+        new_name = request.data.get('chat_name')
 
         if not new_name or not new_name.strip():
-            return Response({"error": "chat_name is required and cannot be empty"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "chat_name is required and cannot be empty"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         chat = chat_ctx.update_chat_name(chat_id=chat_id, chat_name=new_name.strip())
         serializer = ChatSerializer(chat)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def fetch_token_balance(self, llm_model_architect, llm_model_developer, organization, chat_intent_name) -> None:
+    def fetch_token_balance(
+            self,
+            llm_model_architect,
+            llm_model_developer,
+            organization,
+            chat_intent_name
+    ) -> None:
         try:
             from pluggable_apps.subscriptions.services.token_service import TokenBalanceService
 
             # Calculate required tokens for this operation
             llm_model = llm_model_architect or llm_model_developer or "anthropic/claude-4-sonnet"
             # Check if organization has sufficient token balance
-            tokens_required = calculate_chat_tokens(llm_model=llm_model, chat_intent=chat_intent_name)
+            tokens_required = calculate_chat_tokens(
+                llm_model=llm_model,
+                chat_intent=chat_intent_name
+            )
             has_sufficient_tokens = TokenBalanceService.check_token_availability(
-                organization=organization, tokens_needed=tokens_required
+                organization=organization,
+                tokens_needed=tokens_required
             )
 
             balance_info = TokenBalanceService.get_balance_info(organization)
 
             if not has_sufficient_tokens:
-                current_balance = balance_info.get("current_balance", 0)
+                current_balance = balance_info.get('current_balance', 0)
 
                 logging.warning(
                     f"Insufficient tokens for organization {organization.organization_id}. "
                     f"Required: {tokens_required}, Available: {current_balance}"
                 )
 
-                raise InsufficientTokenBalance(tokens_required=tokens_required, tokens_available=current_balance)
+                raise InsufficientTokenBalance(
+                    tokens_required=tokens_required,
+                    tokens_available=current_balance
+                )
 
             logging.info(
                 f"Token balance check passed for organization {organization.organization_id}. "
@@ -101,8 +117,8 @@ class ChatView(RequestHandlingMixin, viewsets.ViewSet):
         Returns:
           - chat_message_id (UUID)
         """
-        from backend.errors.chat_exceptions import InsufficientTokenBalance
         from backend.utils.calculate_chat_tokens import calculate_chat_tokens
+        from backend.errors.chat_exceptions import InsufficientTokenBalance
 
         data = request.data
         chat_id = data.get("chat_id")
@@ -110,13 +126,13 @@ class ChatView(RequestHandlingMixin, viewsets.ViewSet):
         chat_intent_id = data.get("chat_intent_id")
         llm_model_architect = data.get("llm_model_architect")
         llm_model_developer = data.get("llm_model_developer")
-        discussion_type = data.get("discussion_status")
+        discussion_type = data.get('discussion_status')
         generated_chat_res_id = uuid.uuid1(1)
 
         if discussion_type is None:
-            discussion_type = "INPROGRESS"
+            discussion_type = 'INPROGRESS'
         if discussion_type == "GENERATE":
-            generated_chat_res_id = data.get("final_discussion_id")
+            generated_chat_res_id = data.get('final_discussion_id')
 
         # Check token balance before processing the request
         try:
@@ -127,7 +143,6 @@ class ChatView(RequestHandlingMixin, viewsets.ViewSet):
             chat_intent_name = "INFO"  # Default
             if chat_intent_id:
                 from backend.core.models.chat_intent import ChatIntent
-
                 try:
                     chat_intent = ChatIntent.objects.get(chat_intent_id=chat_intent_id)
                     chat_intent_name = chat_intent.name
@@ -138,12 +153,15 @@ class ChatView(RequestHandlingMixin, viewsets.ViewSet):
                 llm_model_architect=llm_model_architect,
                 llm_model_developer=llm_model_developer,
                 organization=organization,
-                chat_intent_name=chat_intent_name,
+                chat_intent_name=chat_intent_name
             )
 
         except ProjectDetails.DoesNotExist:
             logging.error(f"Project {project_id} not found")
-            return Response(data={"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                data={"error": "Project not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         chat_message_context = ChatMessageContext(project_id=project_id)
         chat_message = chat_message_context.persist_prompt(

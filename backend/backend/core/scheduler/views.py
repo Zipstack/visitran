@@ -68,19 +68,15 @@ def get_model_columns(request, project_id, model_name):
             for col_name in raw_columns:
                 if isinstance(col_name, str):
                     col_desc = column_descriptions.get(col_name, {})
-                    destination_columns.append(
-                        {
-                            "column_name": col_name,
-                            "data_type": col_desc.get("data_type") or col_desc.get("type", "unknown"),
-                        }
-                    )
+                    destination_columns.append({
+                        "column_name": col_name,
+                        "data_type": col_desc.get("data_type") or col_desc.get("type", "unknown"),
+                    })
                 elif isinstance(col_name, dict):
-                    destination_columns.append(
-                        {
-                            "column_name": col_name.get("column_name") or col_name.get("name"),
-                            "data_type": col_name.get("data_type") or col_name.get("type", "unknown"),
-                        }
-                    )
+                    destination_columns.append({
+                        "column_name": col_name.get("column_name") or col_name.get("name"),
+                        "data_type": col_name.get("data_type") or col_name.get("type", "unknown"),
+                    })
 
         # Get source columns (from source table in database)
         source_columns = []
@@ -97,12 +93,10 @@ def get_model_columns(request, project_id, model_name):
                 source_table_columns = app_context.get_table_columns(source_schema, source_table)
 
                 for col in source_table_columns:
-                    source_columns.append(
-                        {
-                            "column_name": col.get("column_name"),
-                            "data_type": col.get("data_type") or col.get("column_dbtype", "unknown"),
-                        }
-                    )
+                    source_columns.append({
+                        "column_name": col.get("column_name"),
+                        "data_type": col.get("data_type") or col.get("column_dbtype", "unknown"),
+                    })
         except Exception as e:
             logger.warning(f"Could not fetch source columns for {model_name}: {e}")
             # Fall back to destination columns if source fetch fails
@@ -173,23 +167,19 @@ def _serialize_task(task):
         "task_completion_time": task.task_completion_time,
         "task_type": task_type,
         "description": task.description,
-        "environment": (
-            {
-                "id": str(task.environment.environment_id),
-                "name": task.environment.environment_name,
-                "type": task.environment.deployment_type,
-            }
-            if task.environment
-            else None
-        ),
-        "project": (
-            {
-                "id": str(task.project.project_uuid),
-                "name": task.project.project_name,
-            }
-            if task.project
-            else None
-        ),
+        "environment": {
+            "id": str(task.environment.environment_id),
+            "name": task.environment.environment_name,
+            "type": task.environment.deployment_type,
+        }
+        if task.environment
+        else None,
+        "project": {
+            "id": str(task.project.project_uuid),
+            "name": task.project.project_name,
+        }
+        if task.project
+        else None,
         "periodic_task_details": {
             "id": periodic.id if periodic else None,
             "name": periodic.name if periodic else None,
@@ -277,7 +267,9 @@ def create_periodic_task(request, project_id):
             period = data.get("period", "minutes").lower()
             schedule = IntervalSchedule.objects.filter(
                 every=every, period=period
-            ).first() or IntervalSchedule.objects.create(every=every, period=period)
+            ).first() or IntervalSchedule.objects.create(
+                every=every, period=period
+            )
 
         # Create PeriodicTask
         periodic_task_name = f"{task_name}_{uuid.uuid4().hex[:8]}"
@@ -329,7 +321,9 @@ def create_periodic_task(request, project_id):
         )
 
         # Update periodic task kwargs with user_task_id
-        periodic_task.kwargs = _build_task_kwargs(user_task, request.user, get_organization())
+        periodic_task.kwargs = _build_task_kwargs(
+            user_task, request.user, get_organization()
+        )
         periodic_task.save()
 
         return Response(
@@ -338,12 +332,18 @@ def create_periodic_task(request, project_id):
         )
 
     except ProjectDetails.DoesNotExist:
-        return Response({"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Project not found"}, status=status.HTTP_404_NOT_FOUND
+        )
     except EnvironmentModels.DoesNotExist:
-        return Response({"error": "Environment not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Environment not found"}, status=status.HTTP_404_NOT_FOUND
+        )
     except Exception as e:
         logger.error(f"Error creating periodic task: {e}")
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(
+            {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 @api_view(["GET"])
@@ -357,7 +357,9 @@ def list_periodic_tasks(request, project_id):
         tasks = UserTaskDetails.objects.all()
         if _is_valid_project_id(project_id):
             tasks = tasks.filter(project__project_uuid=project_id)
-        tasks = tasks.select_related("environment", "project", "periodic_task").order_by("-created_at")
+        tasks = tasks.select_related(
+            "environment", "project", "periodic_task"
+        ).order_by("-created_at")
         total = tasks.count()
 
         offset = (page - 1) * limit
@@ -375,7 +377,9 @@ def list_periodic_tasks(request, project_id):
         )
     except Exception as e:
         logger.error(f"Error listing periodic tasks: {e}")
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(
+            {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 @api_view(["GET"])
@@ -386,16 +390,22 @@ def get_periodic_task(request, project_id, user_task_id):
         query = {"id": user_task_id}
         if _is_valid_project_id(project_id):
             query["project__project_uuid"] = project_id
-        task = UserTaskDetails.objects.select_related("environment", "project", "periodic_task").get(**query)
+        task = UserTaskDetails.objects.select_related(
+            "environment", "project", "periodic_task"
+        ).get(**query)
         return Response(
             {"data": [_serialize_task(task)]},
             status=status.HTTP_200_OK,
         )
     except UserTaskDetails.DoesNotExist:
-        return Response({"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND
+        )
     except Exception as e:
         logger.error(f"Error getting periodic task: {e}")
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(
+            {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 @api_view(["POST"])
@@ -404,7 +414,9 @@ def update_periodic_task(request, project_id, user_task_id):
     """Update an existing periodic task."""
     try:
         data = request.data
-        user_task = UserTaskDetails.objects.get(id=user_task_id, project__project_uuid=project_id)
+        user_task = UserTaskDetails.objects.get(
+            id=user_task_id, project__project_uuid=project_id
+        )
         periodic_task = user_task.periodic_task
 
         task_type = data.get("task_type", TaskType.CRON)
@@ -438,7 +450,9 @@ def update_periodic_task(request, project_id, user_task_id):
             if every:
                 schedule = IntervalSchedule.objects.filter(
                     every=int(every), period=period.lower()
-                ).first() or IntervalSchedule.objects.create(every=int(every), period=period.lower())
+                ).first() or IntervalSchedule.objects.create(
+                    every=int(every), period=period.lower()
+                )
                 periodic_task.interval = schedule
                 periodic_task.crontab = None
                 if not periodic_task.last_run_at:
@@ -453,7 +467,9 @@ def update_periodic_task(request, project_id, user_task_id):
             user_task.description = data["description"]
         if "environment" in data:
             try:
-                env = EnvironmentModels.objects.get(environment_id=data["environment"])
+                env = EnvironmentModels.objects.get(
+                    environment_id=data["environment"]
+                )
                 user_task.environment = env
             except EnvironmentModels.DoesNotExist:
                 pass
@@ -481,7 +497,9 @@ def update_periodic_task(request, project_id, user_task_id):
             chain_id = data["trigger_on_complete"]
             if chain_id:
                 try:
-                    user_task.trigger_on_complete = UserTaskDetails.objects.get(id=chain_id)
+                    user_task.trigger_on_complete = UserTaskDetails.objects.get(
+                        id=chain_id
+                    )
                 except UserTaskDetails.DoesNotExist:
                     pass
             else:
@@ -490,7 +508,9 @@ def update_periodic_task(request, project_id, user_task_id):
         user_task.save()
 
         # Update periodic task kwargs with current organization
-        periodic_task.kwargs = _build_task_kwargs(user_task, request.user, get_organization())
+        periodic_task.kwargs = _build_task_kwargs(
+            user_task, request.user, get_organization()
+        )
         periodic_task.save(update_fields=["kwargs"])
 
         return Response(
@@ -499,10 +519,14 @@ def update_periodic_task(request, project_id, user_task_id):
         )
 
     except UserTaskDetails.DoesNotExist:
-        return Response({"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND
+        )
     except Exception as e:
         logger.error(f"Error updating periodic task: {e}")
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(
+            {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 @api_view(["DELETE"])
@@ -510,9 +534,9 @@ def update_periodic_task(request, project_id, user_task_id):
 def delete_periodic_task(request, project_id, task_id):
     """Delete a periodic task."""
     try:
-        user_task = UserTaskDetails.objects.select_related("periodic_task").get(
-            periodic_task_id=task_id, project__project_uuid=project_id
-        )
+        user_task = UserTaskDetails.objects.select_related(
+            "periodic_task"
+        ).get(periodic_task_id=task_id, project__project_uuid=project_id)
         periodic_task = user_task.periodic_task
         user_task.delete()
         if periodic_task:
@@ -523,10 +547,14 @@ def delete_periodic_task(request, project_id, task_id):
             status=status.HTTP_200_OK,
         )
     except UserTaskDetails.DoesNotExist:
-        return Response({"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND
+        )
     except Exception as e:
         logger.error(f"Error deleting periodic task: {e}")
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(
+            {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 @api_view(["GET"])
@@ -554,7 +582,9 @@ def task_run_history(request, project_id, user_task_id):
                     "page_items": {
                         "id": task.id,
                         "job_name": task.task_name,
-                        "env_type": task.environment.deployment_type if task.environment else None,
+                        "env_type": task.environment.deployment_type
+                        if task.environment
+                        else None,
                         "next_run_time": task.next_run_time,
                         "run_history": serializer.data,
                     },
@@ -566,10 +596,14 @@ def task_run_history(request, project_id, user_task_id):
             status=status.HTTP_200_OK,
         )
     except UserTaskDetails.DoesNotExist:
-        return Response({"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND
+        )
     except Exception as e:
         logger.error(f"Error getting run history: {e}")
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(
+            {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 @api_view(["POST"])
@@ -581,9 +615,13 @@ def trigger_task_once(request, project_id, user_task_id):
     synchronous (in-process) execution so local dev works without Redis.
     """
     try:
-        task = UserTaskDetails.objects.get(id=user_task_id, project__project_uuid=project_id)
+        task = UserTaskDetails.objects.get(
+            id=user_task_id, project__project_uuid=project_id
+        )
     except UserTaskDetails.DoesNotExist:
-        return Response({"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND
+        )
 
     run_kwargs = {
         "user_task_id": task.id,
@@ -593,9 +631,8 @@ def trigger_task_once(request, project_id, user_task_id):
 
     # Try async dispatch via Celery broker
     try:
-        from celery import current_app
-
         from backend.core.scheduler.task_constant import Task as TaskConst
+        from celery import current_app
 
         current_app.send_task(TaskConst.SCHEDULER_JOB, kwargs=run_kwargs)
 
@@ -622,4 +659,6 @@ def trigger_task_once(request, project_id, user_task_id):
         )
     except Exception as e:
         logger.error("Sync execution failed: %s", e)
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(
+            {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

@@ -1,11 +1,9 @@
 import re
 
 from backend.application.config_parser.constants import AGGREGATE_DICT
-from backend.application.config_parser.transformation_parsers.groups_and_aggregation_parser import (
-    GroupsAndAggregationParser,
-    HavingParser,
-)
-from backend.application.interpreter.constants import ConditionTypes, Operators, TemplateNames
+from backend.application.config_parser.transformation_parsers.groups_and_aggregation_parser import GroupsAndAggregationParser, \
+    HavingParser
+from backend.application.interpreter.constants import TemplateNames, Operators, ConditionTypes
 from backend.application.interpreter.transformations.base_transformation import BaseTransformation
 
 
@@ -23,42 +21,42 @@ class AggregateFormulaParser:
 
     # Mapping of formula function names to Ibis method names
     AGG_FUNC_MAP = {
-        "SUM": "sum",
-        "COUNT": "count",
-        "AVG": "mean",
-        "AVERAGE": "mean",
-        "MIN": "min",
-        "MAX": "max",
-        "STDDEV": "std",
-        "VARIANCE": "var",
+        'SUM': 'sum',
+        'COUNT': 'count',
+        'AVG': 'mean',
+        'AVERAGE': 'mean',
+        'MIN': 'min',
+        'MAX': 'max',
+        'STDDEV': 'std',
+        'VARIANCE': 'var',
     }
 
     # Mapping of SQL types to Ibis types for CAST operations
     TYPE_MAP = {
-        "INT": "int64",
-        "INTEGER": "int64",
-        "BIGINT": "int64",
-        "SMALLINT": "int16",
-        "TINYINT": "int8",
-        "FLOAT": "float64",
-        "DOUBLE": "float64",
-        "DOUBLE PRECISION": "float64",
-        "REAL": "float32",
-        "DECIMAL": "decimal",
-        "NUMERIC": "decimal",
-        "VARCHAR": "string",
-        "CHAR": "string",
-        "TEXT": "string",
-        "STRING": "string",
-        "BOOLEAN": "bool",
-        "BOOL": "bool",
-        "DATE": "date",
-        "TIMESTAMP": "timestamp",
-        "DATETIME": "timestamp",
+        'INT': 'int64',
+        'INTEGER': 'int64',
+        'BIGINT': 'int64',
+        'SMALLINT': 'int16',
+        'TINYINT': 'int8',
+        'FLOAT': 'float64',
+        'DOUBLE': 'float64',
+        'DOUBLE PRECISION': 'float64',
+        'REAL': 'float32',
+        'DECIMAL': 'decimal',
+        'NUMERIC': 'decimal',
+        'VARCHAR': 'string',
+        'CHAR': 'string',
+        'TEXT': 'string',
+        'STRING': 'string',
+        'BOOLEAN': 'bool',
+        'BOOL': 'bool',
+        'DATE': 'date',
+        'TIMESTAMP': 'timestamp',
+        'DATETIME': 'timestamp',
     }
 
     # Operators for expression parsing
-    OPERATORS = ["+", "-", "*", "/", "%"]
+    OPERATORS = ['+', '-', '*', '/', '%']
 
     @classmethod
     def parse(cls, expression: str, alias: str) -> str:
@@ -88,17 +86,17 @@ class AggregateFormulaParser:
         functions)."""
         content = content.strip()
         # Bare column: just alphanumeric and underscores, no operators or parentheses
-        if content == "*":
+        if content == '*':
             return True
         # Check for operators
         for op in cls.OPERATORS:
             if op in content:
                 return False
         # Check for function calls (contains parentheses)
-        if "(" in content or ")" in content:
+        if '(' in content or ')' in content:
             return False
         # Check for CASE expressions
-        if re.search(r"\bCASE\b", content, re.IGNORECASE):
+        if re.search(r'\bCASE\b', content, re.IGNORECASE):
             return False
         return True
 
@@ -113,7 +111,7 @@ class AggregateFormulaParser:
         - COALESCE(CAST(x, INT), 0) -> ('CAST(x, INT)', '0')
         """
         expr = expr.strip()
-        pattern = re.match(rf"^{func_name}\s*\(", expr, re.IGNORECASE)
+        pattern = re.match(rf'^{func_name}\s*\(', expr, re.IGNORECASE)
         if not pattern:
             return None
 
@@ -122,9 +120,9 @@ class AggregateFormulaParser:
         depth = 1
         i = start + 1
         while i < len(expr) and depth > 0:
-            if expr[i] == "(":
+            if expr[i] == '(':
                 depth += 1
-            elif expr[i] == ")":
+            elif expr[i] == ')':
                 depth -= 1
             i += 1
 
@@ -139,20 +137,20 @@ class AggregateFormulaParser:
             return None  # There's more after the function call
 
         # Extract content inside parentheses
-        content = expr[start + 1 : end].strip()
+        content = expr[start + 1:end].strip()
 
         # Split by comma, respecting nested parentheses
         args = []
         current_arg = ""
         depth = 0
         for char in content:
-            if char == "(":
+            if char == '(':
                 depth += 1
                 current_arg += char
-            elif char == ")":
+            elif char == ')':
                 depth -= 1
                 current_arg += char
-            elif char == "," and depth == 0:
+            elif char == ',' and depth == 0:
                 args.append(current_arg.strip())
                 current_arg = ""
             else:
@@ -175,7 +173,7 @@ class AggregateFormulaParser:
         expr = expr.strip()
 
         # Handle COALESCE: COALESCE(col, default) -> _['col'].fill_null(default)
-        coalesce_args = cls._extract_function_args(expr, "COALESCE")
+        coalesce_args = cls._extract_function_args(expr, 'COALESCE')
         if coalesce_args and len(coalesce_args) == 2:
             col, default_val = coalesce_args
             inner = cls._convert_inner_expression(col)
@@ -188,7 +186,7 @@ class AggregateFormulaParser:
                 return f"({inner}).fill_null('{default_val}')"
 
         # Handle ABS: ABS(col) -> _['col'].abs()
-        abs_args = cls._extract_function_args(expr, "ABS")
+        abs_args = cls._extract_function_args(expr, 'ABS')
         if abs_args and len(abs_args) == 1:
             inner = cls._convert_inner_expression(abs_args[0])
             return f"({inner}).abs()"
@@ -196,19 +194,19 @@ class AggregateFormulaParser:
         # Handle CAST - supports two syntaxes:
         # 1. SQL syntax (from LLM): CAST(col AS type) - e.g., CAST(ssn AS DOUBLE PRECISION)
         # 2. NoCode UI syntax: cast(col, type) - e.g., cast(ssn, float64)
-        cast_args = cls._extract_function_args(expr, "CAST")
+        cast_args = cls._extract_function_args(expr, 'CAST')
         if cast_args:
             if len(cast_args) == 2:
                 # Comma syntax: CAST(col, type)
                 return cls._convert_inner_expression(cast_args[0])
             elif len(cast_args) == 1:
                 # SQL AS syntax: CAST(col AS type) - the AS part is in the single arg
-                as_match = re.match(r"^(.+)\s+AS\s+.+$", cast_args[0], re.IGNORECASE)
+                as_match = re.match(r'^(.+)\s+AS\s+.+$', cast_args[0], re.IGNORECASE)
                 if as_match:
                     return cls._convert_inner_expression(as_match.group(1).strip())
 
         # Handle CASE WHEN expressions
-        case_match = re.match(r"^CASE\s+WHEN\s+(.+)\s+THEN\s+(.+)\s+ELSE\s+(.+)\s+END$", expr, re.IGNORECASE)
+        case_match = re.match(r'^CASE\s+WHEN\s+(.+)\s+THEN\s+(.+)\s+ELSE\s+(.+)\s+END$', expr, re.IGNORECASE)
         if case_match:
             condition = case_match.group(1).strip()
             then_val = case_match.group(2).strip()
@@ -239,9 +237,9 @@ class AggregateFormulaParser:
     def _find_prev_non_space(cls, expr: str, pos: int) -> str:
         """Find the previous non-space character before position pos."""
         prev_idx = pos - 1
-        while prev_idx >= 0 and expr[prev_idx] == " ":
+        while prev_idx >= 0 and expr[prev_idx] == ' ':
             prev_idx -= 1
-        return expr[prev_idx] if prev_idx >= 0 else ""
+        return expr[prev_idx] if prev_idx >= 0 else ''
 
     @classmethod
     def _parse_arithmetic(cls, expr: str) -> str:
@@ -249,14 +247,14 @@ class AggregateFormulaParser:
         expr = expr.strip()
 
         # Handle parentheses first
-        if expr.startswith("(") and expr.endswith(")"):
+        if expr.startswith('(') and expr.endswith(')'):
             # Check if these are matching outer parens
             depth = 0
             is_outer = True
             for i, c in enumerate(expr):
-                if c == "(":
+                if c == '(':
                     depth += 1
-                elif c == ")":
+                elif c == ')':
                     depth -= 1
                 if depth == 0 and i < len(expr) - 1:
                     is_outer = False
@@ -268,17 +266,17 @@ class AggregateFormulaParser:
         depth = 0
         for i in range(len(expr) - 1, -1, -1):
             c = expr[i]
-            if c == ")":
+            if c == ')':
                 depth += 1
-            elif c == "(":
+            elif c == '(':
                 depth -= 1
-            elif depth == 0 and c in ["+", "-"] and i > 0:
+            elif depth == 0 and c in ['+', '-'] and i > 0:
                 # Make sure it's not a unary operator
                 # Look back past any spaces to find the actual previous character
                 prev = cls._find_prev_non_space(expr, i)
-                if prev and prev not in ["(", "+", "-", "*", "/", "%"]:
+                if prev and prev not in ['(', '+', '-', '*', '/', '%']:
                     left = expr[:i].strip()
-                    right = expr[i + 1 :].strip()
+                    right = expr[i+1:].strip()
                     left_ibis = cls._parse_arithmetic(left)
                     right_ibis = cls._parse_arithmetic(right)
                     return f"({left_ibis} {c} {right_ibis})"
@@ -287,13 +285,13 @@ class AggregateFormulaParser:
         depth = 0
         for i in range(len(expr) - 1, -1, -1):
             c = expr[i]
-            if c == ")":
+            if c == ')':
                 depth += 1
-            elif c == "(":
+            elif c == '(':
                 depth -= 1
-            elif depth == 0 and c in ["*", "/", "%"]:
+            elif depth == 0 and c in ['*', '/', '%']:
                 left = expr[:i].strip()
-                right = expr[i + 1 :].strip()
+                right = expr[i+1:].strip()
                 left_ibis = cls._parse_arithmetic(left)
                 right_ibis = cls._parse_arithmetic(right)
                 return f"({left_ibis} {c} {right_ibis})"
@@ -306,7 +304,7 @@ class AggregateFormulaParser:
             pass
 
         # Check for function calls
-        func_match = re.match(r"^(\w+)\s*\((.+)\)$", expr)
+        func_match = re.match(r'^(\w+)\s*\((.+)\)$', expr)
         if func_match:
             func_name = func_match.group(1).upper()
 
@@ -320,7 +318,7 @@ class AggregateFormulaParser:
 
             # Only recurse for known functions that _convert_inner_expression can handle
             # to prevent infinite recursion for unknown functions
-            KNOWN_FUNCTIONS = {"COALESCE", "ABS", "CAST"}
+            KNOWN_FUNCTIONS = {'COALESCE', 'ABS', 'CAST'}
             if func_name in KNOWN_FUNCTIONS:
                 return cls._convert_inner_expression(expr)
 
@@ -337,15 +335,8 @@ class AggregateFormulaParser:
         condition = condition.strip()
 
         # Handle comparison operators
-        for op, ibis_op in [
-            (">=", ">="),
-            ("<=", "<="),
-            ("!=", "!="),
-            ("<>", "!="),
-            ("=", "=="),
-            (">", ">"),
-            ("<", "<"),
-        ]:
+        for op, ibis_op in [('>=', '>='), ('<=', '<='), ('!=', '!='), ('<>', '!='),
+                            ('=', '=='), ('>', '>'), ('<', '<')]:
             if op in condition:
                 parts = condition.split(op, 1)
                 if len(parts) == 2:
@@ -368,7 +359,8 @@ class AggregateFormulaParser:
             pass
 
         # Check if it's a string literal
-        if (value.startswith("'") and value.endswith("'")) or (value.startswith('"') and value.endswith('"')):
+        if (value.startswith("'") and value.endswith("'")) or \
+           (value.startswith('"') and value.endswith('"')):
             return value
 
         # It's a column reference
@@ -376,19 +368,9 @@ class AggregateFormulaParser:
 
     # Window functions that are NOT supported in aggregate formulas
     WINDOW_FUNCTIONS = {
-        "LAG",
-        "LEAD",
-        "ROW_NUMBER",
-        "RANK",
-        "DENSE_RANK",
-        "PERCENT_RANK",
-        "NTILE",
-        "CUME_DIST",
-        "NTH_VALUE",
-        "FIRST_VALUE",
-        "LAST_VALUE",
-        "FIRST",
-        "LAST",
+        'LAG', 'LEAD', 'ROW_NUMBER', 'RANK', 'DENSE_RANK',
+        'PERCENT_RANK', 'NTILE', 'CUME_DIST', 'NTH_VALUE',
+        'FIRST_VALUE', 'LAST_VALUE', 'FIRST', 'LAST'
     }
 
     @classmethod
@@ -400,7 +382,7 @@ class AggregateFormulaParser:
         aggregate formulas.
         """
         # Check for window function at the start of expression
-        func_match = re.match(r"^(\w+)\s*\(", expr.strip())
+        func_match = re.match(r'^(\w+)\s*\(', expr.strip())
         if func_match:
             func_name = func_match.group(1).upper()
             if func_name in cls.WINDOW_FUNCTIONS:
@@ -411,7 +393,7 @@ class AggregateFormulaParser:
 
         # Also check for window functions anywhere in the expression (nested)
         for wf in cls.WINDOW_FUNCTIONS:
-            if re.search(rf"\b{wf}\s*\(", expr, re.IGNORECASE):
+            if re.search(rf'\b{wf}\s*\(', expr, re.IGNORECASE):
                 raise ValueError(
                     f"Window function '{wf}' is not supported in aggregate formulas. "
                     f"Use the Window transformation for window functions instead."
@@ -424,7 +406,7 @@ class AggregateFormulaParser:
         cls._check_for_window_function(formula)
 
         # Handle ROUND wrapper: ROUND(expr, n) -> (expr).round(n)
-        round_match = re.match(r"^ROUND\s*\(\s*(.+)\s*,\s*(\d+)\s*\)$", formula, re.IGNORECASE)
+        round_match = re.match(r'^ROUND\s*\(\s*(.+)\s*,\s*(\d+)\s*\)$', formula, re.IGNORECASE)
         if round_match:
             inner_expr = round_match.group(1)
             decimals = round_match.group(2)
@@ -432,7 +414,7 @@ class AggregateFormulaParser:
             return f"({inner_ibis}).round({decimals})"
 
         # Handle COALESCE wrapper (wrapping an aggregate): COALESCE(SUM(...), default)
-        coalesce_match = re.match(r"^COALESCE\s*\(\s*(.+)\s*,\s*(.+)\s*\)$", formula, re.IGNORECASE)
+        coalesce_match = re.match(r'^COALESCE\s*\(\s*(.+)\s*,\s*(.+)\s*\)$', formula, re.IGNORECASE)
         if coalesce_match:
             inner_expr = coalesce_match.group(1).strip()
             default_val = coalesce_match.group(2).strip()
@@ -448,7 +430,7 @@ class AggregateFormulaParser:
 
         # Handle top-level CAST wrapper: CAST(expr, TYPE) or CAST(expr AS TYPE) -> (expr).cast('ibis_type')
         # This handles casting aggregate expression results (e.g., CAST(MAX(date) - MIN(date), INT))
-        cast_args = cls._extract_function_args(formula, "CAST")
+        cast_args = cls._extract_function_args(formula, 'CAST')
         if cast_args:
             inner_expr = None
             type_str = None
@@ -457,14 +439,14 @@ class AggregateFormulaParser:
                 inner_expr, type_str = cast_args[0], cast_args[1]
             elif len(cast_args) == 1:
                 # SQL AS syntax: CAST(expr AS type)
-                as_match = re.match(r"^(.+)\s+AS\s+(.+)$", cast_args[0], re.IGNORECASE)
+                as_match = re.match(r'^(.+)\s+AS\s+(.+)$', cast_args[0], re.IGNORECASE)
                 if as_match:
                     inner_expr = as_match.group(1).strip()
                     type_str = as_match.group(2).strip()
 
             if inner_expr and type_str and cls._contains_aggregate(inner_expr):
                 inner_ibis = cls._convert_formula(inner_expr)
-                ibis_type = cls.TYPE_MAP.get(type_str.upper(), "float64")
+                ibis_type = cls.TYPE_MAP.get(type_str.upper(), 'float64')
                 return f"({inner_ibis}).cast('{ibis_type}')"
 
         # Replace aggregate functions with Ibis expressions
@@ -476,7 +458,9 @@ class AggregateFormulaParser:
         # Auto-cast date subtraction patterns to int64 to avoid Ibis interval type inference issues
         # Pattern: MAX(col) - MIN(col) becomes _['col'].max() - _['col'].min()
         # In PostgreSQL, DATE - DATE returns integer, but Ibis infers interval which causes type mismatch
-        date_sub_pattern = re.compile(r"_\['(\w+)'\]\.max\(\)\s*-\s*_\['\1'\]\.min\(\)")
+        date_sub_pattern = re.compile(
+            r"_\['(\w+)'\]\.max\(\)\s*-\s*_\['\1'\]\.min\(\)"
+        )
         if date_sub_pattern.search(result):
             result = f"({result}).cast('int64')"
 
@@ -485,7 +469,7 @@ class AggregateFormulaParser:
     @classmethod
     def _contains_aggregate(cls, expr: str) -> bool:
         """Check if expression contains an aggregate function."""
-        agg_pattern = r"\b(SUM|COUNT|AVG|AVERAGE|MIN|MAX|STDDEV|VARIANCE)\s*\("
+        agg_pattern = r'\b(SUM|COUNT|AVG|AVERAGE|MIN|MAX|STDDEV|VARIANCE)\s*\('
         return bool(re.search(agg_pattern, expr, re.IGNORECASE))
 
     @classmethod
@@ -495,9 +479,9 @@ class AggregateFormulaParser:
         depth = 1
         i = start + 1
         while i < len(s) and depth > 0:
-            if s[i] == "(":
+            if s[i] == '(':
                 depth += 1
-            elif s[i] == ")":
+            elif s[i] == ')':
                 depth -= 1
             i += 1
         return i - 1 if depth == 0 else -1
@@ -508,7 +492,7 @@ class AggregateFormulaParser:
         result = formula
 
         # Pattern to match aggregate functions with proper parenthesis matching
-        agg_funcs = "|".join(cls.AGG_FUNC_MAP.keys())
+        agg_funcs = '|'.join(cls.AGG_FUNC_MAP.keys())
 
         # We need to handle nested parentheses, so we can't use simple regex
         # Instead, find aggregate functions and extract their content properly
@@ -517,7 +501,7 @@ class AggregateFormulaParser:
         new_result = ""
         while i < len(result):
             # Look for aggregate function
-            match = re.match(r"\b(" + agg_funcs + r")\s*\(", result[i:], re.IGNORECASE)
+            match = re.match(r'\b(' + agg_funcs + r')\s*\(', result[i:], re.IGNORECASE)
             if match:
                 func_name = match.group(1).upper()
                 ibis_method = cls.AGG_FUNC_MAP.get(func_name, func_name.lower())
@@ -530,19 +514,19 @@ class AggregateFormulaParser:
 
                 if paren_end > paren_start:
                     # Extract content inside parentheses
-                    content = result[paren_start + 1 : paren_end].strip()
+                    content = result[paren_start + 1:paren_end].strip()
 
                     # Check for OVER clause after the aggregate (window function)
-                    remaining = result[paren_end + 1 :].lstrip()
-                    if remaining.upper().startswith("OVER"):
+                    remaining = result[paren_end + 1:].lstrip()
+                    if remaining.upper().startswith('OVER'):
                         raise ValueError(
                             f"Window functions ({func_name}(...) OVER (...)) are not supported in aggregate formulas. "
                             f"Use the Window transformation for window functions instead."
                         )
 
-                    if content == "*":
+                    if content == '*':
                         # COUNT(*) -> _.count()
-                        if func_name == "COUNT":
+                        if func_name == 'COUNT':
                             new_result += "_.count()"
                         else:
                             raise ValueError(f"Aggregate function {func_name} does not support *")
@@ -573,19 +557,19 @@ class AggregateFormulaParser:
         Returns (None, None) if parsing fails.
         """
         # Try AS syntax: CAST(expr AS TYPE)
-        as_match = re.search(r"\s+AS\s+(.+)$", content, re.IGNORECASE)
+        as_match = re.search(r'\s+AS\s+(.+)$', content, re.IGNORECASE)
         if as_match:
-            return content[: as_match.start()].strip(), as_match.group(1).strip()
+            return content[:as_match.start()].strip(), as_match.group(1).strip()
 
         # Try comma syntax: find last comma at depth 0
         depth, last_comma = 0, -1
         for i, c in enumerate(content):
-            depth += (c == "(") - (c == ")")
-            if c == "," and depth == 0:
+            depth += (c == '(') - (c == ')')
+            if c == ',' and depth == 0:
                 last_comma = i
 
         if last_comma > 0:
-            return content[:last_comma].strip(), content[last_comma + 1 :].strip()
+            return content[:last_comma].strip(), content[last_comma + 1:].strip()
 
         return None, None
 
@@ -596,7 +580,7 @@ class AggregateFormulaParser:
         i = 0
 
         while i < len(formula):
-            match = re.match(r"\bCAST\s*\(", formula[i:], re.IGNORECASE)
+            match = re.match(r'\bCAST\s*\(', formula[i:], re.IGNORECASE)
             if not match:
                 result.append(formula[i])
                 i += 1
@@ -610,7 +594,7 @@ class AggregateFormulaParser:
                 i += 1
                 continue
 
-            content = formula[paren_start + 1 : paren_end].strip()
+            content = formula[paren_start + 1:paren_end].strip()
             expr, type_str = cls._parse_cast_content(content)
 
             if not (expr and type_str):
@@ -618,11 +602,11 @@ class AggregateFormulaParser:
                 i += 1
                 continue
 
-            ibis_type = cls.TYPE_MAP.get(type_str.upper(), "float64")
+            ibis_type = cls.TYPE_MAP.get(type_str.upper(), 'float64')
             result.append(f"({expr}).cast('{ibis_type}')")
             i = paren_end + 1
 
-        return "".join(result)
+        return ''.join(result)
 
 
 class GroupsAndAggregationTransformation(BaseTransformation):
@@ -677,9 +661,7 @@ class GroupsAndAggregationTransformation(BaseTransformation):
                         having_string += f"( {source_pointer}.count()"
                     else:
                         # Other aggregates don't support * - this shouldn't happen from UI
-                        raise ValueError(
-                            f"Aggregate function {condition.lhs_column.function} does not support * in HAVING clause"
-                        )
+                        raise ValueError(f"Aggregate function {condition.lhs_column.function} does not support * in HAVING clause")
                 # Handle COUNT_DISTINCT in HAVING - uses nunique()
                 elif condition.lhs_column.function == "COUNT_DISTINCT":
                     having_string += f"( {source_pointer}.{lhs_name}.nunique()"

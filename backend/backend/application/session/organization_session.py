@@ -1,9 +1,8 @@
 import logging
 from typing import Optional
 
-from django.db import IntegrityError
-
 from backend.core.models.organization_model import Organization
+from django.db import IntegrityError
 
 Logger = logging.getLogger(__name__)
 
@@ -20,7 +19,9 @@ class OrganizationService:
             return None
 
     @staticmethod
-    def create_organization(name: str, display_name: str, organization_id: str) -> Organization:
+    def create_organization(
+        name: str, display_name: str, organization_id: str
+    ) -> Organization:
         try:
             organization: Organization = Organization(
                 name=name,
@@ -30,6 +31,8 @@ class OrganizationService:
             organization.save()
 
         except IntegrityError as error:
-            Logger.info(f"[Duplicate Id] Failed to create Organization Error: {error}")
+            Logger.info(
+                f"[Duplicate Id] Failed to create Organization Error: {error}"
+            )
             raise error
         return organization

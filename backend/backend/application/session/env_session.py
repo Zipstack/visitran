@@ -1,12 +1,13 @@
 from typing import Any
 
+from visitran.utils import import_file
+
 from backend.application.session.connection_session import ConnectionSession
 from backend.application.utils import get_filter
 from backend.core.models.environment_models import EnvironmentModels
 from backend.core.models.project_details import ProjectDetails
 from backend.errors.exceptions import EnvironmentAlreadyExist, EnvironmentNotExists
 from backend.utils.pagination import CustomPaginator
-from visitran.utils import import_file
 
 
 class EnvironmentSession:
@@ -14,7 +15,9 @@ class EnvironmentSession:
         self._connection_session = ConnectionSession()
 
     @staticmethod
-    def _merge_connection_data(frontend_data: dict[str, Any], connection_model) -> dict[str, Any]:
+    def _merge_connection_data(
+        frontend_data: dict[str, Any], connection_model
+    ) -> dict[str, Any]:
         """Merge frontend connection details with stored decrypted values.
 
         The frontend may send masked fields (e.g. '********' for passw).

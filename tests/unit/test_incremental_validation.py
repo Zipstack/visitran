@@ -1,10 +1,9 @@
 """Tests for incremental model validation functionality."""
 
 import pytest
-
 from visitran.materialization import Materialization
-from visitran.templates.delta_strategies import create_timestamp_strategy
 from visitran.templates.model import VisitranModel
+from visitran.templates.delta_strategies import create_timestamp_strategy
 
 
 class ValidIncrementalModel(VisitranModel):

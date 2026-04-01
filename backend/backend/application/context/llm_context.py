@@ -9,13 +9,14 @@ from django.conf import settings
 from backend.application.context.chat_ai_context import ChatAiContext
 from backend.application.context.no_code_model import NoCodeModel
 from backend.application.utils import send_event_to_llm_server
-from backend.core.models.ai_context_rules import ProjectAIContextRules, UserAIContextRules
 from backend.core.redis_client import RedisClient
 from backend.core.routers.chat_message.constants import ChatMessageStatus
 from backend.core.web_socket import send_socket_message, sio
-from backend.errors import AIRaisedException, LLMModelFailure
+from backend.errors import LLMModelFailure, AIRaisedException
 from backend.errors.visitran_backend_base_exceptions import VisitranBackendBaseException
-from backend.utils.tenant_context import TenantContext, _get_tenant_context
+
+from backend.utils.tenant_context import _get_tenant_context, TenantContext
+from backend.core.models.ai_context_rules import UserAIContextRules, ProjectAIContextRules
 
 
 class LLMServerContext(ChatAiContext):
@@ -51,7 +52,13 @@ class LLMServerContext(ChatAiContext):
                 raise
 
     def process_message(
-        self, sid: str, channel_id: str, chat_id: str, chat_intent: str, payload: dict[str, Any], discussion_status: str
+        self,
+        sid: str,
+        channel_id: str,
+        chat_id: str,
+        chat_intent: str,
+        payload: dict[str, Any],
+        discussion_status: str
     ):
         data = json.loads(payload["data"])
         if payload.get("type") == "status" and payload.get("status") == "failed":
@@ -123,21 +130,14 @@ class LLMServerContext(ChatAiContext):
                         chat_id=chat_id,
                         chat_intent=chat_intent,
                         payload=payload,
-                        discussion_status=discussion_status,
+                        discussion_status=discussion_status
                     )
                     eventlet.sleep(0.1)
                 finally:
                     self.redis_client.xack(channel_id, group_id, message_id)
 
     def __stream_listener(
-        self,
-        sid: str,
-        channel_id: str,
-        chat_id: str,
-        chat_message_id: str,
-        chat_intent: str,
-        group_id: str,
-        discussion_status: str,
+        self, sid: str, channel_id: str, chat_id: str, chat_message_id: str, chat_intent: str, group_id: str, discussion_status: str
     ):
 
         while True:
@@ -195,18 +195,14 @@ class LLMServerContext(ChatAiContext):
                 )
                 break
 
-    def listen_to_redis_stream(
-        self, sid: str, channel_id: str, chat_id: str, chat_message_id: str, chat_intent: str, discussion_status: str
-    ):
+    def listen_to_redis_stream(self, sid: str, channel_id: str, chat_id: str, chat_message_id: str, chat_intent: str, discussion_status: str):
         """Listens to the Redis stream from llm server and processes the
         messages."""
         group_id = f"group_{chat_id}_{chat_message_id}"
         self.create_redis_xgroup(channel_id, group_id)
         self.__stream_listener(sid, channel_id, chat_id, chat_message_id, chat_intent, group_id, discussion_status)
 
-    def stream_prompt_response(
-        self, sid: str, channel_id: str, chat_id: str, chat_message_id: str, chat_intent: str, discussion_status: str
-    ):
+    def stream_prompt_response(self, sid: str, channel_id: str, chat_id: str, chat_message_id: str, chat_intent: str, discussion_status: str):
         """Starts a background thread to listen redis pubsub channel from AI
         server."""
         args = (sid, channel_id, chat_id, chat_message_id, chat_intent, discussion_status)
@@ -216,18 +212,11 @@ class LLMServerContext(ChatAiContext):
             logging.error(f"[ERROR] Failed to start background thread: {e}")
             raise e
 
-    def process_prompt(
-        self, sid: str, channel_id: str, chat_id: str, chat_message_id: str, is_retry: bool, org_id: str
-    ):
+    def process_prompt(self, sid: str, channel_id: str, chat_id: str, chat_message_id: str, is_retry: bool, org_id: str):
         """Returns the prompt response from the chat message :param is_retry:
-
-        second attempt
-        :param sid: The socket client id
-        :param channel_id: The channel id
-        :param chat_id: The chat id
-        :param chat_message_id: The chat message id
-        :return: The prompt response.
-        """
+        second attempt :param sid: The socket client id :param channel_id: The
+        channel id :param chat_id: The chat id :param chat_message_id: The chat
+        message id :return: The prompt response."""
         try:
             chat_message = self._get_chat_message(chat_id=chat_id, chat_message_id=chat_message_id)
             chat_id = str(chat_message.chat.chat_id)
@@ -255,12 +244,11 @@ class LLMServerContext(ChatAiContext):
             if discussion_status in DISCUSSION_STATUS_MAP:
                 chat_message.discussion_type = DISCUSSION_STATUS_MAP[discussion_status]
                 if discussion_status == "GENERATE":
-                    transformation_type = "TRANSFORM"
+                    transformation_type = 'TRANSFORM'
                     chat_message.transformation_type = transformation_type
 
             # Fail fast if OSS mode lacks API key — before any DB work
             from backend.application.ws_client import check_oss_api_key_configured
-
             check_oss_api_key_configured()
 
             self.persist_prompt_status(chat_message_id=chat_message_id, status=ChatMessageStatus.RUNNING)
@@ -286,7 +274,6 @@ class LLMServerContext(ChatAiContext):
             user = None
             try:
                 from backend.core.models.user_model import User
-
                 user = User.objects.get(user_id=tenant_context.user.get("user_id"))
             except Exception:
                 pass
@@ -337,7 +324,6 @@ class LLMServerContext(ChatAiContext):
             # thread) so it can deliver chunks to the frontend in real-time
             # instead of all at once after the blocking call returns.
             from backend.application.ws_client import is_ws_mode
-
             ws_mode = is_ws_mode()
             if ws_mode:
                 self.stream_prompt_response(
@@ -470,8 +456,7 @@ class LLMServerContext(ChatAiContext):
 
                     self.save_model_file(response, model_name=new_model_name, is_chat_response=True)
                     self.persist_transformation_status(
-                        chat_message_id, ChatMessageStatus.RUNNING, {}, self.generate_model_list
-                    )
+                        chat_message_id, ChatMessageStatus.RUNNING, {}, self.generate_model_list)
                 except Exception as error_message:
                     print(f"Error on Create and Saving visitran model: {error_message}")
 
@@ -485,15 +470,13 @@ class LLMServerContext(ChatAiContext):
                         chat_id=chat_id,
                         chat_message_id=chat_message_id,
                         content=f"⚠️ Attempt {attempt_number} failed: {str(error_message)}",
-                        prompt_status=ChatMessageStatus.RUNNING,
+                        prompt_status=ChatMessageStatus.RUNNING
                     )
 
                     if chat_message.transformation_error_message:
                         self.persist_transformation_status(
-                            chat_message_id,
-                            ChatMessageStatus.FAILED,
-                            {"error_message": str(error_message)},
-                            self.generate_model_list,
+                            chat_message_id, ChatMessageStatus.FAILED, {
+                                "error_message": str(error_message)}, self.generate_model_list
                         )
                         send_socket_message(
                             sid=sid,
@@ -509,10 +492,8 @@ class LLMServerContext(ChatAiContext):
                         )
                     elif not chat_message.transformation_error_message:
                         self.persist_transformation_status(
-                            chat_message_id,
-                            ChatMessageStatus.FAILED,
-                            {"error_message": str(error_message)},
-                            self.generate_model_list,
+                            chat_message_id, ChatMessageStatus.FAILED, {
+                                "error_message": str(error_message)}, self.generate_model_list
                         )
                         send_socket_message(
                             sid=sid,
@@ -557,15 +538,13 @@ class LLMServerContext(ChatAiContext):
                         chat_id=chat_id,
                         chat_message_id=chat_message_id,
                         content=f"⚠️ Attempt {attempt_number} failed: {str(error_message)}",
-                        prompt_status=ChatMessageStatus.RUNNING,
+                        prompt_status=ChatMessageStatus.RUNNING
                     )
 
                     if chat_message.transformation_error_message:
                         self.persist_transformation_status(
-                            chat_message_id,
-                            ChatMessageStatus.FAILED,
-                            {"error_message": str(error_message)},
-                            self.generate_model_list,
+                            chat_message_id, ChatMessageStatus.FAILED, {
+                                "error_message": str(error_message)}, self.generate_model_list
                         )
                         send_socket_message(
                             sid=sid,
@@ -580,10 +559,8 @@ class LLMServerContext(ChatAiContext):
                         )
                     elif not chat_message.transformation_error_message:
                         self.persist_transformation_status(
-                            chat_message_id,
-                            ChatMessageStatus.FAILED,
-                            {"error_message": str(error_message)},
-                            self.generate_model_list,
+                            chat_message_id, ChatMessageStatus.FAILED, {
+                                "error_message": str(error_message)}, self.generate_model_list
                         )
                         send_socket_message(
                             sid=sid,

@@ -1,6 +1,5 @@
-import uuid
 from typing import Any
-
+import uuid
 from backend.application.config_parser.transformation_parsers.filter_parser import FilterParser
 from backend.application.config_parser.transformation_parsers.join_parser import JoinParser, JoinParsers
 from backend.application.interpreter.constants import JoinTypes, OperatorsToIbis, TemplateConstants, TemplateNames
@@ -94,7 +93,10 @@ class JoinTransformation(BaseTransformation):
             filter_string += f"source_table['{lhs_column_name}'] {ibis_operator} {right_table}['{rhs_column_name}']"
 
         # Generate a stable unique suffix per join to avoid collisions
-        add_right_table_column_name_prefix = filter_string + f")], rname='{right_table}_{{name}}')"
+        add_right_table_column_name_prefix = (
+                filter_string
+                + f")], rname='{right_table}_{{name}}')"
+        )
 
         return add_right_table_column_name_prefix
 
@@ -136,6 +138,7 @@ class JoinTransformation(BaseTransformation):
         self.join_statements.extend(join_filters)
 
         return joined_class_name
+
 
     def construct_code(self):
         join_list: list[JoinParser] = self.join_parsers.get_joins()

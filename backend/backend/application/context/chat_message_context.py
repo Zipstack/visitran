@@ -7,8 +7,14 @@ from backend.core.models.chat_intent import ChatIntent
 from backend.core.models.chat_message import ChatMessage
 from backend.core.routers.chat.constants import CHAT_LLM_MODELS
 from backend.core.routers.chat_message.constants import ChatMessageStatus
-from backend.core.web_socket import send_socket_message
-from backend.errors import ChatMessageNotFound, ChatNotFound, InvalidChatMessageStatus, InvalidChatPrompt
+from backend.core.web_socket import (
+    send_socket_message,
+)
+from backend.errors import (
+    ChatNotFound,
+    ChatMessageNotFound,
+    InvalidChatPrompt, InvalidChatMessageStatus,
+)
 
 
 class ChatMessageContext(ApplicationContext):
@@ -123,7 +129,7 @@ class ChatMessageContext(ApplicationContext):
     def persist_prompt(
         self,
         prompt: str,
-        discussion_type: str,
+        discussion_type:str,
         llm_model_architect: str,
         llm_model_developer: str,
         generated_chat_res_id: str = None,
@@ -140,7 +146,7 @@ class ChatMessageContext(ApplicationContext):
             raise InvalidChatPrompt()
 
         chat_intent = None
-        transformation_type = "TRANSFORM" if discussion_type == "GENERATE" else "DISCUSSION"
+        transformation_type = 'TRANSFORM' if  discussion_type == 'GENERATE' else 'DISCUSSION'
         if chat_intent_id:
             try:
                 chat_intent = ChatIntent.objects.get(chat_intent_id=chat_intent_id)
@@ -162,7 +168,7 @@ class ChatMessageContext(ApplicationContext):
             chat.llm_model_architect = llm_model_architect
             chat.llm_model_developer = llm_model_developer
             chat.discussion_type = discussion_type
-            chat.last_discussion_id = generated_chat_res_id
+            chat.last_discussion_id= generated_chat_res_id
             chat.transformation_type = transformation_type
             chat.save()
 
@@ -172,8 +178,8 @@ class ChatMessageContext(ApplicationContext):
             chat_intent=chat_intent,
             llm_model_architect=llm_model_architect,
             llm_model_developer=llm_model_developer,
-            discussion_type=discussion_type,
-            last_discussion_id=generated_chat_res_id,
+            discussion_type= discussion_type,
+            last_discussion_id= generated_chat_res_id,
             transformation_type=transformation_type,
             user=user,
         )
@@ -227,9 +233,9 @@ class ChatMessageContext(ApplicationContext):
         if discussion_status:
             chat_message.discussion_type = discussion_status
             fields_to_update.append("discussion_type")
-            if discussion_status == "GENERATE":
-                chat_message.transformation_type = "TRANSFORM"
-                fields_to_update.append("transformation_type")
+            if discussion_status == 'GENERATE':
+                chat_message.transformation_type = 'TRANSFORM'
+                fields_to_update.append('transformation_type')
         if response:
             if is_append_response:
                 chat_message.response = (chat_message.response or "") + response
@@ -244,7 +250,7 @@ class ChatMessageContext(ApplicationContext):
         # Always update response_time (it's mandatory).
         chat_message.response_time = response_time
         fields_to_update.append("response_time")
-        fields_to_update.append("discussion_type")
+        fields_to_update.append('discussion_type')
 
         # Save ChatMessage only once for updated fields
         chat_message.save(update_fields=fields_to_update)
@@ -259,12 +265,7 @@ class ChatMessageContext(ApplicationContext):
 
     @staticmethod
     def _persist_status_field(
-        chat_message_id: str,
-        status_field: str,
-        error_field: str,
-        status: str,
-        error_message: dict = None,
-        generated_models: list = None,
+         chat_message_id: str, status_field: str, error_field: str, status: str, error_message: dict = None, generated_models: list = None
     ) -> ChatMessage:
         valid_statuses = [
             ChatMessageStatus.YET_TO_START,
@@ -295,11 +296,7 @@ class ChatMessageContext(ApplicationContext):
         )
 
     def persist_transformation_status(
-        self,
-        chat_message_id: str,
-        status: str,
-        error_message: dict = None,
-        generated_models: list = None,
+        self, chat_message_id: str, status: str, error_message: dict = None, generated_models: list = None,
     ) -> ChatMessage:
         """Update the transformation_status and transformation_error_message
         fields in ChatMessage."""
@@ -311,7 +308,6 @@ class ChatMessageContext(ApplicationContext):
             error_message=error_message,
             generated_models=generated_models,
         )
-
     def persist_thought_chain(self, chat_id: str, chat_message_id: str, thought_chain: str):
         """thought_chain (str): The thoughts that went into generating the
         response.

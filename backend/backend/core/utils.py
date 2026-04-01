@@ -9,10 +9,10 @@ from typing import Any
 from django.core.cache import cache
 from rest_framework import status
 from rest_framework.response import Response
+from visitran.errors import VisitranBaseExceptions
 
 from backend.core.redis_client import RedisClient
 from backend.errors.exceptions import VisitranBackendBaseException
-from visitran.errors import VisitranBaseExceptions
 
 
 def handle_http_request(func) -> Any:
@@ -44,9 +44,7 @@ def handle_http_request(func) -> Any:
             return response
         except (VisitranBackendBaseException, VisitranBaseExceptions) as visitran_err:
             exception_type = "backend" if isinstance(visitran_err, VisitranBackendBaseException) else "core"
-            status_code = (
-                visitran_err.status_code if hasattr(visitran_err, "status_code") else status.HTTP_400_BAD_REQUEST
-            )
+            status_code = visitran_err.status_code if hasattr(visitran_err, 'status_code') else status.HTTP_400_BAD_REQUEST
 
             logging.error(f" -- Visitran {exception_type} exceptions {visitran_err.__class__.__name__} --")
             logging.error(
@@ -119,7 +117,6 @@ def sanitize_data(data):
 
     # ── Primitives (str, int, bool, None, etc.) ──
     return data
-
 
 def redis_singleton_lock(ttl: int = 600):
     def decorator(func):

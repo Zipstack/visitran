@@ -1,10 +1,10 @@
 import os
 
 import pytest
+
 from adapters.duckdb.adapter import DuckDbAdapter
 from adapters.duckdb.connection import DuckDbConnection
 from adapters.duckdb.model import DuckDbModel
-
 from visitran.templates.model import VisitranModel
 
 

@@ -3,13 +3,13 @@ from django.urls import path
 
 from backend.core.scheduler.views import (
     create_periodic_task,
-    delete_periodic_task,
-    get_model_columns,
-    get_periodic_task,
     list_periodic_tasks,
+    delete_periodic_task,
+    update_periodic_task,
     task_run_history,
     trigger_task_once,
-    update_periodic_task,
+    get_periodic_task,
+    get_model_columns,
 )
 
 urlpatterns = [

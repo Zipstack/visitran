@@ -3,4 +3,4 @@ from backend.application.file_explorer.file_system_handler import FileSystemHand
 
 class LocalFileSystemHandler(FileSystemHandler):
     def __init__(self):
-        super().__init__("file")
+        super().__init__('file')

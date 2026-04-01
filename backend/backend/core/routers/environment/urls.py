@@ -1,14 +1,14 @@
 from django.urls import path
 
 from backend.core.routers.environment.views import (
-    create_environment,
-    delete_environment,
-    environment_dependent_projects,
-    get_all_environments,
-    get_environment,
-    reveal_environment_credentials,
     test_environment,
+    get_environment,
+    get_all_environments,
+    create_environment,
     update_environment,
+    delete_environment,
+    reveal_environment_credentials,
+    environment_dependent_projects,
 )
 
 # This API will fetch the connections details of the project

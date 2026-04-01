@@ -4,6 +4,7 @@ import secrets
 
 from django.conf import settings
 
+
 # New simplified token prefix (no HMAC signature needed)
 VTK_PREFIX = "vtk_"
 
@@ -34,7 +35,9 @@ def generate_signature(api_key: str, signing_secret: str = "") -> str:
     secret = signing_secret or getattr(settings, "SERVER_SIGNING_SECRET", "")
     if not secret:
         raise ValueError("SERVER_SIGNING_SECRET is not configured")
-    digest = hmac.new(secret.encode(), api_key.encode(), hashlib.sha256).hexdigest()
+    digest = hmac.new(
+        secret.encode(), api_key.encode(), hashlib.sha256
+    ).hexdigest()
     return SIGNATURE_PREFIX + digest
 
 
@@ -56,5 +59,7 @@ def validate_api_key(api_key: str, signature: str, signing_secret: str = "") -> 
     if not secret:
         return False
 
-    expected = SIGNATURE_PREFIX + hmac.new(secret.encode(), api_key.encode(), hashlib.sha256).hexdigest()
+    expected = SIGNATURE_PREFIX + hmac.new(
+        secret.encode(), api_key.encode(), hashlib.sha256
+    ).hexdigest()
     return hmac.compare_digest(expected, signature)

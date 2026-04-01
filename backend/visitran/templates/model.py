@@ -2,15 +2,16 @@ from __future__ import annotations
 
 import warnings
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Any, Union
+from typing import TYPE_CHECKING, Union, Any
 
 import ibis
-from ibis.expr.types.relations import Table
 from sqlalchemy import exc
-
 from visitran.adapters.connection import BaseConnection
 from visitran.materialization import Materialization
 from visitran.singleton import Singleton
+from ibis.expr.types.relations import Table
+
+from visitran.materialization import Materialization
 from visitran.templates.delta_strategies import DeltaStrategyFactory
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -142,8 +143,8 @@ class VisitranModel(metaclass=Singleton):
             'append' if primary_key is not set (INSERT-only behavior)
         """
         if self.primary_key:
-            return "merge"
-        return "append"
+            return 'merge'
+        return 'append'
 
     def _validate_delta_strategy_config(self) -> None:
         """Validate delta strategy configuration."""
@@ -189,7 +190,9 @@ class VisitranModel(metaclass=Singleton):
                     f"Example: create_custom_strategy(custom_logic=self._my_logic)"
                 )
             if not callable(self.delta_strategy.get("custom_logic")):
-                raise ValueError(f"Custom strategy 'custom_logic' must be a callable function.")
+                raise ValueError(
+                    f"Custom strategy 'custom_logic' must be a callable function."
+                )
 
         elif strategy_type == "full_scan":
             # No additional validation needed for full scan
@@ -217,7 +220,9 @@ class VisitranModel(metaclass=Singleton):
 
         # Get incremental data from strategy
         incremental_data = strategy.get_incremental_data(
-            source_table=source_table, destination_table=destination_table, strategy_config=self.delta_strategy
+            source_table=source_table,
+            destination_table=destination_table,
+            strategy_config=self.delta_strategy
         )
 
         # Return incremental data as-is (no additional transformation needed)
@@ -293,7 +298,7 @@ class VisitranModel(metaclass=Singleton):
         initialized."""
         if ancestor_class is VisitranModel or ancestor_class is self.__class__:
             return False
-        if not isinstance(ancestor_class, type) or ancestor_class.__name__ == "object":
+        if not isinstance(ancestor_class, type) or ancestor_class.__name__ == 'object':
             return False
         try:
             return issubclass(ancestor_class, VisitranModel)
@@ -310,16 +315,15 @@ class VisitranModel(metaclass=Singleton):
             if not (ancestor_instance.source_schema_name and ancestor_instance.source_table_name):
                 return
             ancestor_instance.source_table_obj = db_connection.get_table_obj(
-                ancestor_instance.source_schema_name, ancestor_instance.source_table_name
+                ancestor_instance.source_schema_name,
+                ancestor_instance.source_table_name
             )
         except Exception:
             pass  # Skip ancestors that can't be instantiated or tables that don't exist
 
     def save_table_columns(self, transformation_id: str, table_obj: Table) -> None:
         model_name: str = (str(self.__class__.__module__)).split(".")[-1]
-        self.visitran_context.store_table_columns(
-            transformation_id=transformation_id, model_name=model_name, table_obj=table_obj
-        )
+        self.visitran_context.store_table_columns(transformation_id=transformation_id, model_name=model_name, table_obj=table_obj)
 
     def save_sql_query(self, sql_query: str):
         model_name: str = (str(self.__class__.__module__)).split(".")[-1]
@@ -341,7 +345,13 @@ class VisitranModel(metaclass=Singleton):
             if parent_col in mappings:
                 # Get the mapped child column
                 child_col = mappings[parent_col]
-                projections.append(child_obj[child_col].cast(parent_type).name(parent_col))
+                projections.append(
+                    child_obj[child_col]
+                    .cast(parent_type)
+                    .name(parent_col)
+                )
             else:
-                projections.append(ibis.literal(None, type=f"{parent_type}").name(parent_col))
+                projections.append(
+                    ibis.literal(None, type=f'{parent_type}').name(parent_col)
+                )
         return child_obj.select(projections)

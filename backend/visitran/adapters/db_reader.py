@@ -1,7 +1,6 @@
 from typing import Any
 
 import yaml
-
 from visitran.adapters.connection import BaseConnection
 
 
@@ -23,7 +22,7 @@ class BaseDBReader:
                 "nullable": dtype.nullable,
                 "autoincrement": False,
                 "default": None,
-                "comment": "",
+                "comment": ""
             }
 
             columns.append(column)
@@ -67,7 +66,6 @@ class BaseDBReader:
 
     def execute(self, existing_db_metadata: str = "") -> dict[str, Any]:
         import logging
-
         schemas = self.connection.list_all_schemas()
         self.map["schemas"] = list(schemas)
         if "tables" not in self.map:

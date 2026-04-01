@@ -23,7 +23,9 @@ def get_all_environments(request: Request) -> Response:
     env_context = EnvironmentContext()
     page = int(request.GET.get("page", 1))
     limit = int(request.GET.get("limit", 1_000_000))
-    env_list: list[dict[str, Any]] = env_context.get_all_environments(page=page, limit=limit)
+    env_list: list[dict[str, Any]] = env_context.get_all_environments(
+        page=page, limit=limit
+    )
     response_data = {"status": "success", "data": env_list}
     return Response(data=response_data, status=status.HTTP_200_OK)
 
@@ -32,7 +34,9 @@ def get_all_environments(request: Request) -> Response:
 @handle_http_request
 def get_environment(request, environment_id: str) -> Response:
     env_context = EnvironmentContext()
-    env_data: dict[str, Any] = env_context.get_environment(environment_id=environment_id)
+    env_data: dict[str, Any] = env_context.get_environment(
+        environment_id=environment_id
+    )
     response_data = {"status": "success", "data": env_data}
     return Response(data=response_data, status=status.HTTP_200_OK)
 
@@ -43,7 +47,9 @@ def get_environment(request, environment_id: str) -> Response:
 def create_environment(request) -> Response:
     request_payload = request.data
     env_context = EnvironmentContext()
-    env_data: dict[str, Any] = env_context.create_environment(environment_details=request_payload)
+    env_data: dict[str, Any] = env_context.create_environment(
+        environment_details=request_payload
+    )
     response_data = {"status": "success", "data": env_data}
     return Response(data=response_data, status=status.HTTP_201_CREATED)
 
@@ -54,7 +60,9 @@ def create_environment(request) -> Response:
 def update_environment(request, environment_id: str) -> Response:
     request_payload = request.data
     env_context = EnvironmentContext()
-    env_data = env_context.update_environment(environment_id=environment_id, environment_details=request_payload)
+    env_data = env_context.update_environment(
+        environment_id=environment_id, environment_details=request_payload
+    )
     response_data = {"status": "success", "data": env_data}
     return Response(data=response_data, status=status.HTTP_200_OK)
 
@@ -85,9 +93,7 @@ def delete_environment(request: Request, environment_id: str):
         error_details = []
         for model, ids in blocked_data.items():
             error_details.append(f"{ids} from '{model}'")
-        error_message = (
-            f"Cannot delete this environment record because it is referenced by: {', '.join(error_details)}."
-        )
+        error_message = f"Cannot delete this environment record because it is referenced by: {', '.join(error_details)}."
         data = {
             "message": error_message,
             "status": "failed",
@@ -110,7 +116,9 @@ def reveal_environment_credentials(request: Request, environment_id: str) -> Res
 @handle_http_request
 def environment_dependent_projects(request: Request, environment_id: str):
     env_context = EnvironmentContext()
-    projects_list = env_context.get_environment_dependent_projects(environment_id=environment_id)
+    projects_list = env_context.get_environment_dependent_projects(
+        environment_id=environment_id
+    )
     response_data = {"status": "success", "data": projects_list}
     return Response(data=response_data, status=status.HTTP_200_OK)
 
@@ -124,7 +132,6 @@ def test_environment(request: Request):
 
     # Decrypt sensitive fields from frontend encrypted data
     from backend.utils.decryption_utils import decrypt_sensitive_fields
-
     if connection_data:
         decrypted_connection_data = decrypt_sensitive_fields(connection_data)
         test_connection_data(datasource=datasource, connection_data=decrypted_connection_data)

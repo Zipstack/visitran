@@ -6,7 +6,9 @@ class FileStorageController:
 
     def __init__(self) -> None:
         if PluginRegistry.is_plugin_available():
-            self.storage_handler: FileSystemHandler = PluginRegistry.get_plugin()
+            self.storage_handler: FileSystemHandler = (
+                PluginRegistry.get_plugin()
+            )
         else:
             self.storage_handler = FileSystemHandler()
 

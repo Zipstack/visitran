@@ -5,7 +5,7 @@ import logging
 import threading
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Union, Optional
 from urllib.parse import parse_qs, urlparse
 
 import ibis
@@ -258,6 +258,10 @@ class PostgresConnection(BaseConnection):
         # Execute the upsert
         self.connection.raw_sql(upsert_query)
 
+
+
+
+
     def _ensure_unique_constraint(self, schema_name: str, table_name: str, key_columns: list[str]) -> None:
         """Ensure a unique constraint exists on the specified columns."""
         try:
@@ -281,9 +285,7 @@ class PostgresConnection(BaseConnection):
             else:
                 raise
 
-    def _fallback_upsert(
-        self, schema_name: str, table_name: str, select_statement: Table, key_columns: list[str]
-    ) -> None:
+    def _fallback_upsert(self, schema_name: str, table_name: str, select_statement: Table, key_columns: list[str]) -> None:
         """Fallback upsert using DELETE + INSERT for tables without unique
         constraints."""
         qi = self.quote_identifier
@@ -293,7 +295,7 @@ class PostgresConnection(BaseConnection):
         # Build WHERE clause for DELETE
         where_conditions = []
         for key_col in key_columns:
-            where_conditions.append(f"{qi(key_col)} = source.{qi(key_col)}")
+            where_conditions.append(f'{qi(key_col)} = source.{qi(key_col)}')
         where_clause = " AND ".join(where_conditions)
 
         # Compile the select statement

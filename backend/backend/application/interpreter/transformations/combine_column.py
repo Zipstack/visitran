@@ -1,4 +1,4 @@
-from backend.application.config_parser.transformation_parsers.combine_parser import CombineColumnParser, CombineColumns
+from backend.application.config_parser.transformation_parsers.combine_parser import CombineColumns, CombineColumnParser
 from backend.application.interpreter.constants import TemplateNames
 from backend.application.interpreter.transformations.base_transformation import BaseTransformation
 
@@ -28,7 +28,10 @@ class CombineColumnTransformation(BaseTransformation):
             print(f"Warning: No valid formula parts for target column: {target_column}")
             return None
 
-        return {"target_column": target_column, "formula": " + ".join(formula_parts)}
+        return {
+            'target_column': target_column,
+            'formula': " + ".join(formula_parts)
+        }
 
     def _get_formula_parts(self, values: list) -> list[str]:
         formula_parts = []
@@ -57,6 +60,7 @@ class CombineColumnTransformation(BaseTransformation):
     def _deduplicate_formulas(formula_statements: list[dict]) -> list[dict]:
         return list({f"{fs['target_column']}:{fs['formula']}": fs for fs in formula_statements}.values())
 
+
     def construct_code(self) -> str:
         combine_columns: list[CombineColumns] = self.combine_column_parser.columns
         formula_statements = self._process_combine_columns(combine_columns)
@@ -64,7 +68,7 @@ class CombineColumnTransformation(BaseTransformation):
 
         template_data = {
             "combine_column_statements": combine_column_statements,
-            "transformation_id": self.combine_column_parser.transform_id,
+            "transformation_id": self.combine_column_parser.transform_id
         }
         self._transformed_code: str = self.template_render(
             template_file_name=TemplateNames.COMBINE_COLUMN, template_content=template_data

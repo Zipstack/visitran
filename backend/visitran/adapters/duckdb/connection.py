@@ -4,20 +4,19 @@ import json
 import os
 import threading
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Union
+from typing import Any, Union, TYPE_CHECKING
 
 import duckdb
 import ibis
 from ibis.common.exceptions import IbisError
 from ibis.expr.types.relations import Table
-
 from visitran.adapters.connection import BaseConnection
 from visitran.errors import (
     ConnectionFailedError,
+    TableNotFound,
     DatabasePermissionDeniedError,
     SchemaAlreadyExist,
     SchemaCreationFailed,
-    TableNotFound,
 )
 
 if TYPE_CHECKING:  # pragma: no cover

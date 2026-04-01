@@ -1,5 +1,4 @@
 from django.db import models
-
 from utils.models.base_model import BaseModel
 
 
@@ -8,19 +7,21 @@ class ChatIntent(BaseModel):
     queries, content generation, SQL tasks, etc."""
 
     NAME_CHOICES = [
-        ("INFO", "INFO"),
-        ("TRANSFORM", "TRANSFORM"),
-        ("SQL", "SQL"),
+        ('INFO', 'INFO'),
+        ('TRANSFORM', 'TRANSFORM'),
+        ('SQL', 'SQL'),
     ]
 
     DISPLAY_NAME_CHOICES = [
-        ("Chat", "Chat"),
-        ("Transform", "Transform"),
-        ("SQL", "SQL"),
+        ('Chat', 'Chat'),
+        ('Transform', 'Transform'),
+        ('SQL', 'SQL'),
     ]
 
     chat_intent_id = models.UUIDField(
-        primary_key=True, editable=False, help_text="Unique identifier for this ChatIntent."
+        primary_key=True,
+        editable=False,
+        help_text="Unique identifier for this ChatIntent."
     )
 
     name = models.CharField(
@@ -30,7 +31,7 @@ class ChatIntent(BaseModel):
         null=False,
         blank=False,
         unique=True,
-        help_text="Internal name of the intent. Must be one of INFO, GENERATE, SQL, NOTA, AUTO.",
+        help_text="Internal name of the intent. Must be one of INFO, GENERATE, SQL, NOTA, AUTO."
     )
 
     display_name = models.CharField(
@@ -40,7 +41,7 @@ class ChatIntent(BaseModel):
         null=False,
         blank=False,
         unique=True,
-        help_text="User-facing display name for the intent.",
+        help_text="User-facing display name for the intent."
     )
 
     objects = models.Manager()
@@ -52,4 +53,4 @@ class ChatIntent(BaseModel):
     class Meta:
         verbose_name = "Chat Intent"
         verbose_name_plural = "Chat Intents"
-        ordering = ["name"]
+        ordering = ['name']

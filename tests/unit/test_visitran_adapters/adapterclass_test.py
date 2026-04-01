@@ -4,10 +4,11 @@ import os
 
 import ibis
 import pytest
-from adapters.postgres.connection import PostgresConnection
-from adapters.trino.connection import TrinoQEConnection
 from ibis.backends.trino import Backend
 from pytest_mock import MockerFixture
+
+from adapters.postgres.connection import PostgresConnection
+from adapters.trino.connection import TrinoQEConnection
 
 dberrstr = "database name cannot be empty"
 dbpassword: str = os.getenv("DB_PASSWORD", "password")

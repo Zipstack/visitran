@@ -44,13 +44,10 @@ def _serialize_token(token, include_secret=False):
 def list_api_keys(request: Request) -> Response:
     """List all API keys for the current user."""
     tokens = APIToken.objects.filter(user=request.user).order_by("-created_at")
-    return Response(
-        {
-            "keys": [_serialize_token(t) for t in tokens],
-            "max_keys": django_settings.MAX_KEYS_PER_USER,
-        },
-        status=status.HTTP_200_OK,
-    )
+    return Response({
+        "keys": [_serialize_token(t) for t in tokens],
+        "max_keys": django_settings.MAX_KEYS_PER_USER,
+    }, status=status.HTTP_200_OK)
 
 
 @api_view([HTTPMethods.POST])
@@ -86,11 +83,8 @@ def create_api_key(request: Request) -> Response:
 
     logger.info(f"API key created: id={token.id}, label={label}, user={request.user.email}")
     log_api_key_event(
-        request,
-        action="create",
-        key_id=token.id,
-        key_label=label,
-        key_masked=token.masked_token,
+        request, action="create", key_id=token.id,
+        key_label=label, key_masked=token.masked_token,
     )
 
     return Response(
@@ -125,11 +119,8 @@ def delete_api_key(request: Request, key_id: str) -> Response:
     logger.info(f"API key deleted: id={key_id}, label={key_label}, user={request.user.email}")
     token.delete()
     log_api_key_event(
-        request,
-        action="delete",
-        key_id=key_id,
-        key_label=key_label,
-        key_masked=key_masked,
+        request, action="delete", key_id=key_id,
+        key_label=key_label, key_masked=key_masked,
     )
     return Response({"message": "API key deleted."}, status=status.HTTP_200_OK)
 
@@ -149,11 +140,8 @@ def toggle_api_key(request: Request, key_id: str) -> Response:
     toggle_action = "disabled" if token.is_disabled else "enabled"
     logger.info(f"API key {toggle_action}: id={token.id}, label={token.label}, user={request.user.email}")
     log_api_key_event(
-        request,
-        action="toggle",
-        key_id=token.id,
-        key_label=token.label,
-        key_masked=token.masked_token,
+        request, action="toggle", key_id=token.id,
+        key_label=token.label, key_masked=token.masked_token,
         details={"new_status": toggle_action},
     )
 
@@ -180,11 +168,8 @@ def regenerate_api_key(request: Request, key_id: str) -> Response:
 
     logger.info(f"API key regenerated: id={token.id}, label={token.label}, user={request.user.email}")
     log_api_key_event(
-        request,
-        action="regenerate",
-        key_id=token.id,
-        key_label=token.label,
-        key_masked=token.masked_token,
+        request, action="regenerate", key_id=token.id,
+        key_label=token.label, key_masked=token.masked_token,
     )
 
     return Response(
@@ -199,10 +184,7 @@ def regenerate_api_key(request: Request, key_id: str) -> Response:
 def generate_token(request: Request) -> Response:
     """Legacy token generation endpoint."""
     api_key = generate_api_key()
-    return Response(
-        {
-            "message": "Token generated successfully.",
-            "token": api_key,
-        },
-        status=status.HTTP_200_OK,
-    )
+    return Response({
+        "message": "Token generated successfully.",
+        "token": api_key,
+    }, status=status.HTTP_200_OK)

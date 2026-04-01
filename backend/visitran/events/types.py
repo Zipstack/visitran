@@ -755,7 +755,6 @@ class BulkExecuteError(ErrorLevel, proto_type.BulkExecuteError):
     def message(self) -> str:
         return f"Transaction failed for query: {self.query} with error: {self.err}"
 
-
 @dataclass
 class InitiateScheduling(InfoLevel, proto_type.InitiateScheduling):
 
@@ -765,7 +764,6 @@ class InitiateScheduling(InfoLevel, proto_type.InitiateScheduling):
     def message(self) -> str:
         return f"Scheduling new task of type {self.task_type}. task details: {self.cron_data}"
 
-
 @dataclass
 class CronJobScheduled(InfoLevel, proto_type.CronJobScheduled):
     def code(self) -> str:
@@ -773,7 +771,6 @@ class CronJobScheduled(InfoLevel, proto_type.CronJobScheduled):
 
     def message(self) -> str:
         return f"{self.task_type} Task Scheduled, ID: {self.task_id}. task details: {self.cron_data}"
-
 
 @dataclass
 class UpdateCronJob(InfoLevel, proto_type.UpdateCronJob):
@@ -792,7 +789,6 @@ class ListScheduledJobs(InfoLevel, proto_type.ListScheduledJobs):
     def message(self) -> str:
         return f"Listing scheduled task {self.tasks}"
 
-
 @dataclass
 class DeleteScheduledJob(InfoLevel, proto_type.DeleteScheduledJob):
     def code(self) -> str:
@@ -800,7 +796,6 @@ class DeleteScheduledJob(InfoLevel, proto_type.DeleteScheduledJob):
 
     def message(self) -> str:
         return f"Scheduled task got deleted successfully. task_id: {self.task_id}"
-
 
 @dataclass
 class FailedDeleteScheduledJob(ErrorLevel, proto_type.FailedDeleteScheduledJob):
@@ -810,7 +805,6 @@ class FailedDeleteScheduledJob(ErrorLevel, proto_type.FailedDeleteScheduledJob):
     def message(self) -> str:
         return f"Failed to delete Scheduled task. task_id: {self.task_id}"
 
-
 @dataclass
 class FailedScheduleJob(ErrorLevel, proto_type.FailedScheduleJob):
     def code(self) -> str:
@@ -818,7 +812,6 @@ class FailedScheduleJob(ErrorLevel, proto_type.FailedScheduleJob):
 
     def message(self) -> str:
         return f"Failed to Scheduled the job for project id {self.project_id}"
-
 
 @dataclass
 class UpdateFailedCronJob(ErrorLevel, proto_type.UpdateFailedCronJob):

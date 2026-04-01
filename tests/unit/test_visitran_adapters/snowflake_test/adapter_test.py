@@ -1,10 +1,10 @@
 import os
 
 import pytest
+
 from adapters.snowflake.adapter import SnowflakeAdapter
 from adapters.snowflake.connection import SnowflakeConnection
 from adapters.snowflake.model import SnowflakeModel
-
 from visitran.templates.model import VisitranModel
 
 

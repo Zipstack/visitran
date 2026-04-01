@@ -89,9 +89,13 @@ class BaseAdapter(ABC):
     def update_current_table_in_db_metadata(self, db_metadata: str, table_name: str, schema_name: str) -> str:
         if not hasattr(self, "db_reader"):
             self.load_db_reader()
-        return self.db_reader.update_table(db_metadata=db_metadata, table_name=table_name, schema_name=schema_name)
+        return self.db_reader.update_table(
+            db_metadata=db_metadata, table_name=table_name, schema_name=schema_name
+        )
 
     def delete_current_table_in_db_metadata(self, db_metadata: str, table_name: str, schema_name: str) -> str:
         if not hasattr(self, "db_reader"):
             self.load_db_reader()
-        return self.db_reader.delete_table(db_metadata=db_metadata, table_name=table_name, schema_name=schema_name)
+        return self.db_reader.delete_table(
+            db_metadata=db_metadata, table_name=table_name, schema_name=schema_name
+        )

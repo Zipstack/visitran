@@ -3,7 +3,12 @@ ANTHROPIC_CLAUDE_4_SONNET = "anthropic/claude-4-sonnet"
 ANTHROPIC_CLAUDE_3_7_SONNET = "anthropic/claude-3-7-sonnet"
 
 CHAT_LLM_MODELS = [
-    {"id": 1, "display_name": "Claude 4.5 Opus", "model": ANTHROPIC_CLAUDE_4_5_OPUS, "default": True}
+    {
+        "id": 1,
+        "display_name": "Claude 4.5 Opus",
+        "model": ANTHROPIC_CLAUDE_4_5_OPUS,
+        "default": True
+    }
     # Uncomment the following models when needed
     # {
     #     "id": 1,

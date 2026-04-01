@@ -8,8 +8,8 @@ import uvicorn
 from requests import Session
 from websockets.sync.client import connect
 
-from visitran.events import Server, app
 from visitran.events.log_helper import LogHelper
+from visitran.events import Server, app
 
 
 @pytest.fixture(scope="session")

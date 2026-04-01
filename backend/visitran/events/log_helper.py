@@ -1,7 +1,9 @@
 import json
 import logging
 from queue import Queue
-from typing import Any, Optional
+from typing import Optional
+
+from typing import Any
 
 from django.conf import settings
 from kombu import Connection
@@ -47,7 +49,7 @@ class LogHelper:
 
     @staticmethod
     def info(
-        message: str,
+            message: str,
     ) -> dict[str, str]:
         return {
             "level": "INFO",
@@ -56,7 +58,7 @@ class LogHelper:
 
     @staticmethod
     def warn(
-        message: str,
+            message: str,
     ) -> dict[str, str]:
         return {
             "level": "WARNING",
@@ -65,13 +67,12 @@ class LogHelper:
 
     @staticmethod
     def error(
-        message: str,
+            message: str,
     ) -> dict[str, str]:
         return {
             "level": "ERROR",
             "message": message,
         }
-
     @staticmethod
     def publish(message: dict[str, str]) -> bool:
         try:
@@ -84,7 +85,9 @@ class LogHelper:
         return True
 
     @classmethod
-    def _get_task_message(cls, user_session_id: str, event: str, message: Any) -> dict[str, Any]:
+    def _get_task_message(
+            cls, user_session_id: str, event: str, message: Any
+    ) -> dict[str, Any]:
 
         task_kwargs = {
             LogEventArgument.EVENT: event,

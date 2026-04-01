@@ -1,20 +1,18 @@
 import inspect
 
-from django.views import View
 from rest_framework import viewsets
-from rest_framework.renderers import JSONRenderer
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from backend.rbac.oss_decorator import OSSPermissionDecorator
-
+from rest_framework.renderers import JSONRenderer
+from django.views import View
+from rest_framework.views import APIView
 
 def handle_permission(view_func):
     """Returns the appropriate decorator based on cloud plugin availability."""
     try:
         from pluggable_apps.user_access_control.cloud_decorator import CloudPermissionDecorator
-
         permission_class = CloudPermissionDecorator
     except (ImportError, RuntimeError):
         # RuntimeError occurs when model's app is not in INSTALLED_APPS
@@ -38,15 +36,11 @@ def handle_permission(view_func):
         if not request:
             return Response({"error": "Invalid request"}, status=400)
 
+
         permission_instance = permission_class()
 
         if not permission_instance.has_permission(request, resource_name):
-            response = Response(
-                {
-                    "error_message": "FORBIDDEN: Requested resource have limited permission for current user or user's role."
-                },
-                status=403,
-            )
+            response = Response({"error_message": "FORBIDDEN: Requested resource have limited permission for current user or user's role."}, status=403)
             response.accepted_renderer = JSONRenderer()
             response.accepted_media_type = "application/json"
             response.renderer_context = {}

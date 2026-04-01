@@ -13,8 +13,8 @@ from datetime import timedelta
 
 from celery import shared_task
 from celery.exceptions import SoftTimeLimitExceeded
-from django.conf import settings
 from django.core.mail import send_mail
+from django.conf import settings
 from django.utils import timezone
 
 from backend.core.scheduler.models import TaskRunHistory, UserTaskDetails
@@ -37,7 +37,6 @@ DEFAULT_STUCK_JOB_THRESHOLD_SECONDS = 3600
 # Timeout helper (works with both prefork and thread pools)
 # ---------------------------------------------------------------------------
 
-
 class _RunTimeout(Exception):
     """Raised when a job exceeds its configured timeout."""
 
@@ -57,7 +56,6 @@ def _timeout_guard(seconds: int):
     is_main_thread = threading.current_thread() is threading.main_thread()
 
     if is_main_thread:
-
         def _handler(signum, frame):
             raise _RunTimeout(f"Job exceeded timeout of {seconds}s")
 
@@ -90,7 +88,6 @@ def _timeout_guard(seconds: int):
 # Notification helpers
 # ---------------------------------------------------------------------------
 
-
 def _send_slack_notification(user_task: UserTaskDetails, run: TaskRunHistory, success: bool):
     """Send Slack notification via the org-level Slack integration (if
     configured)."""
@@ -117,7 +114,9 @@ def _send_slack_notification(user_task: UserTaskDetails, run: TaskRunHistory, su
 
 def _send_notification(user_task: UserTaskDetails, run: TaskRunHistory, success: bool):
     """Send email + Slack notifications for a completed job run."""
-    should_notify = (success and user_task.notify_on_success) or (not success and user_task.notify_on_failure)
+    should_notify = (success and user_task.notify_on_success) or (
+        not success and user_task.notify_on_failure
+    )
 
     # ── Email ──────────────────────────────────────────────────────────
     if should_notify and user_task.notification_emails:
@@ -152,7 +151,6 @@ def _send_notification(user_task: UserTaskDetails, run: TaskRunHistory, success:
 # Job chaining helper
 # ---------------------------------------------------------------------------
 
-
 def _trigger_chained_job(user_task: UserTaskDetails, user_id: int, organization_id: str):
     """If a downstream job is configured, fire it."""
     next_task = user_task.trigger_on_complete
@@ -176,7 +174,6 @@ def _trigger_chained_job(user_task: UserTaskDetails, user_id: int, organization_
 # Main Celery task
 # ---------------------------------------------------------------------------
 
-
 @shared_task(
     name="backend.core.scheduler.celery_tasks.trigger_scheduled_run",
     bind=True,
@@ -189,9 +186,9 @@ def trigger_scheduled_run(self, *, user_task_id: int, user_id: int, organization
     This is the Celery task wired to ``Task.SCHEDULER_JOB``.
     """
     from backend.application.context.application import ApplicationContext
-    from backend.core.models.organization_model import Organization
-    from backend.core.models.user_model import User
     from backend.utils.tenant_context import _get_tenant_context
+    from backend.core.models.user_model import User
+    from backend.core.models.organization_model import Organization
 
     # Set up tenant context for background task
     # NOTE: organization_id arg is the Organization table's PK (id), not the
@@ -216,9 +213,7 @@ def trigger_scheduled_run(self, *, user_task_id: int, user_id: int, organization
     # ── Load task record ──────────────────────────────────────────────
     try:
         user_task = UserTaskDetails.objects.select_related(
-            "environment",
-            "project",
-            "trigger_on_complete",
+            "environment", "project", "trigger_on_complete",
         ).get(id=user_task_id)
     except UserTaskDetails.DoesNotExist:
         logger.error("UserTaskDetails %s not found – aborting.", user_task_id)
@@ -227,8 +222,7 @@ def trigger_scheduled_run(self, *, user_task_id: int, user_id: int, organization
     # ── Determine retry state ─────────────────────────────────────────
     retry_num = 0
     existing_runs = TaskRunHistory.objects.filter(
-        user_task_detail=user_task,
-        status="RETRY",
+        user_task_detail=user_task, status="RETRY",
     ).count()
     retry_num = existing_runs
 
@@ -281,8 +275,14 @@ def trigger_scheduled_run(self, *, user_task_id: int, user_id: int, organization
         ctx.model_configs = user_task.model_configs or {}
 
         # Build include/exclude lists from model_configs for backward compatibility
-        ctx._select_models = [name for name, cfg in ctx.model_configs.items() if cfg.get("enabled", True)]
-        ctx._exclude_models = [name for name, cfg in ctx.model_configs.items() if not cfg.get("enabled", True)]
+        ctx._select_models = [
+            name for name, cfg in ctx.model_configs.items()
+            if cfg.get("enabled", True)
+        ]
+        ctx._exclude_models = [
+            name for name, cfg in ctx.model_configs.items()
+            if not cfg.get("enabled", True)
+        ]
 
         # ── Execute with timeout guard ────────────────────────────────
         timeout = user_task.run_timeout_seconds or 0
@@ -360,7 +360,6 @@ def _mark_failure(run: TaskRunHistory, user_task: UserTaskDetails, error_msg: st
 # Stuck job recovery
 # ---------------------------------------------------------------------------
 
-
 @shared_task(name="backend.core.scheduler.celery_tasks.recover_stuck_jobs")
 def recover_stuck_jobs():
     """Periodic cleanup task: mark jobs stuck in RUNNING as FAILED.
@@ -377,7 +376,6 @@ def recover_stuck_jobs():
     # Bypass the DefaultOrganizationManagerMixin which filters by tenant context.
     # Recovery must check ALL orgs — use the base Manager queryset directly.
     from django.db.models import Manager
-
     base_qs = Manager.get_queryset(UserTaskDetails.objects)
     stuck_tasks = base_qs.filter(
         status=TaskStatus.RUNNING,

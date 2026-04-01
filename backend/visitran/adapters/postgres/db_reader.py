@@ -5,7 +5,10 @@ from visitran.adapters.postgres.connection import PostgresConnection
 
 
 class PostgresDBReader(BaseDBReader):
-    def __init__(self, db_connection: PostgresConnection) -> None:
+    def __init__(
+        self,
+        db_connection: PostgresConnection
+    ) -> None:
         super().__init__(db_connection)
         self.sqlalchemy_engine = sqlalchemy.create_engine(
             self.connection.connection_string,

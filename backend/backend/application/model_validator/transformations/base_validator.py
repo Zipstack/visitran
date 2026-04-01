@@ -5,8 +5,7 @@ from backend.application.config_parser.config_parser import ConfigParser
 from backend.application.session.session import Session
 from backend.application.visitran_backend_context import VisitranBackendContext
 
-ParserType = TypeVar("ParserType", bound=BaseParser)
-
+ParserType = TypeVar('ParserType', bound=BaseParser)
 
 class Validator:
     def __init__(
@@ -14,9 +13,9 @@ class Validator:
         session: Session,
         visitran_context: VisitranBackendContext,
         model_name: str = None,
-        current_parser: ParserType = None,
-        old_parser: ParserType = None,
-        **kwargs,
+        current_parser: ParserType=None,
+        old_parser: ParserType=None,
+        **kwargs
     ):
         """Initializes a new instance of the class.
 

@@ -1,12 +1,17 @@
 from typing import Any
 
+from visitran.utils import import_file
+
 from backend.application.utils import get_filter
 from backend.core.models.connection_models import ConnectionDetails
 from backend.core.models.environment_models import EnvironmentModels
 from backend.core.models.project_details import ProjectDetails
-from backend.errors.exceptions import ConnectionAlreadyExists, ConnectionDependencyError, ConnectionNotExists
+from backend.errors.exceptions import (
+    ConnectionAlreadyExists,
+    ConnectionDependencyError,
+    ConnectionNotExists,
+)
 from backend.utils.pagination import CustomPaginator
-from visitran.utils import import_file
 
 
 class ConnectionSession:
@@ -153,19 +158,25 @@ class ConnectionSession:
         env_ids_to_delete = []
         skipped = []
         for con_model in con_models:
-            projects = self.get_projects_by_connection(connection_id=str(con_model.connection_id))
+            projects = self.get_projects_by_connection(
+                connection_id=str(con_model.connection_id)
+            )
             if projects:
                 skipped.append(con_model.connection_name)
                 continue
-            environments = self.get_environments_by_connection(connection_id=str(con_model.connection_id))
+            environments = self.get_environments_by_connection(
+                connection_id=str(con_model.connection_id)
+            )
             env_ids_to_delete.extend(env["id"] for env in environments)
             connection_ids_to_delete.append(con_model.connection_id)
 
         # Bulk soft-delete in 2 queries instead of N+M individual saves
-        EnvironmentModels.objects.filter(environment_id__in=env_ids_to_delete).update(is_deleted=True)
-        deleted_count = ConnectionDetails.objects.filter(connection_id__in=connection_ids_to_delete).update(
-            is_deleted=True
-        )
+        EnvironmentModels.objects.filter(
+            environment_id__in=env_ids_to_delete
+        ).update(is_deleted=True)
+        deleted_count = ConnectionDetails.objects.filter(
+            connection_id__in=connection_ids_to_delete
+        ).update(is_deleted=True)
 
         return {"deleted_count": deleted_count, "skipped": skipped}
 

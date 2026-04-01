@@ -2,7 +2,6 @@ from enum import Enum
 
 from django.conf import settings
 
-
 class BaseConstant(str, Enum):
     """Base method for constants and string representations."""
 

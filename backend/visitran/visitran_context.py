@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union
+from typing import Dict, Any, Union
 
 from visitran.adapters.adapter import BaseAdapter
 from visitran.utils import get_adapter_cls

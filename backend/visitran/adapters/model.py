@@ -68,11 +68,10 @@ class BaseModel(ABC):
         """
         try:
             # Get current table columns
-            current_columns = set(
-                self.db_connection.get_table_columns(
-                    schema_name=self.model.destination_schema_name, table_name=self.model.destination_table_name
-                )
-            )
+            current_columns = set(self.db_connection.get_table_columns(
+                schema_name=self.model.destination_schema_name,
+                table_name=self.model.destination_table_name
+            ))
 
             # Get new columns from SELECT statement
             new_columns = set(self.model.select_statement.columns)
@@ -83,9 +82,7 @@ class BaseModel(ABC):
 
             # Log schema change details
             if added_columns or removed_columns:
-                logging.info(
-                    f"Schema change detected for {self.model.destination_schema_name}.{self.model.destination_table_name}"
-                )
+                logging.info(f"Schema change detected for {self.model.destination_schema_name}.{self.model.destination_table_name}")
                 if added_columns:
                     logging.info(f"  Added columns: {list(added_columns)}")
                 if removed_columns:
@@ -96,7 +93,5 @@ class BaseModel(ABC):
 
         except Exception as e:
             # If we can't determine schema, assume it changed (safe default)
-            logging.warning(
-                f"Could not determine schema for {self.model.destination_schema_name}.{self.model.destination_table_name}: {str(e)}"
-            )
+            logging.warning(f"Could not determine schema for {self.model.destination_schema_name}.{self.model.destination_table_name}: {str(e)}")
             return True

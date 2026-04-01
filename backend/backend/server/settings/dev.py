@@ -11,10 +11,16 @@ RAISE_ERROR = bool(os.environ.get("RAISE_ERROR", False))
 # OSS: Use shared apps directly (no cloud-specific apps needed)
 INSTALLED_APPS = SHARED_APPS
 
-OSS_AUTH_MIDDLEWARE = "backend.core.middlewares.oss_auth_middleware.OSSAuthMiddleware"
-OSS_CSRF_MIDDLEWARE = "backend.core.middlewares.oss_csrf_middleware.OSSCsrfMiddleware"
+OSS_AUTH_MIDDLEWARE = (
+    "backend.core.middlewares.oss_auth_middleware.OSSAuthMiddleware"
+)
+OSS_CSRF_MIDDLEWARE = (
+    "backend.core.middlewares.oss_csrf_middleware.OSSCsrfMiddleware"
+)
 LOGGING_MIDDLEWARE = "backend.core.middlewares.log_aggregator.LogAggregatorMiddleware"
-LOGGING_CONFIGURATION_MIDDLEWARE = "backend.core.middlewares.log_configuration.LogConfigurationMiddleware"
+LOGGING_CONFIGURATION_MIDDLEWARE = (
+    "backend.core.middlewares.log_configuration.LogConfigurationMiddleware"
+)
 
 SILENCED_SYSTEM_CHECKS = ["urls.W002"]
 
@@ -90,7 +96,9 @@ if os.environ.get("DB_SAMPLE_HOST"):
 # LocMemCache was causing stale data with gunicorn's multiple workers (per-process isolation).
 _redis_db = REDIS_DB if REDIS_DB not in (None, "") else "1"  # default to db1 to avoid Celery on db0
 if REDIS_PASSWORD:
-    _redis_url = f"redis://{REDIS_USER}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{_redis_db}"
+    _redis_url = (
+        f"redis://{REDIS_USER}:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{_redis_db}"
+    )
 else:
     _redis_url = f"redis://{REDIS_HOST}:{REDIS_PORT}/{_redis_db}"
 CACHES = {

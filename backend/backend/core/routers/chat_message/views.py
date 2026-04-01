@@ -1,4 +1,4 @@
-from rest_framework import status, viewsets
+from rest_framework import viewsets, status
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -35,13 +35,11 @@ class ChatMessageView(viewsets.ViewSet):
         chat_id = data.get("chat_id")
         prompt = data.get("prompt")
         user_id = str(request.user.id)
-        discussion_type = data.get("discussion_status")
+        discussion_type = data.get('discussion_status')
         if discussion_type is None:
-            discussion_type == "INPROGRESS"
+            discussion_type == 'INPROGRESS'
 
         chat_message_context = ChatMessageContext(project_id=project_id)
-        chat_message_id = chat_message_context.persist_prompt(
-            prompt=prompt, chat_id=chat_id, discussion_type=discussion_type
-        )
+        chat_message_id = chat_message_context.persist_prompt(prompt=prompt, chat_id=chat_id, discussion_type=discussion_type)
 
         return Response(data={"chat_message_id": chat_message_id}, status=status.HTTP_200_OK)

@@ -960,12 +960,10 @@ class CronJobScheduled(betterproto.Message):
     task_id: int = betterproto.string_field(2)
     cron_data: str = betterproto.string_field(3)
 
-
 @dataclass
 class CronJobScheduledMsg(betterproto.Message):
     info: "EventInfo" = betterproto.message_field(1)
     data: "CronJobScheduled" = betterproto.message_field(2)
-
 
 @dataclass
 class UpdateCronJob(betterproto.Message):
@@ -973,12 +971,10 @@ class UpdateCronJob(betterproto.Message):
     task_id: int = betterproto.string_field(2)
     cron_data: str = betterproto.string_field(3)
 
-
 @dataclass
 class UpdateCronJobMsg(betterproto.Message):
     info: "EventInfo" = betterproto.message_field(1)
     data: "UpdateCronJobMsg" = betterproto.message_field(2)
-
 
 @dataclass
 class UpdateFailedCronJob(betterproto.Message):
@@ -986,62 +982,51 @@ class UpdateFailedCronJob(betterproto.Message):
     task_id: int = betterproto.string_field(2)
     cron_data: str = betterproto.string_field(3)
 
-
 @dataclass
 class UpdateFailedCronJobMsg(betterproto.Message):
     info: "EventInfo" = betterproto.message_field(1)
     data: "UpdateFailedCronJob" = betterproto.message_field(2)
-
 
 @dataclass
 class InitiateScheduling(betterproto.Message):
     task_type: str = betterproto.string_field(1)
     cron_data: str = betterproto.string_field(2)
 
-
 @dataclass
 class InitiateSchedulingMsg(betterproto.Message):
     info: "EventInfo" = betterproto.message_field(1)
     data: "InitiateScheduling" = betterproto.message_field(2)
 
-
 @dataclass
 class ListScheduledJobs(betterproto.Message):
     tasks: str = betterproto.string_field(1)
-
 
 @dataclass
 class ListScheduledJobsMsg(betterproto.Message):
     info: "EventInfo" = betterproto.message_field(1)
     data: "ListScheduledJobs" = betterproto.message_field(2)
 
-
 @dataclass
 class DeleteScheduledJob(betterproto.Message):
     task_id: int = betterproto.string_field(1)
-
 
 @dataclass
 class DeleteScheduledJobMsg(betterproto.Message):
     info: "EventInfo" = betterproto.message_field(1)
     data: "DeleteScheduledJob" = betterproto.message_field(2)
 
-
 @dataclass
 class FailedDeleteScheduledJob(betterproto.Message):
     task_id: int = betterproto.int32_field(1)
-
 
 @dataclass
 class FailedDeleteScheduledJobMsg(betterproto.Message):
     info: "EventInfo" = betterproto.message_field(1)
     data: "FailedDeleteScheduledJob" = betterproto.message_field(2)
 
-
 @dataclass
 class FailedScheduleJob(betterproto.Message):
     project_id: str = betterproto.string_field(1)
-
 
 @dataclass
 class FailedScheduleJobMsg(betterproto.Message):

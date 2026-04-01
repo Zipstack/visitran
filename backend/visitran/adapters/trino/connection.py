@@ -4,11 +4,10 @@ import json
 import logging
 import threading
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Union, Optional
 
 import ibis
 from ibis.common.exceptions import IbisError
-
 from visitran.adapters.connection import BaseConnection
 from visitran.errors import (
     ConnectionFailedError,
@@ -67,7 +66,7 @@ class TrinoQEConnection(BaseConnection):
                     port=self.port,
                     user=self.user,
                     database=self.dbname,
-                    schema=self.schema or "default",
+                    schema=self.schema or 'default',
                 )
             except IbisError as err:
                 error_message = str(err).split("failed:")
@@ -128,7 +127,6 @@ class TrinoQEConnection(BaseConnection):
         for field, value in required.items():
             if not value:
                 from visitran.errors import ConnectionFieldMissingException
-
                 raise ConnectionFieldMissingException(missing_fields=field)
 
     def list_all_schemas(self) -> list[str]:
@@ -136,7 +134,10 @@ class TrinoQEConnection(BaseConnection):
         all_databases = self.connection.list_databases()
 
         # Filter out system schemas
-        non_system_databases = [db for db in all_databases if db not in ["information_schema", "sys", "system"]]
+        non_system_databases = [
+            db for db in all_databases
+            if db not in ['information_schema', 'sys', 'system']
+        ]
 
         return non_system_databases
 
@@ -199,7 +200,9 @@ class TrinoQEConnection(BaseConnection):
 
         except Exception as e:
             logging.error(f"Trino upsert (DELETE+INSERT) failed for {schema_name}.{table_name}: {str(e)}")
-            raise Exception(f"Trino upsert (DELETE+INSERT) failed for {schema_name}.{table_name}: {str(e)}") from e
+            raise Exception(
+                f"Trino upsert (DELETE+INSERT) failed for {schema_name}.{table_name}: {str(e)}"
+            ) from e
         finally:
             # Clean up temp table
             try:

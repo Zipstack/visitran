@@ -19,7 +19,7 @@ def beautify_transformation_name(transformation_name: str) -> str:
         "rename_column": "Rename columns",
         "find_and_replace": "Find & Replace",
         "sort": "Sort",
-        "clear_all": "Clear All Transforms",
+        "clear_all": "Clear All Transforms"
     }
     return beautifier.get(transformation_name, transformation_name)
 
@@ -28,7 +28,11 @@ class ColumnDependency(VisitranBackendBaseException):
     """Raised if the model is configured with invalid source table."""
 
     def __init__(
-        self, model_name: str, transformation_name: str, affected_columns: list[str], affected_transformation: str = ""
+            self,
+            model_name: str,
+            transformation_name: str,
+            affected_columns: list[str],
+            affected_transformation: str = ""
     ) -> None:
         super().__init__(
             error_code=BackendErrorMessages.COLUMN_DEPENDENCY,
@@ -36,7 +40,7 @@ class ColumnDependency(VisitranBackendBaseException):
             affected_columns=affected_columns,
             model_name=model_name,
             transformation_name=beautify_transformation_name(transformation_name),
-            affected_transformation=beautify_transformation_name(affected_transformation),
+            affected_transformation=beautify_transformation_name(affected_transformation)
         )
 
     @property
@@ -48,11 +52,11 @@ class MultipleColumnDependency(VisitranBackendBaseException):
     """Raised if the model is configured with invalid source table."""
 
     def __init__(
-        self,
-        model_name: str,
-        transformation_name: str,
-        affected_columns: list[str],
-        dependency_details: dict[str, Any] = None,
+            self,
+            model_name: str,
+            transformation_name: str,
+            affected_columns: list[str],
+            dependency_details: dict[str, Any] = None
     ) -> None:
         super().__init__(
             error_code=BackendErrorMessages.MULTIPLE_COLUMN_DEPENDENCY,
@@ -61,7 +65,7 @@ class MultipleColumnDependency(VisitranBackendBaseException):
             transformation_name=beautify_transformation_name(transformation_name),
             affected_columns_count=affected_columns.__len__(),
             affected_columns=affected_columns,
-            dependency_details=self.format_dependency_details(model_name, dependency_details),
+            dependency_details=self.format_dependency_details(model_name, dependency_details)
         )
 
     @staticmethod
@@ -88,7 +92,7 @@ class ModelTableDependency(VisitranBackendBaseException):
             http_status_code=status.HTTP_409_CONFLICT,
             model_name=model_name,
             child_models=child_models,
-            table_name=table_name,
+            table_name=table_name
         )
 
     @property
@@ -100,7 +104,11 @@ class TransformationDependency(VisitranBackendBaseException):
     """Raised if the model is configured with invalid source table."""
 
     def __init__(
-        self, model_name: str, affected_columns: list[str], transformation_name: str, affected_transformation: str
+            self,
+            model_name: str,
+            affected_columns: list[str],
+            transformation_name: str,
+            affected_transformation: str
     ) -> None:
         super().__init__(
             error_code=BackendErrorMessages.TRANSFORMATION_CONFLICT,
@@ -108,7 +116,7 @@ class TransformationDependency(VisitranBackendBaseException):
             affected_columns=affected_columns,
             model_name=model_name,
             transformation_name=transformation_name,
-            affected_transformation=affected_transformation,
+            affected_transformation=affected_transformation
         )
 
     @property
@@ -142,7 +150,7 @@ class ProjectDependencyException(VisitranBackendBaseException):
             http_status_code=status.HTTP_409_CONFLICT,
             project_name=project_name,
             jobs=jobs,
-            job_count=len(jobs),
+            job_count=len(jobs)
         )
 
     @property

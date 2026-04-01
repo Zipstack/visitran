@@ -3,9 +3,9 @@ from typing import Union
 from visitran.adapters.adapter import BaseAdapter
 from visitran.adapters.scd import BaseSCD
 from visitran.adapters.trino.connection import TrinoQEConnection
-from visitran.adapters.trino.db_reader import TrinoDBReader
 from visitran.adapters.trino.model import TrinoModel
 from visitran.adapters.trino.seed import TrinoSeed
+from visitran.adapters.trino.db_reader import TrinoDBReader
 from visitran.templates.model import VisitranModel
 from visitran.templates.snapshot import VisitranSnapshot
 

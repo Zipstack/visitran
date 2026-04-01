@@ -1,6 +1,6 @@
 from collections import defaultdict
 from functools import lru_cache
-from typing import Any, Dict, Set
+from typing import Dict, Set, Any
 
 
 class ValidateReferences:
@@ -267,9 +267,7 @@ class ValidateReferences:
                     for union_table in union_tables:
                         if isinstance(union_table, dict):
                             merge_table = union_table.get("merge_table")
-                            merge_schema = union_table.get(
-                                "merge_schema", model_data.get("source", {}).get("schema_name")
-                            )
+                            merge_schema = union_table.get("merge_schema", model_data.get("source", {}).get("schema_name"))
                             if merge_schema and merge_table:
                                 tables.append((merge_schema, merge_table))
         return tables
@@ -309,7 +307,11 @@ class ValidateReferences:
             pruned_bases: set[str] = set()
             for base in direct_bases:
                 # Base is redundant if it is implied by any other base
-                is_redundant = any(base in get_all_bases(other) for other in direct_bases if other != base)
+                is_redundant = any(
+                    base in get_all_bases(other)
+                    for other in direct_bases
+                    if other != base
+                )
                 if not is_redundant:
                     pruned_bases.add(base)
 

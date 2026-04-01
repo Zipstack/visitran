@@ -15,6 +15,7 @@ class SortsTransformation(BaseTransformation):
 
             sorted_values += SortOperators.SORT_MAPPERS.get(order_by).format(value=column)
 
+
         return sorted_values
 
     def construct_code(self) -> str:
@@ -28,6 +29,7 @@ class SortsTransformation(BaseTransformation):
             return self._transformed_code
 
         return ""
+
 
     def transform(self) -> str:
         return self.construct_code()

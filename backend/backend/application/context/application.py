@@ -1,32 +1,25 @@
 import logging
-from typing import Any, AnyStr, Dict, Union
+from typing import Any, Union, AnyStr, Dict
 
 import yaml
 from sqlparse import parse
+from visitran.errors import VisitranPostgresMissingError, VisitranBaseExceptions
+from visitran.visitran import Visitran
 
 from backend.application.config_parser.config_parser import ConfigParser
+from backend.application.session.env_session import EnvironmentSession
 from backend.application.context.model_graph import ModelGraph
 from backend.application.interpreter.interpreter import Interpreter
 from backend.application.model_validator import ModelValidator
-from backend.application.session.env_session import EnvironmentSession
 from backend.application.utils import set_transformation_sequence
 from backend.application.validate_references import ValidateReferences
 from backend.core.models.config_models import ConfigModels
 from backend.core.models.csv_models import CSVModels
-from backend.errors import (
-    CsvDownloadFailed,
-    InvalidSQLQuery,
-    ModelDependency,
-    ModelNotExists,
-    MultipleColumnDependency,
-    ProhibitedSqlQuery,
-    SchemaNotFoundError,
-)
+from backend.errors import ModelDependency, ModelNotExists, InvalidSQLQuery, ProhibitedSqlQuery, CsvDownloadFailed, SchemaNotFoundError, \
+    MultipleColumnDependency
 from backend.errors.visitran_backend_base_exceptions import VisitranBackendBaseException
 from backend.utils.cache_service.cache_loader import CacheService
 from backend.utils.utils import convert_db_type_to_no_code_type
-from visitran.errors import VisitranBaseExceptions, VisitranPostgresMissingError
-from visitran.visitran import Visitran
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +116,9 @@ class ApplicationContext(ModelGraph):
         )
         updated_column = []
         for column_data in column_names:
-            ui_dbtype = convert_db_type_to_no_code_type(db_type=column_data["column_dbtype"])
+            ui_dbtype = convert_db_type_to_no_code_type(
+                db_type=column_data["column_dbtype"]
+            )
             column_data["data_type"] = ui_dbtype
             if prefix:
                 column_data["column_name"] = f'{prefix}_{column_data["column_name"]}'
@@ -151,7 +146,6 @@ class ApplicationContext(ModelGraph):
 
     def load_testing_models(self):
         from backend.utils.load_models.load_models import load_models
-
         models = load_models()
         try:
             for model in models:
@@ -183,7 +177,7 @@ class ApplicationContext(ModelGraph):
                     csv_model.table_exists = status
                     csv_model.save()
 
-    def create_a_model(self, model_name: str, is_generate_ai_request: bool = False) -> str:
+    def create_a_model(self, model_name: str, is_generate_ai_request: bool=False) -> str:
         """This method will create a new no_code_model with help of file
         explorer."""
         new_model_name = self.session.create_model(model_name=model_name, is_generate_ai_request=is_generate_ai_request)
@@ -204,9 +198,7 @@ class ApplicationContext(ModelGraph):
         except ValueError:
             pass
 
-    def delete_a_file_or_folder(
-        self, file_path: str, table_delete_enabled=False, deleting_models: set[str] | None = None
-    ):
+    def delete_a_file_or_folder(self, file_path: str, table_delete_enabled=False, deleting_models: set[str] | None = None):
         """This method is used to delete a file or folder either in no_code."""
 
         if file_path.startswith("models"):
@@ -252,7 +244,9 @@ class ApplicationContext(ModelGraph):
                 logging.info(
                     f"No Usage of found for table: {destination_table} under schema: {destination_schema}, hence deleting..."
                 )
-            self.visitran_context.drop_table_if_exist(schema_name=destination_schema, table_name=destination_table)
+            self.visitran_context.drop_table_if_exist(
+                schema_name=destination_schema, table_name=destination_table
+            )
 
         except Exception as e:
             logging.error(f"Exception while deleting destination table for model {model_name}, {e}")
@@ -346,9 +340,7 @@ class ApplicationContext(ModelGraph):
         }
         model_dict = self.get_model_references()
         model_dict[model_name] = set(model_data.get("reference", []))
-        current_model_reference = self.get_model_reference_details(
-            model_name=model_name, models=models, model_dict=model_dict
-        )
+        current_model_reference = self.get_model_reference_details(model_name=model_name, models=models, model_dict=model_dict)
         model_name = model_name.replace(" ", "_").strip()
         parser, executor = self.compile_yaml_data(
             model_data=model_data,
@@ -379,7 +371,10 @@ class ApplicationContext(ModelGraph):
             logging.error("Exception while fetching table, column %s", exc)
 
     def get_model_reference_details(
-        self, model_name: str, models: dict[str, Any] = None, model_dict: dict[str, Any] = None
+            self,
+            model_name: str,
+            models: dict[str, Any] = None,
+            model_dict: dict[str,Any] = None
     ) -> dict[str, Any]:
         """This will return all reference models for the current model :param
         model_name:
@@ -424,7 +419,9 @@ class ApplicationContext(ModelGraph):
             model_dict[model.model_name] = set(model.model_data.get("reference", []))
         return model_dict
 
-    def _get_source_dependent_models(self, model_name: str, dest_schema: str, dest_table: str) -> set[str]:
+    def _get_source_dependent_models(
+        self, model_name: str, dest_schema: str, dest_table: str
+    ) -> set[str]:
         """Find models whose source table matches the given destination table.
 
         This catches table-based dependencies that may not be captured
@@ -442,7 +439,10 @@ class ApplicationContext(ModelGraph):
             if name == model_name:
                 continue
             source_schema = (details.get("source_schema") or "").replace("~", "")
-            if source_schema == normalised_dest_schema and details.get("source_table") == dest_table:
+            if (
+                source_schema == normalised_dest_schema
+                and details.get("source_table") == dest_table
+            ):
                 children.add(name)
         return children
 
@@ -480,7 +480,7 @@ class ApplicationContext(ModelGraph):
             "sequence_orders": sequence_orders,
             "sequence_lineage": sequence_lineage,
             "model_data": model_data,
-            "model_data_yaml": model_data_yaml,
+            "model_data_yaml": model_data_yaml
         }
 
     def get_model_validator(self, model_data: dict[str, Any], model_name: str) -> ModelValidator:
@@ -519,15 +519,14 @@ class ApplicationContext(ModelGraph):
         """
         model_validator = self.get_model_validator(model_data=new_model_data, model_name=model_name)
         affected_columns = model_validator.validate(
-            config_type=config_type, transformation_type=transformation_type, transformation_id=transformation_id
+            config_type=config_type,
+            transformation_type=transformation_type,
+            transformation_id=transformation_id
         )
 
         logger.info(
             "[DependencyCheck] model=%s config_type=%s transform_type=%s affected_columns=%s",
-            model_name,
-            config_type,
-            transformation_type,
-            affected_columns,
+            model_name, config_type, transformation_type, affected_columns,
         )
 
         # Check the validation for child models
@@ -544,16 +543,14 @@ class ApplicationContext(ModelGraph):
         # a model uses another model's output as source without an explicit reference.
         dest_schema = new_model_data.get("model", {}).get("schema_name")
         dest_table = new_model_data.get("model", {}).get("table_name")
-        table_child_models = self._get_source_dependent_models(model_name, dest_schema, dest_table)
+        table_child_models = self._get_source_dependent_models(
+            model_name, dest_schema, dest_table
+        )
         all_child_models = ref_child_models | table_child_models
 
         logger.info(
             "[DependencyCheck] model=%s dest=%s.%s ref_children=%s table_children=%s",
-            model_name,
-            dest_schema,
-            dest_table,
-            ref_child_models,
-            table_child_models,
+            model_name, dest_schema, dest_table, ref_child_models, table_child_models,
         )
 
         if all_child_models:
@@ -571,8 +568,7 @@ class ApplicationContext(ModelGraph):
 
         logger.info(
             "[DependencyCheck] model=%s dependency_columns=%s",
-            model_name,
-            dict(model_validator.dependency_columns),
+            model_name, dict(model_validator.dependency_columns),
         )
 
         if model_validator.dependency_columns:
@@ -580,7 +576,7 @@ class ApplicationContext(ModelGraph):
                 model_name=model_name,
                 transformation_name=transformation_type,
                 affected_columns=affected_columns,
-                dependency_details=model_validator.dependency_columns,
+                dependency_details=model_validator.dependency_columns
             )
         # Preserve original reference order - the first reference determines parent class for DAG execution
         original_references = new_model_data.get("reference", [])
@@ -593,9 +589,7 @@ class ApplicationContext(ModelGraph):
         new_refs = [ref for ref in final_refs if ref not in original_references]
         new_model_data["reference"] = ordered_refs + new_refs
 
-    def save_model_file(
-        self, no_code_data: dict[str, Any], model_name: str, is_chat_response: bool, is_update: bool = False
-    ):
+    def save_model_file(self, no_code_data: dict[str, Any], model_name: str, is_chat_response: bool, is_update: bool = False):
         if is_chat_response:
             model_data = no_code_data["file"]
         else:
@@ -618,7 +612,9 @@ class ApplicationContext(ModelGraph):
                 criteria["condition"]["rhs"]["value"] = [column_data.get("column_name", "")]
 
         # Validating the model data before persisting
-        self.validate_model(new_model_data=model_data, model_name=model_name)
+        self.validate_model(
+            new_model_data=model_data, model_name=model_name
+        )
 
         # Converting the current model to python.
         self.update_model_graph(model_data, model_name)
@@ -738,9 +734,7 @@ class ApplicationContext(ModelGraph):
             self.visitran_context.clear_database_cache()
             self.session.remove_sys_path()
 
-    def execute_visitran_run_command(
-        self, current_model: str = "", current_models: list = None, environment_id=None
-    ) -> None:
+    def execute_visitran_run_command(self, current_model: str = "", current_models: list = None, environment_id=None) -> None:
         """Execute the visitran run command with selective model execution.
 
         Args:
@@ -753,9 +747,7 @@ class ApplicationContext(ModelGraph):
             - current_model provided: Execute only this model + its downstream children
             - Neither provided: Execute ALL models
         """
-        logging.info(
-            f"[execute_visitran_run_command] Called with current_model={current_model}, current_models={current_models}, environment_id={environment_id}"
-        )
+        logging.info(f"[execute_visitran_run_command] Called with current_model={current_model}, current_models={current_models}, environment_id={environment_id}")
         try:
             CacheService.clear_cache(f"model_content_{self.project_instance.project_id}_*")
 
@@ -778,7 +770,9 @@ class ApplicationContext(ModelGraph):
         except (VisitranBackendBaseException, VisitranBaseExceptions) as visitran_err:
             logging.error(f"[execute_visitran_run_command] Error: {visitran_err}")
             rollback_model = current_model or (current_models[0] if current_models else "")
-            visitran_err.error_args().update({"is_rollback": self.session.is_rollback_exist(rollback_model)})
+            visitran_err.error_args().update(
+                {"is_rollback": self.session.is_rollback_exist(rollback_model)}
+            )
             raise visitran_err
 
     @staticmethod
@@ -805,9 +799,7 @@ class ApplicationContext(ModelGraph):
         self.validate_sql(sql_command)
 
         # Safe execution of the SQL command
-        content = self.visitran_context.db_adapter.db_connection.execute_llm_sql_query(
-            sql_query=sql_command, limit=limit
-        )
+        content = self.visitran_context.db_adapter.db_connection.execute_llm_sql_query(sql_query=sql_command, limit=limit)
         return content
 
     def get_lineage_model_details(self, model_name: str, content_type: str = "sql") -> dict[str, Any]:
@@ -886,7 +878,9 @@ class ApplicationContext(ModelGraph):
     ) -> dict[str, Any]:
         """This method is used to fetch the fields internal dependencies."""
         no_code_model: dict = self.session.fetch_model_data(model_name=model_name)
-        config_parser = self.get_config_parser(model_data=no_code_model, file_name=model_name)
+        config_parser = self.get_config_parser(
+            model_data=no_code_model, file_name=model_name
+        )
 
         table_details: dict[str, Any] = {
             "source_schema_name": config_parser.source_schema_name,
@@ -899,10 +893,12 @@ class ApplicationContext(ModelGraph):
             column_dependency_key = transformation_id
             if transformation_type not in ["pivot", "groups_and_aggregation"]:
                 column_dependency_key = f"{transformation_id}_transformed"
-            transformation_columns: dict[str, Any] = self.session.get_model_dependency_data(
-                model_name=model_name,
-                transformation_id=column_dependency_key,
-                default={},
+            transformation_columns: dict[str, Any] = (
+                self.session.get_model_dependency_data(
+                    model_name=model_name,
+                    transformation_id=column_dependency_key,
+                    default={},
+                )
             )
             if transformation_columns:
                 transformation_columns["column_names"] = {
@@ -930,7 +926,8 @@ class ApplicationContext(ModelGraph):
         # fetching the source table columns which can be mapped in joins
         source_table_columns: list[str] = []
         source_column_details: list[Any] = self.get_table_columns(
-            config_parser.source_schema_name, config_parser.source_table_name
+            config_parser.source_schema_name,
+            config_parser.source_table_name
         )
 
         for column in source_column_details:
@@ -938,7 +935,8 @@ class ApplicationContext(ModelGraph):
 
         # fetching the destination table columns which can be mapped in joins
         column_details: list[Any] = self.get_table_columns(
-            config_parser.destination_schema_name, config_parser.destination_table_name
+            config_parser.destination_schema_name,
+            config_parser.destination_table_name
         )
 
         column_names = []
@@ -956,7 +954,7 @@ class ApplicationContext(ModelGraph):
                         _schema: str = destination_table.get("schema_name")
                         _alias: str = destination_table.get("alias_name")
                         table_name: str = destination_table.get("table_name")
-                        _alias_name: str = table_name  # or _alias is removed for temporary support
+                        _alias_name: str = table_name # or _alias is removed for temporary support
                         column_details = self.get_table_columns(schema_name=_schema, table_name=table_name)
                         for _column in column_details:
                             _column_name = _column["column_name"]
@@ -975,7 +973,9 @@ class ApplicationContext(ModelGraph):
         table_details["column_description"] = column_descriptions
         return table_details
 
-    def get_model_content(self, model_name: str, page: int = 1, limit: int = 100) -> dict[str, Any]:
+    def get_model_content(
+        self, model_name: str, page: int = 1, limit: int = 100
+    ) -> dict[str, Any]:
         """Get model content with pagination and column details.
 
         Args:
@@ -999,13 +999,12 @@ class ApplicationContext(ModelGraph):
         model_schema_name = model_info.get("schema_name")
         model_table_name = model_info.get("table_name")
 
-        all_columns = self.visitran_context.get_table_columns(
-            schema_name=model_schema_name, table_name=model_table_name
-        )
+        all_columns = self.visitran_context.get_table_columns(schema_name=model_schema_name, table_name=model_table_name)
 
         hidden_columns = no_code_model.get("presentation", {}).get("hidden_columns", [])
         # Filter: exclude columns present in hidden_columns
         selective_columns = [col for col in all_columns if col not in hidden_columns]
+
 
         # Get table content and count in parallel
         table_content: list[Any] = self.visitran_context.get_table_records(
@@ -1030,7 +1029,9 @@ class ApplicationContext(ModelGraph):
         # Filter column_description for only selective_columns
         all_column_description = table_details.get("column_description", {})
         visible_column_description = {
-            col: all_column_description[col] for col in selective_columns if col in all_column_description
+            col: all_column_description[col]
+            for col in selective_columns
+            if col in all_column_description
         }
         # Build response with sorted lists and optimized structure
         return {
@@ -1081,7 +1082,9 @@ class ApplicationContext(ModelGraph):
             selective_columns = [col for col in all_columns if col not in hidden_columns]
 
             # Get total record count
-            total_records = self.visitran_context.get_table_record_count(schema_name=dest_schema, table_name=dest_table)
+            total_records = self.visitran_context.get_table_record_count(
+                schema_name=dest_schema, table_name=dest_table
+            )
 
             # Use a large limit to fetch all records in one go
             limit = max(total_records, 1_000_000) if total_records > 0 else 1_000_000
@@ -1136,7 +1139,9 @@ class ApplicationContext(ModelGraph):
             logging.critical(f"Failed to cleanup no code model due to {e}")
 
     def _get_transformation_details(
-        self, no_code_model: dict[str, Any], sequence_orders: dict[str, int]
+        self,
+        no_code_model: dict[str, Any],
+        sequence_orders: dict[str, int]
     ) -> dict[str, Any]:
         """Extract detailed information about each transformation in the model.
 
@@ -1171,7 +1176,10 @@ class ApplicationContext(ModelGraph):
 
                     # Get the actual nested config (e.g., config_data["filter"] for filter transforms)
                     nested_config = config_data.get(transform_type, {})
-                    transform_type_to_config[transform_type].append({"id": config_id, "config": nested_config})
+                    transform_type_to_config[transform_type].append({
+                        "id": config_id,
+                        "config": nested_config
+                    })
 
         logging.info(f"Transform type to config mapping: {list(transform_type_to_config.keys())}")
 
@@ -1186,7 +1194,11 @@ class ApplicationContext(ModelGraph):
             if transform_key == "sort" or transform_key == "sort_fields":
                 sort_columns = presentation.get("sort", [])
                 if sort_columns:
-                    details[transform_key] = {"type": "sort", "count": len(sort_columns), "columns": sort_columns}
+                    details[transform_key] = {
+                        "type": "sort",
+                        "count": len(sort_columns),
+                        "columns": sort_columns
+                    }
                     logging.info(f"  ✓ Processed presentation sort: {len(sort_columns)} columns")
                 continue
 
@@ -1196,7 +1208,7 @@ class ApplicationContext(ModelGraph):
                     details[transform_key] = {
                         "type": "hidden_columns",
                         "count": len(hidden_cols),
-                        "columns": hidden_cols,
+                        "columns": hidden_cols
                     }
                     logging.info(f"  ✓ Processed presentation hidden_columns: {len(hidden_cols)} columns")
                 continue
@@ -1216,7 +1228,7 @@ class ApplicationContext(ModelGraph):
                 "unions": "union",
                 "pivot": "pivot",
                 "unpivot": "unpivot",
-                "combine_columns": "combine_columns",
+                "combine_columns": "combine_columns"
             }
 
             transform_type = type_map.get(transform_key)
@@ -1245,9 +1257,12 @@ class ApplicationContext(ModelGraph):
                     "type": transform_type,
                     "count": len(columns_data),
                     "columns": [
-                        {"name": col.get("column_name"), "formula": col.get("operation", {}).get("formula")}
+                        {
+                            "name": col.get("column_name"),
+                            "formula": col.get("operation", {}).get("formula")
+                        }
                         for col in columns_data
-                    ],
+                    ]
                 }
 
             elif transform_type == "filter":
@@ -1265,29 +1280,26 @@ class ApplicationContext(ModelGraph):
 
                     # Handle different operators
                     if operator == "NOTNULL":
-                        parsed_conditions.append({"column": column_name, "operator": "IS NOT NULL", "value": ""})
+                        parsed_conditions.append({
+                            "column": column_name,
+                            "operator": "IS NOT NULL",
+                            "value": ""
+                        })
                     else:
                         rhs_value = rhs.get("value", [""])[0] if rhs.get("value") else ""
-                        operator_map = {
-                            "EQ": "=",
-                            "NE": "!=",
-                            "GT": ">",
-                            "LT": "<",
-                            "GTE": ">=",
-                            "LTE": "<=",
-                            "IN": "IN",
-                            "LIKE": "LIKE",
-                        }
+                        operator_map = {"EQ": "=", "NE": "!=", "GT": ">", "LT": "<", "GTE": ">=", "LTE": "<=", "IN": "IN", "LIKE": "LIKE"}
                         op_display = operator_map.get(operator, operator)
 
-                        parsed_conditions.append(
-                            {"column": column_name, "operator": op_display, "value": str(rhs_value)}
-                        )
+                        parsed_conditions.append({
+                            "column": column_name,
+                            "operator": op_display,
+                            "value": str(rhs_value)
+                        })
 
                 details[transform_key] = {
                     "type": transform_type,
                     "count": len(parsed_conditions),
-                    "conditions": parsed_conditions,
+                    "conditions": parsed_conditions
                 }
 
             elif transform_type == "rename_column":
@@ -1295,7 +1307,13 @@ class ApplicationContext(ModelGraph):
                 details[transform_key] = {
                     "type": transform_type,
                     "count": len(mappings),
-                    "mappings": [{"old_name": m.get("old_name"), "new_name": m.get("new_name")} for m in mappings],
+                    "mappings": [
+                        {
+                            "old_name": m.get("old_name"),
+                            "new_name": m.get("new_name")
+                        }
+                        for m in mappings
+                    ]
                 }
 
             elif transform_type in ["groups", "aggregate", "groups_and_aggregation"]:
@@ -1309,9 +1327,13 @@ class ApplicationContext(ModelGraph):
                     "type": transform_type,
                     "group_by": group_by,
                     "aggregations": [
-                        {"function": agg.get("function"), "column": agg.get("column"), "alias": agg.get("alias")}
+                        {
+                            "function": agg.get("function"),
+                            "column": agg.get("column"),
+                            "alias": agg.get("alias")
+                        }
                         for agg in aggregate_columns
-                    ],
+                    ]
                 }
 
                 logging.info(f"  ✓ Processed aggregation details for {transform_key}")
@@ -1350,19 +1372,15 @@ class ApplicationContext(ModelGraph):
                         "join_type": join_type,
                         "left_table": left_table,
                         "right_table": right_table,
-                        "on": on_condition,
+                        "on": on_condition
                     }
 
             elif transform_type == "distinct":
                 columns = actual_config.get("columns", [])
                 details[transform_key] = {
                     "type": transform_type,
-                    "description": (
-                        f"Remove duplicates based on: {', '.join(columns)}"
-                        if columns
-                        else "Remove duplicate rows from the dataset"
-                    ),
-                    "columns": columns,
+                    "description": f"Remove duplicates based on: {', '.join(columns)}" if columns else "Remove duplicate rows from the dataset",
+                    "columns": columns
                 }
 
             elif transform_type == "find_and_replace":
@@ -1375,14 +1393,16 @@ class ApplicationContext(ModelGraph):
 
                     for column in column_list:
                         for op in operations:
-                            parsed_replacements.append(
-                                {"column": column, "find": op.get("find"), "replace": op.get("replace")}
-                            )
+                            parsed_replacements.append({
+                                "column": column,
+                                "find": op.get("find"),
+                                "replace": op.get("replace")
+                            })
 
                 details[transform_key] = {
                     "type": transform_type,
                     "count": len(parsed_replacements),
-                    "replacements": parsed_replacements,
+                    "replacements": parsed_replacements
                 }
 
         logging.info(f"=== Transformation Details Extracted ===")

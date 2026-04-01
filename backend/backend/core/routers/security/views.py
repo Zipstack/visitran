@@ -1,10 +1,10 @@
 import logging
 
-from cryptography.hazmat.primitives import serialization
 from django.conf import settings
 from django.http import JsonResponse
-from django.utils.decorators import method_decorator
+from cryptography.hazmat.primitives import serialization
 from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 
 from backend.utils.rsa_encryption import get_rsa_public_key
 
@@ -26,21 +26,28 @@ def get_public_key(request):
                 len(raw) if raw else 0,
                 repr(raw[:60]) if raw else "None",
             )
-            return JsonResponse({"status": "error", "message": "RSA public key not available"}, status=503)
+            return JsonResponse(
+                {"status": "error", "message": "RSA public key not available"},
+                status=503
+            )
 
         # Return public key in PEM format
         response_data = {
             "status": "success",
             "data": {
                 "public_key": public_key.public_bytes(
-                    encoding=serialization.Encoding.PEM, format=serialization.PublicFormat.SubjectPublicKeyInfo
-                ).decode("utf-8"),
+                    encoding=serialization.Encoding.PEM,
+                    format=serialization.PublicFormat.SubjectPublicKeyInfo
+                ).decode('utf-8'),
                 "key_size": 2048,
-                "algorithm": "RSA",
-            },
+                "algorithm": "RSA"
+            }
         }
 
         return JsonResponse(data=response_data, status=200)
 
     except Exception as e:
-        return JsonResponse({"status": "error", "message": f"Error serving public key: {str(e)}"}, status=500)
+        return JsonResponse(
+            {"status": "error", "message": f"Error serving public key: {str(e)}"},
+            status=500
+        )

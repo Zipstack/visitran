@@ -4,30 +4,35 @@ import base64
 import json
 import logging
 import os
-import re
 import threading
 import warnings
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Optional, Union
-from urllib.parse import parse_qs, quote_plus
+from typing import TYPE_CHECKING, Any, Union, Optional
+import re
+from urllib.parse import parse_qs
+from urllib.parse import quote_plus
 
 import ibis
 from google.cloud import bigquery
 from google.oauth2 import service_account
 from ibis.common.exceptions import IbisError
-
 from visitran.adapters.connection import BaseConnection
 from visitran.errors import (
+    TableNotFound,
     ConnectionFailedError,
-    ConnectionFieldMissingException,
     DatabasePermissionDeniedError,
-    InvalidConnectionUrlException,
     SchemaAlreadyExist,
     SchemaCreationFailed,
-    TableNotFound,
+    InvalidConnectionUrlException,
+    ConnectionFieldMissingException,
 )
 from visitran.events.functions import fire_event
-from visitran.events.types import MergeInToTable, SetExpiration, TableExists, UsingCachedObject
+from visitran.events.types import (
+    MergeInToTable,
+    SetExpiration,
+    TableExists,
+    UsingCachedObject,
+)
 
 if TYPE_CHECKING:  # pragma: no cover
     from ibis.backends import BaseBackend
@@ -63,12 +68,8 @@ class BigQueryConnection(BaseConnection):
         else:
             self.project_id = project_id
             self.dataset_id = dataset_id
-            self.credentials_dict = (
-                credentials
-                if isinstance(credentials, dict)
-                else (json.loads(credentials) if isinstance(credentials, str) else "")
-            )
-            self.connection_url = ""  # self.build_bigquery_url()
+            self.credentials_dict = credentials if isinstance(credentials, dict) else (json.loads(credentials) if isinstance(credentials, str) else "")
+            self.connection_url = "" #self.build_bigquery_url()
         self.credentials = service_account.Credentials.from_service_account_info(self.credentials_dict)
         self._connection_string: str = f"bigquery://{self.project_id}/{self.dataset_id}"
         self.local = threading.local()
@@ -293,6 +294,8 @@ class BigQueryConnection(BaseConnection):
                 )
             )
 
+
+
             # 1. Create temporary table with incremental data (includes transformations)
             self.create_or_replace_table(
                 schema_name=schema_name,
@@ -381,6 +384,10 @@ class BigQueryConnection(BaseConnection):
                 f"BigQuery incremental upsert failed for {schema_name}.{target_table_name}: {str(e)}"
             ) from e
 
+
+
+
+
     def create_schema(self, schema_name: str) -> None:
         try:
             dataset_name = schema_name
@@ -394,9 +401,7 @@ class BigQueryConnection(BaseConnection):
             elif "already exists" in str(e).lower():
                 raise SchemaAlreadyExist(self.schema_name, str(e))
             else:
-                raise SchemaCreationFailed(
-                    dataset_name, f"Failed to create dataset_id {dataset_id} in BigQuery {str(e)}"
-                )
+                raise SchemaCreationFailed(dataset_name, f"Failed to create dataset_id {dataset_id} in BigQuery {str(e)}")
 
     def _parse_url(self, url: str) -> None:
         """Parse BigQuery connection URL."""
@@ -497,7 +502,8 @@ class BigQueryConnection(BaseConnection):
             client.get_dataset(dataset_ref)
         except Exception as e:
             # Dataset doesn't exist or access denied
-            error_message = (
-                f"Dataset '{self.dataset_id}' not found in project '{self.project_id}' or access denied: {str(e)}"
+            error_message = f"Dataset '{self.dataset_id}' not found in project '{self.project_id}' or access denied: {str(e)}"
+            raise ConnectionFailedError(
+                db_type="bigquery",
+                error_message=error_message
             )
-            raise ConnectionFailedError(db_type="bigquery", error_message=error_message)

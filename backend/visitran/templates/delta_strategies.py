@@ -8,7 +8,6 @@ available or suitable.
 
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional, Union
-
 from ibis.expr.types.relations import Table
 
 
@@ -16,9 +15,8 @@ class DeltaStrategy(ABC):
     """Abstract base class for delta detection strategies."""
 
     @abstractmethod
-    def get_incremental_data(
-        self, source_table: Table, destination_table: Table, strategy_config: dict[str, Any]
-    ) -> Table:
+    def get_incremental_data(self, source_table: Table, destination_table: Table,
+                           strategy_config: dict[str, Any]) -> Table:
         """Return incremental data based on the strategy."""
         pass
 
@@ -26,9 +24,8 @@ class DeltaStrategy(ABC):
 class TimestampStrategy(DeltaStrategy):
     """Strategy using timestamp columns (e.g., updated_at, modified_at)."""
 
-    def get_incremental_data(
-        self, source_table: Table, destination_table: Table, strategy_config: dict[str, Any]
-    ) -> Table:
+    def get_incremental_data(self, source_table: Table, destination_table: Table,
+                           strategy_config: dict[str, Any]) -> Table:
         """Get records updated since the last run using timestamp column."""
         timestamp_column = strategy_config.get("column", "updated_at")
 
@@ -37,7 +34,9 @@ class TimestampStrategy(DeltaStrategy):
 
         # Filter source table for records newer than the latest timestamp
         # Return the final incremental data ready for processing
-        incremental_data = source_table.filter(source_table[timestamp_column] > latest_timestamp)
+        incremental_data = source_table.filter(
+            source_table[timestamp_column] > latest_timestamp
+        )
 
         return incremental_data
 
@@ -45,9 +44,8 @@ class TimestampStrategy(DeltaStrategy):
 class DateStrategy(DeltaStrategy):
     """Strategy using date columns (e.g., created_date, snapshot_date)."""
 
-    def get_incremental_data(
-        self, source_table: Table, destination_table: Table, strategy_config: dict[str, Any]
-    ) -> Table:
+    def get_incremental_data(self, source_table: Table, destination_table: Table,
+                           strategy_config: dict[str, Any]) -> Table:
         """Get records for dates after the latest date in destination."""
         date_column = strategy_config.get("column", "created_date")
 
@@ -56,7 +54,9 @@ class DateStrategy(DeltaStrategy):
 
         # Filter source table for records with dates after the latest date
         # Return the final incremental data ready for processing
-        incremental_data = source_table.filter(source_table[date_column] > latest_date)
+        incremental_data = source_table.filter(
+            source_table[date_column] > latest_date
+        )
 
         return incremental_data
 
@@ -64,9 +64,8 @@ class DateStrategy(DeltaStrategy):
 class SequenceStrategy(DeltaStrategy):
     """Strategy using sequence/ID columns (e.g., id, sequence_number)."""
 
-    def get_incremental_data(
-        self, source_table: Table, destination_table: Table, strategy_config: dict[str, Any]
-    ) -> Table:
+    def get_incremental_data(self, source_table: Table, destination_table: Table,
+                           strategy_config: dict[str, Any]) -> Table:
         """Get records with sequence numbers higher than the maximum in
         destination."""
         sequence_column = strategy_config.get("column", "id")
@@ -76,7 +75,9 @@ class SequenceStrategy(DeltaStrategy):
 
         # Filter source table for records with higher sequence numbers
         # Return the final incremental data ready for processing
-        incremental_data = source_table.filter(source_table[sequence_column] > max_sequence)
+        incremental_data = source_table.filter(
+            source_table[sequence_column] > max_sequence
+        )
 
         return incremental_data
 
@@ -84,9 +85,8 @@ class SequenceStrategy(DeltaStrategy):
 class ChecksumStrategy(DeltaStrategy):
     """Strategy using checksum/hash columns to detect changes."""
 
-    def get_incremental_data(
-        self, source_table: Table, destination_table: Table, strategy_config: dict[str, Any]
-    ) -> Table:
+    def get_incremental_data(self, source_table: Table, destination_table: Table,
+                           strategy_config: dict[str, Any]) -> Table:
         """Get records where checksum differs from destination."""
         checksum_column = strategy_config.get("column", "checksum")
         key_columns = strategy_config.get("key_columns", [])
@@ -105,9 +105,8 @@ class FullScanStrategy(DeltaStrategy):
     """Strategy that compares all records to detect changes (expensive but
     comprehensive)."""
 
-    def get_incremental_data(
-        self, source_table: Table, destination_table: Table, strategy_config: dict[str, Any]
-    ) -> Table:
+    def get_incremental_data(self, source_table: Table, destination_table: Table,
+                           strategy_config: dict[str, Any]) -> Table:
         """Get all records from source table for full comparison."""
         # This strategy returns all source data for comparison
         # The actual comparison logic would be implemented in the model
@@ -117,9 +116,8 @@ class FullScanStrategy(DeltaStrategy):
 class CustomStrategy(DeltaStrategy):
     """Strategy using custom logic provided by the user."""
 
-    def get_incremental_data(
-        self, source_table: Table, destination_table: Table, strategy_config: dict[str, Any]
-    ) -> Table:
+    def get_incremental_data(self, source_table: Table, destination_table: Table,
+                           strategy_config: dict[str, Any]) -> Table:
         """Execute custom logic to determine incremental data."""
         custom_logic = strategy_config.get("custom_logic")
 
@@ -157,7 +155,6 @@ class DeltaStrategyFactory:
 
 
 # Helper functions for common delta detection patterns
-
 
 def create_timestamp_strategy(column: str = "updated_at") -> dict[str, Any]:
     """Create a timestamp-based delta strategy configuration."""

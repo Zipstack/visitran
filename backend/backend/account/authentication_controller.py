@@ -15,7 +15,9 @@ from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from backend.account.authentication_plugin_registry import AuthenticationPluginRegistry
+from backend.account.authentication_plugin_registry import (
+    AuthenticationPluginRegistry,
+)
 from backend.account.authentication_service import AuthenticationService
 from backend.utils.tenant_context import get_current_tenant
 
@@ -71,7 +73,9 @@ class AuthenticationController:
     # Authorization Callback (SSO)
     # =========================================================================
 
-    def handle_authorization_callback(self, request: HttpRequest, backend: str = "") -> HttpResponse:
+    def handle_authorization_callback(
+        self, request: HttpRequest, backend: str = ""
+    ) -> HttpResponse:
         """Handle SSO authorization callback."""
         if hasattr(self.auth_service, "handle_authorization_callback"):
             return self.auth_service.handle_authorization_callback(request, backend)
@@ -89,7 +93,10 @@ class AuthenticationController:
         organizations = self.auth_service.user_organizations(request)
         # Cloud plugin returns Pydantic Membership models, OSS returns
         # plain dicts. Normalize to dicts for consistent DRF serialization.
-        org_list = [org.model_dump() if hasattr(org, "model_dump") else org for org in organizations]
+        org_list = [
+            org.model_dump() if hasattr(org, "model_dump") else org
+            for org in organizations
+        ]
         return Response(
             status=status.HTTP_200_OK,
             data={
@@ -98,7 +105,9 @@ class AuthenticationController:
             },
         )
 
-    def switch_organization(self, request: HttpRequest, user_id: str, organization_id: str) -> HttpResponse:
+    def switch_organization(
+        self, request: HttpRequest, user_id: str, organization_id: str
+    ) -> HttpResponse:
         """Switch user's current organization."""
         return self.auth_service.switch_organization(request, user_id, organization_id)
 
@@ -139,15 +148,25 @@ class AuthenticationController:
         """Get available roles."""
         return self.auth_service.get_roles()
 
-    def add_organization_user_role(self, organization_id: str, user: Any, user_role_name: str) -> Optional[list]:
+    def add_organization_user_role(
+        self, organization_id: str, user: Any, user_role_name: str
+    ) -> Optional[list]:
         """Add role to user."""
-        return self.auth_service.add_organization_user_role(organization_id, user, user_role_name)
+        return self.auth_service.add_organization_user_role(
+            organization_id, user, user_role_name
+        )
 
-    def assign_role_to_org_user(self, organization_id: str, user: Any, user_role_name: str = "admin") -> list:
+    def assign_role_to_org_user(
+        self, organization_id: str, user: Any, user_role_name: str = "admin"
+    ) -> list:
         """Assign role to organization user."""
-        return self.auth_service.assign_role_to_org_user(organization_id, user, user_role_name)
+        return self.auth_service.assign_role_to_org_user(
+            organization_id, user, user_role_name
+        )
 
-    def get_organization_role_of_user(self, user_id: str, organization_id: str) -> list:
+    def get_organization_role_of_user(
+        self, user_id: str, organization_id: str
+    ) -> list:
         """Get user's role in organization."""
         return self.auth_service.get_organization_role_of_user(user_id, organization_id)
 
@@ -177,16 +196,16 @@ class AuthenticationController:
                 self.auth_service.invite_user(admin, org_id, user_email, user_role)
             except Exception as e:
                 logging.exception(f"Failed to invite {user_email}: {e}")
-                failed_invites.append(
-                    {
-                        "email": user_email,
-                        "status": "failed",
-                        "message": str(e),
-                    }
-                )
+                failed_invites.append({
+                    "email": user_email,
+                    "status": "failed",
+                    "message": str(e),
+                })
         return failed_invites
 
-    def remove_users_from_organization(self, admin: Any, organization_id: str, user_emails: list) -> list:
+    def remove_users_from_organization(
+        self, admin: Any, organization_id: str, user_emails: list
+    ) -> list:
         """Remove users from organization by email.
 
         Looks up users by email, deletes their OrganizationMember
@@ -207,13 +226,11 @@ class AuthenticationController:
                 user = User.objects.get(email=email)
             except User.DoesNotExist:
                 Logger.error(f"User with email {email} not found")
-                failed_removals.append(
-                    {
-                        "email": email,
-                        "status": "failed",
-                        "message": "User not found",
-                    }
-                )
+                failed_removals.append({
+                    "email": email,
+                    "status": "failed",
+                    "message": "User not found",
+                })
                 continue
 
             deleted_count, _ = OrganizationMember.objects.filter(
@@ -222,14 +239,14 @@ class AuthenticationController:
             ).delete()
 
             if not deleted_count:
-                Logger.error(f"No membership found for {email} in org {organization_id}")
-                failed_removals.append(
-                    {
-                        "email": email,
-                        "status": "failed",
-                        "message": "No membership found",
-                    }
+                Logger.error(
+                    f"No membership found for {email} in org {organization_id}"
                 )
+                failed_removals.append({
+                    "email": email,
+                    "status": "failed",
+                    "message": "No membership found",
+                })
 
         return failed_removals
 
@@ -253,7 +270,9 @@ class AuthenticationController:
         """Get organization by ID."""
         return self.auth_service.get_organization_by_org_id(org_id)
 
-    def is_user_member_of_organization(self, user_id: str, organization_id: str) -> bool:
+    def is_user_member_of_organization(
+        self, user_id: str, organization_id: str
+    ) -> bool:
         """Check if user is member of organization."""
         return self.auth_service.is_user_member_of_organization(user_id, organization_id)
 
@@ -319,11 +338,15 @@ class AuthenticationController:
     # Cloud-compatible Methods (for multi-tenant operations)
     # =========================================================================
 
-    def authorization_callback(self, request: HttpRequest, backend: str = "") -> HttpResponse:
+    def authorization_callback(
+        self, request: HttpRequest, backend: str = ""
+    ) -> HttpResponse:
         """Alias for handle_authorization_callback (cloud naming)."""
         return self.handle_authorization_callback(request, backend)
 
-    def set_user_organization(self, request: HttpRequest, organization_id: str) -> HttpResponse:
+    def set_user_organization(
+        self, request: HttpRequest, organization_id: str
+    ) -> HttpResponse:
         """Alias for switch_organization (cloud naming)."""
         user = request.user
         user_id = getattr(user, "user_id", str(user.id)) if user.is_authenticated else ""
@@ -348,7 +371,6 @@ class AuthenticationController:
             return self.auth_service.get_organization_members_by_user(user)
         # OSS: Get from OrganizationMember model
         from backend.core.models.organization_member import OrganizationMember
-
         return OrganizationMember.objects.filter(user=user).first()
 
     def get_user_roles(self) -> list:
@@ -367,7 +389,9 @@ class AuthenticationController:
         """Alias for get_invitations (cloud naming)."""
         return self.get_invitations(organization_id)
 
-    def delete_user_invitation(self, organization_id: str, invitation_id: str) -> bool:
+    def delete_user_invitation(
+        self, organization_id: str, invitation_id: str
+    ) -> bool:
         """Alias for delete_invitation (cloud naming)."""
         return self.delete_invitation(organization_id, invitation_id)
 
@@ -380,7 +404,6 @@ class AuthenticationController:
         """
         try:
             from pluggable_apps.user_access_control.models.roles import Roles
-
             role_obj = Roles.objects.filter(role_id=role).first()
             if role_obj:
                 return role_obj.name
@@ -388,15 +411,16 @@ class AuthenticationController:
             pass
         return role
 
-    def add_user_role(self, admin: Any, org_id: str, email: str, role: str) -> Optional[dict]:
+    def add_user_role(
+        self, admin: Any, org_id: str, email: str, role: str
+    ) -> Optional[dict]:
         """Change a user's role in an organization.
 
         Looks up the user by email, updates the OrganizationMember
         record, and delegates to Scalekit if available.
         """
-        from django.contrib.auth import get_user_model
-
         from backend.core.models.organization_member import OrganizationMember
+        from django.contrib.auth import get_user_model
 
         User = get_user_model()
         try:
@@ -422,7 +446,9 @@ class AuthenticationController:
 
         return {"email": email, "role": role_name}
 
-    def remove_user_role(self, admin: Any, org_id: str, email: str, role: str) -> Optional[str]:
+    def remove_user_role(
+        self, admin: Any, org_id: str, email: str, role: str
+    ) -> Optional[str]:
         """Remove a role from a user in an organization."""
         if hasattr(self.auth_service, "remove_user_role"):
             return self.auth_service.remove_user_role(admin, org_id, email, role)

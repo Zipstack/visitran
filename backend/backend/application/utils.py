@@ -6,12 +6,12 @@ from collections import OrderedDict
 from typing import Any
 
 import requests
-
-from backend.core.redis_client import RedisClient
-from backend.utils.constants import LLMServerConstants, TransformationConstants
 from visitran.adapters.connection import BaseConnection
 from visitran.errors import ConnectionFailedError, VisitranBaseExceptions
 from visitran.utils import get_adapter_connection_cls
+
+from backend.core.redis_client import RedisClient
+from backend.utils.constants import LLMServerConstants, TransformationConstants
 
 
 def is_already_visited(child_node, parent_node, is_visited) -> bool:
@@ -222,11 +222,9 @@ def get_prompt_response_from_llm(payload: dict[str, Any], run_background: bool =
 
 def send_event_to_llm_server(payload: dict[str, Any]) -> dict[str, Any] | None:
     # Check if OSS WebSocket mode is active (API key configured)
-    from backend.application.ws_client import check_oss_api_key_configured, is_ws_mode
-
+    from backend.application.ws_client import is_ws_mode, check_oss_api_key_configured
     if is_ws_mode():
         from backend.application.ws_client import send_event_via_websocket
-
         logging.info("Using WebSocket transport to AI server (OSS mode)")
         return send_event_via_websocket(payload)
 
@@ -244,7 +242,6 @@ def send_event_to_llm_server(payload: dict[str, Any]) -> dict[str, Any] | None:
     except Exception as e:
         logging.critical(f"Error occurred while making request to LLM server: {e}")
         raise e
-
 
 # Handle NOTIN(x, a, b, c) → AND(x <> a, x <> b, x <> c)
 def replace_notin(match):

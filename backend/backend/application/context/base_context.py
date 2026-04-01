@@ -1,8 +1,10 @@
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional, List, Dict
 
 from django.db.models import Count, Q
+
+from visitran.utils import import_file
 
 from backend.application.file_explorer.file_explorer import FileExplorer
 from backend.application.session.connection_session import ConnectionSession
@@ -14,7 +16,6 @@ from backend.core.constants.reserved_names import ProjectNameConstants
 from backend.core.models.connection_models import ConnectionDetails
 from backend.core.models.project_details import ProjectDetails
 from backend.errors.exceptions import ProjectAlreadyExists, ProjectNameReservedError
-from visitran.utils import import_file
 
 
 class BaseContext:
@@ -90,9 +91,7 @@ class BaseContext:
         # Cloud: auto-create owner permission for the project creator
         try:
             from pluggable_apps.project_sharing.services import create_owner_permission
-
             from backend.core.models.user_model import User
-
             created_by = pd.created_by or {}
             owner_user = User.objects.filter(username=created_by.get("username")).first()
             if owner_user:
@@ -132,7 +131,9 @@ class BaseContext:
         self.session.delete_project()
 
     @classmethod
-    def get_project_lists(cls, search: str = "", page: int = 1, page_size: int = 20, sort_by: str = "modified") -> dict:
+    def get_project_lists(
+        cls, search: str = "", page: int = 1, page_size: int = 20, sort_by: str = "modified"
+    ) -> dict:
         """Fetches paginated, searchable project list.
 
         Returns dict with ``page_items``, ``total``, ``page``, ``page_size``.
@@ -148,17 +149,20 @@ class BaseContext:
         if search:
             filter_condition["project_name__icontains"] = search
         queryset = (
-            ProjectDetails.objects.filter(**filter_condition).select_related("connection_model").order_by(order_field)
+            ProjectDetails.objects.filter(**filter_condition)
+            .select_related("connection_model")
+            .order_by(order_field)
         )
 
         # Cloud: filter to only projects the user can access
         _check_access = None
         _current_user = None
         try:
-            from pluggable_apps.project_sharing.services import check_project_access, filter_accessible_projects
-
+            from pluggable_apps.project_sharing.services import (
+                check_project_access,
+                filter_accessible_projects,
+            )
             from backend.utils.tenant_context import _get_tenant_context
-
             _current_user = _get_tenant_context().user
             if _current_user:
                 queryset = filter_accessible_projects(queryset, _current_user)
@@ -178,7 +182,6 @@ class BaseContext:
             )
         # Only annotate user_tasks if scheduler app is installed
         from django.apps import apps
-
         if apps.is_installed("job_scheduler") and hasattr(ProjectDetails, "user_tasks"):
             annotations["_total_scheduled_jobs"] = Count("user_tasks", distinct=True)
             annotations["_total_active_jobs"] = Count(
@@ -211,9 +214,9 @@ class BaseContext:
                     "created_by": project.created_by,
                     "is_sample": project.is_sample,
                     "project_type": (
-                        "Starter"
-                        if project.is_sample and project.project_type and "starter" in project.project_type.lower()
-                        else "Finalized" if project.is_sample and project.project_type else ""
+                        "Starter" if project.is_sample and project.project_type and "starter" in project.project_type.lower()
+                        else "Finalized" if project.is_sample and project.project_type
+                        else ""
                     ),
                     "is_completed": project.is_completed,
                     "connection": {
@@ -238,7 +241,6 @@ class BaseContext:
         # Cloud: batch-fetch shared users for avatar display
         try:
             from pluggable_apps.project_sharing.services import get_shared_users_for_projects
-
             project_uuids = [p.project_uuid for p in projects]
             shared_map = get_shared_users_for_projects(project_uuids)
             for item in project_list:
@@ -315,7 +317,9 @@ class BaseContext:
         overrides with connection model."""
         connection_details = self.project_instance.connection_model.decrypted_connection_details
         if self._environment_id:
-            env_model = self.env_session.get_environment_model(environment_id=self._environment_id)
+            env_model = self.env_session.get_environment_model(
+                environment_id=self._environment_id
+            )
             connection_details = env_model.decrypted_connection_data
         elif env_model := self.project_instance.environment_model:
             connection_details = env_model.decrypted_connection_data

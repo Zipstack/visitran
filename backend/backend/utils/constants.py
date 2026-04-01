@@ -2,9 +2,9 @@ from collections import OrderedDict
 from os import path
 
 from django.conf import settings
+from visitran.constants import BaseConstant
 
 from backend.utils.common_utils import CommonUtils
-from visitran.constants import BaseConstant
 
 
 class RouterConstants(BaseConstant):
@@ -162,6 +162,7 @@ class DvdRentalProjectConstants:
         "customer_details_with_address",
         "customer_lifetime_value",
     ]
+
 
 
 class LLMServerConstants:

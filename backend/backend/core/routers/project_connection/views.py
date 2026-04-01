@@ -4,18 +4,18 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
+from visitran.utils import get_adapter_connection_fields
 
 from backend.application.context.application import ApplicationContext
 from backend.core.utils import handle_http_request
+from backend.utils.constants import HTTPMethods
 from backend.errors.exceptions import (
     ProjectConnectionGetFailed,
-    ProjectConnectionInvalidData,
-    ProjectConnectionMissingField,
-    ProjectConnectionTestFailed,
     ProjectConnectionUpdateFailed,
+    ProjectConnectionTestFailed,
+    ProjectConnectionMissingField,
+    ProjectConnectionInvalidData
 )
-from backend.utils.constants import HTTPMethods
-from visitran.utils import get_adapter_connection_fields
 
 
 @api_view([HTTPMethods.GET])
@@ -28,7 +28,7 @@ def get_connection(request: Request, project_id: str) -> Response:
 
         connection_details = app.get_connection_details()
         schema_name = app.visitran_context.schema_name
-        if app.connection.datasource_name == "bigquery":
+        if app.connection.datasource_name == 'bigquery':
             connection_details["dataset_id"] = schema_name
         else:
             connection_details["schema"] = schema_name

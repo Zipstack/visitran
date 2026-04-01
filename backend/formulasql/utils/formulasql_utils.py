@@ -17,16 +17,16 @@ class FormulaSQLUtils:
 
     @staticmethod
     def build_ibis_expression(table, data_types, inter_exps, p):
-        if data_types[p] == "numeric":
+        if data_types[p] == 'numeric':
             return FormulaSQLUtils._num(p)
-        if data_types[p] == "none":
+        if data_types[p] == 'none':
             return ibis.literal(None)
-        elif data_types[p] == "string":
-            p = p.replace('"', "")
+        elif data_types[p] == 'string':
+            p = p.replace("\"", "")
             return ibis.literal(p)
-        elif data_types[p] == "boolean":
-            return ibis.literal(str(p).lower() == "true")
-        elif data_types[p] == "column":
+        elif data_types[p] == 'boolean':
+            return ibis.literal(str(p).lower() == 'true')
+        elif data_types[p] == 'column':
             for _exp in inter_exps:
                 if p.lower() == _exp.lower():
                     return inter_exps[_exp]
@@ -39,5 +39,5 @@ class FormulaSQLUtils:
 
     @staticmethod
     def build_string_ibis_constant_exp(p):
-        p = p.replace('"', "")
+        p = p.replace("\"", "")
         return ibis.literal(p)

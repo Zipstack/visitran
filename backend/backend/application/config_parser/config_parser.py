@@ -3,7 +3,7 @@ from typing import Any
 from backend.application.config_parser.base_parser import BaseParser
 from backend.application.config_parser.presentation_parser import PresentationParser
 from backend.application.config_parser.transformation_parser import TransformationParser
-from backend.errors import InvalidDestinationTable, InvalidMaterialization, InvalidSourceTable
+from backend.errors import InvalidSourceTable, InvalidDestinationTable, InvalidMaterialization
 
 
 class ConfigParser(BaseParser):
@@ -85,7 +85,7 @@ class ConfigParser(BaseParser):
 
     @property
     def unique_keys(self) -> list[str]:
-        return self.incremental_config.get("primary_key", [])
+        return self.incremental_config.get('primary_key', [])
 
     @property
     def delta_strategy(self) -> dict[str, Any]:
@@ -132,6 +132,9 @@ class ConfigParser(BaseParser):
     def transform_parser(self) -> TransformationParser:
         if not self._transformation_parser:
             self._transformation_parser: TransformationParser = TransformationParser(
-                config_data={"transform": self.get("transform", []), "transform_order": self.get("transform_order", [])}
+                config_data={
+                    "transform": self.get("transform", []),
+                    "transform_order": self.get("transform_order", [])
+                }
             )
         return self._transformation_parser

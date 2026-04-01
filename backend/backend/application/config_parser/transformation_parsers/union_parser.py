@@ -114,13 +114,13 @@ class UnionBranchParser(BaseParser):
                         "type": "COLUMN",
                         "column": {
                             "column_name": filter_spec.get("column"),
-                            "data_type": filter_spec.get("column_type", "String"),
-                        },
+                            "data_type": filter_spec.get("column_type", "String")
+                        }
                     },
                     "operator": operator,
-                    "rhs": {},
+                    "rhs": {}
                 },
-                "logical_operator": filter_spec.get("logical_operator", "AND"),
+                "logical_operator": filter_spec.get("logical_operator", "AND")
             }
 
             # For TRUE, FALSE, NULL, NOTNULL operators, don't set rhs
@@ -130,12 +130,14 @@ class UnionBranchParser(BaseParser):
                 if rhs_type == "COLUMN":
                     condition["condition"]["rhs"] = {
                         "type": "COLUMN",
-                        "column": {"column_name": filter_spec.get("rhs_column")},
+                        "column": {
+                            "column_name": filter_spec.get("rhs_column")
+                        }
                     }
                 else:  # VALUE
                     condition["condition"]["rhs"] = {
                         "type": "VALUE",
-                        "value": filter_spec.get("rhs_value") or filter_spec.get("value"),
+                        "value": filter_spec.get("rhs_value") or filter_spec.get("value")
                     }
 
             criteria.append(condition)
@@ -215,13 +217,13 @@ class UnionParser(BaseParser):
                         "type": "COLUMN",
                         "column": {
                             "column_name": filter_spec.get("column"),  # Fixed: use column_name not name
-                            "data_type": filter_spec.get("column_type", "String"),
-                        },
+                            "data_type": filter_spec.get("column_type", "String")
+                        }
                     },
                     "operator": operator,
-                    "rhs": {},
+                    "rhs": {}
                 },
-                "logical_operator": filter_spec.get("logical_operator", "AND"),
+                "logical_operator": filter_spec.get("logical_operator", "AND")
             }
 
             # For TRUE, FALSE, NULL, NOTNULL operators, don't set rhs
@@ -231,12 +233,14 @@ class UnionParser(BaseParser):
                 if rhs_type == "COLUMN":
                     condition["condition"]["rhs"] = {
                         "type": "COLUMN",
-                        "column": {"column_name": filter_spec.get("rhs_column")},  # Fixed: use column_name not name
+                        "column": {
+                            "column_name": filter_spec.get("rhs_column")  # Fixed: use column_name not name
+                        }
                     }
                 else:  # VALUE
                     condition["condition"]["rhs"] = {
                         "type": "VALUE",
-                        "value": filter_spec.get("rhs_value") or filter_spec.get("value"),
+                        "value": filter_spec.get("rhs_value") or filter_spec.get("value")
                     }
 
             criteria.append(condition)
@@ -336,13 +340,13 @@ class UnionParsers(BaseParser):
                         "type": "COLUMN",
                         "column": {
                             "column_name": filter_spec.get("column"),
-                            "data_type": filter_spec.get("column_type", "String"),
-                        },
+                            "data_type": filter_spec.get("column_type", "String")
+                        }
                     },
                     "operator": operator,
-                    "rhs": {},
+                    "rhs": {}
                 },
-                "logical_operator": filter_spec.get("logical_operator", "AND"),
+                "logical_operator": filter_spec.get("logical_operator", "AND")
             }
 
             # For TRUE, FALSE, NULL, NOTNULL operators, don't set rhs
@@ -352,12 +356,14 @@ class UnionParsers(BaseParser):
                 if rhs_type == "COLUMN":
                     condition["condition"]["rhs"] = {
                         "type": "COLUMN",
-                        "column": {"column_name": filter_spec.get("rhs_column")},
+                        "column": {
+                            "column_name": filter_spec.get("rhs_column")
+                        }
                     }
                 else:  # VALUE
                     condition["condition"]["rhs"] = {
                         "type": "VALUE",
-                        "value": filter_spec.get("rhs_value") or filter_spec.get("value"),
+                        "value": filter_spec.get("rhs_value") or filter_spec.get("value")
                     }
 
             criteria.append(condition)

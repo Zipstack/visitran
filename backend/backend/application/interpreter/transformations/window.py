@@ -59,7 +59,9 @@ class WindowTransformation(BaseTransformation):
 
         # Build group_by (partition_by in SQL terms)
         if column_parser.partition_by:
-            group_cols = ", ".join(f"source_table.{col}" for col in column_parser.partition_by)
+            group_cols = ", ".join(
+                f"source_table.{col}" for col in column_parser.partition_by
+            )
             parts.append(f"group_by=[{group_cols}]")
 
         # Build order_by with direction
@@ -150,7 +152,7 @@ class WindowTransformation(BaseTransformation):
     def _is_expression(self, agg_col: str) -> bool:
         """Check if agg_col contains operators or parentheses (i.e., is an
         expression)."""
-        return any(op in agg_col for op in ["+", "-", "*", "/", "%", "(", ")"])
+        return any(op in agg_col for op in ['+', '-', '*', '/', '%', '(', ')'])
 
     def _parse_expression_to_ibis(self, expr: str) -> str:
         """Parse an arithmetic expression and convert column references to Ibis
@@ -160,17 +162,16 @@ class WindowTransformation(BaseTransformation):
             "l_extendedprice*(1-l_discount)" -> "(source_table['l_extendedprice'] * (1 - source_table['l_discount']))"
         """
         import re
-
         expr = expr.strip()
 
         # Handle parentheses - check if outer parens wrap the whole expression
-        if expr.startswith("(") and expr.endswith(")"):
+        if expr.startswith('(') and expr.endswith(')'):
             depth = 0
             is_outer = True
             for i, c in enumerate(expr):
-                if c == "(":
+                if c == '(':
                     depth += 1
-                elif c == ")":
+                elif c == ')':
                     depth -= 1
                 if depth == 0 and i < len(expr) - 1:
                     is_outer = False
@@ -182,31 +183,31 @@ class WindowTransformation(BaseTransformation):
         depth = 0
         for i in range(len(expr) - 1, -1, -1):
             c = expr[i]
-            if c == ")":
+            if c == ')':
                 depth += 1
-            elif c == "(":
+            elif c == '(':
                 depth -= 1
-            elif depth == 0 and c in ["+", "-"] and i > 0:
+            elif depth == 0 and c in ['+', '-'] and i > 0:
                 # Check it's not unary
                 prev_idx = i - 1
-                while prev_idx >= 0 and expr[prev_idx] == " ":
+                while prev_idx >= 0 and expr[prev_idx] == ' ':
                     prev_idx -= 1
-                if prev_idx >= 0 and expr[prev_idx] not in ["(", "+", "-", "*", "/", "%"]:
+                if prev_idx >= 0 and expr[prev_idx] not in ['(', '+', '-', '*', '/', '%']:
                     left = expr[:i].strip()
-                    right = expr[i + 1 :].strip()
+                    right = expr[i+1:].strip()
                     return f"({self._parse_expression_to_ibis(left)} {c} {self._parse_expression_to_ibis(right)})"
 
         # Find * / % operators
         depth = 0
         for i in range(len(expr) - 1, -1, -1):
             c = expr[i]
-            if c == ")":
+            if c == ')':
                 depth += 1
-            elif c == "(":
+            elif c == '(':
                 depth -= 1
-            elif depth == 0 and c in ["*", "/", "%"]:
+            elif depth == 0 and c in ['*', '/', '%']:
                 left = expr[:i].strip()
-                right = expr[i + 1 :].strip()
+                right = expr[i+1:].strip()
                 return f"({self._parse_expression_to_ibis(left)} {c} {self._parse_expression_to_ibis(right)})"
 
         # No operators - check if it's a number or column
@@ -320,7 +321,9 @@ class WindowTransformation(BaseTransformation):
             col_name = column_parser.column_name
 
             if not column_parser.has_window_function():
-                raise ValueError(f"No window function provided for window column '{col_name}'")
+                raise ValueError(
+                    f"No window function provided for window column '{col_name}'"
+                )
             statement = self._build_window_function_statement(column_parser)
             window_statements.append(statement)
 

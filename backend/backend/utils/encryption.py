@@ -1,5 +1,5 @@
 from base64 import b64decode
-from typing import Any, Dict
+from typing import Dict, Any
 
 from cryptography.fernet import Fernet
 from django.conf import settings
@@ -74,7 +74,6 @@ def decrypt_connection_details(details: dict[str, Any]) -> dict[str, Any]:
             decrypted_string = decrypt_value(value)
             try:
                 import ast
-
                 decrypted_string = ast.literal_eval(decrypted_string)
                 decrypted[key] = decrypted_string
             except (ValueError, SyntaxError):

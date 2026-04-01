@@ -19,7 +19,7 @@ from backend.core.models.config_models import ConfigModels
 from backend.core.models.connection_models import ConnectionDetails
 from backend.core.models.dependent_models import DependentModels
 from backend.core.models.project_details import ProjectDetails
-from backend.errors import MasterDbNotExist, SampleProjectConnectionFailed
+from backend.errors import SampleProjectConnectionFailed, MasterDbNotExist
 from backend.errors.exceptions import SampleProjectLimitExceed
 from backend.server.settings.base import SAMPLE_CONNECTION
 from backend.utils.tenant_context import get_current_tenant, get_current_user

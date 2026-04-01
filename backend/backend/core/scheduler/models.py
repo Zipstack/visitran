@@ -5,7 +5,10 @@ from backend.core.models.environment_models import EnvironmentModels
 from backend.core.models.project_details import ProjectDetails
 from backend.core.scheduler.task_constant import TaskStatus
 from utils.models.base_model import BaseModel
-from utils.models.organization_mixin import DefaultOrganizationManagerMixin, DefaultOrganizationMixin
+from utils.models.organization_mixin import (
+    DefaultOrganizationManagerMixin,
+    DefaultOrganizationMixin,
+)
 
 
 class UserTaskDetailsManager(DefaultOrganizationManagerMixin, models.Manager):
@@ -55,8 +58,7 @@ class UserTaskDetails(DefaultOrganizationMixin, BaseModel):
 
     # Execution controls
     run_timeout_seconds = models.PositiveIntegerField(
-        default=0,
-        help_text="Max run duration in seconds. 0 = no limit.",
+        default=0, help_text="Max run duration in seconds. 0 = no limit.",
     )
     max_retries = models.PositiveSmallIntegerField(default=0)
 
@@ -67,10 +69,7 @@ class UserTaskDetails(DefaultOrganizationMixin, BaseModel):
 
     # Job chaining
     trigger_on_complete = models.ForeignKey(
-        "self",
-        on_delete=models.SET_NULL,
-        blank=True,
-        null=True,
+        "self", on_delete=models.SET_NULL, blank=True, null=True,
         related_name="triggered_by",
         help_text="Job to trigger when this job completes successfully.",
     )
@@ -152,7 +151,9 @@ class TaskRunHistory(DefaultOrganizationMixin, BaseModel):
         indexes = [
             models.Index(fields=["task_id"], name="job_schedul_task_id_4dc8ac_idx"),
             models.Index(fields=["status"], name="job_schedul_status_86a75c_idx"),
-            models.Index(fields=["user_task_detail"], name="job_schedul_user_ta_5cd43a_idx"),
+            models.Index(
+                fields=["user_task_detail"], name="job_schedul_user_ta_5cd43a_idx"
+            ),
         ]
 
     def __str__(self):

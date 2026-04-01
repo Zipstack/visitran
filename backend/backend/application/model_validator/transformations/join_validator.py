@@ -23,8 +23,7 @@ class JoinValidator(Validator):
             except Exception:
                 logger.warning(
                     "Could not fetch columns for removed join table %s.%s",
-                    schema_name,
-                    table_name,
+                    schema_name, table_name,
                 )
         return columns
 
@@ -33,8 +32,12 @@ class JoinValidator(Validator):
         old_join_parsers = self.old_parser.get_joins()
         new_join_parsers = self.current_parser.get_joins()
 
-        old_join_tables = {(p.rhs_schema_name, p.rhs_table_name) for p in old_join_parsers}
-        new_join_tables = {(p.rhs_schema_name, p.rhs_table_name) for p in new_join_parsers}
+        old_join_tables = {
+            (p.rhs_schema_name, p.rhs_table_name) for p in old_join_parsers
+        }
+        new_join_tables = {
+            (p.rhs_schema_name, p.rhs_table_name) for p in new_join_parsers
+        }
 
         removed_tables = old_join_tables - new_join_tables
         if not removed_tables:
@@ -66,11 +69,15 @@ class JoinValidator(Validator):
     def validate_deleted_transform(self):
         # Try runtime snapshot first
         old_columns_details = self.session.get_model_dependency_data(
-            model_name=self.model_name, transformation_id=f"{self.old_parser.transform_id}", default={}
+            model_name=self.model_name,
+            transformation_id=f"{self.old_parser.transform_id}",
+            default={}
         )
         old_columns = old_columns_details.get("column_names") or []
         new_columns_details = self.session.get_model_dependency_data(
-            model_name=self.model_name, transformation_id=f"{self.old_parser.transform_id}_transformed", default={}
+            model_name=self.model_name,
+            transformation_id=f"{self.old_parser.transform_id}_transformed",
+            default={}
         )
         new_columns = new_columns_details.get("column_names") or []
         runtime_added = [column for column in new_columns if column not in old_columns]
@@ -78,7 +85,10 @@ class JoinValidator(Validator):
             return runtime_added
 
         # Fallback: query database for all join table columns
-        removed_tables = {(p.rhs_schema_name, p.rhs_table_name) for p in self.old_parser.get_joins()}
+        removed_tables = {
+            (p.rhs_schema_name, p.rhs_table_name)
+            for p in self.old_parser.get_joins()
+        }
         return self._get_columns_for_removed_tables(removed_tables)
 
     def check_column_usage(self, columns: list[str]) -> list[str]:

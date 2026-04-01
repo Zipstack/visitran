@@ -1,4 +1,4 @@
-from rest_framework import status, viewsets
+from rest_framework import viewsets, status
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -36,20 +36,16 @@ class ChatMessageView(viewsets.ViewSet):
         chat_id = data.get("chat_id")
         prompt = data.get("prompt")
         user = request.user if request.user.is_authenticated else None
-        discussion_type = data.get("discussion_status")
+        discussion_type = data.get('discussion_status')
         if discussion_type is None:
-            discussion_type == "INPROGRESS"
+            discussion_type == 'INPROGRESS'
 
         chat_message_context = ChatMessageContext(project_id=project_id)
-        chat_message_id = chat_message_context.persist_prompt(
-            prompt=prompt, chat_id=chat_id, discussion_type=discussion_type, user=user
-        )
+        chat_message_id = chat_message_context.persist_prompt(prompt=prompt, chat_id=chat_id, discussion_type=discussion_type, user=user)
 
         return Response(data={"chat_message_id": chat_message_id}, status=status.HTTP_200_OK)
 
-    def get_token_usage(
-        self, request, project_id=None, chat_id=None, chat_message_id=None, *args, **kwargs
-    ) -> Response:
+    def get_token_usage(self, request, project_id=None, chat_id=None, chat_message_id=None, *args, **kwargs) -> Response:
         """Get token usage data for a specific chat message.
 
         Returns:
@@ -60,21 +56,26 @@ class ChatMessageView(viewsets.ViewSet):
         """
         try:
             # Get organization ID from header
-            org_id = request.META.get("HTTP_X_ORGANIZATION")
+            org_id = request.META.get('HTTP_X_ORGANIZATION')
             if not org_id:
-                return Response({"error": "Organization header is required"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"error": "Organization header is required"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
             # Get token usage data using the existing function
             token_data = get_token_usage_data(org_id, str(chat_message_id), str(chat_id))
 
             if token_data is None:
                 return Response(
-                    {"error": "Failed to retrieve token usage data"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    {"error": "Failed to retrieve token usage data"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
 
             return Response(token_data, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response(
-                {"error": f"Error retrieving token usage: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                {"error": f"Error retrieving token usage: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )

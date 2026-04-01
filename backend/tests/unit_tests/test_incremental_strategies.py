@@ -7,33 +7,31 @@ Tests cover:
 - Both incremental modes: MERGE (with primary_key) and APPEND (without primary_key)
 """
 
-from typing import Any
-from unittest.mock import MagicMock, Mock, patch
-
 import pytest
-
-from visitran.materialization import Materialization
+from unittest.mock import Mock, MagicMock, patch
+from typing import Any
 
 # Import delta strategies
 from visitran.templates.delta_strategies import (
-    DateStrategy,
     DeltaStrategyFactory,
-    FullScanStrategy,
-    SequenceStrategy,
     TimestampStrategy,
-    create_date_strategy,
-    create_full_scan_strategy,
-    create_sequence_strategy,
+    DateStrategy,
+    SequenceStrategy,
+    FullScanStrategy,
     create_timestamp_strategy,
+    create_date_strategy,
+    create_sequence_strategy,
+    create_full_scan_strategy,
 )
 
 # Import model template
 from visitran.templates.model import VisitranModel
+from visitran.materialization import Materialization
+
 
 # ============================================================================
 # Test Delta Strategy Factory
 # ============================================================================
-
 
 class TestDeltaStrategyFactory:
     """Test the DeltaStrategyFactory for all strategy types."""
@@ -74,7 +72,6 @@ class TestDeltaStrategyFactory:
 # Test Strategy Configuration Helpers
 # ============================================================================
 
-
 class TestStrategyConfigHelpers:
     """Test helper functions for creating strategy configurations."""
 
@@ -111,7 +108,6 @@ class TestStrategyConfigHelpers:
 # ============================================================================
 # Test Delta Strategy Execution
 # ============================================================================
-
 
 class TestTimestampStrategy:
     """Test TimestampStrategy execution."""
@@ -208,7 +204,6 @@ class TestFullScanStrategy:
 # ============================================================================
 # Test VisitranModel Incremental Validation
 # ============================================================================
-
 
 class TestVisitranModelValidation:
     """Test VisitranModel incremental configuration validation."""
@@ -378,7 +373,6 @@ class TestVisitranModelIncrementalMode:
 # Test PostgreSQL Adapter Upsert
 # ============================================================================
 
-
 class TestPostgresUpsert:
     """Test PostgreSQL upsert_into_table implementation."""
 
@@ -404,7 +398,10 @@ class TestPostgresUpsert:
 
         # Execute upsert
         conn.upsert_into_table(
-            schema_name="public", table_name="test_table", select_statement=select_statement, primary_key="id"
+            schema_name="public",
+            table_name="test_table",
+            select_statement=select_statement,
+            primary_key="id"
         )
 
         # Verify raw_sql was called (either ON CONFLICT or fallback)
@@ -432,7 +429,7 @@ class TestPostgresUpsert:
             schema_name="public",
             table_name="test_table",
             select_statement=select_statement,
-            primary_key=["id", "region"],
+            primary_key=["id", "region"]
         )
 
         mock_conn.raw_sql.assert_called()
@@ -441,7 +438,6 @@ class TestPostgresUpsert:
 # ============================================================================
 # Test Snowflake Adapter Upsert
 # ============================================================================
-
 
 class TestSnowflakeUpsert:
     """Test Snowflake upsert_into_table implementation."""
@@ -464,7 +460,10 @@ class TestSnowflakeUpsert:
         select_statement = Mock()
 
         conn.upsert_into_table(
-            schema_name="test_schema", table_name="test_table", select_statement=select_statement, primary_key="id"
+            schema_name="test_schema",
+            table_name="test_table",
+            select_statement=select_statement,
+            primary_key="id"
         )
 
         # Verify MERGE INTO was called
@@ -476,7 +475,6 @@ class TestSnowflakeUpsert:
 # ============================================================================
 # Test BigQuery Adapter Upsert
 # ============================================================================
-
 
 class TestBigQueryUpsert:
     """Test BigQuery merge_into_table implementation."""
@@ -503,7 +501,7 @@ class TestBigQueryUpsert:
             schema_name="test_dataset",
             target_table_name="test_table",
             select_statement=select_statement,
-            primary_key="id",
+            primary_key="id"
         )
 
         # Verify bulk_execute_statements was called (DELETE + INSERT)
@@ -513,7 +511,6 @@ class TestBigQueryUpsert:
 # ============================================================================
 # Test Databricks Adapter Upsert
 # ============================================================================
-
 
 class TestDatabricksUpsert:
     """Test Databricks upsert_into_table implementation."""
@@ -537,7 +534,10 @@ class TestDatabricksUpsert:
         select_statement = Mock()
 
         conn.upsert_into_table(
-            schema_name="test_schema", table_name="test_table", select_statement=select_statement, primary_key="id"
+            schema_name="test_schema",
+            table_name="test_table",
+            select_statement=select_statement,
+            primary_key="id"
         )
 
         # Verify MERGE INTO was called
@@ -567,7 +567,7 @@ class TestDatabricksUpsert:
             schema_name="test_schema",
             table_name="test_table",
             select_statement=select_statement,
-            primary_key=["id", "region"],
+            primary_key=["id", "region"]
         )
 
         mock_conn.raw_sql.assert_called()
@@ -577,14 +577,13 @@ class TestDatabricksUpsert:
 # Test Model Execute Incremental Methods
 # ============================================================================
 
-
 class TestSnowflakeModelIncremental:
     """Test SnowflakeModel.execute_incremental method."""
 
     def test_first_run_creates_table(self):
         """Test first run creates table with all data."""
-        from visitran.adapters.snowflake.connection import SnowflakeConnection
         from visitran.adapters.snowflake.model import SnowflakeModel
+        from visitran.adapters.snowflake.connection import SnowflakeConnection
 
         mock_conn = Mock(spec=SnowflakeConnection)
         mock_model = Mock(spec=VisitranModel)
@@ -605,8 +604,8 @@ class TestSnowflakeModelIncremental:
 
     def test_incremental_with_primary_key_uses_upsert(self):
         """Test incremental with primary_key calls upsert_into_table."""
-        from visitran.adapters.snowflake.connection import SnowflakeConnection
         from visitran.adapters.snowflake.model import SnowflakeModel
+        from visitran.adapters.snowflake.connection import SnowflakeConnection
 
         mock_conn = Mock(spec=SnowflakeConnection)
         mock_model = Mock(spec=VisitranModel)
@@ -628,8 +627,8 @@ class TestSnowflakeModelIncremental:
 
     def test_incremental_without_primary_key_uses_insert(self):
         """Test incremental without primary_key calls insert_into_table."""
-        from visitran.adapters.snowflake.connection import SnowflakeConnection
         from visitran.adapters.snowflake.model import SnowflakeModel
+        from visitran.adapters.snowflake.connection import SnowflakeConnection
 
         mock_conn = Mock(spec=SnowflakeConnection)
         mock_model = Mock(spec=VisitranModel)
@@ -655,8 +654,8 @@ class TestDatabricksModelIncremental:
 
     def test_first_run_creates_table(self):
         """Test first run creates table with all data."""
-        from visitran.adapters.databricks.connection import DatabricksConnection
         from visitran.adapters.databricks.model import DatabricksModel
+        from visitran.adapters.databricks.connection import DatabricksConnection
 
         mock_conn = Mock(spec=DatabricksConnection)
         mock_model = Mock(spec=VisitranModel)
@@ -676,8 +675,8 @@ class TestDatabricksModelIncremental:
 
     def test_incremental_with_primary_key_uses_upsert(self):
         """Test incremental with primary_key calls upsert_into_table."""
-        from visitran.adapters.databricks.connection import DatabricksConnection
         from visitran.adapters.databricks.model import DatabricksModel
+        from visitran.adapters.databricks.connection import DatabricksConnection
 
         mock_conn = Mock(spec=DatabricksConnection)
         mock_model = Mock(spec=VisitranModel)
@@ -697,8 +696,8 @@ class TestDatabricksModelIncremental:
 
     def test_incremental_without_primary_key_uses_insert(self):
         """Test incremental without primary_key calls insert_into_table."""
-        from visitran.adapters.databricks.connection import DatabricksConnection
         from visitran.adapters.databricks.model import DatabricksModel
+        from visitran.adapters.databricks.connection import DatabricksConnection
 
         mock_conn = Mock(spec=DatabricksConnection)
         mock_model = Mock(spec=VisitranModel)
@@ -721,18 +720,14 @@ class TestDatabricksModelIncremental:
 # Integration-style tests combining strategy + database
 # ============================================================================
 
-
 class TestStrategyWithDatabase:
     """Test combinations of strategies with different databases."""
 
-    @pytest.mark.parametrize(
-        "strategy_type,column",
-        [
-            ("timestamp", "updated_at"),
-            ("date", "created_date"),
-            ("sequence", "id"),
-        ],
-    )
+    @pytest.mark.parametrize("strategy_type,column", [
+        ("timestamp", "updated_at"),
+        ("date", "created_date"),
+        ("sequence", "id"),
+    ])
     def test_all_column_strategies_validate(self, strategy_type, column):
         """Test that all column-based strategies validate correctly."""
 
@@ -764,32 +759,25 @@ class TestStrategyWithDatabase:
         model = TestModel()
         model._validate_incremental_config()
 
-    @pytest.mark.parametrize(
-        "database",
-        [
-            "postgres",
-            "snowflake",
-            "bigquery",
-            "databricks",
-        ],
-    )
+    @pytest.mark.parametrize("database", [
+        "postgres",
+        "snowflake",
+        "bigquery",
+        "databricks",
+    ])
     def test_upsert_method_exists(self, database):
         """Test that upsert method exists for all priority databases."""
         if database == "postgres":
             from visitran.adapters.postgres.connection import PostgresConnection
-
             assert hasattr(PostgresConnection, "upsert_into_table")
         elif database == "snowflake":
             from visitran.adapters.snowflake.connection import SnowflakeConnection
-
             assert hasattr(SnowflakeConnection, "upsert_into_table")
         elif database == "bigquery":
             from visitran.adapters.bigquery.connection import BigQueryConnection
-
             assert hasattr(BigQueryConnection, "merge_into_table")
         elif database == "databricks":
             from visitran.adapters.databricks.connection import DatabricksConnection
-
             assert hasattr(DatabricksConnection, "upsert_into_table")
 
 

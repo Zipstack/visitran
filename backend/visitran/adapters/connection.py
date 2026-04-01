@@ -12,8 +12,7 @@ from ibis.common import exceptions as ibis_exceptions
 from psycopg.errors import UndefinedTable
 from sqlalchemy import text
 from sqlalchemy.engine import Connection
-
-from visitran.errors import ConnectionFailedError, SqlQueryFailed, TableNotFound, VisitranBaseExceptions
+from visitran.errors import TableNotFound, SqlQueryFailed, VisitranBaseExceptions, ConnectionFailedError
 from visitran.events.functions import fire_event
 from visitran.events.types import BulkExecuteError, InvalidProfileTemplateYAML
 
@@ -180,10 +179,10 @@ class BaseConnection(ABC):
         except ibis_exceptions.TableNotFound as err:
             raise TableNotFound(table_name=table_name, schema_name=schema_name, failure_reason=str(err)) from err
         except ibis_exceptions.IbisError as ibis_err:
-            db_type = getattr(self, "connection_type", None) or self.dbtype
+            db_type = getattr(self, 'connection_type', None) or self.dbtype
             raise ConnectionFailedError(db_type=db_type, error_message=str(ibis_err)) from ibis_err
         except Exception as unhandled_err:
-            db_type = getattr(self, "connection_type", None) or self.dbtype
+            db_type = getattr(self, 'connection_type', None) or self.dbtype
             raise ConnectionFailedError(db_type=db_type, error_message=str(unhandled_err)) from unhandled_err
 
     def is_table_exists(self, schema_name: str, table_name: str) -> bool:
@@ -383,18 +382,14 @@ class BaseConnection(ABC):
             invalid_tables: list[str] = str(err).split(" ")
             invalid_table_name: str = invalid_tables[len(invalid_tables) - 1]  # Extract table name
             # raise SqlQueryFailed(query_statements=[sql_query], error_message=invalid_table_name) from err
-            return {
-                "status": "failed",
-                "error_message": f'**SQL Transformation Error**\nThe query generated for transformation - "{sql_query}" failed with error: "{str(err)}".\nReview the SQL syntax or the referenced columns and tables.',
-            }
+            return {"status": "failed",
+                    "error_message": f'**SQL Transformation Error**\nThe query generated for transformation - "{sql_query}" failed with error: "{str(err)}".\nReview the SQL syntax or the referenced columns and tables.'}
+
 
         except Exception as err:
             fire_event(BulkExecuteError(str(sql_query), repr(err)))
             # raise SqlQueryFailed(query_statements=[sql_query], error_message=str(err)) from err
-            return {
-                "status": "failed",
-                "error_message": f'**SQL Transformation Error**\nThe query generated for transformation - "{sql_query}" failed with error: "{str(err)}".\nReview the SQL syntax or the referenced columns and tables.',
-            }
+            return {"status": "failed", "error_message": f'**SQL Transformation Error**\nThe query generated for transformation - "{sql_query}" failed with error: "{str(err)}".\nReview the SQL syntax or the referenced columns and tables.'}
 
     def execute_sql_postgres(self, sql_query: str, limit: int = 100) -> dict[str, Any]:
         try:
@@ -440,7 +435,7 @@ class BaseConnection(ABC):
             return {
                 "status": "failed",
                 "error_message": (
-                    f"**SQL Transformation Error**\n"
+                    f'**SQL Transformation Error**\n'
                     f'The query generated for transformation - "{sql_query}" '
                     f'failed with error: "{str(err)}".\n'
                     f'Review invalid table "{invalid_table_name}".'
@@ -453,10 +448,10 @@ class BaseConnection(ABC):
             return {
                 "status": "failed",
                 "error_message": (
-                    f"**SQL Transformation Error**\n"
+                    f'**SQL Transformation Error**\n'
                     f'The query generated for transformation - "{sql_query}" '
                     f'failed with error: "{str(err)}".\n'
-                    f"Review the SQL syntax or the referenced columns and tables."
+                    f'Review the SQL syntax or the referenced columns and tables.'
                 ),
             }
 
@@ -506,10 +501,10 @@ class BaseConnection(ABC):
             return {
                 "status": "failed",
                 "error_message": (
-                    f"**SQL Transformation Error**\n"
+                    f'**SQL Transformation Error**\n'
                     f'The query generated for transformation - "{sql_query}" '
                     f'failed with error: "{str(err)}".\n'
-                    f"Review the SQL syntax or referenced tables."
+                    f'Review the SQL syntax or referenced tables.'
                 ),
             }
 
@@ -552,9 +547,9 @@ class BaseConnection(ABC):
             return {
                 "status": "failed",
                 "error_message": (
-                    f"**SQL Transformation Error**\n"
+                    f'**SQL Transformation Error**\n'
                     f'The query - "{sql_query}" failed with error: "{err}".\n'
-                    f"Review the SQL syntax or the referenced columns and tables."
+                    f'Review the SQL syntax or the referenced columns and tables.'
                 ),
             }
         finally:

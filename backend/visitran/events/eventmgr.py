@@ -12,8 +12,9 @@ from uuid import uuid4
 
 from colorama import Fore, Style
 
-from visitran.events.local_context import StateStore
 from visitran.events.log_helper import LogHelper
+
+from visitran.events.local_context import StateStore
 
 if TYPE_CHECKING:  # pragma: no cover
     from logging import Logger

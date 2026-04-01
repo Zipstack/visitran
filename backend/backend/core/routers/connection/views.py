@@ -25,7 +25,9 @@ def get_all_connection(request: Request) -> Response:
     page = int(request.GET.get("page", 1))
     limit = int(request.GET.get("limit", 1_000_000))
 
-    connections = con_context.get_all_connections(page=page, limit=limit, filter_condition=filter_condition)
+    connections = con_context.get_all_connections(
+        page=page, limit=limit, filter_condition=filter_condition
+    )
     response_data = {"status": "success", "data": connections}
     return Response(data=response_data, status=status.HTTP_200_OK)
 
@@ -37,7 +39,9 @@ def create_connection(request: Request) -> Response:
     request_payload = request.data
     force_create = strtobool(request.query_params.get("force_create", "false"))
     con_context = ConnectionContext()
-    connection_data = con_context.create_connection(connection_details=request_payload, force_create=bool(force_create))
+    connection_data = con_context.create_connection(
+        connection_details=request_payload, force_create=bool(force_create)
+    )
     response_data = {"status": "success", "data": connection_data}
     return Response(data=response_data, status=status.HTTP_200_OK)
 
@@ -79,7 +83,9 @@ def test_connection_by_id(request: Request, connection_id: str) -> Response:
 @handle_http_request
 def connection_dependent_projects(request: Request, connection_id: str) -> Response:
     con_context = ConnectionContext()
-    projects_list = con_context.get_connection_dependent_projects(connection_id=connection_id)
+    projects_list = con_context.get_connection_dependent_projects(
+        connection_id=connection_id
+    )
     response_data = {"status": "success", "data": projects_list}
     return Response(data=response_data, status=status.HTTP_200_OK)
 
@@ -88,7 +94,9 @@ def connection_dependent_projects(request: Request, connection_id: str) -> Respo
 @handle_http_request
 def connection_dependent_environments(request: Request, connection_id: str) -> Response:
     con_context = ConnectionContext()
-    env_list = con_context.get_connection_dependent_environments(connection_id=connection_id)
+    env_list = con_context.get_connection_dependent_environments(
+        connection_id=connection_id
+    )
     response_data = {"status": "success", "data": env_list}
     return Response(data=response_data, status=status.HTTP_200_OK)
 
@@ -142,7 +150,9 @@ def test_connection(request: Request) -> Response:
     con_context = ConnectionContext()
     request_data: dict[str, Union[dict[str, Any], str, None]] = request.data
     datasource: str = cast(str, request_data.get("datasource", ""))
-    connection_data: dict[str, Any] = cast(dict[str, Any], request_data.get("connection_details", {}))
+    connection_data: dict[str, Any] = cast(
+        dict[str, Any], request_data.get("connection_details", {})
+    )
     connection_id: str = cast(str, request_data.get("connection_id", "")) or None
     con_context.test_connection(datasource=datasource, connection_data=connection_data, connection_id=connection_id)
     return Response(data={"status": "success"}, status=status.HTTP_200_OK)

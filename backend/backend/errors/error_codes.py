@@ -6,13 +6,24 @@ class BackendSuccessMessages(BaseConstant):
 
     # Project Sharing Success Messages
     PROJECT_SHARED_WITH_ORG = (
-        "**Shared with Organization!**\n" "Project is now shared with the entire organization as {role}."
+        "**Shared with Organization!**\n"
+        "Project is now shared with the entire organization as {role}."
     )
-    PROJECT_SHARED_WITH_USERS = "**Project Shared!**\n" "Successfully shared with {success_count} user(s)."
-    PROJECT_USER_ROLE_UPDATED = "**Role Updated!**\n" "User role has been updated to {role}."
-    PROJECT_USER_ACCESS_REVOKED = "**Access Revoked!**\n" "User access has been removed from this project."
+    PROJECT_SHARED_WITH_USERS = (
+        "**Project Shared!**\n"
+        "Successfully shared with {success_count} user(s)."
+    )
+    PROJECT_USER_ROLE_UPDATED = (
+        "**Role Updated!**\n"
+        "User role has been updated to {role}."
+    )
+    PROJECT_USER_ACCESS_REVOKED = (
+        "**Access Revoked!**\n"
+        "User access has been removed from this project."
+    )
     PROJECT_ORG_SHARE_REMOVED = (
-        "**Organization Sharing Removed!**\n" "This project is no longer shared with the entire organization."
+        "**Organization Sharing Removed!**\n"
+        "This project is no longer shared with the entire organization."
     )
 
     # AI Context Rules Success Messages
@@ -27,11 +38,13 @@ class BackendSuccessMessages(BaseConstant):
     )
 
     AI_CONTEXT_RULES_PERSONAL_RETRIEVED = (
-        "**Personal Rules Retrieved!**\n" "Your personal AI context rules have been loaded successfully."
+        "**Personal Rules Retrieved!**\n"
+        "Your personal AI context rules have been loaded successfully."
     )
 
     AI_CONTEXT_RULES_PROJECT_RETRIEVED = (
-        "**Project Rules Retrieved!**\n" "Project AI context rules have been loaded successfully."
+        "**Project Rules Retrieved!**\n"
+        "Project AI context rules have been loaded successfully."
     )
 
 
@@ -112,9 +125,7 @@ class BackendErrorMessages(BaseConstant):
         "Use a unique name or delete the existing one."
     )
 
-    SAMPLE_PROJECT_CONNECTION_FAILED = (
-        "**Connection Failed!**\nDatabase connection failed for the sample project.\n Check settings and retry."
-    )
+    SAMPLE_PROJECT_CONNECTION_FAILED = "**Connection Failed!**\nDatabase connection failed for the sample project.\n Check settings and retry."
     SAMPLE_PROJECT_LIMIT_EXCEED = (
         "**Limit Exceed**\n"
         "{project_base_name} : Sample Project creation failed due to limit exceed\n"
@@ -176,8 +187,8 @@ class BackendErrorMessages(BaseConstant):
     COLUMN_DEPENDENCY = (
         "### **Column Dependency Conflict !**\n\n"
         "In the **{model_name}** model,\n\n"
-        'While updating **{transformation_name}** transformation, the **"{affected_columns}"** column is affected and '
-        'it is currently being used in the **"{affected_transformation}"** transformation.\n\n'
+        "While updating **{transformation_name}** transformation, the **\"{affected_columns}\"** column is affected and "
+        "it is currently being used in the **\"{affected_transformation}\"** transformation.\n\n"
         "**Action Required:** Please validate your current **{transformation_name}** transformation and retry."
     )
 
@@ -211,16 +222,16 @@ class BackendErrorMessages(BaseConstant):
     MODEL_TABLE_DEPENDENCY = (
         "### **Model Table Dependency Conflict !**\n\n"
         "In the **{model_name}** model,\n\n"
-        'The configured model table **"{table_name}"** is currently referenced in the following child model(s):\n'
+        "The configured model table **\"{table_name}\"** is currently referenced in the following child model(s):\n"
         "**{child_models}**\n\n"
         "**Action Required:** Remove or update these references in the child models before changing or removing "
         "the model."
     )
 
     PROJECT_DEPENDENCY = (
-        "**Project Deletion Blocked**\n"
-        "The project ”{project_name}” cannot be deleted while {job_count} associated jobs exist.\n"
-        "Please delete related jobs before attempting to delete the project"
+        '**Project Deletion Blocked**\n'
+        'The project ”{project_name}” cannot be deleted while {job_count} associated jobs exist.\n'
+        'Please delete related jobs before attempting to delete the project'
     )
 
     INVALID_MATERIALIZATION = (
@@ -242,9 +253,7 @@ class BackendErrorMessages(BaseConstant):
 
     INVALID_MODEL_REFERENCE_DATA = "**Invalid Status Reference Type,{failure_reason}."
 
-    CIRCULAR_DEPENDENCY_IN_REFERENCES = (
-        '**Circular Reference!**\nCircular dependency detected in "{model_name}". Path: {traversed_path}.'
-    )
+    CIRCULAR_DEPENDENCY_IN_REFERENCES = '**Circular Reference!**\nCircular dependency detected in "{model_name}". Path: {traversed_path}.'
 
     CHAT_NOT_FOUND = '**Chat Not Found!**\nChat with ID "{chat_id}" doesn\'t exist. Verify the ID and retry.'
 
@@ -256,7 +265,7 @@ class BackendErrorMessages(BaseConstant):
     INVALID_CHAT_PROMPT = "**Invalid Prompt!**\nThe chat prompt is invalid. Double-check and retry."
 
     FEEDBACK_SUBMISSION_FAILED = (
-        '**Feedback Error!**\nCouldn\'t save feedback for message ID "{chat_message_id}". Please try again.'
+        "**Feedback Error!**\nCouldn't save feedback for message ID \"{chat_message_id}\". Please try again."
     )
 
     ORGANIZATION_REQUIRED = "**Organization Required!**\nOrganization ID is required for this operation."
@@ -265,11 +274,14 @@ class BackendErrorMessages(BaseConstant):
         "**Invalid Feedback!**\nFeedback format is invalid. Use 'P' for positive, 'N' for negative, or '0' for neutral."
     )
 
-    FEEDBACK_RETRIEVAL_FAILED = '**Feedback Retrieval Failed!**\nUnable to retrieve feedback for message ID "{chat_message_id}". Please try again.'
+    FEEDBACK_RETRIEVAL_FAILED = (
+        "**Feedback Retrieval Failed!**\nUnable to retrieve feedback for message ID \"{chat_message_id}\". Please try again."
+    )
 
     INVALID_CHAT_MESSAGE_STATUS = (
         '**Invalid Status!**\nStatus "{invalid_status}" is invalid. Valid statuses: {valid_status}.'
     )
+
 
     INVALID_SQL_QUERY = "**SQL Query Error**\nThe SQL query is invalid. Please review the syntax and try again."
 
@@ -281,16 +293,24 @@ class BackendErrorMessages(BaseConstant):
     SQL_EXTRACTION_FAILED = "**SQL Query Extraction Failed**\nUnable to extract SQL query from the provided text."
 
     LLM_SERVER_FAILURE = (
-        "**AI Server Error!**\n" "Failed while answering your prompt \n " 'The error message - "{error_message}"'
+        "**AI Server Error!**\n"
+        "Failed while answering your prompt \n "
+        'The error message - "{error_message}"'
     )
 
-    AIRaisedException = "{error_message}"
+    AIRaisedException = (
+        "{error_message}"
+    )
 
     SCHEDULE_JOB_FAILURE = (
-        "**Scheduled Job Error!**\n" "Failed to scheduled job \n " "The error message - {error_message}"
+        "**Scheduled Job Error!**\n"
+        "Failed to scheduled job \n "
+        "The error message - {error_message}"
     )
 
-    SCHEMA_MISSING_IN_SEED_UPLOAD = "**Missing Schema**\n Schema is missing while uploading seed file."
+    SCHEMA_MISSING_IN_SEED_UPLOAD = (
+        "**Missing Schema**\n Schema is missing while uploading seed file."
+    )
 
     CSV_DOWNLOAD_FAILED = (
         "**CSV Download Failed!**\n"
@@ -308,7 +328,8 @@ class BackendErrorMessages(BaseConstant):
     )
 
     AI_CONTEXT_RULES_UPDATE_FAILED = (
-        "**Context Rules Update Failed!**\n" "Failed to save AI context rules. Please verify your input and try again."
+        "**Context Rules Update Failed!**\n"
+        "Failed to save AI context rules. Please verify your input and try again."
     )
 
     AI_CONTEXT_RULES_INVALID_PROJECT = (
@@ -323,55 +344,69 @@ class BackendErrorMessages(BaseConstant):
     )
 
     AI_CONTEXT_RULES_INVALID_INPUT = (
-        "**Invalid Input!**\n" "The context rules format is invalid. Please check your input and try again."
+        "**Invalid Input!**\n"
+        "The context rules format is invalid. Please check your input and try again."
     )
 
     # Project Connection Error Messages
     PROJECT_CONNECTION_GET_FAILED = (
         "**Connection Retrieval Failed!**\n"
-        'Unable to retrieve connection details for project "{project_id}".\n'
+        "Unable to retrieve connection details for project \"{project_id}\".\n"
         "Error: {error_message}"
     )
 
     PROJECT_CONNECTION_UPDATE_FAILED = (
         "**Connection Update Failed!**\n"
-        'Unable to update connection details for project "{project_id}".\n'
+        "Unable to update connection details for project \"{project_id}\".\n"
         "Error: {error_message}"
     )
 
     PROJECT_CONNECTION_TEST_FAILED = (
         "**Connection Test Failed!**\n"
-        'Unable to test connection for project "{project_id}".\n'
+        "Unable to test connection for project \"{project_id}\".\n"
         "Error: {error_message}"
     )
 
     PROJECT_CONNECTION_MISSING_FIELD = (
         "**Missing Required Field!**\n"
-        'Required field "{field_name}" is missing from the request.\n'
+        "Required field \"{field_name}\" is missing from the request.\n"
         "Please provide all required fields and try again."
     )
 
     PROJECT_CONNECTION_INVALID_DATA = (
-        "**Invalid Connection Data!**\n" "The provided connection data is invalid.\n" "Error: {error_message}"
+        "**Invalid Connection Data!**\n"
+        "The provided connection data is invalid.\n"
+        "Error: {error_message}"
     )
 
     # Project Sharing Error Messages
     PROJECT_SHARE_PERMISSION_DENIED = (
-        "**Permission Denied!**\n" "You need Admin or Owner role on this project to manage sharing."
+        "**Permission Denied!**\n"
+        "You need Admin or Owner role on this project to manage sharing."
     )
     PROJECT_SHARE_INVALID_PAYLOAD = (
-        "**Invalid Request!**\n" "Please provide either 'shares' (for users) or 'share_with_org' (for organization)."
+        "**Invalid Request!**\n"
+        "Please provide either 'shares' (for users) or 'share_with_org' (for organization)."
     )
-    PROJECT_SHARE_NOT_FOUND = "**Share Not Found!**\n" "No sharing permission found for this user on this project."
+    PROJECT_SHARE_NOT_FOUND = (
+        "**Share Not Found!**\n"
+        "No sharing permission found for this user on this project."
+    )
     PROJECT_SHARE_CANNOT_REVOKE = (
-        "**Cannot Revoke!**\n" "Unable to revoke access. The user may be the project owner or not have direct access."
+        "**Cannot Revoke!**\n"
+        "Unable to revoke access. The user may be the project owner or not have direct access."
     )
     PROJECT_SHARE_ORG_NOT_SHARED = (
-        "**Not Shared with Organization!**\n" "This project is not currently shared with the organization."
+        "**Not Shared with Organization!**\n"
+        "This project is not currently shared with the organization."
     )
-    PROJECT_SHARE_USER_NOT_FOUND = "**User Not Found!**\n" 'User with ID "{user_id}" was not found.'
+    PROJECT_SHARE_USER_NOT_FOUND = (
+        "**User Not Found!**\n"
+        'User with ID "{user_id}" was not found.'
+    )
     PROJECT_SHARE_USER_NOT_IN_ORG = (
-        "**User Not in Organization!**\n" "The target user does not belong to the same organization as this project."
+        "**User Not in Organization!**\n"
+        "The target user does not belong to the same organization as this project."
     )
     PROJECT_SHARE_CANNOT_SHARE_OWNER = (
         "**Cannot Share with Owner!**\n"
