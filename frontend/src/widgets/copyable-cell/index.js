@@ -62,7 +62,7 @@ function CopyableCell({ children, value, className = "" }) {
   );
 
   if (!textValue) {
-    return <div className={`copyable-cell ${className}`}>{children}</div>;
+    return <span className={className}>{children}</span>;
   }
 
   const truncatedValue =
@@ -89,18 +89,19 @@ function CopyableCell({ children, value, className = "" }) {
   );
 
   return (
-    <Tooltip
-      title={tooltipContent}
-      placement="topLeft"
-      color={token.colorBgElevated}
-      overlayInnerStyle={overlayStyle}
-      mouseEnterDelay={0.4}
-      destroyTooltipOnHide
-    >
-      <div className={`copyable-cell ${className}`} onDoubleClick={doCopy}>
-        {children}
-      </div>
-    </Tooltip>
+    <span className={className}>
+      <Tooltip
+        title={tooltipContent}
+        color={token.colorBgElevated}
+        overlayInnerStyle={overlayStyle}
+        mouseEnterDelay={0.4}
+        destroyTooltipOnHide
+      >
+        <span className="copyable-cell-text" onDoubleClick={doCopy}>
+          {children}
+        </span>
+      </Tooltip>
+    </span>
   );
 }
 
