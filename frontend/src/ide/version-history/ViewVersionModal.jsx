@@ -29,31 +29,88 @@ function ViewVersionModal({ open, onClose, versionNumber }) {
     const load = async () => {
       setLoading(true);
       try {
-        const data = await fetchVersionDetail(axiosRef, orgId, projectId, versionNumber);
+        const data = await fetchVersionDetail(
+          axiosRef,
+          orgId,
+          projectId,
+          versionNumber
+        );
         setVersionData(data);
-      } catch (error) { notify({ error }); }
-      finally { setLoading(false); }
+      } catch (error) {
+        notify({ error });
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, [open, versionNumber]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleClose = () => { setVersionData(null); onClose(); };
-  const formatDate = (dateStr) => dateStr ? new Date(dateStr).toLocaleString() : "";
+  const handleClose = () => {
+    setVersionData(null);
+    onClose();
+  };
+  const formatDate = (dateStr) =>
+    dateStr ? new Date(dateStr).toLocaleString() : "";
 
   return (
-    <Modal title={`Version ${versionNumber}`} open={open} onCancel={handleClose} footer={null} width={MODAL_WIDTH} centered maskClosable={false} destroyOnClose>
-      {loading ? <SpinnerLoader /> : versionData ? (
+    <Modal
+      title={`Version ${versionNumber}`}
+      open={open}
+      onCancel={handleClose}
+      footer={null}
+      width={MODAL_WIDTH}
+      centered
+      maskClosable={false}
+      destroyOnClose
+    >
+      {loading ? (
+        <SpinnerLoader />
+      ) : versionData ? (
         <>
           <Descriptions size="small" column={2} style={{ marginBottom: 12 }}>
-            <Descriptions.Item label="Message">{versionData.commit_message || <Typography.Text type="secondary">No message</Typography.Text>}</Descriptions.Item>
-            <Descriptions.Item label="By">{versionData.committed_by?.name || "system"}</Descriptions.Item>
-            <Descriptions.Item label="Created">{formatDate(versionData.created_at)}</Descriptions.Item>
+            <Descriptions.Item label="Message">
+              {versionData.commit_message || (
+                <Typography.Text type="secondary">No message</Typography.Text>
+              )}
+            </Descriptions.Item>
+            <Descriptions.Item label="By">
+              {versionData.committed_by?.name || "system"}
+            </Descriptions.Item>
+            <Descriptions.Item label="Created">
+              {formatDate(versionData.created_at)}
+            </Descriptions.Item>
             <Descriptions.Item label="Git sync">
-              {versionData.git_sync_status === "synced" ? <Tag color="success">synced</Tag> : versionData.git_sync_status === "failed" ? <Tag color="error">failed</Tag> : <Tag>{versionData.git_sync_status || "n/a"}</Tag>}
+              {versionData.git_sync_status === "synced" ? (
+                <Tag color="success">synced</Tag>
+              ) : versionData.git_sync_status === "failed" ? (
+                <Tag color="error">failed</Tag>
+              ) : (
+                <Tag>{versionData.git_sync_status || "n/a"}</Tag>
+              )}
             </Descriptions.Item>
           </Descriptions>
-          <div style={{ height: 450, border: "1px solid var(--border-color-1, #303030)", borderRadius: 6, overflow: "hidden" }}>
-            <Editor value={versionData?.yaml_content || ""} language="yaml" height="100%" theme={currentTheme === THEME.DARK ? "vs-dark" : "light"} options={{ readOnly: true, scrollBeyondLastLine: false, minimap: { enabled: false }, lineNumbers: "on", wordWrap: "on" }} loading={<SpinnerLoader />} />
+          <div
+            style={{
+              height: 450,
+              border: "1px solid var(--border-color-1, #303030)",
+              borderRadius: 6,
+              overflow: "hidden",
+            }}
+          >
+            <Editor
+              value={versionData?.yaml_content || ""}
+              language="yaml"
+              height="100%"
+              theme={currentTheme === THEME.DARK ? "vs-dark" : "light"}
+              options={{
+                readOnly: true,
+                scrollBeyondLastLine: false,
+                minimap: { enabled: false },
+                lineNumbers: "on",
+                wordWrap: "on",
+              }}
+              loading={<SpinnerLoader />}
+            />
           </div>
         </>
       ) : null}
@@ -61,6 +118,10 @@ function ViewVersionModal({ open, onClose, versionNumber }) {
   );
 }
 
-ViewVersionModal.propTypes = { open: PropTypes.bool.isRequired, onClose: PropTypes.func.isRequired, versionNumber: PropTypes.number };
+ViewVersionModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  versionNumber: PropTypes.number,
+};
 
 export { ViewVersionModal };

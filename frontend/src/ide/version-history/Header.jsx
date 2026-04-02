@@ -20,9 +20,7 @@ const Header = memo(function Header({ closeDrawer, hasDraft, draftCount }) {
         <Typography.Text strong style={{ fontWeight: "bold" }}>
           [Version History]
         </Typography.Text>
-        {modelName && (
-          <Typography.Text italic> {modelName}</Typography.Text>
-        )}
+        {modelName && <Typography.Text italic> {modelName}</Typography.Text>}
       </div>
       <div>
         <Badge count={hasDraft ? draftCount : 0} size="small" offset={[-4, 0]}>

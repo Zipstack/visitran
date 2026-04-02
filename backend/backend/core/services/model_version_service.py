@@ -80,6 +80,7 @@ def set_current_version(project_instance: ProjectDetails, version_number: int) -
             project_instance=project_instance, config_model__isnull=True,
             version_number=version_number,
         ).update(is_current=True)
+    vcache.invalidate_model_versions(str(project_instance.project_uuid))
 
 
 def _build_all_model_data(project_instance: ProjectDetails) -> dict[str, dict]:

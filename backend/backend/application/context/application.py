@@ -447,25 +447,26 @@ class ApplicationContext(ModelGraph):
                 children.add(name)
         return children
 
-    def _update_model(self, model_name: str, model_data: dict[str, Any]) -> None:
-        """This method is used to update the model in a database and redis :param
-        model_name:
+    def _update_model(self, model_name: str, model_data: dict[str, Any], skip_draft_write: bool = False) -> None:
+        """This method is used to update the model in a database and redis.
 
         :param model_name:
         :param model_data:
+        :param skip_draft_write: True when called from execution pipeline (not user edits)
         :return:
         """
         self.session.update_model(model_name=model_name, model_data=model_data)
         # Dual-write: keep UserDraft in sync so draft status is accurate
-        try:
-            from backend.core.services.draft_service import (
-                get_or_create_draft, save_draft_data,
-            )
-            config_model = self.session.fetch_model(model_name=model_name)
-            draft = get_or_create_draft(config_model=config_model)
-            save_draft_data(draft=draft, model_data=model_data)
-        except Exception:
-            logger.debug("Draft dual-write failed for %s — non-blocking", model_name)
+        if not skip_draft_write:
+            try:
+                from backend.core.services.draft_service import (
+                    get_or_create_draft, save_draft_data,
+                )
+                config_model = self.session.fetch_model(model_name=model_name)
+                draft = get_or_create_draft(config_model=config_model)
+                save_draft_data(draft=draft, model_data=model_data)
+            except Exception:
+                logger.debug("Draft dual-write failed for %s — non-blocking", model_name)
         # Updating the model spec in cache
         if visitran_models := self.session.redis_client.get(self.redis_model_key):
             models = yaml.safe_load(visitran_models)
@@ -479,11 +480,11 @@ class ApplicationContext(ModelGraph):
                 yaml_models = yaml.dump(models, default_flow_style=False, sort_keys=False)
                 self.session.redis_client.set(self.redis_model_key, yaml_models)
 
-    def update_model(self, model_name: str, model_data: dict[str, Any]):
+    def update_model(self, model_name: str, model_data: dict[str, Any], skip_draft_write: bool = False):
         # Converting the current model to python.
         self.update_model_graph(model_data, model_name)
         parser: ConfigParser = self.convert_to_python(model_data, model_name)
-        self._update_model(model_name=model_name, model_data=model_data)
+        self._update_model(model_name=model_name, model_data=model_data, skip_draft_write=skip_draft_write)
         sequence_orders, sequence_lineage = set_transformation_sequence(parser)
 
         model_data_yaml: Any | str = yaml.dump(model_data, indent=4, default_flow_style=False)
@@ -734,7 +735,7 @@ class ApplicationContext(ModelGraph):
             for model in self.session.fetch_all_models(fetch_all=True):
                 if model_data := model.model_data:
                     logging.info(f"[Model Update] Converting YAML to Python: {model.model_name}")
-                    self.update_model(model_name=model.model_name, model_data=model_data)
+                    self.update_model(model_name=model.model_name, model_data=model_data, skip_draft_write=True)
             self.session.add_sys_path()
             visitran_obj.search_n_run_models(model_name=model_name, model_names=model_names)
             return visitran_obj

@@ -214,3 +214,7 @@ backend/backend/utils/load_models/yaml_models.yaml
 # macOS
 .DS_Store
 **/.DS_Store
+
+# Local OSS virtual environment
+backend/.ossvenv/
+backend/pdm.lock

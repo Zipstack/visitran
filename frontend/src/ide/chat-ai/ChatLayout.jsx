@@ -401,7 +401,10 @@ function ChatLayout({ children }) {
                 onClick={() => handleRightDrawer(DRAWER_TYPES.VERSION_HISTORY)}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => e.key === "Enter" && handleRightDrawer(DRAWER_TYPES.VERSION_HISTORY)}
+                onKeyDown={(e) =>
+                  e.key === "Enter" &&
+                  handleRightDrawer(DRAWER_TYPES.VERSION_HISTORY)
+                }
               >
                 <HistoryOutlined />
               </div>

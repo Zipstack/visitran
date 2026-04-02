@@ -25,32 +25,80 @@ function RollbackModal({ open, onClose, targetVersion, onRollbackSuccess }) {
   const csrfToken = Cookies.get("csrftoken");
 
   useEffect(() => {
-    if (open) { setConfirmed(false); setReason(""); }
+    if (open) {
+      setConfirmed(false);
+      setReason("");
+    }
   }, [open]);
 
   const handleConfirm = async () => {
     setExecuting(true);
     try {
-      await executeRollback(axiosRef, orgId, projectId, csrfToken, targetVersion, reason || `Rollback to v${targetVersion}`);
+      await executeRollback(
+        axiosRef,
+        orgId,
+        projectId,
+        csrfToken,
+        targetVersion,
+        reason || `Rollback to v${targetVersion}`
+      );
       notify({ type: "success", message: "Rollback completed successfully" });
       onRollbackSuccess?.();
-    } catch (error) { notify({ error }); }
-    finally { setExecuting(false); }
+    } catch (error) {
+      notify({ error });
+    } finally {
+      setExecuting(false);
+    }
   };
 
   const canConfirm = confirmed && !loading && !executing;
 
   return (
-    <Modal title={`Rollback to v${targetVersion}`} open={open} onCancel={onClose} onOk={handleConfirm} okText="Confirm Rollback" okButtonProps={{ disabled: !canConfirm, loading: executing, danger: true }} width={MODAL_WIDTH} centered maskClosable={false} destroyOnClose>
-      <Alert type="warning" showIcon message={`This will rollback the project to version ${targetVersion}`} description="A new version will be created with the rolled-back content. The current state will be preserved in version history." style={{ marginBottom: 16 }} />
-      <Input value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Reason for rollback (optional)" style={{ marginBottom: 12 }} />
-      <Checkbox checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="rollback-confirm-checkbox">
+    <Modal
+      title={`Rollback to v${targetVersion}`}
+      open={open}
+      onCancel={onClose}
+      onOk={handleConfirm}
+      okText="Confirm Rollback"
+      okButtonProps={{
+        disabled: !canConfirm,
+        loading: executing,
+        danger: true,
+      }}
+      width={MODAL_WIDTH}
+      centered
+      maskClosable={false}
+      destroyOnClose
+    >
+      <Alert
+        type="warning"
+        showIcon
+        message={`This will rollback the project to version ${targetVersion}`}
+        description="A new version will be created with the rolled-back content. The current state will be preserved in version history."
+        style={{ marginBottom: 16 }}
+      />
+      <Input
+        value={reason}
+        onChange={(e) => setReason(e.target.value)}
+        placeholder="Reason for rollback (optional)"
+        style={{ marginBottom: 12 }}
+      />
+      <Checkbox
+        checked={confirmed}
+        onChange={(e) => setConfirmed(e.target.checked)}
+        className="rollback-confirm-checkbox"
+      >
         I understand the impact of this rollback
       </Checkbox>
     </Modal>
   );
 }
 
-RollbackModal.propTypes = { open: PropTypes.bool.isRequired, onClose: PropTypes.func.isRequired, targetVersion: PropTypes.number, onRollbackSuccess: PropTypes.func };
+RollbackModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  targetVersion: PropTypes.number,
+  onRollbackSuccess: PropTypes.func,
+};
 
 export { RollbackModal };

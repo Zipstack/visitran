@@ -43,4 +43,12 @@ Frontend:
 - [x] `execute_version`: wired + concurrency-safe (Redis lock + `select_for_update`)
 - [x] `DraftValidator`: implemented at `backend/application/model_validator/draft_validator.py`
 - [x] `validate_draft` view: fully wired to DraftValidator
+
+### Bug fixes (post-migration)
+- `execute_version`: fixed concurrency (Redis lock + `select_for_update`)
+- `_serialize_version`: added `is_current` to response dict
+- `get_draft_status`: fixed `committed_data` lookup to use project-level ModelVersion (`config_model=None`) instead of model-scoped versions
+- dual-write: added `skip_draft_write` flag to `_update_model` — execution pipeline no longer creates false draft records
+- `set_current_version`: added cache invalidation after DB update
+- `handleExecuteSuccess`: added `loadDraftStatus()` call to clear stale draft indicator after execute
 ---

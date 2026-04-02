@@ -27,7 +27,9 @@ function CommitModal({ onCommitSuccess }) {
   const orgId = orgStore.getState().selectedOrgId;
   const csrfToken = Cookies.get("csrftoken");
   const isOpen = useVersionHistoryStore((state) => state.isCommitModalOpen);
-  const closeCommitModal = useVersionHistoryStore((state) => state.closeCommitModal);
+  const closeCommitModal = useVersionHistoryStore(
+    (state) => state.closeCommitModal
+  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -35,17 +37,31 @@ function CommitModal({ onCommitSuccess }) {
     setPreviewLoading(true);
     setPreviewData(null);
     fetchPendingChanges(axiosRef, orgId, projectId)
-      .then((data) => { if (!cancelled) setPreviewData(data); })
-      .catch(() => { if (!cancelled) setPreviewData(null); })
-      .finally(() => { if (!cancelled) setPreviewLoading(false); });
-    return () => { cancelled = true; };
+      .then((data) => {
+        if (!cancelled) setPreviewData(data);
+      })
+      .catch(() => {
+        if (!cancelled) setPreviewData(null);
+      })
+      .finally(() => {
+        if (!cancelled) setPreviewLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [isOpen]); // eslint-disable-line
 
   const handleOk = async () => {
     if (!commitMessage.trim()) return;
     setLoading(true);
     try {
-      await commitProjectVersion(axiosRef, orgId, projectId, csrfToken, commitMessage.trim());
+      await commitProjectVersion(
+        axiosRef,
+        orgId,
+        projectId,
+        csrfToken,
+        commitMessage.trim()
+      );
       notify({ type: "success", message: "Version committed successfully" });
       setCommitMessage("");
       closeCommitModal();
@@ -57,28 +73,83 @@ function CommitModal({ onCommitSuccess }) {
     }
   };
 
-  const handleCancel = () => { setCommitMessage(""); setPreviewData(null); closeCommitModal(); };
+  const handleCancel = () => {
+    setCommitMessage("");
+    setPreviewData(null);
+    closeCommitModal();
+  };
 
-  const collapseItems = previewData?.changes?.map((change) => ({
-    key: change.model_name,
-    label: (<span>{change.model_name} <Tag color={CHANGE_TYPE_COLORS[change.change_type]}>{change.change_type}</Tag></span>),
-    children: (
-      <div className="commit-preview-diff">
-        <DiffViewer originalTitle="Last Committed" modifiedTitle="Current" originalContent={change.old_yaml} modifiedContent={change.new_yaml} forceInline />
-      </div>
-    ),
-  })) || [];
+  const collapseItems =
+    previewData?.changes?.map((change) => ({
+      key: change.model_name,
+      label: (
+        <span>
+          {change.model_name}{" "}
+          <Tag color={CHANGE_TYPE_COLORS[change.change_type]}>
+            {change.change_type}
+          </Tag>
+        </span>
+      ),
+      children: (
+        <div className="commit-preview-diff">
+          <DiffViewer
+            originalTitle="Last Committed"
+            modifiedTitle="Current"
+            originalContent={change.old_yaml}
+            modifiedContent={change.new_yaml}
+            forceInline
+          />
+        </div>
+      ),
+    })) || [];
 
   return (
-    <Modal title="Commit Version" open={isOpen} onOk={handleOk} onCancel={handleCancel} okText="Commit" okButtonProps={{ disabled: !commitMessage.trim() || loading, loading }} width={MODAL_WIDTH} centered maskClosable={false} destroyOnClose>
-      <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>Create a new version snapshot for <strong>all models</strong> in this project.</Typography.Paragraph>
-      <Input.TextArea value={commitMessage} onChange={(e) => setCommitMessage(e.target.value)} placeholder="Describe what changed..." maxLength={MAX_MESSAGE_LENGTH} showCount rows={4} autoFocus />
+    <Modal
+      title="Commit Version"
+      open={isOpen}
+      onOk={handleOk}
+      onCancel={handleCancel}
+      okText="Commit"
+      okButtonProps={{ disabled: !commitMessage.trim() || loading, loading }}
+      width={MODAL_WIDTH}
+      centered
+      maskClosable={false}
+      destroyOnClose
+    >
+      <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>
+        Create a new version snapshot for <strong>all models</strong> in this
+        project.
+      </Typography.Paragraph>
+      <Input.TextArea
+        value={commitMessage}
+        onChange={(e) => setCommitMessage(e.target.value)}
+        placeholder="Describe what changed..."
+        maxLength={MAX_MESSAGE_LENGTH}
+        showCount
+        rows={4}
+        autoFocus
+      />
       <div className="commit-preview-section">
-        {previewLoading && <div className="commit-preview-empty"><Spin size="small" /></div>}
-        {!previewLoading && previewData && !previewData.has_changes && <div className="commit-preview-empty"><Typography.Text type="secondary">No changes since last commit</Typography.Text></div>}
+        {previewLoading && (
+          <div className="commit-preview-empty">
+            <Spin size="small" />
+          </div>
+        )}
+        {!previewLoading && previewData && !previewData.has_changes && (
+          <div className="commit-preview-empty">
+            <Typography.Text type="secondary">
+              No changes since last commit
+            </Typography.Text>
+          </div>
+        )}
         {!previewLoading && previewData?.has_changes && (
           <>
-            <div className="commit-preview-summary"><Typography.Text type="secondary">{previewData.total_models_changed} model{previewData.total_models_changed !== 1 ? "s" : ""} changed</Typography.Text></div>
+            <div className="commit-preview-summary">
+              <Typography.Text type="secondary">
+                {previewData.total_models_changed} model
+                {previewData.total_models_changed !== 1 ? "s" : ""} changed
+              </Typography.Text>
+            </div>
             <Collapse items={collapseItems} size="small" />
           </>
         )}
