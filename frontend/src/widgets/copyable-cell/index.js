@@ -81,9 +81,7 @@ function CopyableCell({ children, value, className = "" }) {
       {copied ? (
         <CheckOutlined style={copiedIconStyle} />
       ) : (
-        <Tooltip title="Copy">
-          <CopyOutlined style={copyIconStyle} onClick={doCopy} />
-        </Tooltip>
+        <CopyOutlined style={copyIconStyle} onClick={doCopy} aria-label="Copy" />
       )}
     </div>
   );

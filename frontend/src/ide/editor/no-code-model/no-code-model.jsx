@@ -1382,7 +1382,7 @@ function NoCodeModel({ nodeData }) {
 
           return (
             <CopyableCell
-              value={displayValue}
+              value={formattedValue}
               className={`column-title ${formCol(
                 isFormulaColumn,
                 isAlias,
