@@ -161,7 +161,7 @@ repos:
     - id: markdownlint
       args: ["--config", "markdownlint.yaml"]
   - repo: https://github.com/pycqa/docformatter
-    rev: v1.7.5
+    rev: v1.7.7
     hooks:
       - id: docformatter
   - repo: https://github.com/adrienverge/yamllint
