@@ -11,8 +11,7 @@ Logger = logging.getLogger(__name__)
 
 
 def _load_plugins() -> dict[str, dict[str, Any]]:
-    """Iterating through the storage plugins and register their
-    metadata."""
+    """Iterating through the storage plugins and register their metadata."""
     storage_app = apps.get_app_config(PluginConfig.PLUGINS_APP)
     storage_package_path = storage_app.module.__package__
     storage_dir = os.path.join(storage_app.path, PluginConfig.STORAGE_PLUGIN_DIR)

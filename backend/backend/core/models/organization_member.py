@@ -19,8 +19,8 @@ from utils.models.organization_mixin import (
 class OrganizationMemberManager(DefaultOrganizationManagerMixin, models.Manager):
     """Manager that filters by current organization context.
 
-    Used in cloud/multi-tenant mode to automatically scope queries
-    to the current organization.
+    Used in cloud/multi-tenant mode to automatically scope queries to
+    the current organization.
     """
 
     pass

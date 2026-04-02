@@ -19,17 +19,17 @@ logger = logging.getLogger(__name__)
 @handle_http_request
 @handle_permission
 def user_ai_context_rules(request: Request) -> Response:
-    """Get or update user's personal AI context rules"""
+    """Get or update user's personal AI context rules."""
     try:
         user = request.user
-        
+
         if request.method == HTTPMethods.GET:
             # Get or create user context rules
             context_rules, created = UserAIContextRules.objects.get_or_create(
                 user=user,
                 defaults={'context_rules': ''}
             )
-            
+
             return Response({
                 "success": True,
                 "data": {
@@ -39,20 +39,20 @@ def user_ai_context_rules(request: Request) -> Response:
                     "updated_at": context_rules.updated_at.isoformat()
                 }
             }, status=status.HTTP_200_OK)
-            
+
         elif request.method == HTTPMethods.PUT:
             context_rules_text = request.data.get('context_rules', '')
-            
+
             # Get or create user context rules
             context_rules, created = UserAIContextRules.objects.get_or_create(
                 user=user,
                 defaults={'context_rules': context_rules_text}
             )
-            
+
             if not created:
                 context_rules.context_rules = context_rules_text
                 context_rules.save()
-            
+
             return Response({
                 "success": True,
                 "message": BackendSuccessMessages.AI_CONTEXT_RULES_PERSONAL_UPDATED,
@@ -62,7 +62,7 @@ def user_ai_context_rules(request: Request) -> Response:
                     "updated_at": context_rules.updated_at.isoformat()
                 }
             }, status=status.HTTP_200_OK)
-        
+
     except Exception as e:
         logger.error(f"Error with user AI context rules: {str(e)}")
         return Response({
@@ -86,12 +86,12 @@ def project_ai_context_rules(request: Request, project_id: str) -> Response:
                 "is_markdown": True,
                 "severity": "error"
             }, status=status.HTTP_404_NOT_FOUND)
-        
+
         if request.method == HTTPMethods.GET:
             # Get project context rules (single entry per project)
             try:
                 context_rules = ProjectAIContextRules.objects.get(project=project)
-                
+
                 return Response({
                     "success": True,
                     "data": {
@@ -112,7 +112,7 @@ def project_ai_context_rules(request: Request, project_id: str) -> Response:
                         "updated_at": context_rules.updated_at.isoformat()
                     }
                 }, status=status.HTTP_200_OK)
-                
+
             except ProjectAIContextRules.DoesNotExist:
                 # Return empty context rules if none exist yet
                 return Response({
@@ -127,11 +127,11 @@ def project_ai_context_rules(request: Request, project_id: str) -> Response:
                         "updated_at": None
                     }
                 }, status=status.HTTP_200_OK)
-        
+
         elif request.method == HTTPMethods.PUT:
             user = request.user
             context_rules_text = request.data.get('context_rules', '')
-            
+
             # Get or create project context rules (single entry per project)
             context_rules, created = ProjectAIContextRules.objects.get_or_create(
                 project=project,
@@ -141,12 +141,12 @@ def project_ai_context_rules(request: Request, project_id: str) -> Response:
                     'updated_by': user
                 }
             )
-            
+
             if not created:
                 context_rules.context_rules = context_rules_text
                 context_rules.updated_by = user  # Track who updated
                 context_rules.save()
-            
+
             return Response({
                 "success": True,
                 "message": BackendSuccessMessages.AI_CONTEXT_RULES_PROJECT_UPDATED,
@@ -161,7 +161,7 @@ def project_ai_context_rules(request: Request, project_id: str) -> Response:
                     "updated_at": context_rules.updated_at.isoformat()
                 }
             }, status=status.HTTP_200_OK)
-        
+
     except Exception as e:
         logger.error(f"Error with project AI context rules: {str(e)}")
         return Response({

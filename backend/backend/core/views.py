@@ -92,11 +92,11 @@ def get_user_profile(request: Request) -> Response:
 def get_datasource_list(request: Request) -> Response:
     """This method will return the list of adapters installed."""
     adapters_list: list[str] = get_adapters_list()
-    
+
     # Soft delete: Remove Trino from the list
     if "trino" in adapters_list:
         adapters_list.remove("trino")
-    
+
     data = []
     for adapter_name in adapters_list:
         icon = import_file(f"visitran.adapters.{adapter_name}").ICON
@@ -139,8 +139,8 @@ def get_aggregations_list(request: Request) -> Response:
 @api_view([HTTPMethods.GET])
 @handle_http_request
 def get_formula_list(request: Request) -> Response:
-    """This method will return the list of FORMULA SQL which are supported as of
-    now."""
+    """This method will return the list of FORMULA SQL which are supported as
+    of now."""
     formula_details: list[str] = FORMULA_DICT.keys()
     _formula_response_data = []
     for formula_key, formula_value in FORMULA_DICT.items():
@@ -157,4 +157,3 @@ def get_formula_list(request: Request) -> Response:
         "formula_count": formula_details.__len__(),
     }
     return Response(data=response_data, status=status.HTTP_200_OK)
-

@@ -5,9 +5,7 @@ from backend.errors.visitran_backend_base_exceptions import VisitranBackendBaseE
 
 
 class InvalidSourceTable(VisitranBackendBaseException):
-    """
-    Raised if the model is configured with invalid source table.
-    """
+    """Raised if the model is configured with invalid source table."""
 
     def __init__(self, table_name: str) -> None:
         super().__init__(
@@ -18,9 +16,7 @@ class InvalidSourceTable(VisitranBackendBaseException):
 
 
 class InvalidDestinationTable(VisitranBackendBaseException):
-    """
-    Raised if the model is configured with invalid source table.
-    """
+    """Raised if the model is configured with invalid source table."""
 
     def __init__(self, table_name: str) -> None:
         super().__init__(
@@ -31,9 +27,7 @@ class InvalidDestinationTable(VisitranBackendBaseException):
 
 
 class InvalidMaterialization(VisitranBackendBaseException):
-    """
-    Raised if the model is configured with invalid source table.
-    """
+    """Raised if the model is configured with invalid source table."""
 
     def __init__(
         self,
@@ -49,9 +43,7 @@ class InvalidMaterialization(VisitranBackendBaseException):
 
 
 class ReferenceNotFound(VisitranBackendBaseException):
-    """
-    Raise if the reference is not found.
-    """
+    """Raise if the reference is not found."""
 
     def __init__(self, missing_references: list[str]):
         super().__init__(
@@ -62,9 +54,7 @@ class ReferenceNotFound(VisitranBackendBaseException):
 
 
 class InvalidModelConfigError(VisitranBackendBaseException):
-    """
-        Raise if the model config is invalid.
-    """
+    """Raise if the model config is invalid."""
 
     def __init__(self, failure_reason: str):
         super().__init__(
@@ -74,9 +64,7 @@ class InvalidModelConfigError(VisitranBackendBaseException):
         )
 
 class InvalidModelReferenceError(VisitranBackendBaseException):
-    """
-        Raise if the model config is invalid.
-    """
+    """Raise if the model config is invalid."""
 
     def __init__(self, failure_reason: str):
         super().__init__(

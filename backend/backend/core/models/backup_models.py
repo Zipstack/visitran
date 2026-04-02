@@ -11,10 +11,8 @@ class BackupModelsManager(DefaultOrganizationManagerMixin, models.Manager):
 
 
 class BackupModels(DefaultOrganizationMixin, BaseModel):
-    """
-    This model is used to store the backup models of the models,
-    to store the previous success models from ConfigModels
-    """
+    """This model is used to store the backup models of the models, to store
+    the previous success models from ConfigModels."""
 
     project_instance = models.ForeignKey(ProjectDetails, on_delete=models.CASCADE, related_name='backup_model')
     config_model = models.ForeignKey(ConfigModels, on_delete=models.CASCADE, related_name='backup_model')

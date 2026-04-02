@@ -8,7 +8,8 @@ logger = logging.getLogger(__name__)
 class JoinValidator(Validator):
 
     def _get_columns_for_removed_tables(self, removed_tables: set) -> list[str]:
-        """Get columns from removed join tables by querying the database schema.
+        """Get columns from removed join tables by querying the database
+        schema.
 
         Fallback when DependentModels runtime data is unavailable.
         """

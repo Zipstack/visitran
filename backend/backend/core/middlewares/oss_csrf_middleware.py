@@ -6,8 +6,8 @@ from django.middleware.csrf import CsrfViewMiddleware
 class OSSCsrfMiddleware(CsrfViewMiddleware):
     """CSRF middleware that exempts authentication endpoints.
 
-    In OSS mode, login/signup/logout endpoints need to work without
-    CSRF tokens since they're called before a session exists.
+    In OSS mode, login/signup/logout endpoints need to work without CSRF
+    tokens since they're called before a session exists.
     """
 
     EXEMPT_PATHS = [

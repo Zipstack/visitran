@@ -4,7 +4,7 @@ from typing import Dict, Set, Any
 
 
 class ValidateReferences:
-    def __init__(self, model_dict: Dict[str, Set[str]], model_name: str):
+    def __init__(self, model_dict: dict[str, set[str]], model_name: str):
         self.model_dict = model_dict
         self.model_name = model_name
         self.children = defaultdict(set)
@@ -41,13 +41,13 @@ class ValidateReferences:
         return descendants
 
     def _analyse_models(self):
-        """
-        Given a list of models and a list of model names, return the names of models
-        that are valid references for the given models.
+        """Given a list of models and a list of model names, return the names
+        of models that are valid references for the given models.
 
-        A model is valid if it is not in the input list, is not already in the
-        reference list of the given models, and is not an ancestor or
-        descendant of the given models (to prevent circular reference).
+        A model is valid if it is not in the input list, is not already
+        in the reference list of the given models, and is not an
+        ancestor or descendant of the given models (to prevent circular
+        reference).
         :return: A list of model names
         """
 
@@ -129,9 +129,8 @@ class ValidateReferences:
 
         return invalid_models
 
-    def validate_table_usage_references(self, new_model_data: Dict[str, Any], session):
-        """
-        Validate and update references based on table usage.
+    def validate_table_usage_references(self, new_model_data: dict[str, Any], session):
+        """Validate and update references based on table usage.
 
         CRITICAL: The source table's model (if any) MUST be the FIRST reference
         because the first reference becomes the parent class in the generated code.
@@ -156,7 +155,7 @@ class ValidateReferences:
         join_union_tables.extend(self._extract_union_tables(new_model_data))
 
         # Build a map of (schema, table) -> model_name for all models
-        table_to_model: Dict[tuple, str] = {}
+        table_to_model: dict[tuple, str] = {}
         for model_name in self.model_dict.keys():
             if model_name == self.model_name:
                 continue
@@ -215,7 +214,7 @@ class ValidateReferences:
         new_model_data["reference"] = new_references
         self.model_dict[self.model_name] = set(new_references)
 
-    def _extract_join_tables(self, model_data: Dict[str, Any]) -> list[tuple[str, str]]:
+    def _extract_join_tables(self, model_data: dict[str, Any]) -> list[tuple[str, str]]:
         """Extract all tables used in JOIN transformations."""
         tables = []
         transform = model_data.get("transform", {})
@@ -240,7 +239,7 @@ class ValidateReferences:
                         tables.append((schema, table))
         return tables
 
-    def _extract_union_tables(self, model_data: Dict[str, Any]) -> list[tuple[str, str]]:
+    def _extract_union_tables(self, model_data: dict[str, Any]) -> list[tuple[str, str]]:
         """Extract all tables used in UNION transformations."""
         tables = []
         transform = model_data.get("transform", {})
@@ -273,9 +272,8 @@ class ValidateReferences:
                                 tables.append((merge_schema, merge_table))
         return tables
 
-    def detect_and_fix_mro_issues(self) -> Dict[str, Set[str]]:
-        """
-        Remove redundant transitive dependencies from self.model_dict.
+    def detect_and_fix_mro_issues(self) -> dict[str, set[str]]:
+        """Remove redundant transitive dependencies from self.model_dict.
 
         If a model A appears both directly in a model's base set and
         indirectly through another base B (i.e. B -> ... -> A), then A
@@ -283,17 +281,16 @@ class ValidateReferences:
         """
 
         @lru_cache(maxsize=None)
-        def get_all_bases(cls_name: str) -> Set[str]:
-            """
-            Return the full transitive closure of base models for cls_name.
-            """
+        def get_all_bases(cls_name: str) -> set[str]:
+            """Return the full transitive closure of base models for
+            cls_name."""
             bases = self.model_dict.get(cls_name, set())
 
             # Normalise in case someone stored a list/tuple
             if not isinstance(bases, (set, frozenset)):
                 bases = set(bases)
 
-            all_bases: Set[str] = set(bases)
+            all_bases: set[str] = set(bases)
             for base in bases:
                 all_bases |= get_all_bases(base)
             return all_bases
@@ -307,7 +304,7 @@ class ValidateReferences:
                 # Nothing to prune if 0 or 1 direct base
                 continue
 
-            pruned_bases: Set[str] = set()
+            pruned_bases: set[str] = set()
             for base in direct_bases:
                 # Base is redundant if it is implied by any other base
                 is_redundant = any(
@@ -321,4 +318,3 @@ class ValidateReferences:
             self.model_dict[name] = pruned_bases
 
         return self.model_dict
-

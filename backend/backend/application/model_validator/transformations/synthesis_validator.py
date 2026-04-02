@@ -14,7 +14,7 @@ class SynthesisValidator(Validator):
         return self.old_parser.column_names
 
     def check_column_usage(self, columns: list[str]) -> list[str]:
-        still_used: Set[str] = set()
+        still_used: set[str] = set()
         for expr in self.current_parser.referred_column_names:
             for col in columns:
                 if col == expr or col in expr:

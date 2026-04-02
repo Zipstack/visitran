@@ -43,23 +43,25 @@ class ModelValidator:
         session: Session,
         visitran_context: VisitranBackendContext,
     ):
-        """
-        Initializes a new instance of the class.
+        """Initializes a new instance of the class.
 
-        This constructor sets up the initial state of the object by initializing its
-        attributes based on the provided parameters. It prepares parsers for configuration
-        management, establishes a session for handling backend operations, and integrates
-        the visitran context for the application runtime.
+        This constructor sets up the initial state of the object by
+        initializing its attributes based on the provided parameters. It
+        prepares parsers for configuration management, establishes a
+        session for handling backend operations, and integrates the
+        visitran context for the application runtime.
 
-        :param updated_model_data: A dictionary containing the updated model data to be
-            used for configuration.
+        :param updated_model_data: A dictionary containing the updated
+            model data to be used for configuration.
         :type updated_model_data: dict[str, Any]
-        :param model_name: Name of the model associated with the configurations.
+        :param model_name: Name of the model associated with the
+            configurations.
         :type model_name: str
-        :param session: A session object to manage interaction with the backend system.
+        :param session: A session object to manage interaction with the
+            backend system.
         :type session: Session
-        :param visitran_context: Backend context object for supporting visitran runtime
-            configuration.
+        :param visitran_context: Backend context object for supporting
+            visitran runtime configuration.
         :type visitran_context: VisitranBackendContext
         """
         self._updated_model = updated_model_data
@@ -111,10 +113,8 @@ class ModelValidator:
             pass
 
     def _validate_source_config(self, **kwargs) -> None:
-        """
-        This method validates the newly configured model with source, destination and reference models
-        :return:
-        """
+        """This method validates the newly configured model with source,
+        destination and reference models :return:"""
         model_config_validator = ModelConfigValidator(
             session=self._session,
             visitran_context=self._visitran_context,
@@ -133,10 +133,8 @@ class ModelValidator:
         model_config_validator.validate_reference_config()
 
     def _validate_model_config(self, **kwargs) -> None:
-        """
-        This method validates the newly configured model with source, destination and reference models
-        :return:
-        """
+        """This method validates the newly configured model with source,
+        destination and reference models :return:"""
         model_config_validator = ModelConfigValidator(
             session=self._session,
             visitran_context=self._visitran_context,
@@ -243,9 +241,9 @@ class ModelValidator:
     def _validate_all_transformations(self, **kwargs) -> list[str] | None:
         """Validate all transformations being cleared at once.
 
-        Iterates every transform in the old model, collects the columns each
-        one would remove, and returns the combined list so that the caller
-        (validate_model) can check child-model dependencies.
+        Iterates every transform in the old model, collects the columns
+        each one would remove, and returns the combined list so that the
+        caller (validate_model) can check child-model dependencies.
         """
         if not self.old_config_parser:
             return None

@@ -137,9 +137,10 @@ def check_oss_api_key_configured() -> None:
 def _connection_error(error: Exception) -> AIServerError:
     """Classify a network/connection error into a user-friendly AIServerError.
 
-    These are LOCAL errors (AI server unreachable), so messages are built here.
-    Eventlet monkey-patches stdlib, so specific exception types (ssl.SSLError,
-    socket.gaierror) may not match — we also classify by error string content.
+    These are LOCAL errors (AI server unreachable), so messages are
+    built here. Eventlet monkey-patches stdlib, so specific exception
+    types (ssl.SSLError, socket.gaierror) may not match — we also
+    classify by error string content.
     """
     err_str = str(error).lower()
 

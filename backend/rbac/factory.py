@@ -4,7 +4,7 @@ from rest_framework import viewsets
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from .oss_decorator import OSSPermissionDecorator
+from backend.rbac.oss_decorator import OSSPermissionDecorator
 from rest_framework.renderers import JSONRenderer
 from django.views import View
 from rest_framework.views import APIView

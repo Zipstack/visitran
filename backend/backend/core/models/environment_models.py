@@ -13,9 +13,8 @@ class EnvironmentModelsManager(DefaultOrganizationManagerMixin, models.Manager):
 
 
 class EnvironmentModels(DefaultOrganizationMixin, BaseModel):
-    """
-    This model is used  manage the environment details i.e., to manage the sensitive data in project_connection details.
-    """
+    """This model is used  manage the environment details i.e., to manage the
+    sensitive data in project_connection details."""
 
     @property
     def description(self) -> str:
@@ -32,7 +31,7 @@ class EnvironmentModels(DefaultOrganizationMixin, BaseModel):
             self.env_connection_data = encrypt_connection_details(self.env_connection_data)
 
         # Finally, call the parent save method
-        super(EnvironmentModels, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     @property
     def decrypted_connection_data(self) -> dict:
@@ -40,11 +39,11 @@ class EnvironmentModels(DefaultOrganizationMixin, BaseModel):
         try:
             # First try the old Fernet decryption system
             decrypted_data = decrypt_connection_details(self.env_connection_data)
-            
+
             # If Fernet decryption succeeds, return the data
             # (Don't try RSA decryption on already decrypted data)
             return decrypted_data
-            
+
         except Exception as e:
             # If Fernet decryption fails, try RSA decryption
             try:

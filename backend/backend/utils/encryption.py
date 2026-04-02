@@ -48,7 +48,7 @@ def decrypt_value(encrypted_value: str) -> str:
         return encrypted_value  # Return original if not encrypted
 
 
-def encrypt_connection_details(details: Dict[str, Any]) -> Dict[str, Any]:
+def encrypt_connection_details(details: dict[str, Any]) -> dict[str, Any]:
     """Encrypt sensitive fields in connection details."""
     if not details:
         return details
@@ -63,7 +63,7 @@ def encrypt_connection_details(details: Dict[str, Any]) -> Dict[str, Any]:
     return encrypted
 
 
-def decrypt_connection_details(details: Dict[str, Any]) -> Dict[str, Any]:
+def decrypt_connection_details(details: dict[str, Any]) -> dict[str, Any]:
     """Decrypt sensitive fields in connection details."""
     if not details:
         return details
@@ -108,7 +108,7 @@ def mask_value(key: str, value: str) -> str:
         return "********"
 
 
-def mask_connection_details(details: Dict[str, Any]) -> Dict[str, Any]:
+def mask_connection_details(details: dict[str, Any]) -> dict[str, Any]:
     """Mask sensitive fields in connection details for API responses."""
     if not details:
         return details

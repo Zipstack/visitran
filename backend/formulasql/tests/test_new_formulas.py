@@ -1,6 +1,5 @@
-"""
-Tests for newly implemented formulas.
-This file tests all 46 new formulas added to FormulaSQL.
+"""Tests for newly implemented formulas. This file tests all 46 new formulas
+added to FormulaSQL.
 
 Categories:
 - Window Functions (14 formulas)

@@ -23,9 +23,7 @@ class DatabaseExplorerTree:
 
     @classmethod
     def build_ui_tree(cls, project_name: str, default_schema: str, db_meta_json: dict) -> dict:
-        """
-        Build the UI explorer tree from metadata JSON.
-        """
+        """Build the UI explorer tree from metadata JSON."""
         project_title = f"{project_name}/Database"
         db_meta_json = db_meta_json or {}
         tables_map = db_meta_json.get("tables", {}) or {}

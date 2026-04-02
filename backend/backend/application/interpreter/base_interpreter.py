@@ -1,4 +1,3 @@
-
 from pathlib import Path
 from re import sub
 from typing import Any

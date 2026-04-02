@@ -28,7 +28,7 @@ class VisitranBackendBaseException(Exception):
         return self._error_msg.format(**self._msg_args)
 
     def to_response(self) -> Response:
-        """Convert exception to properly formatted DRF Response"""
+        """Convert exception to properly formatted DRF Response."""
         response = Response(
             data=self.error_response(), status=self._status_code, headers={"Content-Type": "application/json"}
         )

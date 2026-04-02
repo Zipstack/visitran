@@ -95,7 +95,7 @@ class DatabricksConnection(BaseConnection):
     @classmethod
     def connection_fields(cls) -> dict[str, Any]:
         """Load the connection fields JSON schema from the file."""
-        with open(SCHEMA_FILE_PATH, "r", encoding="utf-8") as file:
+        with open(SCHEMA_FILE_PATH, encoding="utf-8") as file:
             connection_fields = json.load(file)
         return connection_fields
 
@@ -129,8 +129,8 @@ class DatabricksConnection(BaseConnection):
     def list_all_schemas(self) -> list[str]:
         """Lists all schemas in the current catalog.
 
-        Exceptions propagate to callers — test_connection_data and
-        the schema browser both have their own error handling.
+        Exceptions propagate to callers — test_connection_data and the
+        schema browser both have their own error handling.
         """
         schemas = self.connection.list_databases()
         return [s for s in schemas if s.lower() != "information_schema"]
@@ -171,7 +171,8 @@ class DatabricksConnection(BaseConnection):
         """Create schema in Databricks.
 
         Uses backtick-quoted identifiers per Databricks SQL syntax.
-        Qualifies with catalog when configured, otherwise uses session default.
+        Qualifies with catalog when configured, otherwise uses session
+        default.
         """
         qi = self.quote_identifier
         if self.catalog:
@@ -222,7 +223,7 @@ class DatabricksConnection(BaseConnection):
         self,
         schema_name: str,
         table_name: str,
-        select_statement: "Table",
+        select_statement: Table,
         primary_key: Union[str, list[str]],
     ) -> None:
         """Efficient upsert using Databricks Delta Lake's MERGE INTO statement.

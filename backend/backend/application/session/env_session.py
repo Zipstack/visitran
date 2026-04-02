@@ -21,8 +21,8 @@ class EnvironmentSession:
         """Merge frontend connection details with stored decrypted values.
 
         The frontend may send masked fields (e.g. '********' for passw).
-        Use the connection model's decrypted details as the base and overlay
-        only non-masked values from the frontend.
+        Use the connection model's decrypted details as the base and
+        overlay only non-masked values from the frontend.
         """
         base = connection_model.decrypted_connection_details.copy()
         if not frontend_data:

@@ -2,9 +2,9 @@ import json
 from typing import List, Dict, Set
 
 
-def detect_and_fix_mro_issues(no_code_model: Dict[str, List[str]]) -> Dict[str, List[str]]:
+def detect_and_fix_mro_issues(no_code_model: dict[str, list[str]]) -> dict[str, list[str]]:
     # Create reverse lookup (used for transitive dependency detection)
-    def get_all_bases(cls_name: str, visited=None) -> Set[str]:
+    def get_all_bases(cls_name: str, visited=None) -> set[str]:
         visited = visited or set()
         if cls_name in visited:
             return set()

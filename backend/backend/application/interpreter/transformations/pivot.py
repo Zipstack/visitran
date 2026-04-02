@@ -1,4 +1,3 @@
-
 from backend.application.config_parser.transformation_parsers.pivot_parser import PivotParser
 from backend.application.interpreter.constants import TemplateNames
 from backend.application.interpreter.transformations.base_transformation import BaseTransformation
@@ -18,9 +17,8 @@ class PivotTransformation(BaseTransformation):
                 try:
                     return f"values_fill={int(fill_null)})"
                 except (ValueError, TypeError):
-                    """
-                    suppress the exception since the column type doesn't support string types 
-                    """
+                    """Suppress the exception since the column type doesn't
+                    support string types."""
                     pass
             else:
                 return f"values_fill='{fill_null}')"

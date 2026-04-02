@@ -313,8 +313,8 @@ class BaseContext:
         return self._session
 
     def load_connection_details(self) -> dict[str, Any]:
-        """This method loads the env model from run payload,
-        if not exists it overrides with connection model"""
+        """This method loads the env model from run payload, if not exists it
+        overrides with connection model."""
         connection_details = self.project_instance.connection_model.decrypted_connection_details
         if self._environment_id:
             env_model = self.env_session.get_environment_model(
@@ -325,7 +325,7 @@ class BaseContext:
             connection_details = env_model.decrypted_connection_data
         return connection_details
 
-    def _reload_context(self, env_data: Dict[str, Any] = None) -> VisitranBackendContext:
+    def _reload_context(self, env_data: dict[str, Any] = None) -> VisitranBackendContext:
         project_config = {
             "db_type": self.project_instance.database_type,
             "project_path": self.project_instance.project_path,

@@ -1,6 +1,7 @@
-"""
-Shared filter building utilities for all transformations.
-Handles VALUE and COLUMN comparisons, string operators, multi-value operators.
+"""Shared filter building utilities for all transformations.
+
+Handles VALUE and COLUMN comparisons, string operators, multi-value
+operators.
 """
 
 from backend.application.config_parser.transformation_parsers.condition_parser import ConditionParser
@@ -49,15 +50,15 @@ class FilterBuilder:
 
     @staticmethod
     def _like_pattern(rhs_value: str, prefix: str = "%", suffix: str = "%") -> str:
-        """Prepare properly quoted LIKE pattern for CONTAINS/STARTSWITH/ENDSWITH."""
+        """Prepare properly quoted LIKE pattern for
+        CONTAINS/STARTSWITH/ENDSWITH."""
         # Strip any existing quotes from value
         clean_val = str(rhs_value).strip("'\"")
         return f"'{prefix}{clean_val}{suffix}'"
 
     @staticmethod
     def build_single_condition(class_obj: str, condition: ConditionParser) -> str:
-        """
-        Build a single filter condition from ConditionParser.
+        """Build a single filter condition from ConditionParser.
 
         Supports:
         - VALUE: column == 'value' or column == 123
@@ -140,9 +141,8 @@ class FilterBuilder:
 
     @staticmethod
     def build_filter_expression(class_obj: str, filter_parser: FilterParser) -> str:
-        """
-        Build an Ibis filter expression from FilterParser with multiple conditions.
-        Combines conditions with AND/OR logic.
+        """Build an Ibis filter expression from FilterParser with multiple
+        conditions. Combines conditions with AND/OR logic.
 
         Returns a string like: "class_obj = class_obj.filter((cond1) & (cond2) | (cond3))"
         """

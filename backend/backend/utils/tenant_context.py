@@ -30,7 +30,7 @@ class TenantContext:
             self.env = source
 
     def clear(self):
-        """Clear the context to avoid leakage"""
+        """Clear the context to avoid leakage."""
         self.user = None
         self.tenant = None
         self.env = None
@@ -52,7 +52,7 @@ def get_current_user():
 
 
 def get_current_tenant() -> str:
-    """This fn returns the current tenant ID"""
+    """This fn returns the current tenant ID."""
     # TODO - Need to implement session with proper org in Cloud
     return _get_tenant_context().tenant or "default_org"
 

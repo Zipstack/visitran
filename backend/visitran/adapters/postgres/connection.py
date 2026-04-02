@@ -192,7 +192,7 @@ class PostgresConnection(BaseConnection):
             if not value:
                 raise ConnectionFieldMissingException(missing_fields=field)
 
-    def insert_into_table(self, schema_name: str, table_name: str, table_statement: "Table") -> str:
+    def insert_into_table(self, schema_name: str, table_name: str, table_statement: Table) -> str:
         """Insert into Table."""
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -202,27 +202,27 @@ class PostgresConnection(BaseConnection):
         self,
         schema_name: str,
         table_name: str,
-        select_statement: "Table",
+        select_statement: Table,
         primary_key: Union[str, list[str]],
     ) -> None:
         """Efficient upsert using PostgreSQL's INSERT ... ON CONFLICT.
-        
+
         This approach is optimal for PostgreSQL because:
         1. PostgreSQL's INSERT ... ON CONFLICT is highly efficient
         2. No temporary tables needed
         3. Atomic operation
         4. Better performance than MERGE for PostgreSQL
         """
-        
+
         # Handle both single column and composite keys
         if isinstance(primary_key, str):
             key_columns = [primary_key]
         else:
             key_columns = primary_key
-        
+
         # Get target table columns
         target_columns = self.get_table_columns(schema_name=schema_name, table_name=table_name)
-        
+
         # Ensure unique constraint exists on primary key columns
         try:
             self._ensure_unique_constraint(schema_name, table_name, key_columns)
@@ -233,7 +233,7 @@ class PostgresConnection(BaseConnection):
             else:
                 self._fallback_upsert(schema_name, table_name, select_statement, key_columns)
                 return
-        
+
         qi = self.quote_identifier
 
         # Build the ON CONFLICT clause
@@ -254,14 +254,14 @@ class PostgresConnection(BaseConnection):
             ON CONFLICT ({conflict_columns})
             DO UPDATE SET {update_set_clause}
         """
-        
+
         # Execute the upsert
         self.connection.raw_sql(upsert_query)
 
 
 
-    
-    
+
+
     def _ensure_unique_constraint(self, schema_name: str, table_name: str, key_columns: list[str]) -> None:
         """Ensure a unique constraint exists on the specified columns."""
         try:
@@ -275,18 +275,19 @@ class PostgresConnection(BaseConnection):
                 ALTER TABLE {qi(schema_name)}.{qi(table_name)}
                 ADD CONSTRAINT {qi(constraint_name)} UNIQUE ({constraint_columns})
             """
-            
+
             self.connection.raw_sql(add_constraint_sql)
-            
+
         except Exception as e:
             # If constraint already exists, continue; otherwise bubble up for caller to handle
             if "already exists" in str(e).lower():
                 pass
             else:
                 raise
-    
-    def _fallback_upsert(self, schema_name: str, table_name: str, select_statement: "Table", key_columns: list[str]) -> None:
-        """Fallback upsert using DELETE + INSERT for tables without unique constraints."""
+
+    def _fallback_upsert(self, schema_name: str, table_name: str, select_statement: Table, key_columns: list[str]) -> None:
+        """Fallback upsert using DELETE + INSERT for tables without unique
+        constraints."""
         qi = self.quote_identifier
         # Get table columns
         columns = self.get_table_columns(schema_name=schema_name, table_name=table_name)
@@ -313,6 +314,6 @@ class PostgresConnection(BaseConnection):
             ({', '.join([qi(col) for col in columns])})
             {compiled_select};
         """
-        
+
         # Execute the fallback upsert
         self.connection.raw_sql(fallback_query)

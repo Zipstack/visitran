@@ -99,7 +99,7 @@ class SnowflakeConnection(BaseConnection):
     @classmethod
     def connection_fields(cls) -> dict[str, Any]:
         """Load the connection fields JSON schema from the file."""
-        with open(SCHEMA_FILE_PATH, "r", encoding="utf-8") as file:
+        with open(SCHEMA_FILE_PATH, encoding="utf-8") as file:
             connection_fields = json.load(file)
         return connection_fields
 
@@ -126,7 +126,7 @@ class SnowflakeConnection(BaseConnection):
 
     def list_all_schemas(self) -> list[str]:
         sql_query = """
-            SELECT 
+            SELECT
                 schema_name
             FROM information_schema.schemata
             WHERE schema_name NOT IN ('INFORMATION_SCHEMA')
@@ -191,7 +191,7 @@ class SnowflakeConnection(BaseConnection):
                 raise SchemaCreationFailed(schema_name, str(e))
 
     def _parse_url(self, url: str) -> None:
-        """Parse Snowflake connection URL"""
+        """Parse Snowflake connection URL."""
         try:
             # Pattern: snowflake://username:password@account/database/schema?params
             if not url.startswith("snowflake://"):
@@ -277,11 +277,11 @@ class SnowflakeConnection(BaseConnection):
         self,
         schema_name: str,
         table_name: str,
-        select_statement: "Table",
+        select_statement: Table,
         primary_key: Union[str, list[str]],
     ) -> None:
         """Efficient upsert using Snowflake's MERGE INTO statement.
-        
+
         This approach is optimal for Snowflake because:
         1. MERGE INTO is natively supported and optimized
         2. Atomic operation with ACID properties
@@ -293,13 +293,13 @@ class SnowflakeConnection(BaseConnection):
             key_columns = [primary_key]
         else:
             key_columns = primary_key
-        
+
         # Get target table columns
         target_columns = self.get_table_columns(schema_name=schema_name, table_name=table_name)
-        
+
         # Create temporary table name
         temp_table_name = f"{table_name}__temp"
-        
+
         qi = self.quote_identifier
 
         try:

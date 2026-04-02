@@ -1,6 +1,4 @@
-"""
-Additional models for watermark tracking
-"""
+"""Additional models for watermark tracking."""
 
 from django.db import models
 from utils.models.base_model import BaseModel
@@ -12,7 +10,7 @@ class WatermarkHistoryManager(DefaultOrganizationManagerMixin, models.Manager):
 
 
 class WatermarkHistory(DefaultOrganizationMixin, BaseModel):
-    """Track watermark execution history for incremental processing"""
+    """Track watermark execution history for incremental processing."""
 
     user_task = models.ForeignKey(
         'UserTaskDetails',

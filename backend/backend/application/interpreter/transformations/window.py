@@ -49,8 +49,8 @@ class WindowTransformation(BaseTransformation):
         self.add_headers("import ibis")
 
     def _build_window_spec(self, column_parser: ColumnParser) -> str:
-        """
-        Build the ibis window specification string from partition_by, order_by, and frame spec.
+        """Build the ibis window specification string from partition_by,
+        order_by, and frame spec.
 
         Returns:
             String like: ibis.window(group_by=[source_table.col1], order_by=[source_table.col2.desc()], preceding=2, following=0)
@@ -150,12 +150,13 @@ class WindowTransformation(BaseTransformation):
         return f"source_table.{agg_col}.{method}()"
 
     def _is_expression(self, agg_col: str) -> bool:
-        """Check if agg_col contains operators or parentheses (i.e., is an expression)."""
+        """Check if agg_col contains operators or parentheses (i.e., is an
+        expression)."""
         return any(op in agg_col for op in ['+', '-', '*', '/', '%', '(', ')'])
 
     def _parse_expression_to_ibis(self, expr: str) -> str:
-        """
-        Parse an arithmetic expression and convert column references to Ibis syntax.
+        """Parse an arithmetic expression and convert column references to Ibis
+        syntax.
 
         Examples:
             "l_extendedprice*(1-l_discount)" -> "(source_table['l_extendedprice'] * (1 - source_table['l_discount']))"
@@ -220,7 +221,8 @@ class WindowTransformation(BaseTransformation):
         return f"source_table['{expr}']"
 
     def _build_aggregate_expr(self, column_parser: ColumnParser, func_name: str) -> str:
-        """Build expression for aggregate window functions (SUM, AVG, COUNT, MIN, MAX)."""
+        """Build expression for aggregate window functions (SUM, AVG, COUNT,
+        MIN, MAX)."""
         agg_col = column_parser.agg_column
         if not agg_col:
             # COUNT(*) case - count all rows using first available column
@@ -259,8 +261,7 @@ class WindowTransformation(BaseTransformation):
             raise ValueError(f"Unsupported window function: {func_name}")
 
     def _build_window_function_statement(self, column_parser: ColumnParser) -> str:
-        """
-        Build a mutate statement for a window function column.
+        """Build a mutate statement for a window function column.
 
         Returns:
             String like: .mutate(col_name=ibis.row_number().over(ibis.window(...)))
@@ -277,13 +278,15 @@ class WindowTransformation(BaseTransformation):
     def _build_result_order_by(self, column_parsers: list[ColumnParser]) -> str:
         """Build an .order_by() statement from window ORDER BY specifications.
 
-        The ORDER BY inside a window function's OVER clause only controls the
-        window calculation (e.g. row-number assignment), NOT the result-set
-        ordering.  PostgreSQL happens to preserve the window order as a
-        side-effect, but Snowflake (and other distributed databases) do not.
-        Adding an explicit .order_by() ensures consistent behaviour everywhere.
+        The ORDER BY inside a window function's OVER clause only
+        controls the window calculation (e.g. row-number assignment),
+        NOT the result-set ordering.  PostgreSQL happens to preserve the
+        window order as a side-effect, but Snowflake (and other
+        distributed databases) do not. Adding an explicit .order_by()
+        ensures consistent behaviour everywhere.
 
-        Uses the ORDER BY from the last window function that specifies one.
+        Uses the ORDER BY from the last window function that specifies
+        one.
         """
         last_order_by = next(
             (p.order_by for p in reversed(column_parsers) if p.order_by),
@@ -304,9 +307,8 @@ class WindowTransformation(BaseTransformation):
         return f".order_by([{', '.join(order_parts)}])"
 
     def _parse_window_transformations(self) -> list[str]:
-        """
-        Parse window transformations from column parsers and return a list of
-        Ibis mutate statements using window functions.
+        """Parse window transformations from column parsers and return a list
+        of Ibis mutate statements using window functions.
 
         Raises:
             ValueError: If a column does not have a valid window function.

@@ -104,7 +104,8 @@ def delete_environment(request: Request, environment_id: str):
 @api_view([HTTPMethods.GET])
 @handle_http_request
 def reveal_environment_credentials(request: Request, environment_id: str) -> Response:
-    """Return decrypted environment connection details for the reveal action."""
+    """Return decrypted environment connection details for the reveal
+    action."""
     env_context = EnvironmentContext()
     credentials = env_context.reveal_environment_credentials(environment_id=environment_id)
     response_data = {"status": "success", "data": credentials}
@@ -128,7 +129,7 @@ def test_environment(request: Request):
     request_data: dict[str, Any] = request.data
     datasource: str = request_data.get("datasource")
     connection_data: dict[str, Any] = request_data.get("connection_details")
-    
+
     # Decrypt sensitive fields from frontend encrypted data
     from backend.utils.decryption_utils import decrypt_sensitive_fields
     if connection_data:
@@ -136,5 +137,5 @@ def test_environment(request: Request):
         test_connection_data(datasource=datasource, connection_data=decrypted_connection_data)
     else:
         test_connection_data(datasource=datasource, connection_data=connection_data)
-    
+
     return Response(data={"status": "success"}, status=status.HTTP_200_OK)

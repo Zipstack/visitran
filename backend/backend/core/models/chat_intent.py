@@ -3,10 +3,8 @@ from utils.models.base_model import BaseModel
 
 
 class ChatIntent(BaseModel):
-    """
-    Represents a fixed set of intents used in the chat system,
-    such as info queries, content generation, SQL tasks, etc.
-    """
+    """Represents a fixed set of intents used in the chat system, such as info
+    queries, content generation, SQL tasks, etc."""
 
     NAME_CHOICES = [
         ('INFO', 'INFO'),
@@ -45,13 +43,11 @@ class ChatIntent(BaseModel):
         unique=True,
         help_text="User-facing display name for the intent."
     )
-    
+
     objects = models.Manager()
 
     def __str__(self) -> str:
-        """
-        Descriptive name combining internal name and display name.
-        """
+        """Descriptive name combining internal name and display name."""
         return f"{self.name} ({self.display_name})"
 
     class Meta:
