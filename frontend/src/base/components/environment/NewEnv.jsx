@@ -441,7 +441,6 @@ const NewEnv = ({
             connection_type: connType,
           }),
         },
-
       };
 
       // Encrypt sensitive fields if encryption service is available
@@ -495,7 +494,6 @@ const NewEnv = ({
             connection_type: connType,
           }),
         },
-
       };
 
       // Encrypt sensitive fields if encryption service is available
