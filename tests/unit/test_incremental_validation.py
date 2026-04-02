@@ -69,15 +69,11 @@ class TestIncrementalValidation:
         # Should not raise any exceptions
         model._validate_incremental_config()
 
-    def test_invalid_model_no_primary_key(self):
-        """Test that model without primary key raises error."""
+    def test_model_no_primary_key_uses_append_mode(self):
+        """Test that model without primary key uses APPEND mode (no error)."""
         model = InvalidIncrementalModelNoPrimaryKey()
-
-        with pytest.raises(ValueError) as exc_info:
-            model._validate_incremental_config()
-
-        assert "Primary key is required" in str(exc_info.value)
-        assert "self.primary_key" in str(exc_info.value)
+        # primary_key is optional — without it, incremental uses APPEND mode
+        model._validate_incremental_config()
 
     def test_invalid_model_no_delta_strategy(self):
         """Test that model without delta strategy raises error."""
