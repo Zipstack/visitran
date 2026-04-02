@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Tooltip, Typography, Space, Spin, theme } from "antd";
+import { Tooltip, Space, Spin, theme } from "antd";
 import { LoadingOutlined, WalletOutlined } from "@ant-design/icons";
 import PropTypes from "prop-types";
+import InfoChip from "./InfoChip";
 
 const { useToken } = theme;
 
@@ -157,41 +158,12 @@ const CircularTokenDisplay = ({ tokenData, onBuyTokens, isLoading }) => {
     );
 
     return (
-      <Tooltip
-        title={noCreditsTooltip}
-        color={token.colorBgElevated}
-        overlayInnerStyle={{
-          border: `1px solid ${token.colorBorder}`,
-          borderRadius: "8px",
-        }}
-      >
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            padding: "4px 12px",
-            borderRadius: "100px",
-            backgroundColor: token.colorErrorBg,
-            border: `1px solid ${token.colorErrorBorder}`,
-            cursor: "default",
-            transition: "all 0.3s ease",
-          }}
-        >
-          <WalletOutlined
-            style={{ fontSize: "12px", color: token.colorError }}
-          />
-          <Typography.Text
-            className="chat-ai-prompt-actions-monaco-font-size-10"
-            style={{
-              whiteSpace: "nowrap",
-              color: token.colorError,
-            }}
-          >
-            No Credits
-          </Typography.Text>
-        </div>
-      </Tooltip>
+      <InfoChip
+        icon={<WalletOutlined className="chat-ai-info-chip-icon" />}
+        text="No Credits"
+        tooltipTitle={noCreditsTooltip}
+        className="chat-ai-info-chip-error"
+      />
     );
   }
 
@@ -200,39 +172,12 @@ const CircularTokenDisplay = ({ tokenData, onBuyTokens, isLoading }) => {
   const formattedCredits = creditsLeft.toLocaleString();
 
   return (
-    <Tooltip
-      title={tooltipContent}
-      placement="top"
-      color={token.colorBgElevated}
-      overlayInnerStyle={{
-        border: `1px solid ${token.colorBorder}`,
-        borderRadius: "8px",
-      }}
-    >
-      <div
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "6px",
-          padding: "4px 12px",
-          borderRadius: "100px", // Pill shape
-          backgroundColor: token.colorBgContainer,
-          border: `1px solid ${token.colorBorder}`,
-          cursor: "pointer",
-          transition: "all 0.3s ease",
-        }}
-      >
-        <WalletOutlined style={{ fontSize: "12px", color: token.colorText }} />
-        <Typography.Text
-          className="chat-ai-prompt-actions-monaco-font-size-10"
-          style={{
-            whiteSpace: "nowrap",
-          }}
-        >
-          {formattedCredits} credits left
-        </Typography.Text>
-      </div>
-    </Tooltip>
+    <InfoChip
+      icon={<WalletOutlined className="chat-ai-info-chip-icon" />}
+      text={`${formattedCredits} credits left`}
+      tooltipTitle={tooltipContent}
+      className="chat-ai-info-chip-clickable"
+    />
   );
 };
 

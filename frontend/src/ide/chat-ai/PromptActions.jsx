@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo } from "react";
 import { Space, Typography, Select, Switch, Segmented, Tooltip } from "antd";
 import {
   ConsoleSqlOutlined,
+  DatabaseOutlined,
   MessageOutlined,
   RetweetOutlined,
   WalletOutlined,
@@ -10,8 +11,10 @@ import PropTypes from "prop-types";
 
 import { CHAT_INTENTS } from "./helper";
 import CircularTokenDisplay from "./CircularTokenDisplay";
+import InfoChip from "./InfoChip";
 import { useTokenStore } from "../../store/token-store";
 import { useSessionStore } from "../../store/session-store";
+import { useProjectStore } from "../../store/project-store";
 
 // Define hidden intents and a fixed order array
 const HIDDEN_CHAT_INTENTS = ["AUTO", "NOTA", "INFO"];
@@ -49,6 +52,7 @@ const PromptActions = memo(function PromptActions({
   // Get token balance from store
   const { tokenBalance, isLoading: isTokenLoading } = useTokenStore();
   const isCloud = useSessionStore((state) => state.sessionDetails?.is_cloud);
+  const currentSchema = useProjectStore((state) => state.currentSchema);
 
   const llmOptions = useMemo(
     () =>
@@ -145,24 +149,35 @@ const PromptActions = memo(function PromptActions({
           )}
       </Space>
 
-      {/* Cloud: full credit display | OSS: link to billing page */}
-      {isCloud ? (
-        <CircularTokenDisplay
-          tokenData={tokenBalance}
-          onBuyTokens={onBuyTokens}
-          isLoading={isTokenLoading}
-        />
-      ) : (
-        <a
-          href="https://us.app.visitran.com/project/setting/subscriptions"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="chat-ai-manage-credits-link"
-        >
-          <WalletOutlined />
-          <span>Manage Credits</span>
-        </a>
-      )}
+      <Space>
+        {/* Cloud: full credit display | OSS: link to billing page */}
+        {isCloud ? (
+          <CircularTokenDisplay
+            tokenData={tokenBalance}
+            onBuyTokens={onBuyTokens}
+            isLoading={isTokenLoading}
+          />
+        ) : (
+          <a
+            href="https://us.app.visitran.com/project/setting/subscriptions"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="chat-ai-manage-credits-link"
+          >
+            <WalletOutlined />
+            <span>Manage Credits</span>
+          </a>
+        )}
+
+        {/* Schema indicator */}
+        {currentSchema && (
+          <InfoChip
+            icon={<DatabaseOutlined className="chat-ai-info-chip-icon" />}
+            text={currentSchema}
+            tooltipTitle="All new models generated will be created inside this schema. To modify it, click the settings icon from the left explorer."
+          />
+        )}
+      </Space>
 
       <div>
         <Tooltip
