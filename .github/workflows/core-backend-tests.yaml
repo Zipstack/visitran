@@ -59,7 +59,7 @@ jobs:
         run: git fetch --unshallow
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarcloud-github-action@v3
         if: ${{ github.actor != 'dependabot[bot]' }}
         continue-on-error: true
         env:
