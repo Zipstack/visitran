@@ -252,15 +252,21 @@ const NewEnv = ({
   const getAllConnections = useCallback(
     async (updatedConnection) => {
       if (updatedConnection?.id) {
+        const conn = { ...updatedConnection };
+        if (!conn.db_icon && conn.datasource_name) {
+          const iconName =
+            conn.datasource_name === "postgres"
+              ? "postgresql"
+              : conn.datasource_name;
+          conn.db_icon = `https://storage.googleapis.com/visitran-static/adapter/${iconName}.png`;
+        }
         setConnectionList((prev) => {
           const list = prev || [];
-          const exists = list.some((c) => c?.id === updatedConnection.id);
+          const exists = list.some((c) => c?.id === conn.id);
           if (exists) {
-            return list.map((c) =>
-              c?.id === updatedConnection.id ? updatedConnection : c
-            );
+            return list.map((c) => (c?.id === conn.id ? conn : c));
           }
-          return [...list, updatedConnection];
+          return [...list, conn];
         });
         return;
       }
