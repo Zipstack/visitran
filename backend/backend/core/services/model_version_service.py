@@ -484,6 +484,33 @@ def _sync_to_git(version: ModelVersion) -> None:
     version.git_sync_status = "pending"
     version.save(update_fields=["git_sync_status"])
 
+    # PR workflow modes: auto (branch + push + PR), manual (branch + push only)
+    if config.pr_mode in ("auto", "manual"):
+        try:
+            if config.pr_mode == "auto":
+                from backend.core.services.git_pr_service import commit_version_to_branch
+                commit_version_to_branch(
+                    project_instance=version.project_instance,
+                    version=version,
+                    git_config=config,
+                    commit_message=version.commit_message,
+                )
+            else:
+                from backend.core.services.git_pr_service import push_version_to_branch
+                push_version_to_branch(
+                    project_instance=version.project_instance,
+                    version=version,
+                    git_config=config,
+                )
+        except Exception as exc:
+            logger.warning("PR workflow FAILED for project v%d: %s", version.version_number, str(exc)[:200], exc_info=True)
+            version.git_sync_status = "failed"
+            version.save(update_fields=["git_sync_status"])
+            config.connection_status = "error"
+            config.error_message = str(exc)[:500]
+            config.save(update_fields=["connection_status", "error_message"])
+        return
+
     project = version.project_instance
     project_name = project.project_name if project else ""
     org_id = str(project.organization_id) if project and project.organization_id else ""
@@ -556,6 +583,8 @@ def _serialize_version(version: ModelVersion, include_data: bool = False) -> dic
         "created_at": version.created_at.isoformat(),
         "git_sync_status": version.git_sync_status,
         "git_commit_sha": version.git_commit_sha,
+        "pr_number": version.pr_number,
+        "pr_url": version.pr_url or "",
         "model_count": len(model_names),
         "model_names": model_names,
     }

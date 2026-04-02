@@ -14,7 +14,11 @@ from typing import Any, Optional
 import httpx
 
 from backend.errors.exceptions import (
+    GitBranchAlreadyExistsException,
+    GitBranchException,
     GitConnectionFailedException,
+    GitPRAlreadyExistsException,
+    GitPRException,
     GitPushFailedException,
     GitRateLimitException,
     GitTokenExpiredException,
@@ -68,6 +72,23 @@ class GitServiceBase(ABC):
     @abstractmethod
     def get_repo_info(self) -> dict[str, Any]: ...
 
+    @abstractmethod
+    def list_branches(self, per_page: int = 100) -> list[dict[str, Any]]: ...
+
+    @abstractmethod
+    def get_branch(self, branch_name: str) -> Optional[dict[str, Any]]: ...
+
+    @abstractmethod
+    def create_branch(self, branch_name: str, from_branch: Optional[str] = None) -> dict[str, Any]: ...
+
+    @abstractmethod
+    def create_pull_request(
+        self, title: str, body: str, head_branch: str, base_branch: Optional[str] = None,
+    ) -> dict[str, Any]: ...
+
+    @abstractmethod
+    def get_pull_request(self, pr_number: int) -> dict[str, Any]: ...
+
 
 class GitHubService(GitServiceBase):
     """GitHub REST API v3 implementation using httpx."""
@@ -87,7 +108,7 @@ class GitHubService(GitServiceBase):
             timeout=HTTPX_TIMEOUT,
         )
         self._sha_cache: dict[str, str] = {}
-        logger.info(
+        logger.debug(
             "GitHubService initialized for %s/%s (branch=%s, token=%s)",
             self._owner, self._repo, self._branch, _sanitize_token(self._token),
         )
@@ -286,6 +307,117 @@ class GitHubService(GitServiceBase):
             for c in response.json()
         ]
 
+    def list_branches(self, per_page: int = 100) -> list[dict[str, Any]]:
+        response = self._request_with_retry(
+            "GET", f"/repos/{self._owner}/{self._repo}/branches",
+            params={"per_page": min(per_page, 100)},
+        )
+        self._handle_auth_error(response)
+        if response.status_code != 200:
+            logger.warning("Failed to list branches (HTTP %d): %s", response.status_code, response.text[:200])
+            return []
+        return [
+            {"name": b.get("name", ""), "protected": b.get("protected", False)}
+            for b in response.json()
+        ]
+
+    def get_branch(self, branch_name: str) -> Optional[dict[str, Any]]:
+        response = self._request_with_retry(
+            "GET", f"/repos/{self._owner}/{self._repo}/branches/{branch_name}",
+        )
+        self._handle_auth_error(response)
+        if response.status_code == 404:
+            return None
+        if response.status_code != 200:
+            raise GitBranchException(
+                branch_name=branch_name,
+                error_message=f"Failed to get branch (HTTP {response.status_code}): {response.text[:200]}",
+            )
+        data = response.json()
+        return {"name": data.get("name", ""), "sha": data.get("commit", {}).get("sha", "")}
+
+    def create_branch(self, branch_name: str, from_branch: Optional[str] = None) -> dict[str, Any]:
+        source = from_branch or self._branch
+        source_info = self.get_branch(source)
+        if not source_info:
+            raise GitBranchException(
+                branch_name=source,
+                error_message=f"Source branch '{source}' not found.",
+            )
+        payload = {"ref": f"refs/heads/{branch_name}", "sha": source_info["sha"]}
+        response = self._request_with_retry(
+            "POST", f"/repos/{self._owner}/{self._repo}/git/refs", json=payload,
+        )
+        self._handle_auth_error(response)
+        if response.status_code == 422:
+            body = response.json() if response.content else {}
+            if "reference already exists" in body.get("message", "").lower():
+                raise GitBranchAlreadyExistsException(branch_name=branch_name)
+            raise GitBranchException(
+                branch_name=branch_name,
+                error_message=f"GitHub rejected branch creation: {body.get('message', 'Validation failed')}",
+            )
+        if response.status_code not in (200, 201):
+            raise GitBranchException(
+                branch_name=branch_name,
+                error_message=f"Failed to create branch (HTTP {response.status_code}): {response.text[:200]}",
+            )
+        data = response.json()
+        sha = data.get("object", {}).get("sha", source_info["sha"])
+        logger.info("Branch created: %s (sha=%s)", branch_name, sha[:8])
+        return {"branch_name": branch_name, "sha": sha}
+
+    def create_pull_request(
+        self, title: str, body: str, head_branch: str, base_branch: Optional[str] = None,
+    ) -> dict[str, Any]:
+        base = base_branch or self._branch
+        payload = {"title": title, "body": body, "head": head_branch, "base": base}
+        response = self._request_with_retry(
+            "POST", f"/repos/{self._owner}/{self._repo}/pulls", json=payload,
+        )
+        self._handle_auth_error(response)
+        if response.status_code == 422:
+            body_resp = response.json() if response.content else {}
+            errors = body_resp.get("errors", [])
+            if any("pull request already exists" in (e.get("message", "")).lower() for e in errors):
+                raise GitPRAlreadyExistsException(head_branch=head_branch, base_branch=base)
+            raise GitPRException(
+                error_message=f"GitHub rejected PR creation: {body_resp.get('message', 'Validation failed')}",
+            )
+        if response.status_code not in (200, 201):
+            raise GitPRException(
+                error_message=f"Failed to create PR (HTTP {response.status_code}): {response.text[:200]}",
+            )
+        data = response.json()
+        pr_number = data.get("number", 0)
+        logger.info("PR created: #%d (%s -> %s)", pr_number, head_branch, base)
+        return {
+            "pr_number": pr_number,
+            "pr_url": data.get("html_url", ""),
+            "title": data.get("title", ""),
+            "state": data.get("state", ""),
+        }
+
+    def get_pull_request(self, pr_number: int) -> dict[str, Any]:
+        response = self._request_with_retry(
+            "GET", f"/repos/{self._owner}/{self._repo}/pulls/{pr_number}",
+        )
+        self._handle_auth_error(response)
+        if response.status_code == 404:
+            raise GitPRException(error_message=f"Pull request #{pr_number} not found.")
+        if response.status_code != 200:
+            raise GitPRException(
+                error_message=f"Failed to get PR (HTTP {response.status_code}): {response.text[:200]}",
+            )
+        data = response.json()
+        return {
+            "pr_number": data.get("number", 0),
+            "pr_url": data.get("html_url", ""),
+            "title": data.get("title", ""),
+            "state": data.get("state", ""),
+            "mergeable": data.get("mergeable"),
+        }
+
     def get_repo_info(self) -> dict[str, Any]:
         response = self._request_with_retry("GET", f"/repos/{self._owner}/{self._repo}")
         self._handle_auth_error(response)
@@ -304,6 +436,294 @@ class GitHubService(GitServiceBase):
         }
 
 
+# ── GitLab Implementation ──
+
+
+class GitLabService(GitServiceBase):
+    """GitLab REST API v4 implementation using httpx."""
+
+    def __init__(self, repo_url: str, token: str, branch: str = "main") -> None:
+        self._repo_url = repo_url
+        self._token = token
+        self._branch = branch
+        self._base_url, self._project_path = self._parse_url(repo_url)
+        self._client = httpx.Client(
+            base_url=self._base_url,
+            headers={
+                "Content-Type": "application/json",
+                "PRIVATE-TOKEN": token,
+            },
+            timeout=HTTPX_TIMEOUT,
+        )
+        self._sha_cache: dict[str, str] = {}
+        logger.debug(
+            "GitLabService initialized for %s (branch=%s, token=%s)",
+            self._project_path, self._branch, _sanitize_token(self._token),
+        )
+
+    def __del__(self) -> None:
+        try:
+            self._client.close()
+        except Exception:
+            pass
+
+    @staticmethod
+    def _parse_url(repo_url: str) -> tuple[str, str]:
+        """Extract API base URL and URL-encoded project path from a GitLab URL."""
+        import urllib.parse
+        url = repo_url.strip().rstrip("/")
+        if url.endswith(".git"):
+            url = url[:-4]
+        # SSH: git@gitlab.com:org/repo
+        ssh_match = re.match(r"git@([^:]+):(.+?)(?:\.git)?$", url)
+        if ssh_match:
+            host = ssh_match.group(1)
+            path = ssh_match.group(2)
+            return f"https://{host}/api/v4", urllib.parse.quote(path, safe="")
+        # HTTPS: https://gitlab.com/org/repo
+        match = re.match(r"https?://([^/]+)/(.+)", url)
+        if not match:
+            raise GitConnectionFailedException(error_message=f"Invalid GitLab URL: {_sanitize_url(repo_url)}")
+        host = match.group(1)
+        path = match.group(2)
+        return f"https://{host}/api/v4", urllib.parse.quote(path, safe="")
+
+    def _request_with_retry(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
+        last_exc: Optional[Exception] = None
+        backoff = INITIAL_BACKOFF
+        for attempt in range(1, MAX_RETRIES + 1):
+            try:
+                response = self._client.request(method, url, **kwargs)
+                if response.status_code < 500 and response.status_code != 429:
+                    return response
+                if response.status_code == 429:
+                    retry_after = response.headers.get("retry-after")
+                    wait = int(retry_after) if retry_after else backoff
+                    logger.warning("GitLab 429 (attempt %d/%d), waiting %ds", attempt, MAX_RETRIES, wait)
+                    if attempt < MAX_RETRIES:
+                        time.sleep(wait)
+                        backoff *= 2
+                        continue
+                    raise GitRateLimitException()
+                logger.warning("GitLab %d (attempt %d/%d), retrying in %.1fs", response.status_code, attempt, MAX_RETRIES, backoff)
+                if attempt < MAX_RETRIES:
+                    time.sleep(backoff)
+                    backoff *= 2
+                    continue
+                return response
+            except httpx.RequestError as exc:
+                last_exc = exc
+                logger.warning("GitLab request error (attempt %d/%d): %s", attempt, MAX_RETRIES, str(exc))
+                if attempt < MAX_RETRIES:
+                    time.sleep(backoff)
+                    backoff *= 2
+                    continue
+        raise GitConnectionFailedException(error_message=f"Network error after {MAX_RETRIES} attempts: {last_exc}")
+
+    def _handle_auth_error(self, response: httpx.Response) -> None:
+        if response.status_code == 401:
+            raise GitTokenExpiredException()
+        if response.status_code == 403:
+            raise GitConnectionFailedException(error_message="Access denied. Ensure the token has api or read_api scope.")
+
+    def _proj(self) -> str:
+        return self._project_path
+
+    def test_connection(self) -> dict[str, Any]:
+        response = self._request_with_retry("GET", f"/projects/{self._proj()}")
+        self._handle_auth_error(response)
+        if response.status_code == 404:
+            raise GitConnectionFailedException(error_message=f"Project not found: {self._project_path}. Check the URL and permissions.")
+        if response.status_code != 200:
+            raise GitConnectionFailedException(error_message=f"GitLab API error (HTTP {response.status_code}): {response.text[:200]}")
+        data = response.json()
+        permissions = data.get("permissions", {})
+        access = max(
+            (permissions.get("project_access") or {}).get("access_level", 0),
+            (permissions.get("group_access") or {}).get("access_level", 0),
+        )
+        if access < 30:  # Developer (30) can push; Maintainer (40) can merge
+            raise GitConnectionFailedException(error_message="Developer access or higher required to push to this project.")
+        return {
+            "success": True,
+            "repo_info": {
+                "full_name": data.get("path_with_namespace", ""),
+                "default_branch": data.get("default_branch", "main"),
+                "private": data.get("visibility", "") == "private",
+                "permissions": {"push": access >= 30, "admin": access >= 40},
+            },
+        }
+
+    def get_file(self, path: str, ref: Optional[str] = None) -> tuple[Optional[str], Optional[str]]:
+        import urllib.parse
+        branch = ref or self._branch
+        encoded_path = urllib.parse.quote(path, safe="")
+        response = self._request_with_retry(
+            "GET", f"/projects/{self._proj()}/repository/files/{encoded_path}", params={"ref": branch},
+        )
+        self._handle_auth_error(response)
+        if response.status_code == 404:
+            return None, None
+        if response.status_code != 200:
+            raise GitConnectionFailedException(error_message=f"Failed to read file '{path}' (HTTP {response.status_code}): {response.text[:200]}")
+        data = response.json()
+        content = b64decode(data.get("content", "")).decode("utf-8")
+        sha = data.get("last_commit_id", "")
+        self._sha_cache[path] = sha
+        return content, sha
+
+    def put_file(self, path: str, content: str, message: str, sha: Optional[str] = None) -> dict[str, Any]:
+        import urllib.parse
+        encoded_path = urllib.parse.quote(path, safe="")
+        payload = {
+            "branch": self._branch,
+            "content": b64encode(content.encode("utf-8")).decode("ascii"),
+            "commit_message": message,
+            "encoding": "base64",
+        }
+        if sha is None:
+            sha = self._sha_cache.get(path)
+        method = "PUT" if sha else "POST"
+        response = self._request_with_retry(method, f"/projects/{self._proj()}/repository/files/{encoded_path}", json=payload)
+        self._handle_auth_error(response)
+        if response.status_code == 400:
+            body = response.json() if response.content else {}
+            if "already exists" in body.get("message", "").lower():
+                response = self._request_with_retry("PUT", f"/projects/{self._proj()}/repository/files/{encoded_path}", json=payload)
+            else:
+                raise GitPushFailedException(model_name=path, error_message=f"GitLab rejected file: {body.get('message', '')}")
+        if response.status_code not in (200, 201):
+            raise GitPushFailedException(model_name=path, error_message=f"Failed to write file '{path}' (HTTP {response.status_code}): {response.text[:200]}")
+        data = response.json()
+        commit_sha = data.get("commit_id", "") if isinstance(data, dict) else ""
+        logger.info("GitLab file written: %s (commit=%s)", path, commit_sha[:8] if commit_sha else "unknown")
+        return {"commit_sha": commit_sha, "html_url": ""}
+
+    def delete_file(self, path: str, sha: str, message: str) -> dict[str, Any]:
+        import urllib.parse
+        encoded_path = urllib.parse.quote(path, safe="")
+        payload = {"branch": self._branch, "commit_message": message}
+        response = self._request_with_retry("DELETE", f"/projects/{self._proj()}/repository/files/{encoded_path}", json=payload)
+        self._handle_auth_error(response)
+        if response.status_code not in (200, 204):
+            raise GitPushFailedException(model_name=path, error_message=f"Failed to delete file '{path}' (HTTP {response.status_code}): {response.text[:200]}")
+        self._sha_cache.pop(path, None)
+        logger.info("GitLab file deleted: %s", path)
+        return {"commit_sha": ""}
+
+    def list_commits(self, path: Optional[str] = None, page: int = 1, per_page: int = 30) -> list[dict[str, Any]]:
+        params: dict[str, Any] = {"ref_name": self._branch, "page": page, "per_page": min(per_page, 100)}
+        if path:
+            params["path"] = path
+        response = self._request_with_retry("GET", f"/projects/{self._proj()}/repository/commits", params=params)
+        self._handle_auth_error(response)
+        if response.status_code != 200:
+            logger.warning("Failed to list commits (HTTP %d): %s", response.status_code, response.text[:200])
+            return []
+        return [
+            {"sha": c.get("id", ""), "message": c.get("message", ""), "author": c.get("author_name", ""), "date": c.get("created_at", ""), "html_url": c.get("web_url", "")}
+            for c in response.json()
+        ]
+
+    def list_branches(self, per_page: int = 100) -> list[dict[str, Any]]:
+        response = self._request_with_retry("GET", f"/projects/{self._proj()}/repository/branches", params={"per_page": min(per_page, 100)})
+        self._handle_auth_error(response)
+        if response.status_code != 200:
+            logger.warning("Failed to list branches (HTTP %d): %s", response.status_code, response.text[:200])
+            return []
+        return [{"name": b.get("name", ""), "protected": b.get("protected", False)} for b in response.json()]
+
+    def get_branch(self, branch_name: str) -> Optional[dict[str, Any]]:
+        import urllib.parse
+        encoded = urllib.parse.quote(branch_name, safe="")
+        response = self._request_with_retry("GET", f"/projects/{self._proj()}/repository/branches/{encoded}")
+        self._handle_auth_error(response)
+        if response.status_code == 404:
+            return None
+        if response.status_code != 200:
+            raise GitBranchException(branch_name=branch_name, error_message=f"Failed to get branch (HTTP {response.status_code}): {response.text[:200]}")
+        data = response.json()
+        return {"name": data.get("name", ""), "sha": data.get("commit", {}).get("id", "")}
+
+    def create_branch(self, branch_name: str, from_branch: Optional[str] = None) -> dict[str, Any]:
+        source = from_branch or self._branch
+        payload = {"branch": branch_name, "ref": source}
+        response = self._request_with_retry("POST", f"/projects/{self._proj()}/repository/branches", json=payload)
+        self._handle_auth_error(response)
+        if response.status_code == 400:
+            body = response.json() if response.content else {}
+            if "already exists" in body.get("message", "").lower():
+                raise GitBranchAlreadyExistsException(branch_name=branch_name)
+            raise GitBranchException(branch_name=branch_name, error_message=f"GitLab rejected branch creation: {body.get('message', '')}")
+        if response.status_code not in (200, 201):
+            raise GitBranchException(branch_name=branch_name, error_message=f"Failed to create branch (HTTP {response.status_code}): {response.text[:200]}")
+        data = response.json()
+        sha = data.get("commit", {}).get("id", "")
+        logger.info("GitLab branch created: %s (sha=%s)", branch_name, sha[:8])
+        return {"branch_name": branch_name, "sha": sha}
+
+    def create_pull_request(self, title: str, body: str, head_branch: str, base_branch: Optional[str] = None) -> dict[str, Any]:
+        base = base_branch or self._branch
+        payload = {"title": title, "description": body, "source_branch": head_branch, "target_branch": base}
+        response = self._request_with_retry("POST", f"/projects/{self._proj()}/merge_requests", json=payload)
+        self._handle_auth_error(response)
+        if response.status_code == 409:
+            raise GitPRAlreadyExistsException(head_branch=head_branch, base_branch=base)
+        if response.status_code not in (200, 201):
+            body_resp = response.json() if response.content else {}
+            if "already exists" in str(body_resp.get("message", "")).lower():
+                raise GitPRAlreadyExistsException(head_branch=head_branch, base_branch=base)
+            raise GitPRException(error_message=f"Failed to create MR (HTTP {response.status_code}): {response.text[:200]}")
+        data = response.json()
+        mr_iid = data.get("iid", 0)
+        logger.info("GitLab MR created: !%d (%s -> %s)", mr_iid, head_branch, base)
+        return {"pr_number": mr_iid, "pr_url": data.get("web_url", ""), "title": data.get("title", ""), "state": data.get("state", "")}
+
+    def get_pull_request(self, pr_number: int) -> dict[str, Any]:
+        response = self._request_with_retry("GET", f"/projects/{self._proj()}/merge_requests/{pr_number}")
+        self._handle_auth_error(response)
+        if response.status_code == 404:
+            raise GitPRException(error_message=f"Merge request !{pr_number} not found.")
+        if response.status_code != 200:
+            raise GitPRException(error_message=f"Failed to get MR (HTTP {response.status_code}): {response.text[:200]}")
+        data = response.json()
+        return {
+            "pr_number": data.get("iid", 0), "pr_url": data.get("web_url", ""), "title": data.get("title", ""),
+            "state": data.get("state", ""), "mergeable": data.get("merge_status", "") == "can_be_merged",
+        }
+
+    def get_repo_info(self) -> dict[str, Any]:
+        response = self._request_with_retry("GET", f"/projects/{self._proj()}")
+        self._handle_auth_error(response)
+        if response.status_code != 200:
+            raise GitConnectionFailedException(error_message=f"Failed to fetch project info (HTTP {response.status_code}): {response.text[:200]}")
+        data = response.json()
+        return {
+            "full_name": data.get("path_with_namespace", ""), "default_branch": data.get("default_branch", "main"),
+            "private": data.get("visibility", "") == "private", "permissions": data.get("permissions", {}),
+            "description": data.get("description", ""), "html_url": data.get("web_url", ""),
+        }
+
+
+# ── Factory ──
+
+
+def _is_gitlab_host(repo_url: str) -> bool:
+    """Check if a host is a self-hosted GitLab instance by pinging its API."""
+    match = re.match(r"https?://([^/]+)", repo_url)
+    if not match:
+        return False
+    host = match.group(1)
+    try:
+        response = httpx.get(f"https://{host}/api/v4/version", timeout=5.0)
+        if response.status_code == 200:
+            data = response.json()
+            return "version" in data
+    except Exception:
+        pass
+    return False
+
+
 def get_git_service(config) -> GitServiceBase:
     """Create a git service instance from a GitRepoConfig model."""
     repo_url = config.repo_url or ""
@@ -312,4 +732,6 @@ def get_git_service(config) -> GitServiceBase:
     branch = config.branch_name or "main"
     if "github.com" in repo_url:
         return GitHubService(repo_url, token, branch)
+    if "gitlab.com" in repo_url or _is_gitlab_host(repo_url):
+        return GitLabService(repo_url, token, branch)
     raise UnsupportedGitProviderException(repo_url=_sanitize_url(repo_url))

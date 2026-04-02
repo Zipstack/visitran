@@ -79,6 +79,11 @@ class ModelVersion(DefaultOrganizationMixin, BaseModel):
     )
     git_commit_sha = models.CharField(max_length=40, blank=True, default="")
 
+    # PR tracking
+    git_branch_name = models.CharField(max_length=255, null=True, blank=True)
+    pr_number = models.IntegerField(null=True, blank=True)
+    pr_url = models.CharField(max_length=500, null=True, blank=True)
+
     # Denormalized search fields (extracted from model_data for indexed queries)
     extracted_model_name = models.CharField(
         max_length=200, blank=True, default="", db_index=True

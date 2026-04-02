@@ -456,6 +456,18 @@ class BackendErrorMessages(BaseConstant):
     GIT_CONFIG_ALREADY_EXISTS = (
         '**Git Config Exists!**\nProject "{project_id}" already has an active git configuration.'
     )
+    GIT_BRANCH_FAILED = (
+        '**Branch Operation Failed!**\nFailed to create or access branch "{branch_name}".\n{error_message}'
+    )
+    GIT_BRANCH_ALREADY_EXISTS = (
+        '**Branch Exists!**\nBranch "{branch_name}" already exists in the repository.'
+    )
+    GIT_PR_FAILED = (
+        '**Pull Request Failed!**\nFailed to create pull request.\n{error_message}'
+    )
+    GIT_PR_ALREADY_EXISTS = (
+        '**Pull Request Exists!**\nA pull request from "{head_branch}" to "{base_branch}" already exists.'
+    )
 
     # Token Balance Error Messages
     INSUFFICIENT_TOKEN_BALANCE = (

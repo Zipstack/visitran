@@ -15,6 +15,7 @@ import {
   ClockCircleOutlined,
   CloudSyncOutlined,
   CloseCircleOutlined,
+  GithubOutlined,
   EyeOutlined,
   MoreOutlined,
   PlayCircleOutlined,
@@ -97,6 +98,8 @@ function VersionTimeline({
   hasDraft,
   modelsWithDrafts,
   onViewDraftChanges,
+  onCreatePR,
+  creatingPR,
 }) {
   const [versions, setVersions] = useState([]);
   const [page, setPage] = useState(1);
@@ -111,6 +114,10 @@ function VersionTimeline({
   const isVersioningEnabled = useVersionHistoryStore(
     (s) => s.isVersioningEnabled
   );
+  const gitConfig = useVersionHistoryStore((s) => s.gitConfig);
+  const prWorkflowEnabled = gitConfig?.pr_mode !== "disabled";
+  const isGitLab = (gitConfig?.repo_url || "").includes("gitlab");
+  const prLabel = isGitLab ? "MR" : "PR";
 
   const loadVersions = useCallback(
     async (pageNum, append = false) => {
@@ -217,6 +224,19 @@ function VersionTimeline({
         onClick: () => handleRetrySync(version.version_id),
       });
     }
+    if (
+      prWorkflowEnabled &&
+      version.git_sync_status === "synced" &&
+      !version.pr_number
+    ) {
+      items.push({
+        key: "create-pr",
+        label: creatingPR ? `Creating ${prLabel}...` : `Create ${prLabel}`,
+        icon: <GithubOutlined />,
+        disabled: creatingPR,
+        onClick: () => onCreatePR?.(version.version_number),
+      });
+    }
     return items;
   };
 
@@ -241,6 +261,16 @@ function VersionTimeline({
             {version.version_number === currentVersionNumber && (
               <Tag color="green" style={{ fontSize: 10, margin: 0 }}>
                 Current
+              </Tag>
+            )}
+            {version.pr_url && (
+              <Tag
+                icon={<GithubOutlined />}
+                color="purple"
+                style={{ fontSize: 10, margin: 0, cursor: "pointer" }}
+                onClick={() => window.open(version.pr_url, "_blank")}
+              >
+                PR #{version.pr_number}
               </Tag>
             )}
             {isVersioningEnabled && (
@@ -356,6 +386,8 @@ VersionTimeline.propTypes = {
   hasDraft: PropTypes.bool,
   modelsWithDrafts: PropTypes.arrayOf(PropTypes.string),
   onViewDraftChanges: PropTypes.func,
+  onCreatePR: PropTypes.func,
+  creatingPR: PropTypes.bool,
 };
 
 export { VersionTimeline };

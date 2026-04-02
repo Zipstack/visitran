@@ -117,6 +117,59 @@ def get_current_version(request: Request, project_id: str) -> Response:
 
 @api_view([HTTPMethods.GET])
 @handle_http_request
+def get_version_pr(request: Request, project_id: str, version_number: int) -> Response:
+    """Get PR info associated with a version."""
+    project_instance = _get_project(project_id)
+    version = model_version_service.get_version(project_instance, version_number)
+    if not version.pr_number:
+        return Response(
+            data={"status": "failed", "error_message": "No PR associated with this version."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    return Response(data={"status": "success", "data": {
+        "pr_number": version.pr_number,
+        "pr_url": version.pr_url or "",
+        "version_number": version.version_number,
+    }}, status=status.HTTP_200_OK)
+
+
+@api_view([HTTPMethods.POST])
+@handle_http_request
+def create_version_pr(request: Request, project_id: str, version_number: int) -> Response:
+    """Create a PR for a version that has been pushed to a branch (manual mode)."""
+    from backend.core.models.git_repo_config import GitRepoConfig
+    from backend.core.services import git_pr_service
+
+    project_instance = _get_project(project_id)
+    try:
+        version = ModelVersion.objects.get(project_instance=project_instance, version_number=version_number)
+    except ModelVersion.DoesNotExist:
+        return Response(data={"status": "failed", "error_message": f"Version {version_number} not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    if version.pr_number:
+        return Response(data={"status": "failed", "data": {
+            "pr_number": version.pr_number, "pr_url": version.pr_url or "",
+            "message": "PR already exists for this version",
+        }}, status=status.HTTP_409_CONFLICT)
+
+    config = GitRepoConfig.objects.filter(project_id=project_id, is_deleted=False, is_active=True).first()
+    if not config:
+        return Response(data={"status": "failed", "error_message": "Git is not configured for this project."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if config.pr_mode == "disabled":
+        return Response(data={"status": "failed", "error_message": "PR workflow is not enabled for this project."}, status=status.HTTP_400_BAD_REQUEST)
+
+    pr_result = git_pr_service.create_pr_for_version(project_instance, version, config)
+    return Response(data={"status": "success", "data": {
+        "pr_number": pr_result["pr_number"],
+        "pr_url": pr_result["pr_url"],
+        "version_number": version.version_number,
+        "message": "PR created successfully",
+    }}, status=status.HTTP_200_OK)
+
+
+@api_view([HTTPMethods.GET])
+@handle_http_request
 def compare_versions(request: Request, project_id: str) -> Response:
     """Compare two project-level versions. Query params: version_a, version_b."""
     version_a = request.GET.get("version_a")

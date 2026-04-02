@@ -286,3 +286,51 @@ export async function fetchAvailableRepos(axiosRef, orgId, projectId) {
   });
   return res.data.data;
 }
+
+export async function fetchBranches(axiosRef, orgId, projectId) {
+  const res = await axiosRef({
+    method: "GET",
+    url: `${getGitConfigUrl(orgId, projectId)}/branches`,
+  });
+  return res.data.data?.branches || [];
+}
+
+export async function updatePRMode(
+  axiosRef,
+  orgId,
+  projectId,
+  csrfToken,
+  prMode,
+  prBaseBranch,
+  prBranchPrefix
+) {
+  const res = await axiosRef({
+    method: "POST",
+    url: `${getGitConfigUrl(orgId, projectId)}/enable-pr-workflow`,
+    data: { pr_mode: prMode, pr_base_branch: prBaseBranch, pr_branch_prefix: prBranchPrefix },
+    headers: { "X-CSRFToken": csrfToken },
+  });
+  return res.data.data;
+}
+
+export async function createVersionPR(axiosRef, orgId, projectId, csrfToken, versionNumber) {
+  const res = await axiosRef({
+    method: "POST",
+    url: `${getVersionUrl(orgId, projectId)}/version/${versionNumber}/create-pr`,
+    headers: { "X-CSRFToken": csrfToken },
+  });
+  return res.data.data;
+}
+
+export async function fetchVersionPR(
+  axiosRef,
+  orgId,
+  projectId,
+  versionNumber
+) {
+  const res = await axiosRef({
+    method: "GET",
+    url: `${getVersionUrl(orgId, projectId)}/version/${versionNumber}/pr`,
+  });
+  return res.data.data;
+}

@@ -608,3 +608,41 @@ class GitConfigAlreadyExistsException(VisitranBackendBaseException):
             http_status_code=status.HTTP_409_CONFLICT,
             project_id=project_id,
         )
+
+
+class GitBranchException(VisitranBackendBaseException):
+    def __init__(self, branch_name: str = "", error_message: str = "") -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.GIT_BRANCH_FAILED,
+            http_status_code=status.HTTP_400_BAD_REQUEST,
+            branch_name=branch_name,
+            error_message=error_message,
+        )
+
+
+class GitBranchAlreadyExistsException(VisitranBackendBaseException):
+    def __init__(self, branch_name: str = "") -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.GIT_BRANCH_ALREADY_EXISTS,
+            http_status_code=status.HTTP_409_CONFLICT,
+            branch_name=branch_name,
+        )
+
+
+class GitPRException(VisitranBackendBaseException):
+    def __init__(self, error_message: str = "") -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.GIT_PR_FAILED,
+            http_status_code=status.HTTP_400_BAD_REQUEST,
+            error_message=error_message,
+        )
+
+
+class GitPRAlreadyExistsException(VisitranBackendBaseException):
+    def __init__(self, head_branch: str = "", base_branch: str = "") -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.GIT_PR_ALREADY_EXISTS,
+            http_status_code=status.HTTP_409_CONFLICT,
+            head_branch=head_branch,
+            base_branch=base_branch,
+        )

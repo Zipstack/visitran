@@ -1,6 +1,6 @@
 import { useEffect, useCallback, memo, useState } from "react";
 import PropTypes from "prop-types";
-import { Alert, Segmented, Spin } from "antd";
+import { Alert, message, Segmented, Spin } from "antd";
 
 import { Header } from "./Header";
 import { VersionTimeline } from "./VersionTimeline";
@@ -16,7 +16,7 @@ import { useVersionHistoryStore } from "../../store/version-history-store";
 import { useRefreshModelsStore } from "../../store/refresh-models-store";
 import { useAxiosPrivate } from "../../service/axios-service";
 import { orgStore } from "../../store/org-store";
-import { fetchDraftStatus, fetchGitConfig } from "./services";
+import { createVersionPR, fetchDraftStatus, fetchGitConfig } from "./services";
 import "./version-history.css";
 
 const TAB_OPTIONS = ["History", "Config"];
@@ -53,6 +53,7 @@ const VersionHistoryDrawer = memo(function VersionHistoryDrawer({
     modelsWithDrafts: [],
   });
   const [compareMode, setCompareMode] = useState(null);
+  const [creatingPR, setCreatingPR] = useState(false);
 
   const loadDraftStatus = useCallback(async () => {
     try {
@@ -169,6 +170,51 @@ const VersionHistoryDrawer = memo(function VersionHistoryDrawer({
     setRefreshModels(true);
     loadDraftStatus();
   }, [setRefreshModels, loadDraftStatus]);
+  const handleCreatePR = useCallback(
+    async (versionNumber) => {
+      setCreatingPR(true);
+      try {
+        const orgId = orgStore.getState().selectedOrgId;
+        const csrfToken = (await import("js-cookie")).default.get("csrftoken");
+        const res = await createVersionPR(
+          axiosRef,
+          orgId,
+          projectId,
+          csrfToken,
+          versionNumber
+        );
+        message.success(
+          <span>
+            PR #{res.pr_number} created —{" "}
+            <a href={res.pr_url} target="_blank" rel="noreferrer">
+              View PR
+            </a>
+          </span>
+        );
+        setRefreshKey((k) => k + 1);
+      } catch (err) {
+        if (err?.response?.status === 409) {
+          const data = err.response.data?.data || err.response.data;
+          message.info(
+            <span>
+              PR #{data.pr_number} already exists —{" "}
+              <a href={data.pr_url} target="_blank" rel="noreferrer">
+                View PR
+              </a>
+            </span>
+          );
+          setRefreshKey((k) => k + 1);
+        } else {
+          message.error(
+            err?.response?.data?.error_message || "Failed to create PR"
+          );
+        }
+      } finally {
+        setCreatingPR(false);
+      }
+    },
+    [axiosRef, projectId]
+  );
   const handleExecuteRollback = useCallback((vn) => {
     setExecuteOpen(false);
     setExecuteTarget(null);
@@ -239,6 +285,8 @@ const VersionHistoryDrawer = memo(function VersionHistoryDrawer({
             hasDraft={draftStatus.hasDraft}
             modelsWithDrafts={draftStatus.modelsWithDrafts}
             onViewDraftChanges={handleViewDraftChanges}
+            onCreatePR={handleCreatePR}
+            creatingPR={creatingPR}
           />
         </>
       );

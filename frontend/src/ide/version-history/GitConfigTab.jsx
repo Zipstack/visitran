@@ -7,6 +7,7 @@ import {
   Divider,
   Input,
   Modal,
+  Segmented,
   Select,
   Space,
   Tag,
@@ -31,8 +32,10 @@ import { useVersionHistoryStore } from "../../store/version-history-store";
 import {
   deleteGitConfig,
   fetchAvailableRepos,
+  fetchBranches,
   saveGitConfig,
   testGitConnection,
+  updatePRMode,
 } from "./services";
 
 const { Text, Paragraph } = Typography;
@@ -55,6 +58,12 @@ const GitConfigTab = memo(function GitConfigTab({
   const [selectedMode, setSelectedMode] = useState(null);
   const [repoUrl, setRepoUrl] = useState("");
   const [authType, setAuthType] = useState("pat");
+  const provider =
+    repoUrl.includes("gitlab.com") ||
+    (repoUrl && !repoUrl.includes("github.com") && repoUrl.includes("gitlab"))
+      ? "gitlab"
+      : "github";
+  const prLabel = provider === "gitlab" ? "MR" : "PR";
   const [token, setToken] = useState("");
   const [branchName, setBranchName] = useState("main");
   const [basePath, setBasePath] = useState("");
@@ -64,7 +73,33 @@ const GitConfigTab = memo(function GitConfigTab({
   const [testError, setTestError] = useState(null);
   const [saving, setSaving] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
+
+  // PR workflow state
+  const [prMode, setPrMode] = useState(gitConfig?.pr_mode || "disabled");
+  const [prBaseBranch, setPrBaseBranch] = useState(
+    gitConfig?.pr_base_branch || "main"
+  );
+  const [prBranchPrefix, setPrBranchPrefix] = useState(
+    gitConfig?.pr_branch_prefix || "visitran/"
+  );
+  const [branches, setBranches] = useState([]);
+  const [branchesLoading, setBranchesLoading] = useState(false);
+  const [prSaving, setPrSaving] = useState(false);
+  const [prSaveResult, setPrSaveResult] = useState(null);
+
   const isConfigured = !!gitConfig;
+
+  useEffect(() => {
+    if (gitConfig?.pr_mode) {
+      setPrMode(gitConfig.pr_mode);
+    }
+    if (gitConfig?.pr_base_branch) {
+      setPrBaseBranch(gitConfig.pr_base_branch);
+    }
+    if (gitConfig?.pr_branch_prefix) {
+      setPrBranchPrefix(gitConfig.pr_branch_prefix);
+    }
+  }, [gitConfig?.pr_mode, gitConfig?.pr_base_branch, gitConfig?.pr_branch_prefix]);
 
   useEffect(() => {
     loadAvailableRepos();
@@ -238,6 +273,49 @@ const GitConfigTab = memo(function GitConfigTab({
     onConfigSaved,
   ]);
 
+  const handlePRModeChange = useCallback(
+    async (newMode) => {
+      const prevMode = prMode;
+      setPrMode(newMode);
+      setPrSaveResult(null);
+      if (newMode !== "disabled" && branches.length === 0) {
+        setBranchesLoading(true);
+        try {
+          const branchList = await fetchBranches(axiosRef, orgId, projectId);
+          setBranches(branchList);
+        } catch { /* silent */ }
+        finally { setBranchesLoading(false); }
+      }
+      setPrSaving(true);
+      try {
+        const updated = await updatePRMode(axiosRef, orgId, projectId, csrfToken, newMode, prBaseBranch, prBranchPrefix);
+        setGitConfig(updated);
+        const modeLabel = newMode === "auto" ? "Auto" : newMode === "manual" ? "Manual" : "Off";
+        setPrSaveResult({ type: "success", message: newMode === "disabled" ? "PR workflow disabled" : `${modeLabel} PR workflow enabled` });
+      } catch (error) {
+        setPrMode(prevMode);
+        setPrSaveResult({ type: "error", message: error?.response?.data?.error_message || error?.message || "Failed to update PR mode" });
+      } finally {
+        setPrSaving(false);
+      }
+    },
+    [axiosRef, orgId, projectId, csrfToken, prBaseBranch, prBranchPrefix, prMode, branches.length, setGitConfig]
+  );
+
+  const handlePrSettingsSave = useCallback(async () => {
+    setPrSaving(true);
+    setPrSaveResult(null);
+    try {
+      const updated = await updatePRMode(axiosRef, orgId, projectId, csrfToken, prMode, prBaseBranch, prBranchPrefix);
+      setGitConfig(updated);
+      setPrSaveResult({ type: "success", message: "PR settings saved" });
+    } catch (error) {
+      setPrSaveResult({ type: "error", message: error?.response?.data?.error_message || error?.message || "Failed to save PR settings" });
+    } finally {
+      setPrSaving(false);
+    }
+  }, [axiosRef, orgId, projectId, csrfToken, prMode, prBaseBranch, prBranchPrefix, setGitConfig]);
+
   const canTest =
     selectedMode === "default" ||
     (selectedMode === "custom" && repoUrl && token);
@@ -297,6 +375,45 @@ const GitConfigTab = memo(function GitConfigTab({
             </div>
           )}
         </div>
+        <Divider plain>
+          {(gitConfig.repo_url || "").includes("gitlab") ? "MR" : "PR"} Workflow
+        </Divider>
+        <div style={{ marginBottom: 12 }}>
+          <Segmented
+            block
+            size="small"
+            value={prMode}
+            onChange={handlePRModeChange}
+            disabled={prSaving}
+            options={(() => {
+              const isGL = (gitConfig.repo_url || "").includes("gitlab");
+              return [
+                { label: "Off", value: "disabled" },
+                { label: isGL ? "Auto MR" : "Auto PR", value: "auto" },
+                { label: isGL ? "Manual MR" : "Manual PR", value: "manual" },
+              ];
+            })()}
+          />
+        </div>
+        {prMode === "manual" && (
+          <Alert type="info" message="Commits push to a feature branch. Create PRs manually from the version timeline." showIcon style={{ marginBottom: 8 }} />
+        )}
+        {prMode !== "disabled" && (
+          <div className="git-config-form" style={{ marginTop: 8 }}>
+            <div className="git-config-field">
+              <Text type="secondary" style={{ fontSize: 12 }}>Base Branch</Text>
+              <Select value={prBaseBranch} onChange={setPrBaseBranch} loading={branchesLoading} style={{ width: "100%" }} placeholder="Select base branch" options={branches.map((b) => ({ value: b.name, label: `${b.name}${b.protected ? " (protected)" : ""}` }))} />
+            </div>
+            <div className="git-config-field">
+              <Text type="secondary" style={{ fontSize: 12 }}>Branch Prefix</Text>
+              <Input value={prBranchPrefix} onChange={(e) => setPrBranchPrefix(e.target.value)} placeholder="visitran/" />
+            </div>
+            <Button type="primary" onClick={handlePrSettingsSave} loading={prSaving} block size="small">Save Settings</Button>
+            {prSaveResult && (
+              <Alert type={prSaveResult.type} message={prSaveResult.message} showIcon closable onClose={() => setPrSaveResult(null)} style={{ marginTop: 8 }} />
+            )}
+          </div>
+        )}
         <Divider />
         <Button
           danger
@@ -407,7 +524,11 @@ const GitConfigTab = memo(function GitConfigTab({
               Repository URL *
             </Text>
             <Input
-              placeholder="https://github.com/owner/repo"
+              placeholder={
+                provider === "gitlab"
+                  ? "https://gitlab.com/org/repo"
+                  : "https://github.com/owner/repo"
+              }
               value={repoUrl}
               onChange={(e) => setRepoUrl(e.target.value)}
             />
@@ -429,7 +550,11 @@ const GitConfigTab = memo(function GitConfigTab({
             </Text>
             {authType === "pat" ? (
               <Input.Password
-                placeholder="ghp_xxxxxxxxxxxx"
+                placeholder={
+                  provider === "gitlab"
+                    ? "glpat-xxxxxxxxxxxx"
+                    : "ghp_xxxxxxxxxxxx"
+                }
                 value={token}
                 onChange={(e) => setToken(e.target.value)}
               />

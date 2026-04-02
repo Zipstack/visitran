@@ -31,9 +31,22 @@ def get_fernet() -> Fernet:
     return Fernet(get_encryption_key())
 
 
-def encrypt_value(value: str) -> str:
-    """Encrypt a single string value."""
+def is_already_encrypted(value: str) -> bool:
+    """Check if a value is already Fernet-encrypted by attempting decryption."""
     if not value:
+        return False
+    try:
+        get_fernet().decrypt(value.encode("utf-8"))
+        return True
+    except Exception:
+        return False
+
+
+def encrypt_value(value: str) -> str:
+    """Encrypt a single string value. Skips if already encrypted."""
+    if not value:
+        return value
+    if is_already_encrypted(value):
         return value
     return get_fernet().encrypt(value.encode("utf-8")).decode("utf-8")
 

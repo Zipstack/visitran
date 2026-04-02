@@ -9,12 +9,15 @@ from typing import Any, Optional
 from django.conf import settings
 
 from backend.core.models.git_repo_config import GitRepoConfig
+from backend.core.models.project_details import ProjectDetails
 from backend.errors.exceptions import (
     GitConfigAlreadyExistsException,
     GitConfigurationNotFoundException,
     GitConnectionFailedException,
+    ResourcePermissionDeniedException,
 )
 from backend.core.services.git_service import get_git_service, GitHubService
+from backend.utils.tenant_context import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +25,33 @@ DEFAULT_REPO_URL = getattr(settings, "GIT_DEFAULT_REPO_URL", "")
 DEFAULT_REPO_TOKEN_SETTING = "GIT_DEFAULT_REPO_TOKEN"
 
 
+def _check_project_access(project_id: str) -> None:
+    """Verify the current user is the project creator.
+
+    Raises ResourcePermissionDeniedException if not.
+    Skipped when no user context is available (e.g. Celery tasks).
+    """
+    try:
+        user_info = get_current_user()
+    except Exception:
+        return  # No user context (Celery worker) — skip check
+    username = user_info.get("username", "")
+    if not username:
+        return  # No user identity — skip (OSS single-user fallback)
+    project = ProjectDetails.objects.filter(project_uuid=project_id).first()
+    if not project:
+        return  # Project not found — let downstream handle 404
+    project_owner = (project.created_by or {}).get("username", "")
+    if project_owner and project_owner != username:
+        raise ResourcePermissionDeniedException()
+
+
 # ------------------------------------------------------------------
 # Read
 # ------------------------------------------------------------------
 
 def get_config(project_id: str) -> Optional[dict[str, Any]]:
+    _check_project_access(project_id)
     config = _get_config_by_project(project_id)
     if not config:
         return None
@@ -38,9 +63,23 @@ def get_config(project_id: str) -> Optional[dict[str, Any]]:
 # ------------------------------------------------------------------
 
 def save_config(project_id: str, config_data: dict[str, Any]) -> dict[str, Any]:
+    _check_project_access(project_id)
     repo_type = config_data.get("repo_type", "custom")
     if repo_type == "default":
         config_data = _prepare_default_config(config_data)
+
+    # Server-side token validation — test before storing
+    credentials = config_data.get("credentials", {})
+    token = credentials.get("token", "")
+    repo_url = config_data.get("repo_url", "")
+    if token and repo_url:
+        try:
+            service = GitHubService(repo_url, token, config_data.get("branch_name", "main"))
+            service.test_connection()
+        except Exception as exc:
+            raise GitConnectionFailedException(
+                error_message=f"Token validation failed: {exc}"
+            )
 
     existing = _get_config_by_project(project_id)
     if existing:
@@ -55,6 +94,7 @@ def save_config(project_id: str, config_data: dict[str, Any]) -> dict[str, Any]:
 # ------------------------------------------------------------------
 
 def delete_config(project_id: str) -> None:
+    _check_project_access(project_id)
     config = GitRepoConfig.objects.filter(project_id=project_id, is_deleted=False).first()
     if not config:
         raise GitConfigurationNotFoundException(project_id=project_id)
@@ -68,6 +108,7 @@ def delete_config(project_id: str) -> None:
 # ------------------------------------------------------------------
 
 def test_connection(project_id: str, config_data: dict[str, Any]) -> dict[str, Any]:
+    _check_project_access(project_id)
     repo_type = config_data.get("repo_type", "custom")
     if repo_type == "default":
         config_data = _prepare_default_config(config_data)
@@ -149,8 +190,9 @@ def _update_config(project_id: str, config_data: dict[str, Any]) -> GitRepoConfi
     config = GitRepoConfig.objects.filter(project_id=project_id, is_deleted=False).first()
     if not config:
         raise GitConfigurationNotFoundException(project_id=project_id)
-    for field in ("repo_type", "repo_url", "auth_type", "branch_name", "base_path", "connection_status", "error_message"):
-        if field in config_data:
+    _READONLY_PROPS = {"pr_workflow_enabled"}
+    for field in ("repo_type", "repo_url", "auth_type", "branch_name", "base_path", "connection_status", "error_message", "pr_mode", "pr_base_branch", "pr_branch_prefix"):
+        if field in config_data and field not in _READONLY_PROPS:
             setattr(config, field, config_data[field])
     if "credentials" in config_data:
         config.encrypted_credentials = config_data["credentials"]
@@ -188,6 +230,10 @@ def _serialize_config(config: GitRepoConfig) -> dict[str, Any]:
         "is_active": config.is_active,
         "connection_status": config.connection_status,
         "error_message": config.error_message,
+        "pr_mode": config.pr_mode,
+        "pr_workflow_enabled": config.pr_workflow_enabled,
+        "pr_base_branch": config.pr_base_branch,
+        "pr_branch_prefix": config.pr_branch_prefix,
         "last_synced_at": config.last_synced_at.isoformat() if config.last_synced_at else None,
         "created_by": config.created_by,
         "last_modified_by": config.last_modified_by,

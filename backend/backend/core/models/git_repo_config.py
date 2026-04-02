@@ -69,6 +69,23 @@ class GitRepoConfig(DefaultOrganizationMixin, BaseModel):
     )
     error_message = models.TextField(blank=True, default="")
 
+    # PR workflow settings
+    PR_MODE_DISABLED = "disabled"
+    PR_MODE_AUTO = "auto"
+    PR_MODE_MANUAL = "manual"
+    PR_MODE_CHOICES = [
+        (PR_MODE_DISABLED, "Disabled"),
+        (PR_MODE_AUTO, "Auto"),
+        (PR_MODE_MANUAL, "Manual"),
+    ]
+    pr_mode = models.CharField(max_length=20, choices=PR_MODE_CHOICES, default=PR_MODE_DISABLED)
+    pr_base_branch = models.CharField(max_length=255, default="main")
+    pr_branch_prefix = models.CharField(max_length=100, default="visitran/")
+
+    @property
+    def pr_workflow_enabled(self):
+        return self.pr_mode != self.PR_MODE_DISABLED
+
     is_deleted = models.BooleanField(default=False)
     created_by = models.JSONField(default=dict)
     last_modified_by = models.JSONField(default=dict)
