@@ -736,8 +736,12 @@ function NoCodeModel({ nodeData }) {
         setConfigApply(true);
         handleModalClose("ok");
       })
-      .catch(() => {
+      .catch((error) => {
+        notify({ error });
         handleModalClose();
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   };
 

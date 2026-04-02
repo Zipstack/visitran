@@ -7,9 +7,7 @@ from backend.core.routers.projects.views import (
     create_sample_project,
     get_project_detail,
     set_project_schema,
-    delete_model_transformation,
     delete_project,
-    generate_formula,
     get_lineage,
     get_lineage_info,
     get_model_file_content,
@@ -21,18 +19,11 @@ from backend.core.routers.projects.views import (
     get_project_tables,
     get_projects_list,
     get_sql_flow,
-    get_supported_models,
     get_table_schema,
     reload_model,
     rollback_model_file_content,
-    save_model_file,
-    set_model_config_and_reference,
-    set_model_presentation,
-    set_model_transformation,
     update_project,
-    validate_model_file,
     write_database_file,
-    get_transformation_columns,
 )
 
 # This API will initialize a new visitran project,
@@ -116,59 +107,6 @@ WRITE_DATABASE_FILE = path(
     name="write-database-file",
 )
 
-# This API will fetch the content of the file from the given path.
-VALIDATE_MODEL_FILE = path(
-    "/<str:project_id>/no_code_model/<str:file_name>/validate",
-    validate_model_file,
-    name="validate-no-code-model-file",
-)
-
-# This API is used to store the YAML data
-# This method is depreciated
-SAVE_MODEL_FILE = path(
-    "/<str:project_id>/no_code_model/<str:file_name>",
-    save_model_file,
-    name="save-no-code-model-file",
-)
-
-# This API will capture the source and model data from the configuration window
-SET_MODEL_CONFIG = path(
-    "/<str:project_id>/no_code_model/<str:file_name>/set-model",
-    set_model_config_and_reference,
-    name="set-no-code-model-config",
-)
-
-
-# This API will capture the source and model data from the configuration window
-SET_MODEL_TRANSFORMATION = path(
-    "/<str:project_id>/no_code_model/<str:file_name>/set-transform",
-    set_model_transformation,
-    name="set-no-code-model-transformation",
-)
-
-# This API will capture the source and model data from the configuration window
-DELETE_MODEL_TRANSFORMATION = path(
-    "/<str:project_id>/no_code_model/<str:file_name>/delete-transform",
-    delete_model_transformation,
-    name="delete-no-code-model-transformation",
-)
-
-
-# This API will capture the source and model data from the configuration window
-SET_MODEL_PRESENTATION = path(
-    "/<str:project_id>/no_code_model/<str:file_name>/set-presentation",
-    set_model_presentation,
-    name="set-no-code-model-presentation",
-)
-
-
-# This API will return the available columns in the specific transformation
-GET_TRANSFORMATION_COLUMNS = path(
-    "/<str:project_id>/no_code_model/<str:file_name>/columns",
-    get_transformation_columns,
-    name="get-transformation-columns",
-)
-
 
 # This API will fetch the content of the file from the given path.
 FETCH_MODEL_TABLE_CONTENT = path(
@@ -192,11 +130,6 @@ EXPORT_MODEL_CONTENT_CSV = path(
     name="export-no-code-model-file-csv",
 )
 
-GET_SUPPORTED_REFERENCE_MODELS = path(
-    "/<str:project_id>/no_code_model/<str:file_name>/supported_references",
-    get_supported_models,
-    name="get-supported-reference-models",
-)
 
 GET_LINEAGE = path("/<str:project_id>/lineage", get_lineage, name="get-lineage")
 
@@ -205,12 +138,6 @@ GET_LINEAGE_INFO = path("/<str:project_id>/lineage/<str:model_name>/info", get_l
 # SQL Flow - Table-level lineage with ER diagram style visualization
 GET_SQL_FLOW = path("/<str:project_id>/sql-flow", get_sql_flow, name="get-sql-flow")
 
-# This API will generate formula from given prompt
-GENERATE_FORMULA = path(
-    "/<str:project_id>/no_code_model/<str:model_name>/generate_formula",
-    generate_formula,
-    name="generate-formula",
-)
 
 DELETE_A_PROJECT = path("/<str:project_id>/delete", delete_project, name="delete_project")
 
@@ -231,22 +158,13 @@ urlpatterns = [
     GET_TABLE_CONTENT,
     RELOAD_MODEL,
     WRITE_DATABASE_FILE,
-    VALIDATE_MODEL_FILE,
-    SAVE_MODEL_FILE,
-    SET_MODEL_CONFIG,
-    SET_MODEL_TRANSFORMATION,
-    DELETE_MODEL_TRANSFORMATION,
-    SET_MODEL_PRESENTATION,
-    GET_TRANSFORMATION_COLUMNS,
     FETCH_MODEL_TABLE_CONTENT,
     EXPORT_MODEL_CONTENT_CSV,
-    GET_SUPPORTED_REFERENCE_MODELS,
     ROLLBACK_MODEL_TABLE_CONTENT,
     GET_LINEAGE,
     GET_LINEAGE_INFO,
     GET_SQL_FLOW,
     GET_TABLE_SCHEMA,
-    GENERATE_FORMULA,
 ]
 
 

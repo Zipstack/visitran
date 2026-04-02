@@ -124,6 +124,7 @@ def environment_dependent_projects(request: Request, environment_id: str):
 
 @api_view([HTTPMethods.POST])
 @handle_http_request
+@handle_permission
 def test_environment(request: Request):
     request_data: dict[str, Any] = request.data
     datasource: str = request_data.get("datasource")
