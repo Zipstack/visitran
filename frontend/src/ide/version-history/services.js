@@ -307,16 +307,29 @@ export async function updatePRMode(
   const res = await axiosRef({
     method: "POST",
     url: `${getGitConfigUrl(orgId, projectId)}/enable-pr-workflow`,
-    data: { pr_mode: prMode, pr_base_branch: prBaseBranch, pr_branch_prefix: prBranchPrefix },
+    data: {
+      pr_mode: prMode,
+      pr_base_branch: prBaseBranch,
+      pr_branch_prefix: prBranchPrefix,
+    },
     headers: { "X-CSRFToken": csrfToken },
   });
   return res.data.data;
 }
 
-export async function createVersionPR(axiosRef, orgId, projectId, csrfToken, versionNumber) {
+export async function createVersionPR(
+  axiosRef,
+  orgId,
+  projectId,
+  csrfToken,
+  versionNumber
+) {
   const res = await axiosRef({
     method: "POST",
-    url: `${getVersionUrl(orgId, projectId)}/version/${versionNumber}/create-pr`,
+    url: `${getVersionUrl(
+      orgId,
+      projectId
+    )}/version/${versionNumber}/create-pr`,
     headers: { "X-CSRFToken": csrfToken },
   });
   return res.data.data;

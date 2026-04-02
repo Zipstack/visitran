@@ -99,7 +99,11 @@ const GitConfigTab = memo(function GitConfigTab({
     if (gitConfig?.pr_branch_prefix) {
       setPrBranchPrefix(gitConfig.pr_branch_prefix);
     }
-  }, [gitConfig?.pr_mode, gitConfig?.pr_base_branch, gitConfig?.pr_branch_prefix]);
+  }, [
+    gitConfig?.pr_mode,
+    gitConfig?.pr_base_branch,
+    gitConfig?.pr_branch_prefix,
+  ]);
 
   useEffect(() => {
     loadAvailableRepos();
@@ -283,38 +287,95 @@ const GitConfigTab = memo(function GitConfigTab({
         try {
           const branchList = await fetchBranches(axiosRef, orgId, projectId);
           setBranches(branchList);
-        } catch { /* silent */ }
-        finally { setBranchesLoading(false); }
+        } catch {
+          /* silent */
+        } finally {
+          setBranchesLoading(false);
+        }
       }
       setPrSaving(true);
       try {
-        const updated = await updatePRMode(axiosRef, orgId, projectId, csrfToken, newMode, prBaseBranch, prBranchPrefix);
+        const updated = await updatePRMode(
+          axiosRef,
+          orgId,
+          projectId,
+          csrfToken,
+          newMode,
+          prBaseBranch,
+          prBranchPrefix
+        );
         setGitConfig(updated);
-        const modeLabel = newMode === "auto" ? "Auto" : newMode === "manual" ? "Manual" : "Off";
-        setPrSaveResult({ type: "success", message: newMode === "disabled" ? "PR workflow disabled" : `${modeLabel} PR workflow enabled` });
+        const modeLabel =
+          newMode === "auto" ? "Auto" : newMode === "manual" ? "Manual" : "Off";
+        setPrSaveResult({
+          type: "success",
+          message:
+            newMode === "disabled"
+              ? "PR workflow disabled"
+              : `${modeLabel} PR workflow enabled`,
+        });
       } catch (error) {
         setPrMode(prevMode);
-        setPrSaveResult({ type: "error", message: error?.response?.data?.error_message || error?.message || "Failed to update PR mode" });
+        setPrSaveResult({
+          type: "error",
+          message:
+            error?.response?.data?.error_message ||
+            error?.message ||
+            "Failed to update PR mode",
+        });
       } finally {
         setPrSaving(false);
       }
     },
-    [axiosRef, orgId, projectId, csrfToken, prBaseBranch, prBranchPrefix, prMode, branches.length, setGitConfig]
+    [
+      axiosRef,
+      orgId,
+      projectId,
+      csrfToken,
+      prBaseBranch,
+      prBranchPrefix,
+      prMode,
+      branches.length,
+      setGitConfig,
+    ]
   );
 
   const handlePrSettingsSave = useCallback(async () => {
     setPrSaving(true);
     setPrSaveResult(null);
     try {
-      const updated = await updatePRMode(axiosRef, orgId, projectId, csrfToken, prMode, prBaseBranch, prBranchPrefix);
+      const updated = await updatePRMode(
+        axiosRef,
+        orgId,
+        projectId,
+        csrfToken,
+        prMode,
+        prBaseBranch,
+        prBranchPrefix
+      );
       setGitConfig(updated);
       setPrSaveResult({ type: "success", message: "PR settings saved" });
     } catch (error) {
-      setPrSaveResult({ type: "error", message: error?.response?.data?.error_message || error?.message || "Failed to save PR settings" });
+      setPrSaveResult({
+        type: "error",
+        message:
+          error?.response?.data?.error_message ||
+          error?.message ||
+          "Failed to save PR settings",
+      });
     } finally {
       setPrSaving(false);
     }
-  }, [axiosRef, orgId, projectId, csrfToken, prMode, prBaseBranch, prBranchPrefix, setGitConfig]);
+  }, [
+    axiosRef,
+    orgId,
+    projectId,
+    csrfToken,
+    prMode,
+    prBaseBranch,
+    prBranchPrefix,
+    setGitConfig,
+  ]);
 
   const canTest =
     selectedMode === "default" ||
@@ -396,21 +457,59 @@ const GitConfigTab = memo(function GitConfigTab({
           />
         </div>
         {prMode === "manual" && (
-          <Alert type="info" message="Commits push to a feature branch. Create PRs manually from the version timeline." showIcon style={{ marginBottom: 8 }} />
+          <Alert
+            type="info"
+            message="Commits push to a feature branch. Create PRs manually from the version timeline."
+            showIcon
+            style={{ marginBottom: 8 }}
+          />
         )}
         {prMode !== "disabled" && (
           <div className="git-config-form" style={{ marginTop: 8 }}>
             <div className="git-config-field">
-              <Text type="secondary" style={{ fontSize: 12 }}>Base Branch</Text>
-              <Select value={prBaseBranch} onChange={setPrBaseBranch} loading={branchesLoading} style={{ width: "100%" }} placeholder="Select base branch" options={branches.map((b) => ({ value: b.name, label: `${b.name}${b.protected ? " (protected)" : ""}` }))} />
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                Base Branch
+              </Text>
+              <Select
+                value={prBaseBranch}
+                onChange={setPrBaseBranch}
+                loading={branchesLoading}
+                style={{ width: "100%" }}
+                placeholder="Select base branch"
+                options={branches.map((b) => ({
+                  value: b.name,
+                  label: `${b.name}${b.protected ? " (protected)" : ""}`,
+                }))}
+              />
             </div>
             <div className="git-config-field">
-              <Text type="secondary" style={{ fontSize: 12 }}>Branch Prefix</Text>
-              <Input value={prBranchPrefix} onChange={(e) => setPrBranchPrefix(e.target.value)} placeholder="visitran/" />
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                Branch Prefix
+              </Text>
+              <Input
+                value={prBranchPrefix}
+                onChange={(e) => setPrBranchPrefix(e.target.value)}
+                placeholder="visitran/"
+              />
             </div>
-            <Button type="primary" onClick={handlePrSettingsSave} loading={prSaving} block size="small">Save Settings</Button>
+            <Button
+              type="primary"
+              onClick={handlePrSettingsSave}
+              loading={prSaving}
+              block
+              size="small"
+            >
+              Save Settings
+            </Button>
             {prSaveResult && (
-              <Alert type={prSaveResult.type} message={prSaveResult.message} showIcon closable onClose={() => setPrSaveResult(null)} style={{ marginTop: 8 }} />
+              <Alert
+                type={prSaveResult.type}
+                message={prSaveResult.message}
+                showIcon
+                closable
+                onClose={() => setPrSaveResult(null)}
+                style={{ marginTop: 8 }}
+              />
             )}
           </div>
         )}
