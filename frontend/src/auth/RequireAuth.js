@@ -5,15 +5,20 @@ import { Navigate, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useSessionStore } from "../store/session-store";
 
 const RequireAuth = () => {
-  const { showSessionExpiredModal, sessionDetails } = useSessionStore();
+  const {
+    showSessionExpiredModal,
+    setShowSessionExpiredModal,
+    sessionDetails,
+  } = useSessionStore();
   const navigate = useNavigate();
   const location = useLocation();
 
   const isLoggedIn = !!sessionDetails?.user?.id;
 
   const handleLoginRedirect = useCallback(() => {
+    setShowSessionExpiredModal(false);
     navigate("/login");
-  }, [navigate]);
+  }, [navigate, setShowSessionExpiredModal]);
 
   const modalFooter = useMemo(
     () => [
@@ -24,6 +29,24 @@ const RequireAuth = () => {
     [handleLoginRedirect]
   );
 
+  // Show session expired modal instead of silently redirecting
+  if (!isLoggedIn && showSessionExpiredModal) {
+    return (
+      <Modal
+        title="Session Expired"
+        open
+        centered
+        footer={modalFooter}
+        closable={false}
+        maskClosable={false}
+      >
+        <Typography>
+          Your session has expired. Please log in again to continue.
+        </Typography>
+      </Modal>
+    );
+  }
+
   if (!isLoggedIn) {
     return <Navigate to="/login" />;
   }
@@ -32,23 +55,7 @@ const RequireAuth = () => {
     return <Navigate to="/project/list" />;
   }
 
-  return (
-    <>
-      <Outlet />
-      <Modal
-        title="Session Expired"
-        open={showSessionExpiredModal}
-        centered
-        footer={modalFooter}
-        maskClosable={false}
-      >
-        <Typography>
-          Your session has expired. Please log in again to continue your
-          transformation with Visitran Ai.
-        </Typography>
-      </Modal>
-    </>
-  );
+  return <Outlet />;
 };
 
 export { RequireAuth };
