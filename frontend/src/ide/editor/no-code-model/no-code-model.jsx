@@ -359,7 +359,11 @@ function NoCodeModel({ nodeData }) {
     });
     updateSpec(newSpec);
   };
-  const parseLog = (log) => DOMPurify.sanitize(ansiToHtml.toHtml(log));
+  const parseLog = (log) =>
+    DOMPurify.sanitize(ansiToHtml.toHtml(log), {
+      ALLOWED_TAGS: ["span", "br"],
+      ALLOWED_ATTR: ["style"],
+    });
 
   const hideGenAIAndTimeTravelTabs = true;
   const BOTTOM_TABS = [
