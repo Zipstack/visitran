@@ -45,7 +45,7 @@ class ChatIntent(BaseModel):
         unique=True,
         help_text="User-facing display name for the intent."
     )
-    
+
     objects = models.Manager()
 
     def __str__(self) -> str:

@@ -56,16 +56,16 @@ class BaseSeed(ABC):
                 cleaned_col = col.strip().replace(" ", "_")
                 cleaned_col = cleaned_col.replace('"', "")
                 cleaned_col = cleaned_col.replace("'", "")
-                
+
                 # Check if this looks like a date column (contains forward slashes)
                 if "/" in cleaned_col:
                     # For date-like columns, replace slashes with underscores to avoid duplicates
                     # e.g., "1/22/20" becomes "1_22_20", "12/2/20" becomes "12_2_20"
                     cleaned_col = cleaned_col.replace("/", "_")
-                
+
                 # Remove any remaining non-alphanumeric characters except underscores
                 cleaned_col = re.sub(r"[^a-zA-Z0-9_]", "", cleaned_col).strip()
-                
+
                 if not cleaned_col or cleaned_col.strip() == "":
                     raise InvalidCSVHeaders(csv_file_name=self.csv_file_name, column_name=col)
 

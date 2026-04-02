@@ -55,6 +55,7 @@ function NotificationProvider({ children }) {
           return;
         }
 
+        const errorStatus = error?.response?.status;
         const errorData = error?.response?.data;
         if (errorData && typeof errorData.error_message === "string") {
           const text = errorData.error_message;
@@ -64,7 +65,14 @@ function NotificationProvider({ children }) {
             finalDescription = formatted;
             type = errorData?.severity?.toLowerCase() || "error";
           } else {
-            finalMessage = "Failed";
+            finalMessage =
+              errorStatus === 403
+                ? "Access Denied"
+                : errorStatus === 404
+                ? "Not Found"
+                : errorStatus === 429
+                ? "Too Many Requests"
+                : "Failed";
             finalDescription = text;
           }
         } else {

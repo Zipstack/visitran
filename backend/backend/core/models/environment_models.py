@@ -40,11 +40,11 @@ class EnvironmentModels(DefaultOrganizationMixin, BaseModel):
         try:
             # First try the old Fernet decryption system
             decrypted_data = decrypt_connection_details(self.env_connection_data)
-            
+
             # If Fernet decryption succeeds, return the data
             # (Don't try RSA decryption on already decrypted data)
             return decrypted_data
-            
+
         except Exception as e:
             # If Fernet decryption fails, try RSA decryption
             try:

@@ -91,7 +91,7 @@ class ConfigParser(BaseParser):
     @property
     def delta_strategy(self) -> dict[str, Any]:
         return self.incremental_config.get("delta_strategy", {})
-    
+
     @property
     def reference(self) -> list[str]:
         if not self._reference:

@@ -34,7 +34,7 @@ const NavigationTabs = memo(({ activeTab }) => {
   return (
     <div className="flex-space-between">
       <Space size={5}>
-        {/* Dashboard */}
+        {/* Projects */}
         <Typography
           className={
             activeTab === "project"
@@ -45,7 +45,7 @@ const NavigationTabs = memo(({ activeTab }) => {
         >
           <AppstoreOutlined className="clr-white" />
           <Typography className="menu_label cursor-pointer">
-            Dashboard
+            Projects
           </Typography>
         </Typography>
 

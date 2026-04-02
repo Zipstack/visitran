@@ -30,7 +30,7 @@ def get_public_key(request):
                 {"status": "error", "message": "RSA public key not available"},
                 status=503
             )
-        
+
         # Return public key in PEM format
         response_data = {
             "status": "success",
@@ -43,11 +43,11 @@ def get_public_key(request):
                 "algorithm": "RSA"
             }
         }
-        
+
         return JsonResponse(data=response_data, status=200)
-        
+
     except Exception as e:
         return JsonResponse(
             {"status": "error", "message": f"Error serving public key: {str(e)}"},
             status=500
-        ) 
+        )

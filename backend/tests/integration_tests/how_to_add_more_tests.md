@@ -7,7 +7,7 @@ execute the following commands:
 
     ```bash
     cd backend/
-    uv run pytest -x -vv 
+    uv run pytest -x -vv
     ```
 
     This will run all the backend-related tests.
@@ -53,7 +53,7 @@ If you're adding new CSV data, you'll need to update a few snapshot tests.
 To do this, navigate to the `visitran_backend` folder and run the following command:
 
 ```bash
-uv run pytest --snapshot-update  
+uv run pytest --snapshot-update
 ```
 
 This command will generate certain JSON files, which you are required to commit.
@@ -89,7 +89,7 @@ Note: The first step is not required if [this issue](https://zipstack.atlassian.
 2. Run the dummy test below to access the Visitran web UI opened on the test project:
 
     ```bash
-    TEST_UI_START=1 uv run pytest -x -vv -k "test_ui_start"   
+    TEST_UI_START=1 uv run pytest -x -vv -k "test_ui_start"
     ```
 
     You can then access the UI at `localhost:8000`. To end the session, press `Ctrl + C`.
@@ -126,6 +126,6 @@ Inside the dictionary, add the `type` of transformation or refer to other transf
 10. Run a snapshot update and then run the test.
 
     ```bash
-    uv run pytest --snapshot-update  
+    uv run pytest --snapshot-update
     uv run pytest
     ```

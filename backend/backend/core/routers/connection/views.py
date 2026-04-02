@@ -112,6 +112,7 @@ def connection_usage(request: Request, connection_id: str) -> Response:
 
 @api_view([HTTPMethods.POST, HTTPMethods.DELETE])
 @handle_http_request
+@handle_permission
 def delete_connection(request: Request, connection_id: str) -> Response:
     con_context = ConnectionContext()
     con_context.delete_connection(connection_id=connection_id)
@@ -124,6 +125,7 @@ def delete_connection(request: Request, connection_id: str) -> Response:
 
 @api_view([HTTPMethods.DELETE])
 @handle_http_request
+@handle_permission
 def delete_all_connections(request: Request) -> Response:
     con_context = ConnectionContext()
     result = con_context.delete_all_connections()
@@ -146,6 +148,7 @@ def reveal_connection_credentials(request: Request, connection_id: str) -> Respo
 
 @api_view([HTTPMethods.POST])
 @handle_http_request
+@handle_permission
 def test_connection(request: Request) -> Response:
     con_context = ConnectionContext()
     request_data: dict[str, Union[dict[str, Any], str, None]] = request.data

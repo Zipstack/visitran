@@ -7,9 +7,11 @@
 
 .no-code-toolbar-content {
   flex: 1;
-  overflow-x: hidden;
+  overflow: hidden;
   scroll-behavior: smooth;
-  padding: 8px 0px;
+  padding: 12px 0px 8px;
+  display: flex;
+  align-items: center;
 }
 
 /* Hidden toolbar items (overflow) */
@@ -17,17 +19,40 @@
   display: none !important;
 }
 
-/* Ellipsis button */
-.toolbar-ellipsis-button {
-  display: flex;
+/* More button — align with toolbar items that have seq_badge_wrapper above */
+.toolbar-more-item {
+  margin-top: -11px;
+}
+
+.no-code-toolbar-wrapper .toolbar-ellipsis-button {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  gap: 4px;
+  height: 32px;
+  padding: 0 12px;
   border-radius: 4px;
   flex-shrink: 0;
   transition: background-color 0.2s;
   color: var(--icons-color);
+  font-size: 13px;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.toolbar-more-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 4px;
+  background-color: var(--primary, #1890ff);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 .toolbar-ellipsis-button:hover {

@@ -1,9 +1,8 @@
 import { memo, useState } from "react";
 import PropTypes from "prop-types";
-import { Button, Space, Typography } from "antd";
+import { Button, Space, Tooltip, Typography } from "antd";
 import {
   FileDoneOutlined,
-  HistoryOutlined,
   CloseOutlined,
   MinusOutlined,
   PlusOutlined,
@@ -61,59 +60,60 @@ const Header = memo(function Header({
         </div>
         <div>
           <Space>
-            <Button
-              type="text"
-              size="small"
-              icon={<PlusOutlined />}
-              disabled={isPromptRunning}
-              onClick={resetSelectedChatId}
-            />
-            <Button
-              type="text"
-              size="small"
-              icon={<FileDoneOutlined />}
-              disabled={isPromptRunning}
-              onClick={handleSettingsClick}
-              title="Context & Rules Manager"
-            />
-            <Button
-              type="text"
-              size="small"
-              icon={<HistoryOutlined />}
-              disabled={isPromptRunning}
-              onClick={resetSelectedChatId}
-            />
-            {isOnboardingCompleted && (
+            <Tooltip title="New Chat">
               <Button
                 type="text"
                 size="small"
-                icon={<RocketOutlined />}
+                icon={<PlusOutlined />}
                 disabled={isPromptRunning}
-                onClick={onResetOnboarding}
-                title="Reset Onboarding"
-                style={{ color: "#1890ff" }}
+                onClick={resetSelectedChatId}
               />
+            </Tooltip>
+            <Tooltip title="Context & Rules Manager">
+              <Button
+                type="text"
+                size="small"
+                icon={<FileDoneOutlined />}
+                disabled={isPromptRunning}
+                onClick={handleSettingsClick}
+              />
+            </Tooltip>
+            {isOnboardingCompleted && (
+              <Tooltip title="Reset Onboarding">
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<RocketOutlined />}
+                  disabled={isPromptRunning}
+                  onClick={onResetOnboarding}
+                  style={{ color: "#1890ff" }}
+                />
+              </Tooltip>
             )}
-            <Button
-              type="text"
-              size="small"
-              icon={isFullWidth ? <CompressOutlined /> : <ExpandOutlined />}
-              onClick={toggleFullWidth}
-              title={isFullWidth ? "Restore" : "Full Width"}
-            />
-            <Button
-              type="text"
-              size="small"
-              icon={<MinusOutlined />}
-              onClick={collapseDrawer}
-              title="Collapse"
-            />
-            <Button
-              type="text"
-              size="small"
-              icon={<CloseOutlined />}
-              onClick={closeChatDrawer}
-            />
+            <Tooltip title={isFullWidth ? "Restore" : "Full Width"}>
+              <Button
+                type="text"
+                size="small"
+                icon={isFullWidth ? <CompressOutlined /> : <ExpandOutlined />}
+                onClick={toggleFullWidth}
+              />
+            </Tooltip>
+            <Tooltip title="Collapse">
+              <Button
+                type="text"
+                size="small"
+                icon={<MinusOutlined />}
+                onClick={collapseDrawer}
+              />
+            </Tooltip>
+            <Tooltip title="Close">
+              <Button
+                type="text"
+                size="small"
+                icon={<CloseOutlined />}
+                onClick={closeChatDrawer}
+              />
+            </Tooltip>
           </Space>
         </div>
       </div>

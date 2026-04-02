@@ -16,16 +16,16 @@ class ChatMessageFeedbackSerializer(serializers.ModelSerializer):
         Validates the feedback value.
         """
         feedback_value = attrs.get('feedback', None)
-        
+
         if not feedback_value:
             raise serializers.ValidationError(
                 {"feedback": "This field is required for providing feedback."}
             )
-        
+
         # Validate the value matches our choices
         if feedback_value not in ['0', 'P', 'N']:
             raise serializers.ValidationError(
                 {"feedback": "Must be one of '0' (neutral), 'P' (positive), or 'N' (negative)."}
             )
-            
+
         return attrs

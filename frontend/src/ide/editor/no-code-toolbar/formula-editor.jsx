@@ -312,6 +312,14 @@ const FUNCTION_SIGNATURES = {
     description: "Adds interval to date",
   },
 
+  // Hashing
+  HASH: {
+    min: 1,
+    max: Infinity,
+    params: ["value1", "[value2]", "..."],
+    description: "Returns a hash of the concatenated values",
+  },
+
   // No-arg functions
   RANDOM: {
     min: 0,

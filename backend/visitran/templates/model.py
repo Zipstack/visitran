@@ -56,12 +56,12 @@ class VisitranModel(metaclass=Singleton):
         # class with incremental materialization
         # this is get only
         self.destination_table_exists: bool = False
-        
+
         # Primary key for efficient upserts (especially for BigQuery)
         # This should be set to the column name(s) that uniquely identify records
         # Can be a single column name (str) or list of column names for composite keys
         self.primary_key: Union[str, list[str]] = ""
-        
+
         # Delta detection strategy for incremental processing
         # This defines how to identify new/changed records for incremental updates
         self.delta_strategy: dict[str, Any] = {
@@ -144,32 +144,32 @@ class VisitranModel(metaclass=Singleton):
         if self.primary_key:
             return 'merge'
         return 'append'
-    
+
     def _validate_delta_strategy_config(self) -> None:
         """Validate delta strategy configuration."""
         strategy_type = self.delta_strategy.get("type")
-        
+
         if strategy_type == "timestamp":
             if not self.delta_strategy.get("column"):
                 raise ValueError(
                     f"Timestamp strategy requires 'column' configuration. "
                     f"Example: create_timestamp_strategy(column='updated_at')"
                 )
-        
+
         elif strategy_type == "date":
             if not self.delta_strategy.get("column"):
                 raise ValueError(
                     f"Date strategy requires 'column' configuration. "
                     f"Example: create_date_strategy(column='created_date')"
                 )
-        
+
         elif strategy_type == "sequence":
             if not self.delta_strategy.get("column"):
                 raise ValueError(
                     f"Sequence strategy requires 'column' configuration. "
                     f"Example: create_sequence_strategy(column='id')"
                 )
-        
+
         elif strategy_type == "checksum":
             if not self.delta_strategy.get("column"):
                 raise ValueError(
@@ -181,7 +181,7 @@ class VisitranModel(metaclass=Singleton):
                     f"Checksum strategy requires 'key_columns' configuration. "
                     f"Example: create_checksum_strategy(checksum_column='content_hash', key_columns=['product_id'])"
                 )
-        
+
         elif strategy_type == "custom":
             if not self.delta_strategy.get("custom_logic"):
                 raise ValueError(
@@ -192,41 +192,41 @@ class VisitranModel(metaclass=Singleton):
                 raise ValueError(
                     f"Custom strategy 'custom_logic' must be a callable function."
                 )
-        
+
         elif strategy_type == "full_scan":
             # No additional validation needed for full scan
             pass
-        
+
         else:
             raise ValueError(
                 f"Unknown delta strategy type: {strategy_type}. "
                 f"Available strategies: {DeltaStrategyFactory.get_available_strategies()}"
             )
-    
+
     def _execute_delta_strategy(self) -> Table:
         """Execute the configured delta strategy to get incremental data."""
         if not self.destination_table_exists:
             # First run - return all data
             return self.select()
-        
+
         # Get the delta strategy
         strategy_type = self.delta_strategy["type"]
         strategy = DeltaStrategyFactory.get_strategy(strategy_type)
-        
+
         # Execute the strategy
         source_table = self.select()
         destination_table = self.destination_table_obj
-        
+
         # Get incremental data from strategy
         incremental_data = strategy.get_incremental_data(
             source_table=source_table,
             destination_table=destination_table,
             strategy_config=self.delta_strategy
         )
-        
+
         # Return incremental data as-is (no additional transformation needed)
         return incremental_data
-    
+
     def __str__(self) -> str:
         return f"{self.destination_schema_name}.{self.destination_table_name}"
 

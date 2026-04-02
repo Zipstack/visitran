@@ -32,7 +32,7 @@ class TestFormulaSQLDateTime:
         self.connection_mysql = ibis.mysql.connect(host=host, port=port, user=user, password=password,
                                                    database='sakila')
         self.payment = self.connection_mysql.table('payment')
-    
+
     # def test_uniq(self):
     #     assert 1==1
 
