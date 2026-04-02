@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Cookies from "js-cookie";
 import { Button, Divider, Modal, Space } from "antd";
 import PropTypes from "prop-types";
@@ -6,10 +6,8 @@ import isEqual from "lodash/isEqual.js";
 
 import { useAxiosPrivate } from "../../../service/axios-service";
 import { orgStore } from "../../../store/org-store";
-import { generateKey } from "../../../common/helpers";
 import {
   fetchAllConnections,
-  fetchProjectByConnection,
   fetchSingleEnvironment,
   updateEnvironmentApi,
   createEnvironmentApi,
@@ -23,7 +21,6 @@ import encryptionService from "../../../service/encryption-service";
 
 import "./environment.css";
 import EnvGeneralSection from "./EnvGeneralSection";
-import EnvCustomDataSection from "./EnvCustomDataSection";
 import { CreateConnection } from "./CreateConnection";
 import { useNotificationService } from "../../../service/notification-service";
 
@@ -41,7 +38,6 @@ const NewEnv = ({
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [connectionList, setConnectionList] = useState([]);
-  const [customData, setCustomData] = useState([]);
   const [connection, setConnection] = useState({ id: "" });
   const [connectionDataSource, setConnectionDataSource] = useState(null);
   const [connectionSchema, setConnectionSchema] = useState({});
@@ -53,13 +49,11 @@ const NewEnv = ({
   const [connType, setConnType] = useState("url");
   const [connectionDetailsUpdated, setConnectionDetailsUpdated] =
     useState(false);
-  const [projListDep, setProjListDep] = useState([]);
   const [connectDetailBackup, setConnectDetailBackup] = useState({});
   const [initialPrefillData, setInitialPrefillData] = useState({
     name: "",
     description: "",
     deployment_type: "",
-    custom_data: [],
   });
   const [activeUpdateBtn, setActiveUpdateBtn] = useState(false);
   const [isEncryptionLoading, setIsEncryptionLoading] = useState(true);
@@ -109,7 +103,6 @@ const NewEnv = ({
         description: "",
         deployment_type: "",
       });
-      setCustomData([]);
       setInputFields({});
       setConnection({ id: "" });
       setConnectionDataSource(null);
@@ -121,7 +114,6 @@ const NewEnv = ({
         name: "",
         description: "",
         deployment_type: "",
-        custom_data: [],
       });
       setConnectDetailBackup({});
       setIsCredentialsRevealed(false);
@@ -135,7 +127,6 @@ const NewEnv = ({
       description: "",
       deployment_type: "",
     });
-    setCustomData([]);
     setInputFields({});
     setConnection({ id: "" });
     setConnectionDataSource(null);
@@ -147,7 +138,6 @@ const NewEnv = ({
       name: "",
       description: "",
       deployment_type: "",
-      custom_data: [],
     });
     setConnectDetailBackup({});
     setIsCredentialsRevealed(false);
@@ -278,16 +268,6 @@ const NewEnv = ({
     [selectedOrgId]
   );
 
-  const getProjectDependency = useCallback(async () => {
-    try {
-      const data = await fetchProjectByConnection(axiosRef, selectedOrgId, id);
-      setProjListDep(data);
-    } catch (error) {
-      console.error(error);
-      notify({ error });
-    }
-  }, [id, selectedOrgId]);
-
   useEffect(() => {
     getAllConnections();
   }, [getAllConnections]);
@@ -295,8 +275,7 @@ const NewEnv = ({
   const getSingleEnvironmentDetails = useCallback(async () => {
     try {
       const data = await fetchSingleEnvironment(axiosRef, selectedOrgId, id);
-      const { connection, name, description, custom_data, deployment_type } =
-        data;
+      const { connection, name, description, deployment_type } = data;
       const connDetail = data.connection_details;
 
       setEnvNameDescInfo({ name, description, deployment_type });
@@ -304,14 +283,12 @@ const NewEnv = ({
         name,
         description,
         deployment_type,
-        custom_data,
       });
       setConnectDetailBackup({ connection_details: connDetail });
       setConnType(
         connDetail?.connection_type ? connDetail?.connection_type : "host"
       );
       setConnection({ id: connection.id });
-      setCustomData(Array.isArray(custom_data) ? custom_data : []);
 
       // Process connection details to handle JSON objects for textarea fields
       const processedConnDetail = { ...connDetail };
@@ -338,14 +315,13 @@ const NewEnv = ({
   useEffect(() => {
     if (id) {
       getSingleEnvironmentDetails();
-      getProjectDependency();
     } else {
       setConnection({ id: "" });
       setEnvNameDescInfo({ name: "", description: "", deployment_type: "" });
       setConnectionDataSource(null);
       setConnectionSchema({});
     }
-  }, [id, getSingleEnvironmentDetails, getProjectDependency]);
+  }, [id, getSingleEnvironmentDetails]);
 
   const handleEnvNameDesChange = (value, name) => {
     setEnvNameDescInfo((prev) => ({ ...prev, [name]: value }));
@@ -453,29 +429,6 @@ const NewEnv = ({
     connectionDataSource,
   ]);
 
-  const AddnewEntry = () => {
-    const singleData = { source_schema: "", destination_schema: "" };
-    setCustomData((prev) => [...prev, { id: generateKey(), ...singleData }]);
-  };
-
-  const handleCustomFieldChange = (value, name, rowId) => {
-    setCustomData((prev) =>
-      prev.map((item) =>
-        item.id === rowId ? { ...item, [name]: value } : item
-      )
-    );
-  };
-
-  const disabledAddCustomBtn = useMemo(() => {
-    return customData.some(
-      (item) => !item.source_schema || !item.destination_schema
-    );
-  }, [customData]);
-
-  const handleDelete = (rowId) => {
-    setCustomData((prev) => prev.filter((el) => el.id !== rowId));
-  };
-
   const updateEnvironment = async () => {
     try {
       // Prepare environment data
@@ -488,7 +441,6 @@ const NewEnv = ({
             connection_type: connType,
           }),
         },
-        custom_data: customData,
       };
 
       // Encrypt sensitive fields if encryption service is available
@@ -542,7 +494,6 @@ const NewEnv = ({
             connection_type: connType,
           }),
         },
-        custom_data: customData,
       };
 
       // Encrypt sensitive fields if encryption service is available
@@ -577,7 +528,6 @@ const NewEnv = ({
           message: "Environment Created Successfully",
         });
         setEnvNameDescInfo({ name: "", description: "", deployment_type: "" });
-        setCustomData([]);
         setConnection({ id: "" });
       }
     } catch (error) {
@@ -597,10 +547,9 @@ const NewEnv = ({
       name: envNameDescInfo.name,
       description: envNameDescInfo.description,
       deployment_type: envNameDescInfo.deployment_type,
-      custom_data: customData,
     });
     setActiveUpdateBtn(!res);
-  }, [envNameDescInfo, customData, initialPrefillData]);
+  }, [envNameDescInfo, initialPrefillData]);
 
   useEffect(() => {
     const res = isEqual(connectDetailBackup, {
@@ -637,19 +586,6 @@ const NewEnv = ({
             isCredentialsRevealed={isCredentialsRevealed}
             isRevealLoading={isRevealLoading}
             handleRevealCredentials={handleRevealCredentials}
-          />
-
-          <Divider className="divider-modal" />
-
-          <EnvCustomDataSection
-            actionState={actionState}
-            customData={customData}
-            AddnewEntry={AddnewEntry}
-            handleCustomFieldChange={handleCustomFieldChange}
-            disabledAddCustomBtn={disabledAddCustomBtn}
-            handleDelete={handleDelete}
-            projListDep={projListDep}
-            id={id}
           />
 
           <Divider className="divider-modal" />

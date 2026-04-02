@@ -60,7 +60,7 @@ function NotificationProvider({ children }) {
         if (errorData && typeof errorData.error_message === "string") {
           const text = errorData.error_message;
           if (errorData.is_markdown) {
-            finalMessage = "";
+            finalMessage = "Failed";
             const formatted = text.replace(/\n/g, "  \n");
             finalDescription = formatted;
             type = errorData?.severity?.toLowerCase() || "error";
