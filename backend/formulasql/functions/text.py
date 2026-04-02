@@ -86,7 +86,7 @@ class Text(Base):
         inter_exps[node['outputs'][0]] = e
         data_types[node['outputs'][0]] = 'string'
         return e
-    
+
     @staticmethod
     def concat(table, node, data_types, inter_exps):
         return Text.concatenate(table, node, data_types, inter_exps)
@@ -252,7 +252,7 @@ class Text(Base):
             raise Exception("SUBSTITUTE function requires 3 parameters")
         data_types[node['outputs'][0]] = 'string'
         return e
-    
+
     @staticmethod
     def trim(table, node, data_types, inter_exps):
         if node['inputs'].__len__() == 1:

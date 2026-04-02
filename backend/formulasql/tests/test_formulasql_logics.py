@@ -16,7 +16,7 @@ from formulasql.formulasql import FormulaSQL
 # 4              Anguilla        NA       13254     102.0
 
 class TestFormulaSQLLogics:
-    
+
     @pytest.fixture(autouse=True)
     def setup(self):
         self.connection = ibis.sqlite.connect('formulasql/tests/db_data/geography.db')

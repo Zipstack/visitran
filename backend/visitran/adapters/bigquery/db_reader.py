@@ -18,7 +18,7 @@ class BigQueryDBReader(BaseDBReader):
     def get_table_info(self, schema_name: str, table_name: str) -> tuple[str, dict[str, Any]]:
         """
         Get table info, falling back to SQLAlchemy for tables Ibis can't handle.
-        
+
         BigQuery's INTERVAL type doesn't specify precision/unit, causing Ibis to fail
         with "Interval precision is None". This override catches such errors and uses
         SQLAlchemy inspector as a fallback.
@@ -40,12 +40,12 @@ class BigQueryDBReader(BaseDBReader):
     def _get_table_info_via_sqlalchemy(self, schema_name: str, table_name: str) -> tuple[str, dict[str, Any]]:
         """
         Fallback method using SQLAlchemy inspector for tables Ibis can't handle.
-        
+
         This handles BigQuery tables with INTERVAL columns that cause Ibis to fail.
         """
         columns = []
         sqlalchemy_cols = self.inspector.get_columns(table_name, schema_name)
-        
+
         for col in sqlalchemy_cols:
             columns.append({
                 "name": col["name"],
@@ -55,21 +55,21 @@ class BigQueryDBReader(BaseDBReader):
                 "default": col.get("default"),
                 "comment": col.get("comment", "")
             })
-        
+
         # Get constraints using inspector
         foreign_keys = self.inspector.get_foreign_keys(table_name, schema_name)
         primary_keys = self.inspector.get_pk_constraint(table_name, schema_name)
-        
+
         try:
             unique_constraints = self.inspector.get_unique_constraints(table_name, schema_name)
         except Exception:
             unique_constraints = []
-        
+
         try:
             indexes = self.inspector.get_indexes(table_name, schema_name)
         except Exception:
             indexes = []
-        
+
         table_info = {
             "name": table_name,
             "schema_name": schema_name,
@@ -79,5 +79,5 @@ class BigQueryDBReader(BaseDBReader):
             "indexes": indexes,
             "columns": columns,
         }
-        
+
         return table_name, table_info

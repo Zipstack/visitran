@@ -36,7 +36,7 @@ class EnvironmentContext:
             logging.exception("Failed to decrypt environment creation data")
             # Continue with original data if decryption fails
             decrypted_environment_details = environment_details
-        
+
         env_model = self.env_session.create_environment(environment_details=decrypted_environment_details)
         response_data = {
             "id": env_model.environment_id,
@@ -58,7 +58,7 @@ class EnvironmentContext:
             logging.exception("Failed to decrypt environment update data")
             # Continue with original data if decryption fails
             decrypted_environment_details = environment_details
-        
+
         env_model = self.env_session.update_environment(
             environment_id=environment_id, environment_details=decrypted_environment_details
         )

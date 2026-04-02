@@ -183,32 +183,32 @@ class ChatMessage(BaseModel):
         editable=True,
         help_text="String identifier of the developer LLM model used for this chat."
     )
-    
+
     # Feedback fields for response quality
     has_feedback = models.BooleanField(
         default=False,
         help_text="Indicates whether this message has received user feedback."
     )
-    
+
     FEEDBACK_CHOICES = [
         ('0', 'Neutral'),
         ('P', 'Positive'),
         ('N', 'Negative')
     ]
-    
+
     feedback = models.CharField(
         max_length=1,
         choices=FEEDBACK_CHOICES,
         default='0',
         help_text="Feedback value: 0=Neutral, P=Positive, N=Negative"
     )
-    
+
     feedback_timestamp = models.DateTimeField(
         null=True,
         blank=True,
         help_text="When the feedback was provided."
     )
-    
+
     feedback_comment = models.TextField(
         null=True,
         blank=True,

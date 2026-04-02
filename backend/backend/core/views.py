@@ -92,11 +92,11 @@ def get_user_profile(request: Request) -> Response:
 def get_datasource_list(request: Request) -> Response:
     """This method will return the list of adapters installed."""
     adapters_list: list[str] = get_adapters_list()
-    
+
     # Soft delete: Remove Trino from the list
     if "trino" in adapters_list:
         adapters_list.remove("trino")
-    
+
     data = []
     for adapter_name in adapters_list:
         icon = import_file(f"visitran.adapters.{adapter_name}").ICON

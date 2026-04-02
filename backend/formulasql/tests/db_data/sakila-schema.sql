@@ -185,9 +185,9 @@ CREATE TABLE film_category (
 
 --
 -- Table structure for table `film_text`
--- 
+--
 -- InnoDB added FULLTEXT support in 5.6.10. If you use an
--- earlier version, then consider upgrading (recommended) or 
+-- earlier version, then consider upgrading (recommended) or
 -- changing InnoDB to MyISAM as the film_text engine
 --
 

@@ -43,7 +43,7 @@ class Logics(Base):
         e1 = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, params[0])
         e2 = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, params[1])
         e3 = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, params[2])
-        
+
         # Infer types where possible
         if e2 is not None and not e2.equals(null()):
             e3 = ensure_typed_null(e3, e2.type())
@@ -269,7 +269,7 @@ class Logics(Base):
         e = ibis.literal(False)
         data_types[node['outputs'][0]] = 'boolean'
         return e
-    
+
     @staticmethod
     def between(table, node, data_types, inter_exps):
         params = node['inputs']

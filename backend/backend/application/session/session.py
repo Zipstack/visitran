@@ -58,10 +58,10 @@ class Session(BaseSession):
 
     def update_project_connection(self, connection_details: dict[str, Any]) -> dict[str, Any]:
         # TODO - Need to remove the project_connection update from project level
-        
+
         # Decrypt sensitive fields from frontend encrypted data
         decrypted_connection_details = decrypt_sensitive_fields(connection_details)
-        
+
         connection_model = self.project_instance.connection_model
         connection_model.connection_details = decrypted_connection_details
         connection_model.save()

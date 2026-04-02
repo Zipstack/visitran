@@ -272,7 +272,7 @@ class ChatAiContext(TokenCostService):
         content = kwargs.get("content")
         token_usage_data = {}
         processing_time_ms = 0
-        
+
         # Check if content is a dictionary and contains token_info
         if isinstance(content, dict):
             token_usage_data = content.get("token_info", {})
