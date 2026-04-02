@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import { Resizable } from "react-resizable";
 import Cookies from "js-cookie";
 import AnsiToHtml from "ansi-to-html";
+import DOMPurify from "dompurify";
 import yaml from "js-yaml";
 import {
   CalendarOutlined,
@@ -358,7 +359,7 @@ function NoCodeModel({ nodeData }) {
     });
     updateSpec(newSpec);
   };
-  const parseLog = (log) => ansiToHtml.toHtml(log);
+  const parseLog = (log) => DOMPurify.sanitize(ansiToHtml.toHtml(log));
 
   const hideGenAIAndTimeTravelTabs = true;
   const BOTTOM_TABS = [

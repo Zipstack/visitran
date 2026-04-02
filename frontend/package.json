@@ -18,6 +18,7 @@
     "cronstrue": "^3.0.0",
     "crypto-js": "^4.2.0",
     "dagre": "^0.8.5",
+    "dompurify": "^3.3.3",
     "echarts": "^6.0.0",
     "framer-motion": "^12.23.12",
     "immer": "^10.0.2",
