@@ -464,6 +464,13 @@ function ConfigureJoins({
             rhsTable.table_name
           );
         }
+        // For Full join, keep only the first criteria and reset operator to EQ
+        if (value === "Full" && draft[joinIndex].criteria.length > 0) {
+          draft[joinIndex].criteria = [draft[joinIndex].criteria[0]];
+          if (draft[joinIndex]?.criteria?.[0]?.condition) {
+            draft[joinIndex].criteria[0].condition.operator = "EQ";
+          }
+        }
       });
     } else if (key === "alias_name") {
       // Update joined_table alias_name for self-join support
@@ -707,6 +714,7 @@ function ConfigureJoins({
                     setFilterConditions={setJoinFilterConditions}
                     columnDetails={transformedColumnDetails}
                     type="join"
+                    joinType={joinType}
                     join={joins}
                     setJoins={setJoins}
                     joinIndex={joinIndex}

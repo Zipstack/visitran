@@ -318,6 +318,15 @@ FORMULA_DICT = {
         "description": "Tests whether a number is greater than a supplied threshold value ",
         "function_type": "Math",
     },
+    "HASH": {
+        "key": "HASH",
+        "value": "HASH",
+        "description": (
+            "Returns a hash of the concatenated values. Accepts one or more columns."
+            " \n Example: HASH(col1) or HASH(col1, col2, col3)"
+        ),
+        "function_type": "Text",
+    },
     "HOUR": {
         "key": "HOUR",
         "value": "HOUR",

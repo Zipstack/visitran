@@ -16,6 +16,7 @@ const PastConversationActions = memo(function PastConversationActions({
   handleUpdate,
 }) {
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -82,17 +83,29 @@ const PastConversationActions = memo(function PastConversationActions({
   if (confirmDeleteId) {
     return (
       <Space>
-        <CheckOutlined
-          onClick={(e) => {
-            e.stopPropagation();
-            handleDelete(confirmDeleteId);
-          }}
-          className="cursor-pointer past-conversation-action-icon"
-        />
-        <CloseOutlined
-          onClick={clearConfirmDeleteId}
-          className="cursor-pointer past-conversation-action-icon"
-        />
+        {isDeleting ? (
+          <Spin size="small" />
+        ) : (
+          <>
+            <CheckOutlined
+              onClick={async (e) => {
+                e.stopPropagation();
+                setIsDeleting(true);
+                try {
+                  await handleDelete(confirmDeleteId);
+                } finally {
+                  setIsDeleting(false);
+                  setConfirmDeleteId(null);
+                }
+              }}
+              className="cursor-pointer past-conversation-action-icon"
+            />
+            <CloseOutlined
+              onClick={clearConfirmDeleteId}
+              className="cursor-pointer past-conversation-action-icon"
+            />
+          </>
+        )}
       </Space>
     );
   }

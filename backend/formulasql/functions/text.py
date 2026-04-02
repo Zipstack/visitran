@@ -318,13 +318,22 @@ class Text(Base):
 
     @staticmethod
     def hash(table, node, data_types, inter_exps):
-        if node['inputs'].__len__() == 2:
-            e = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node['inputs'][0]).cast('string')
-            e2 = FormulaSQLUtils.build_ibis_expression(table, data_types, inter_exps, node['inputs'][1])
-            e = e.hash(e2)
-        else:
-            raise Exception("HASH function requires 1 parameter")
-        data_types[node['outputs'][0]] = 'string'
+        inputs = node['inputs']
+
+        if not inputs:
+            raise ValueError("HASH function requires at least 1 parameter")
+
+        e = FormulaSQLUtils.build_ibis_expression(
+            table, data_types, inter_exps, inputs[0]
+        ).cast('string')
+
+        for input_node in inputs[1:]:
+            e = e + FormulaSQLUtils.build_ibis_expression(
+                table, data_types, inter_exps, input_node
+            ).cast('string')
+
+        e = e.hash()
+        data_types[node['outputs'][0]] = 'numeric'
         return e
 
     @staticmethod
