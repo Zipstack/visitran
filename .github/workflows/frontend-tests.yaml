@@ -46,6 +46,7 @@ jobs:
         run: CI=true npm run test -- --coverage .
 
       - name: Git fetch unshallow
+        if: ${{ github.actor != 'dependabot[bot]' }}
         run: git fetch --unshallow
 
       - name: UI SonarCloud Scan
