@@ -27,10 +27,13 @@ jobs:
           close-issue-message: >
             This issue was closed because it has been inactive for
             too long. Feel free to reopen if it is still relevant.
+          close-pr-message: >
+            This pull request was closed because it has been inactive
+            for too long. Feel free to reopen if it is still relevant.
           stale-issue-label: "stale"
           stale-pr-label: "stale"
           days-before-stale: 60
           days-before-close: 7
           exempt-issue-labels: "pinned,security,bug"
-          exempt-pr-labels: "pinned,security"
+          exempt-pr-labels: "pinned,security,bug"
           exempt-all-milestones: true
