@@ -1,0 +1,22 @@
+# Default — all PRs require review from L1 reviewers
+* @Zipstack/visitran-reviewers-l1
+
+# Backend
+/backend/ @Zipstack/visitran-reviewers-l1 @Zipstack/visitran-reviewers-l2
+
+# Frontend
+/frontend/ @Zipstack/visitran-reviewers-l1
+
+# Core library
+/visitran/ @Zipstack/visitran-reviewers-l2
+
+# Tests
+/tests/ @Zipstack/visitran-reviewers-l1
+
+# CI/CD and infrastructure
+/.github/ @Zipstack/visitran-admins
+/docker/ @Zipstack/visitran-admins
+
+# Documentation
+/*.md @Zipstack/visitran-reviewers-l1
+/docs/ @Zipstack/visitran-reviewers-l1
