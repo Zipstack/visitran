@@ -19,7 +19,7 @@ class PivotTransformation(BaseTransformation):
                     return f"values_fill={int(fill_null)})"
                 except (ValueError, TypeError):
                     """
-                    suppress the exception since the column type doesn't support string types 
+                    suppress the exception since the column type doesn't support string types
                     """
                     pass
             else:

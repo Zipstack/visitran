@@ -414,10 +414,10 @@ class VisitranBackendContext(VisitranContext):
         db_type = db_type or self.database_type
         if not connection_data:
             connection_data = {"file_path": f"{self.project_path}{os.path.sep}models/local.db"}
-        
+
         # Decrypt sensitive fields from frontend encrypted data
         decrypted_connection_data = decrypt_sensitive_fields(connection_data)
-        
+
         connection_cls: type[BaseConnection] = get_adapter_connection_cls(db_type)
         old_connection = self._conn_details
         self._conn_details = decrypted_connection_data

@@ -367,8 +367,23 @@ function Filter({
 
           if (dataType === "number") {
             inAndNotIn
-              ? setAndSanitizeValue(/[^\d,]/, /[^\d,]/g)
-              : setAndSanitizeValue(/[^\d]/, /\D/g);
+              ? setAndSanitizeValue(/[^\d,.-]/, /[^\d,.-]/g)
+              : setAndSanitizeValue(/[^\d.-]/, /[^\d.-]/g);
+            // Sanitize each numeric segment to prevent malformed values
+            // like "3.1.4" (multiple dots) or "--3" (multiple minus signs)
+            const sanitizeNumericSegment = (s) => {
+              const sign = s.startsWith("-") ? "-" : "";
+              const rest = (sign ? s.slice(1) : s).replace(/-/g, "");
+              const parts = rest.split(".");
+              return (
+                sign +
+                parts[0] +
+                (parts.length > 1 ? "." + parts.slice(1).join("") : "")
+              );
+            };
+            value = inAndNotIn
+              ? value.split(",").map(sanitizeNumericSegment).join(",")
+              : sanitizeNumericSegment(value);
           }
           newFilterCondition["condition"][conditionKey][key] = [value];
           newFilterCondition["condition"][conditionKey]["type"] = typed;
@@ -872,11 +887,16 @@ function Filter({
                   type === "join"
                     ? getOperators(type, lhs.column?.data_type).filter(
                         (item) => {
-                          if (joinType === "Cross" && item.value !== "EQ") {
+                          if (
+                            ["Cross", "Full"].includes(joinType) &&
+                            item.value !== "EQ"
+                          ) {
                             return false;
                           }
 
-                          return ["NULL", "NOTNULL"].includes(item.value)
+                          return ["NULL", "NOTNULL", "BETWEEN"].includes(
+                            item.value
+                          )
                             ? false
                             : true;
                         }
@@ -1020,11 +1040,13 @@ function Filter({
         icon={<PlusOutlined />}
         type="text"
         disabled={
+          // For Full joins, only one condition is allowed (no additional filters)
+          joinType === "Full" ||
           // For joins, only check length limit; for model/source, also check if columns exist
-          isJoinType
+          (isJoinType
             ? filterConditions.length >= 5
             : !columnDetails?.columns?.filter?.length ||
-              filterConditions.length >= 5
+              filterConditions.length >= 5)
         }
       >
         {filterConditions.length ? "Add another filter" : "Add a filter"}

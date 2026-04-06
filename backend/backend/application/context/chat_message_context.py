@@ -248,7 +248,7 @@ class ChatMessageContext(ApplicationContext):
             fields_to_update.append("discussion_type")
             if discussion_status == 'GENERATE':
                 chat_message.transformation_type = 'TRANSFORM'
-                fields_to_update.append('transformation_type') 
+                fields_to_update.append('transformation_type')
         if response:
             if is_append_response:
                 chat_message.response = (chat_message.response or "") + response

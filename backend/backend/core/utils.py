@@ -37,7 +37,6 @@ def handle_http_request(func) -> Any:
                     )
                 cache.set(lock_key, True, timeout=120)
             response: Response = func(*args, **kwargs)
-            response.status_code = status.HTTP_200_OK
             logging.info(f"Deleting lock - {lock_key}")
             cache.delete(lock_key)
             return response
@@ -131,7 +130,7 @@ def redis_singleton_lock(ttl: int = 600):
             if not chat_message_id:
                 return func(*args, **kwargs)
 
-            redis = RedisClient().redis_client  
+            redis = RedisClient().redis_client
 
             key = f"transformation:{chat_message_id}:lock"
 

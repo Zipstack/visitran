@@ -47,10 +47,10 @@ class VisitranContext:
     def __update_connection_details(self, env_data: dict[str, Any]):
         if self._db_type == "duckdb":
             return self._db_details.copy()
-        
+
         # Create a copy to avoid modifying the original project config
         conn_details = self._db_details.copy()
-        
+
         if env_data:
             conn_details.update(env_data)
         elif self.project_conf.get("project_schema"):

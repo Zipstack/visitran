@@ -137,6 +137,7 @@ const CreateConnection = ({
             connection_type: connType,
           }),
         },
+        ...(connectionId && hasDetailsChanged && { metadata_only: true }),
       };
 
       // Encrypt sensitive fields if encryption service is available
@@ -161,10 +162,10 @@ const CreateConnection = ({
           connectionData
         );
         if (res.status === 200) {
-          const { id, datasource_name } = res.data?.data || {};
-          setConnectionId({ id });
-          setConnectionDbType(datasource_name);
-          getAllConnection();
+          const newConnection = res.data?.data || {};
+          setConnectionId({ id: newConnection.id });
+          setConnectionDbType(newConnection.datasource_name);
+          getAllConnection(newConnection);
           setIsModalOpen(false);
           notify({
             type: "success",
@@ -186,8 +187,8 @@ const CreateConnection = ({
             message: "Success",
             description: "Connection updated successfully.",
           });
+          getAllConnection(res.data?.data);
           setIsModalOpen(false);
-          getAllConnection();
         }
       }
     } catch (error) {

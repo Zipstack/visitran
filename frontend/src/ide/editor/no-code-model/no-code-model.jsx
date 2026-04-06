@@ -14,6 +14,7 @@ import { useEffect, useRef, useState } from "react";
 import { Resizable } from "react-resizable";
 import Cookies from "js-cookie";
 import AnsiToHtml from "ansi-to-html";
+import DOMPurify from "dompurify";
 import yaml from "js-yaml";
 import {
   CalendarOutlined,
@@ -358,7 +359,11 @@ function NoCodeModel({ nodeData }) {
     });
     updateSpec(newSpec);
   };
-  const parseLog = (log) => ansiToHtml.toHtml(log);
+  const parseLog = (log) =>
+    DOMPurify.sanitize(ansiToHtml.toHtml(log), {
+      ALLOWED_TAGS: ["span", "br"],
+      ALLOWED_ATTR: ["style"],
+    });
 
   const hideGenAIAndTimeTravelTabs = true;
   const BOTTOM_TABS = [
@@ -736,8 +741,12 @@ function NoCodeModel({ nodeData }) {
         setConfigApply(true);
         handleModalClose("ok");
       })
-      .catch(() => {
+      .catch((error) => {
+        notify({ error });
         handleModalClose();
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   };
 
