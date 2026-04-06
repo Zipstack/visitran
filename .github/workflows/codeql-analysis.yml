@@ -8,15 +8,14 @@ on:
   schedule:
     - cron: "0 6 * * 1" # Weekly Monday 6am UTC
 
-concurrency:
-  group: ${{ github.repository }}-${{ github.head_ref || github.sha }}-${{ github.workflow }}
-  cancel-in-progress: true
-
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
     if: "! github.event.pull_request.draft"
+    concurrency:
+      group: ${{ github.repository }}-${{ github.head_ref || github.sha }}-${{ github.workflow }}-${{ matrix.language }}
+      cancel-in-progress: true
     permissions:
       security-events: write
       contents: read
