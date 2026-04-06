@@ -1,0 +1,20 @@
+name: Release Notification
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+    steps:
+      - name: Post to Slack
+        uses: slackapi/slack-github-action@v2.1.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "🚀 *Visitran ${{ github.event.release.tag_name }}* released!\n\n${{ github.event.release.name }}\n\n<${{ github.event.release.html_url }}|View Release Notes>"
+            }
