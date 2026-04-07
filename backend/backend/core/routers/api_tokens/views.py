@@ -186,19 +186,37 @@ def generate_token(request: Request) -> Response:
 
     Now creates a proper APIToken record with vtk_ prefix, label, and expiry
     to maintain consistency with the api-keys/create endpoint.
+    Uses upsert: updates existing auto-generated token or creates a new one.
     """
-    # Delete any existing default token for this user
-    APIToken.objects.filter(user=request.user, label="Default").delete()
-
     api_key = generate_api_key()
     sig = generate_signature(api_key)
+    new_expiry = now() + timedelta(days=django_settings.API_KEY_EXPIRY_DAYS)
 
-    APIToken.objects.create(
-        user=request.user,
-        token=api_key,
-        signature=sig,
-        label="Default",
-        expires_at=now() + timedelta(days=django_settings.API_KEY_EXPIRY_DAYS),
+    # Upsert: update existing auto-generated token if present, else create
+    existing = APIToken.objects.filter(
+        user=request.user, label="Default"
+    ).order_by("-created_at").first()
+
+    if existing:
+        existing.token = api_key
+        existing.signature = sig
+        existing.is_disabled = False
+        existing.expires_at = new_expiry
+        existing.save(update_fields=["token", "signature", "is_disabled", "expires_at"])
+        token = existing
+    else:
+        token = APIToken.objects.create(
+            user=request.user,
+            token=api_key,
+            signature=sig,
+            label="Default",
+            expires_at=new_expiry,
+        )
+
+    logger.info(f"Legacy token generated: id={token.id}, user={request.user.email}")
+    log_api_key_event(
+        request, action="create", key_id=token.id,
+        key_label="Default", key_masked=token.masked_token,
     )
 
     return Response({

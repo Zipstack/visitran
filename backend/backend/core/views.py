@@ -16,6 +16,7 @@ from backend.core.user import UserService
 from backend.utils.tenant_context import get_current_tenant
 
 from backend.core.models.api_tokens import APIToken
+from backend.core.services.api_key_audit import log_api_key_event
 from backend.core.services.api_key_service import generate_api_key, generate_signature
 from django.conf import settings as django_settings
 from django.utils.timezone import now
@@ -54,22 +55,28 @@ def update_user_profile(request: Request) -> Response:
 
 
 def update_user_token(request, user):
-    new_token = request.data.get("token")
+    # token_value is sent back by the frontend — used only to detect "unchanged"
+    token_value = request.data.get("token")
     existing_token: APIToken = APIToken.objects.filter(user=user).first()
 
-    if new_token:
-        if existing_token and existing_token.token == new_token:
+    if token_value:
+        # Skip regeneration if the token hasn't changed
+        if existing_token and existing_token.token == token_value:
             return
         if existing_token:
             existing_token.delete()
 
         api_key = generate_api_key()
-        APIToken.objects.create(
+        token = APIToken.objects.create(
             user=user,
             token=api_key,
             signature=generate_signature(api_key),
             label="Default",
             expires_at=now() + timedelta(days=django_settings.API_KEY_EXPIRY_DAYS),
+        )
+        log_api_key_event(
+            request, action="create", key_id=token.id,
+            key_label="Default", key_masked=token.masked_token,
         )
     else:
         if existing_token:
