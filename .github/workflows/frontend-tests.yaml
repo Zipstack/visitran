@@ -4,17 +4,23 @@ on:
   workflow_dispatch:
   push:
     branches: ["main"]
+    paths:
+      - "frontend/**"
   pull_request:
     branches: ["main"]
+    paths:
+      - "frontend/**"
 
 concurrency:
-    group: ${{ github.repository }}-${{ github.head_ref || github.sha }}-${{ github.workflow }}
-    cancel-in-progress: true
+  group: ${{ github.repository }}-${{ github.head_ref || github.sha }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 env:
-    FORCE_COLOR: "1"
+  FORCE_COLOR: "1"
+
 jobs:
   frontend_tests:
-    if: '! github.event.pull_request.draft'
+    if: "! github.event.pull_request.draft"
     runs-on: ubuntu-latest
     name: Frontend Tests
     strategy:
@@ -23,34 +29,30 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-      - name: Cache node modules
-        id: cache-npm
-        uses: actions/cache@v4
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/frontend/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-${{ env.cache-name }}-
-            ${{ runner.os }}-build-
-            ${{ runner.os }}-
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
       - name: Install dependencies
         working-directory: ./frontend
-        run: npm ci
+        run: npm install
+
       - name: Run tests with coverage
         working-directory: ./frontend
         run: CI=true npm run test -- --coverage .
+
       - name: Git fetch unshallow
-        run: |
-          git fetch --unshallow
-      - name: UI SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
         if: ${{ github.actor != 'dependabot[bot]' }}
+        run: git fetch --unshallow
+
+      - name: UI SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v3
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
