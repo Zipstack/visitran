@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { memo, useState, useCallback, useRef, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import { Tooltip, theme } from "antd";
 import { CopyOutlined, CheckOutlined } from "@ant-design/icons";
@@ -8,7 +8,7 @@ import "./copyable-cell.css";
 const { useToken } = theme;
 const MAX_TOOLTIP_LENGTH = 500;
 
-function CopyableCell({ children, value, className = "" }) {
+const CopyableCell = memo(function CopyableCell({ children, value, className = "" }) {
   const [copied, setCopied] = useState(false);
   const timeoutRef = useRef(null);
   const { token } = useToken();
@@ -101,7 +101,7 @@ function CopyableCell({ children, value, className = "" }) {
       </Tooltip>
     </span>
   );
-}
+});
 
 CopyableCell.propTypes = {
   children: PropTypes.node,
