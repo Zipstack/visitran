@@ -518,7 +518,7 @@ ${detailedError ? `\nDetailed Error:\n${detailedError}` : ""}
             )}
           </span>
         </div>
-        {!isExpanded && (
+        {!isExpanded && previousCount > 0 && (
           <Text type="secondary" className="thought-chain-collapse-count">
             ({previousCount} previous {previousCount === 1 ? "step" : "steps"})
           </Text>
