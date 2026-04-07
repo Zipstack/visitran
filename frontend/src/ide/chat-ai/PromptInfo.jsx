@@ -457,7 +457,11 @@ ${detailedError ? `\nDetailed Error:\n${detailedError}` : ""}
         <div className="thought-chain-collapse-content">
           {latestParsed.icon && (
             <span className={`stage-icon ${latestParsed.stage}`}>
-              {isInProgress && !isExpanded ? <LoadingOutlined /> : latestParsed.icon}
+              {isInProgress && !isExpanded ? (
+                <LoadingOutlined />
+              ) : (
+                latestParsed.icon
+              )}
             </span>
           )}
           <span className="thought-chain-collapse-message">
@@ -538,7 +542,12 @@ ${detailedError ? `\nDetailed Error:\n${detailedError}` : ""}
               children: (
                 <div className="thought-chain-timeline">
                   {processedChain.map((msg, index) =>
-                    renderMessage(msg, index, processedChain.length, index === processedChain.length - 1)
+                    renderMessage(
+                      msg,
+                      index,
+                      processedChain.length,
+                      index === processedChain.length - 1
+                    )
                   )}
                 </div>
               ),
