@@ -563,6 +563,9 @@ ${detailedError ? `\nDetailed Error:\n${detailedError}` : ""}
     return renderThoughtChain();
   }
 
+  // Only show loading state when actively streaming
+  if (!shouldStream) return null;
+
   // Fallback to bubble with shimmer
   return (
     <div style={{ padding: "8px 0" }}>
