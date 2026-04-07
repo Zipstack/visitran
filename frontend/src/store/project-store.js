@@ -8,6 +8,7 @@ const STORE_VARIABLES = {
   previewTimeTravel: false,
   projectId: "",
   renamedModel: {},
+  currentSchema: "",
 };
 
 const useProjectStore = create(
@@ -63,6 +64,11 @@ const useProjectStore = create(
       setRenamedModel: (modelNames) => {
         setState(() => {
           return { renamedModel: modelNames };
+        });
+      },
+      setCurrentSchema: (schema) => {
+        setState(() => {
+          return { currentSchema: schema };
         });
       },
     }),

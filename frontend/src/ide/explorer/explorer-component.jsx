@@ -80,6 +80,16 @@ const IdeExplorer = ({
     projectName,
     projectId,
   } = useProjectStore();
+  const currentSchema = useProjectStore((state) => state.currentSchema);
+  const setCurrentSchema = useProjectStore((state) => state.setCurrentSchema);
+
+  // Reset currentSchema on unmount to prevent stale data
+  useEffect(() => {
+    return () => {
+      setCurrentSchema("");
+    };
+  }, [setCurrentSchema]);
+
   const expService = explorerService();
   const [tree, setTree] = useState([]);
   const [expandedKeys, setExpandedKeys] = useState([]);
@@ -88,7 +98,6 @@ const IdeExplorer = ({
   const [rightClickedItem, setRightClickedItem] = useState();
   const [selectedKey, setSelectedKey] = useState(currentNode);
   const [openNameModal, setOpenNameModal] = useState(false);
-  const [currentSchema, setCurrentSchema] = useState("");
   const [newSchemaName, setNewSchemaName] = useState("");
   const [isSchemaModalOpen, setIsSchemaModalOpen] = useState(false);
   const [schemaMenu, setSchemaMenu] = useState([]);
