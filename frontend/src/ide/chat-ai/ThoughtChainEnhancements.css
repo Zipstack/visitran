@@ -492,6 +492,10 @@
   border: none;
 }
 
+.thought-chain-collapse .ant-collapse-item:last-child > .ant-collapse-content {
+  border-radius: 0 0 12px 12px;
+}
+
 .thought-chain-collapse .ant-collapse-header {
   padding: 12px 16px !important;
   align-items: center !important;
