@@ -3,7 +3,6 @@ import PropTypes from "prop-types";
 import { Alert, Divider, Space } from "antd";
 
 import { PromptInfo } from "./PromptInfo";
-import { EnhancedPromptInfo } from "./EnhancedPromptInfo";
 import { MarkdownView } from "./MarkdownView";
 import { UserPrompt } from "./UserPrompt";
 import { useUserStore } from "../../store/user-store";
@@ -67,35 +66,10 @@ const Conversation = memo(function Conversation({
     return null;
   }, [detectedAction]);
 
-  // Derive display names from IDs
-  const llmModelDisplayName = useMemo(() => {
-    return llmModels.find((m) => m?.model === message?.llm_model_architect)
-      ?.display_name;
-  }, [llmModels, message?.llm_model_architect]);
-
-  const coderLlmModelDisplayName = useMemo(() => {
-    return llmModels.find((m) => m?.model === message?.llm_model_developer)
-      ?.display_name;
-  }, [llmModels, message?.llm_model_developer]);
-
-  const chatIntentName = useMemo(() => {
-    return chatIntents.find(
-      (intent) => intent?.chat_intent_id === message?.chat_intent
-    )?.name;
-  }, [chatIntents, message?.chat_intent]);
-
-  // Check if we have any "thought chain" data
-  const isThoughtChainReceived = useMemo(() => {
-    return !!(message?.response?.length && message.response[0]?.length);
-  }, [message?.response]);
-
   // Check if transformation is in progress
   const isTransformRunning = useMemo(() => {
     return message?.transformation_status === "RUNNING";
   }, [message?.transformation_status]);
-
-  // Feature flag: Use enhanced UI components (can be toggled)
-  const useEnhancedUI = true; // Set to false to use legacy components
 
   /** --------------------------------------------------------------------
    *  Derive the intent once; re-computes only when its deps change.
@@ -106,6 +80,15 @@ const Conversation = memo(function Conversation({
         ({ chat_intent_id }) => chat_intent_id === message?.chat_intent
       ),
     [chatIntents, message?.chat_intent]
+  );
+
+  // Memoize errorDetails to prevent unnecessary re-renders of PromptInfo
+  const errorDetailsMemo = useMemo(
+    () => ({
+      transformation_error_message: message?.transformation_error_message,
+      prompt_error_message: message?.prompt_error_message,
+    }),
+    [message?.transformation_error_message, message?.prompt_error_message]
   );
 
   return (
@@ -141,33 +124,14 @@ const Conversation = memo(function Conversation({
             </div>
           )}
 
-        {/* Thought Chain - Enhanced or Legacy */}
+        {/* Thought Chain */}
         <div className="chat-ai-conversation chat-ai-existing-chat-response-pad">
-          {useEnhancedUI ? (
-            <EnhancedPromptInfo
-              isThoughtChainReceived={isThoughtChainReceived}
-              shouldStream={isPromptRunning && isLastConversation}
-              thoughtChain={message?.thought_chain || []}
-              llmModel={llmModelDisplayName}
-              coderLlmModel={coderLlmModelDisplayName}
-              chatIntent={chatIntentName}
-              errorState={message?.error_state}
-              errorDetails={{
-                transformation_error_message:
-                  message?.transformation_error_message,
-                prompt_error_message: message?.prompt_error_message,
-              }}
-            />
-          ) : (
-            <PromptInfo
-              isThoughtChainReceived={isThoughtChainReceived}
-              shouldStream={isPromptRunning && isLastConversation}
-              thoughtChain={message?.thought_chain || []}
-              llmModel={llmModelDisplayName}
-              coderLlmModel={coderLlmModelDisplayName}
-              chatIntent={chatIntentName}
-            />
-          )}
+          <PromptInfo
+            shouldStream={isPromptRunning && isLastConversation}
+            thoughtChain={message?.thought_chain || []}
+            errorState={message?.error_state}
+            errorDetails={errorDetailsMemo}
+          />
         </div>
 
         <div className="chat-ai-existing-chat-response-pad">
