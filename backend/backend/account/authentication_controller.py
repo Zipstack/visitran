@@ -247,7 +247,7 @@ class AuthenticationController:
                 })
                 continue
 
-            # Sync removal with auth provider (e.g., Scalekit)
+            # Sync removal with external auth provider if configured
             try:
                 user_id = getattr(user, "user_id", None) or str(user.id)
                 self.auth_service.remove_users_from_organization(
