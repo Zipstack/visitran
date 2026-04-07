@@ -55,9 +55,7 @@ const PromptInfo = memo(function PromptInfo({
           typeof nextMsg === "string"
             ? nextMsg
             : nextMsg?.display || String(nextMsg);
-        const isDisapprovalReason =
-          nextStr.match(/\[DISAPPROVE\s+REASON\]/i) ||
-          nextStr.match(/^[^:]+:\s*.+/);
+        const isDisapprovalReason = nextStr.match(/\[DISAPPROVE\s+REASON\]/i);
 
         if (isDisapprovalReason) {
           // Extract the disapproval reason (remove the prefix)
