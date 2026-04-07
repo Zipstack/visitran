@@ -364,10 +364,10 @@ class AuthenticationService:
         return False  # Not supported in OSS
 
     def remove_users_from_organization(
-        self, admin: Any, organization_id: str, user_emails: list
-    ) -> list:
-        """Remove users from organization. OSS stub."""
-        return []  # Not supported in OSS
+        self, organization_id: str, user: Any, user_id: str
+    ) -> bool:
+        """Remove user from auth provider. OSS no-op."""
+        return True
 
     def get_organizations_users(self, org_id: str) -> list:
         """Get organization members."""

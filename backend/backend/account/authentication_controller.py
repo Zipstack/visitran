@@ -245,6 +245,18 @@ class AuthenticationController:
                     "status": "failed",
                     "message": "No membership found",
                 })
+                continue
+
+            # Sync removal with auth provider (e.g., Scalekit)
+            try:
+                user_id = getattr(user, "user_id", None) or str(user.id)
+                self.auth_service.remove_users_from_organization(
+                    organization_id, user, user_id
+                )
+            except Exception as e:
+                Logger.error(
+                    f"Failed to sync removal of {email} with auth provider: {e}"
+                )
 
         return failed_removals
 
