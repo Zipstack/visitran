@@ -8,7 +8,11 @@ import "./copyable-cell.css";
 const { useToken } = theme;
 const MAX_TOOLTIP_LENGTH = 500;
 
-const CopyableCell = memo(function CopyableCell({ children, value, className = "" }) {
+const CopyableCell = memo(function CopyableCell({
+  children,
+  value,
+  className = "",
+}) {
   const [copied, setCopied] = useState(false);
   const timeoutRef = useRef(null);
   const { token } = useToken();
@@ -81,7 +85,11 @@ const CopyableCell = memo(function CopyableCell({ children, value, className = "
       {copied ? (
         <CheckOutlined style={copiedIconStyle} />
       ) : (
-        <CopyOutlined style={copyIconStyle} onClick={doCopy} aria-label="Copy" />
+        <CopyOutlined
+          style={copyIconStyle}
+          onClick={doCopy}
+          aria-label="Copy"
+        />
       )}
     </div>
   );
