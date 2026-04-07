@@ -57,7 +57,7 @@ def update_user_profile(request: Request) -> Response:
 def update_user_token(request, user):
     # token_value is sent back by the frontend — used only to detect "unchanged"
     token_value = request.data.get("token")
-    existing_token: APIToken = APIToken.objects.filter(user=user).first()
+    existing_token: APIToken = APIToken.objects.filter(user=user, label="Default").first()
 
     if token_value:
         # Skip regeneration if the token hasn't changed

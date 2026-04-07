@@ -1,3 +1,4 @@
+import hashlib
 import logging
 from datetime import timedelta
 
@@ -161,10 +162,11 @@ def regenerate_api_key(request: Request, key_id: str) -> Response:
     new_sig = generate_signature(new_key)
 
     token.token = new_key
+    token.token_hash = hashlib.sha256(new_key.encode()).hexdigest()
     token.signature = new_sig
     token.is_disabled = False
     token.expires_at = now() + timedelta(days=django_settings.API_KEY_EXPIRY_DAYS)
-    token.save(update_fields=["token", "signature", "is_disabled", "expires_at"])
+    token.save(update_fields=["token", "token_hash", "signature", "is_disabled", "expires_at"])
 
     logger.info(f"API key regenerated: id={token.id}, label={token.label}, user={request.user.email}")
     log_api_key_event(
@@ -199,11 +201,13 @@ def generate_token(request: Request) -> Response:
 
     if existing:
         existing.token = api_key
+        existing.token_hash = hashlib.sha256(api_key.encode()).hexdigest()
         existing.signature = sig
         existing.is_disabled = False
         existing.expires_at = new_expiry
-        existing.save(update_fields=["token", "signature", "is_disabled", "expires_at"])
+        existing.save(update_fields=["token", "token_hash", "signature", "is_disabled", "expires_at"])
         token = existing
+        audit_action = "regenerate"
     else:
         token = APIToken.objects.create(
             user=request.user,
@@ -212,10 +216,11 @@ def generate_token(request: Request) -> Response:
             label="Default",
             expires_at=new_expiry,
         )
+        audit_action = "create"
 
     logger.info(f"Legacy token generated: id={token.id}, user={request.user.email}")
     log_api_key_event(
-        request, action="create", key_id=token.id,
+        request, action=audit_action, key_id=token.id,
         key_label="Default", key_masked=token.masked_token,
     )
 
