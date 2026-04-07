@@ -376,8 +376,10 @@ ${detailedError ? `\nDetailed Error:\n${detailedError}` : ""}
       itemClass += " warning";
     }
 
+    const msgKey = typeof msg === "object" && msg !== null ? msg.display : msg;
+
     return (
-      <div key={`${msg}-${index}`} className={itemClass}>
+      <div key={`${msgKey}-${index}`} className={itemClass}>
         {parsed.icon && (
           <div className={`stage-icon ${parsed.stage}`}>
             {isInProgress ? <LoadingOutlined /> : parsed.icon}
