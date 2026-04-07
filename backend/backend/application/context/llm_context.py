@@ -256,7 +256,7 @@ class LLMServerContext(ChatAiContext):
             check_oss_api_key_configured()
 
             self.persist_prompt_status(chat_message_id=chat_message_id, status=ChatMessageStatus.RUNNING)
-            content = "Preparing database information..."
+            content = "Gathering context..."
             self.send_and_persist_thought_chain(
                 sid=sid,
                 channel_id=channel_id,

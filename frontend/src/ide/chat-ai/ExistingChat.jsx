@@ -389,7 +389,6 @@ const ExistingChat = memo(function ExistingChat({
               key={message.chat_message_id}
               message={message}
               chatIntents={chatIntents}
-              llmModels={llmModels}
               isPromptRunning={isPromptRunning}
               isLastConversation={idx === chatMessages.length - 1}
               selectedChatId={selectedChatId}
