@@ -456,74 +456,73 @@ ${detailedError ? `\nDetailed Error:\n${detailedError}` : ""}
 
     const collapseLabel = (
       <div className="thought-chain-collapse-header">
-        <div className="thought-chain-collapse-content">
-          {latestParsed.icon && (
-            <span className={`stage-icon ${latestParsed.stage}`}>
-              {isInProgress && !isExpanded ? (
-                <LoadingOutlined />
+        {!isExpanded && (
+          <div className="thought-chain-collapse-content">
+            {latestParsed.icon && (
+              <span className={`stage-icon ${latestParsed.stage}`}>
+                {isInProgress ? <LoadingOutlined /> : latestParsed.icon}
+              </span>
+            )}
+            <span className="thought-chain-collapse-message">
+              {isInProgress ? (
+                <Text className="shimmer-text">{latestParsed.original}</Text>
+              ) : latestParsed.isError ? (
+                <Text type="warning">
+                  {latestParsed.original}
+                  {latestParsed.attemptNumber && (
+                    <Popover
+                      content={createErrorPopover(
+                        latestParsed.original,
+                        latestParsed.attemptNumber,
+                        latestParsed.errorDetails,
+                        latestParsed.errorSummary,
+                        latestParsed.retryMessage,
+                        latestParsed.source
+                      )}
+                      title={null}
+                      trigger="click"
+                      open={openPopoverId === "error-latest"}
+                      onOpenChange={(visible) =>
+                        setOpenPopoverId(visible ? "error-latest" : null)
+                      }
+                      overlayStyle={{ maxWidth: 500 }}
+                    >
+                      <span
+                        className="error-info-icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenPopoverId("error-latest");
+                        }}
+                      >
+                        <InfoCircleOutlined />
+                      </span>
+                    </Popover>
+                  )}
+                </Text>
+              ) : latestParsed.isSuccess ? (
+                <Text type="success">
+                  <CheckCircleFilled
+                    style={{ marginRight: 6 }}
+                    className="success-checkmark"
+                  />
+                  {latestParsed.original}
+                </Text>
+              ) : latestParsed.isRetry ? (
+                <Text type="warning">
+                  <SyncOutlined style={{ marginRight: 6 }} />
+                  {latestParsed.original}
+                </Text>
               ) : (
-                latestParsed.icon
+                <Text type="secondary">{latestParsed.original}</Text>
               )}
             </span>
-          )}
-          <span className="thought-chain-collapse-message">
-            {isInProgress && !isExpanded ? (
-              <Text className="shimmer-text">{latestParsed.original}</Text>
-            ) : latestParsed.isError ? (
-              <Text type="warning">
-                {latestParsed.original}
-                {latestParsed.attemptNumber && (
-                  <Popover
-                    content={createErrorPopover(
-                      latestParsed.original,
-                      latestParsed.attemptNumber,
-                      latestParsed.errorDetails,
-                      latestParsed.errorSummary,
-                      latestParsed.retryMessage,
-                      latestParsed.source
-                    )}
-                    title={null}
-                    trigger="click"
-                    open={openPopoverId === "error-latest"}
-                    onOpenChange={(visible) =>
-                      setOpenPopoverId(visible ? "error-latest" : null)
-                    }
-                    overlayStyle={{ maxWidth: 500 }}
-                  >
-                    <span
-                      className="error-info-icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setOpenPopoverId("error-latest");
-                      }}
-                    >
-                      <InfoCircleOutlined />
-                    </span>
-                  </Popover>
-                )}
+            {previousCount > 0 && (
+              <Text type="secondary" className="thought-chain-collapse-count">
+                ({previousCount} previous{" "}
+                {previousCount === 1 ? "step" : "steps"})
               </Text>
-            ) : latestParsed.isSuccess ? (
-              <Text type="success">
-                <CheckCircleFilled
-                  style={{ marginRight: 6 }}
-                  className="success-checkmark"
-                />
-                {latestParsed.original}
-              </Text>
-            ) : latestParsed.isRetry ? (
-              <Text type="warning">
-                <SyncOutlined style={{ marginRight: 6 }} />
-                {latestParsed.original}
-              </Text>
-            ) : (
-              <Text type="secondary">{latestParsed.original}</Text>
             )}
-          </span>
-        </div>
-        {!isExpanded && previousCount > 0 && (
-          <Text type="secondary" className="thought-chain-collapse-count">
-            ({previousCount} previous {previousCount === 1 ? "step" : "steps"})
-          </Text>
+          </div>
         )}
       </div>
     );
