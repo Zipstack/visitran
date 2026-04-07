@@ -154,7 +154,7 @@ ${detailedError ? `\nDetailed Error:\n${detailedError}` : ""}
   const parseMessage = (msg) => {
     // Handle structured messages from visitran-ai (agent disapprovals)
     let message;
-    let errorDetails = null;
+    let msgErrorDetails = null;
     let attemptNumber = null;
     let source = null;
 
@@ -164,7 +164,7 @@ ${detailedError ? `\nDetailed Error:\n${detailedError}` : ""}
     if (typeof msg === "object" && msg !== null && msg.display) {
       // Structured message with error details
       message = msg.display;
-      errorDetails = msg.error_details;
+      msgErrorDetails = msg.error_details;
       errorSummary = msg.error_summary; // Concise summary
       retryMessage = msg.retry_message; // Dynamic retry message
       attemptNumber = msg.attempt;
@@ -235,7 +235,7 @@ ${detailedError ? `\nDetailed Error:\n${detailedError}` : ""}
       isRetry,
       isProgress,
       attemptNumber,
-      errorDetails, // Full error details from structured messages
+      errorDetails: msgErrorDetails, // Full error details from structured messages
       errorSummary, // Concise summary for quick view
       retryMessage, // Dynamic retry message
       source, // Source from structured messages
