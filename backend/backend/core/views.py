@@ -16,6 +16,8 @@ from backend.core.user import UserService
 from backend.utils.tenant_context import get_current_tenant
 
 from backend.core.models.api_tokens import APIToken
+from backend.core.services.api_key_service import generate_api_key, generate_signature
+from django.conf import settings as django_settings
 from django.utils.timezone import now
 from datetime import timedelta
 
@@ -61,7 +63,14 @@ def update_user_token(request, user):
         if existing_token:
             existing_token.delete()
 
-        APIToken.objects.create(user=user, token=new_token, expires_at= now() + timedelta(days=90))
+        api_key = generate_api_key()
+        APIToken.objects.create(
+            user=user,
+            token=api_key,
+            signature=generate_signature(api_key),
+            label="Default",
+            expires_at=now() + timedelta(days=django_settings.API_KEY_EXPIRY_DAYS),
+        )
     else:
         if existing_token:
             existing_token.delete()

@@ -182,8 +182,25 @@ def regenerate_api_key(request: Request, key_id: str) -> Response:
 @api_view([HTTPMethods.POST])
 @handle_http_request
 def generate_token(request: Request) -> Response:
-    """Legacy token generation endpoint."""
+    """Legacy token generation endpoint.
+
+    Now creates a proper APIToken record with vtk_ prefix, label, and expiry
+    to maintain consistency with the api-keys/create endpoint.
+    """
+    # Delete any existing default token for this user
+    APIToken.objects.filter(user=request.user, label="Default").delete()
+
     api_key = generate_api_key()
+    sig = generate_signature(api_key)
+
+    APIToken.objects.create(
+        user=request.user,
+        token=api_key,
+        signature=sig,
+        label="Default",
+        expires_at=now() + timedelta(days=django_settings.API_KEY_EXPIRY_DAYS),
+    )
+
     return Response({
         "message": "Token generated successfully.",
         "token": api_key,
