@@ -7,11 +7,12 @@ on:
 jobs:
   notify:
     runs-on: ubuntu-latest
-    if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
     steps:
       - name: Build Slack message
         id: message
+        if: ${{ env.SLACK_WEBHOOK_URL != '' }}
         env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           TAG: ${{ github.event.release.tag_name }}
           RELEASE_NAME: ${{ github.event.release.name }}
           URL: ${{ github.event.release.html_url }}
@@ -19,6 +20,7 @@ jobs:
           echo "text=🚀 *Visitran ${TAG}* released! ${RELEASE_NAME} <${URL}|View Release Notes>" >> "$GITHUB_OUTPUT"
 
       - name: Post to Slack
+        if: ${{ steps.message.outputs.text != '' }}
         uses: slackapi/slack-github-action@v2.1.0
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
