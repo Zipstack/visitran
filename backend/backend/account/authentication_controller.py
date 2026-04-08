@@ -245,6 +245,24 @@ class AuthenticationController:
                     "status": "failed",
                     "message": "No membership found",
                 })
+                continue
+
+            # Sync removal with external auth provider if configured
+            user_id = getattr(user, "user_id", None)
+            if user_id:
+                try:
+                    self.auth_service.remove_users_from_organization(
+                        organization_id, user, user_id
+                    )
+                except Exception as e:
+                    Logger.error(
+                        f"Failed to sync removal of {email} with auth provider: {e}"
+                    )
+                    failed_removals.append({
+                        "email": email,
+                        "status": "partial",
+                        "message": "Removed from database but auth provider sync failed",
+                    })
 
         return failed_removals
 
