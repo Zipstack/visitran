@@ -63,6 +63,7 @@ def update_user_token(request, user):
         # Skip regeneration if the token hasn't changed
         if existing_token and existing_token.token == token_value:
             return
+        had_existing = existing_token is not None
         if existing_token:
             existing_token.delete()
 
@@ -75,7 +76,8 @@ def update_user_token(request, user):
             expires_at=now() + timedelta(days=django_settings.API_KEY_EXPIRY_DAYS),
         )
         log_api_key_event(
-            request, action="create", key_id=token.id,
+            request, action="regenerate" if had_existing else "create",
+            key_id=token.id,
             key_label="Default", key_masked=token.masked_token,
         )
         return api_key
