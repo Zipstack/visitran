@@ -9,18 +9,27 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   padding: 8px 12px;
   border-bottom: 1px solid var(--border-color-1, #e2e8f0);
   background: var(--page-bg-1, #f8fafc);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+/* Prevent toolbar children from shrinking */
+.csv-viewer-toolbar > * {
   flex-shrink: 0;
 }
 
 .csv-viewer-stats {
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .csv-viewer-warning {
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .csv-viewer-table {
