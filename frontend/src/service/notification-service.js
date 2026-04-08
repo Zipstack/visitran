@@ -10,6 +10,7 @@ import { notification, Button } from "antd";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "./notification-border.css";
+import { useSessionStore } from "../store/session-store";
 
 const NotificationContext = createContext(null);
 
@@ -50,8 +51,11 @@ function NotificationProvider({ children }) {
       let finalDescription = description;
 
       if (type === "error") {
-        // Skip notification for 401 errors - session expiry modal handles this
-        if (error?.response?.status === 401) {
+        // Skip all notifications when session expired modal is showing
+        if (
+          error?.response?.status === 401 ||
+          useSessionStore.getState().showSessionExpiredModal
+        ) {
           return;
         }
 
