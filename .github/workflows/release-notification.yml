@@ -11,11 +11,12 @@ jobs:
     steps:
       - name: Build Slack message
         id: message
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          RELEASE_NAME: ${{ github.event.release.name }}
+          URL: ${{ github.event.release.html_url }}
         run: |
-          TAG="${{ github.event.release.tag_name }}"
-          NAME=$(echo '${{ toJSON(github.event.release.name) }}' | jq -r '.')
-          URL="${{ github.event.release.html_url }}"
-          echo "text=🚀 *Visitran ${TAG}* released! ${NAME} <${URL}|View Release Notes>" >> "$GITHUB_OUTPUT"
+          echo "text=🚀 *Visitran ${TAG}* released! ${RELEASE_NAME} <${URL}|View Release Notes>" >> "$GITHUB_OUTPUT"
 
       - name: Post to Slack
         uses: slackapi/slack-github-action@v2.1.0
