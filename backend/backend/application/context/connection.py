@@ -9,6 +9,7 @@ from backend.utils.decryption_utils import (
 )
 from backend.utils.encryption import SENSITIVE_FIELDS
 from visitran.errors import ConnectionFailedError
+from visitran.utils import import_file
 
 MASKED_SENTINEL = "********"
 
@@ -135,6 +136,7 @@ class ConnectionContext:
             "connection_details": connection_model.masked_connection_details,
             "created_by": connection_model.created_by,
             "last_modified_by": connection_model.last_modified_by,
+            "db_icon": import_file(f"visitran.adapters.{connection_model.datasource_name}").ICON,
         }
         return response_data
 
@@ -178,6 +180,7 @@ class ConnectionContext:
             "connection_details": connection_model.masked_connection_details,
             "created_by": connection_model.created_by,
             "last_modified_by": connection_model.last_modified_by,
+            "db_icon": import_file(f"visitran.adapters.{connection_model.datasource_name}").ICON,
         }
         return response_data
 
