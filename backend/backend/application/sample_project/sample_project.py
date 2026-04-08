@@ -154,7 +154,7 @@ class SampleProject(ABC):
             self._postgres_connection.autocommit = True
         return self._postgres_connection
 
-    def execute_sql_queries(self, statements: list):
+    def execute_sql_queries(self, statements: "list[sql.Composable]"):
         """This method is used to execute the sql queries."""
         try:
             cursor = self.postgres_connection.cursor()
