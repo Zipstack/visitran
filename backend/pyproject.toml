@@ -44,7 +44,7 @@ dependencies = [
     "django-storages>=1.14.4",
     "google-cloud-storage>=2.18.2",
     "ibis-framework[sqlite,bigquery,duckdb,snowflake,trino,postgres,databricks]==11.0.0",
-    "pymysql==1.1.0",
+    "pymysql==1.1.1",
     "sqlalchemy<3,>=1.4",
     "pydeps==1.12.18",
     "celery>=5.4.0",
