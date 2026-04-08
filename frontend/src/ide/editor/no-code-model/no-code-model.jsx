@@ -746,9 +746,6 @@ function NoCodeModel({ nodeData }) {
         notify({ error });
         setIsLoading(false);
         handleModalClose();
-      })
-      .finally(() => {
-        setIsLoading(false);
       });
   };
 
