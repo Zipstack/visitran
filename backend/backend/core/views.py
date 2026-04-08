@@ -44,14 +44,14 @@ def update_user_profile(request: Request) -> Response:
     user_service = UserService()
     user = user_service.get_user_by_email(request.user.email)
     user = user_service.update_user_display_names(user, request.data["first_name"], request.data["last_name"])
-    update_user_token(request, user)
-    return Response(
-        data={
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-        },
-        status=status.HTTP_200_OK
-    )
+    updated_token = update_user_token(request, user)
+    data = {
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+    }
+    if updated_token:
+        data['token'] = updated_token
+    return Response(data=data, status=status.HTTP_200_OK)
 
 
 def update_user_token(request, user):
@@ -78,9 +78,11 @@ def update_user_token(request, user):
             request, action="create", key_id=token.id,
             key_label="Default", key_masked=token.masked_token,
         )
+        return api_key
     else:
         if existing_token:
             existing_token.delete()
+    return None
 
 
 @api_view([HTTPMethods.GET])
