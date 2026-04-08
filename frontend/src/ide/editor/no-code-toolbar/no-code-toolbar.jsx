@@ -441,6 +441,23 @@ const NoCodeToolbar = memo(function NoCodeToolbar({
     [hiddenItems]
   );
 
+  // Render function for the "More" dropdown - memoized to avoid unnecessary re-renders
+  const renderMoreDropdown = useCallback(
+    () => (
+      <div className="no-code-toolbar-more-menu">
+        {hiddenItems.map((item) => {
+          const freshItem = items.find((i) => i.key === item.key);
+          return (
+            <div key={item.key} className="no-code-toolbar-more-item">
+              {freshItem?.label ?? item.label}
+            </div>
+          );
+        })}
+      </div>
+    ),
+    [hiddenItems, items]
+  );
+
   return (
     <div className="no-code-toolbar-wrapper">
       <div className="no-code-toolbar-content" ref={containerRef}>
@@ -458,18 +475,7 @@ const NoCodeToolbar = memo(function NoCodeToolbar({
           {hasOverflow && (
             <div className="toolbar-item toolbar-more-item">
               <Dropdown
-                dropdownRender={() => (
-                  <div className="ant-dropdown-menu">
-                    {hiddenItems.map((item) => {
-                      const freshItem = items.find((i) => i.key === item.key);
-                      return (
-                        <div key={item.key} className="ant-dropdown-menu-item">
-                          {freshItem?.label ?? item.label}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                dropdownRender={renderMoreDropdown}
                 trigger={["click"]}
                 placement="bottomRight"
                 overlayClassName="no-code-toolbar-dropdown"
