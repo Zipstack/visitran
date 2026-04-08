@@ -8,7 +8,7 @@
 /frontend/ @Zipstack/visitran-reviewers-l1
 
 # Core library
-/visitran/ @Zipstack/visitran-reviewers-l2
+/visitran/ @Zipstack/visitran-reviewers-l1 @Zipstack/visitran-reviewers-l2
 
 # Tests
 /tests/ @Zipstack/visitran-reviewers-l1
@@ -16,7 +16,7 @@
 # CI/CD and infrastructure
 /.github/ @Zipstack/visitran-admins
 /docker/ @Zipstack/visitran-admins
+/ci/ @Zipstack/visitran-admins
 
 # Documentation
-/*.md @Zipstack/visitran-reviewers-l1
 /docs/ @Zipstack/visitran-reviewers-l1
