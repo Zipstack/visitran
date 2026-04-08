@@ -492,7 +492,6 @@ class Visitran:
             This causes an Runtime error when
             calling this from django.
             So suppressing generation of dag.png when calling this from django.
-            See: https://zipstack.atlassian.net/browse/OR-109
             """
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
