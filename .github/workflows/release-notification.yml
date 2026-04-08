@@ -8,7 +8,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Build Slack message
+      - name: Build Slack payload
         id: message
         if: ${{ env.SLACK_WEBHOOK_URL != '' }}
         env:
@@ -17,15 +17,14 @@ jobs:
           RELEASE_NAME: ${{ github.event.release.name }}
           URL: ${{ github.event.release.html_url }}
         run: |
-          echo "text=🚀 *Visitran ${TAG}* released! ${RELEASE_NAME} <${URL}|View Release Notes>" >> "$GITHUB_OUTPUT"
+          TEXT=$(printf '🚀 *Visitran %s* released! %s <%s|View Release Notes>' "$TAG" "$RELEASE_NAME" "$URL")
+          PAYLOAD=$(jq -nc --arg text "$TEXT" '{"text": $text}')
+          echo "payload=$PAYLOAD" >> "$GITHUB_OUTPUT"
 
       - name: Post to Slack
-        if: ${{ steps.message.outputs.text != '' }}
+        if: ${{ steps.message.outputs.payload != '' }}
         uses: slackapi/slack-github-action@v2.1.0
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
-          payload: |
-            {
-              "text": "${{ steps.message.outputs.text }}"
-            }
+          payload: ${{ steps.message.outputs.payload }}
