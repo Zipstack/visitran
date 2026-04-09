@@ -23,7 +23,7 @@ class APIToken(DefaultOrganizationMixin, BaseModel):
     last_used_at = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if self.token and not self.token_hash:
+        if self.token:
             self.token_hash = hashlib.sha256(self.token.encode()).hexdigest()
         super().save(*args, **kwargs)
 

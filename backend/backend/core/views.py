@@ -16,6 +16,9 @@ from backend.core.user import UserService
 from backend.utils.tenant_context import get_current_tenant
 
 from backend.core.models.api_tokens import APIToken
+from backend.core.services.api_key_audit import log_api_key_event
+from backend.core.services.api_key_service import generate_api_key, generate_signature
+from django.conf import settings as django_settings
 from django.utils.timezone import now
 from datetime import timedelta
 
@@ -41,30 +44,47 @@ def update_user_profile(request: Request) -> Response:
     user_service = UserService()
     user = user_service.get_user_by_email(request.user.email)
     user = user_service.update_user_display_names(user, request.data["first_name"], request.data["last_name"])
-    update_user_token(request, user)
-    return Response(
-        data={
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-        },
-        status=status.HTTP_200_OK
-    )
+    updated_token = update_user_token(request, user)
+    data = {
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+    }
+    if updated_token:
+        data['token'] = updated_token
+    return Response(data=data, status=status.HTTP_200_OK)
 
 
 def update_user_token(request, user):
-    new_token = request.data.get("token")
-    existing_token: APIToken = APIToken.objects.filter(user=user).first()
+    # token_value is sent back by the frontend — used only to detect "unchanged"
+    token_value = request.data.get("token")
+    existing_token: APIToken = APIToken.objects.filter(user=user, label="Default").first()
 
-    if new_token:
-        if existing_token and existing_token.token == new_token:
+    if token_value:
+        # Skip regeneration if the token hasn't changed
+        if existing_token and existing_token.token == token_value:
             return
+        had_existing = existing_token is not None
         if existing_token:
             existing_token.delete()
 
-        APIToken.objects.create(user=user, token=new_token, expires_at= now() + timedelta(days=90))
+        api_key = generate_api_key()
+        token = APIToken.objects.create(
+            user=user,
+            token=api_key,
+            signature=generate_signature(api_key),
+            label="Default",
+            expires_at=now() + timedelta(days=django_settings.API_KEY_EXPIRY_DAYS),
+        )
+        log_api_key_event(
+            request, action="regenerate" if had_existing else "create",
+            key_id=token.id,
+            key_label="Default", key_masked=token.masked_token,
+        )
+        return api_key
     else:
         if existing_token:
             existing_token.delete()
+    return None
 
 
 @api_view([HTTPMethods.GET])

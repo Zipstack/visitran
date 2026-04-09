@@ -1,8 +1,8 @@
 import logging
-import uuid
 from datetime import timedelta
 from typing import Any, Optional
 
+from django.conf import settings as django_settings
 from django.db import IntegrityError
 from django.db import transaction
 from django.utils.timezone import now
@@ -10,6 +10,7 @@ from django.utils.timezone import now
 from backend.core.models.api_tokens import APIToken
 from backend.core.models.organization_model import Organization
 from backend.core.models.user_model import User
+from backend.core.services.api_key_service import generate_api_key, generate_signature
 
 Logger = logging.getLogger(__name__)
 
@@ -87,11 +88,14 @@ class UserService:
                     token.delete()
                     token = None
                 if token is None:
+                    api_key = generate_api_key()
                     token = APIToken.objects.create(
                         user=user,
                         organization=organization,
-                        token=str(uuid.uuid4().hex),
-                        expires_at=now() + timedelta(days=90),
+                        token=api_key,
+                        signature=generate_signature(api_key),
+                        label="Default",
+                        expires_at=now() + timedelta(days=django_settings.API_KEY_EXPIRY_DAYS),
                     )
                     logging.info(f"A new api token for user: {user} and tenant: {organization} is created")
             except Exception as e:
