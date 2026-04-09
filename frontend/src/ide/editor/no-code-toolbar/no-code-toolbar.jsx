@@ -435,24 +435,27 @@ const NoCodeToolbar = memo(function NoCodeToolbar({
     };
   }, [items, calculateVisibleItems, debouncedCalculate]);
 
-  // Create dropdown menu items from hidden items
-  const dropdownMenu = useMemo(
-    () => ({
-      items: hiddenItems.map((item) => {
-        const freshItem = items.find((i) => i.key === item.key);
-        return {
-          key: item.key,
-          label: freshItem?.label ?? item.label,
-        };
-      }),
-    }),
-    [hiddenItems, items]
-  );
-
   // Create a set of hidden item keys for quick lookup
   const hiddenItemKeys = useMemo(
     () => new Set(hiddenItems.map((item) => item.key)),
     [hiddenItems]
+  );
+
+  // Render function for the "More" dropdown - memoized to avoid unnecessary re-renders
+  const renderMoreDropdown = useCallback(
+    () => (
+      <div className="no-code-toolbar-more-menu">
+        {hiddenItems.map((item) => {
+          const freshItem = items.find((i) => i.key === item.key);
+          return (
+            <div key={item.key} className="no-code-toolbar-more-item">
+              {freshItem?.label ?? item.label}
+            </div>
+          );
+        })}
+      </div>
+    ),
+    [hiddenItems, items]
   );
 
   return (
@@ -472,7 +475,7 @@ const NoCodeToolbar = memo(function NoCodeToolbar({
           {hasOverflow && (
             <div className="toolbar-item toolbar-more-item">
               <Dropdown
-                menu={dropdownMenu}
+                dropdownRender={renderMoreDropdown}
                 trigger={["click"]}
                 placement="bottomRight"
                 overlayClassName="no-code-toolbar-dropdown"
