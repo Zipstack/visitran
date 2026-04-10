@@ -56,7 +56,7 @@ const DisplayErrorMessages = memo(function DisplayErrorMessages({
               type={showAsWarning ? "warning" : "error"}
               className="width-100"
               description={
-                !showAsWarning && onTroubleshoot ? (
+                !showAsWarning && onTroubleshoot && text ? (
                   <Button
                     type="link"
                     size="small"
