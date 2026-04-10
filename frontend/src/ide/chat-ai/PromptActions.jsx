@@ -1,5 +1,13 @@
 import { memo, useCallback, useEffect, useMemo } from "react";
-import { Space, Typography, Select, Switch, Segmented, Tooltip, message } from "antd";
+import {
+  Space,
+  Typography,
+  Select,
+  Switch,
+  Segmented,
+  Tooltip,
+  message,
+} from "antd";
 import {
   ConsoleSqlOutlined,
   DatabaseOutlined,
@@ -70,7 +78,9 @@ const PromptActions = memo(function PromptActions({
     (value) => {
       const csrfToken = Cookies.get("csrftoken");
       axios({
-        url: `/api/v1/visitran/${selectedOrgId || "default_org"}/project/${projectId}/set_schema`,
+        url: `/api/v1/visitran/${
+          selectedOrgId || "default_org"
+        }/project/${projectId}/set_schema`,
         method: "POST",
         data: { schema_name: value },
         headers: { "X-CSRFToken": csrfToken },

@@ -205,7 +205,7 @@ function ConfigureSourceDestination({
   return (
     <>
       {/* ---------- Hierarchy ---------- */}
-      <Card style={{ marginBottom: "12px" }}>
+      <Card className="configure-section-card configure-tables">
         <h4 style={{ marginTop: 0 }}>
           <Space>
             <ApartmentOutlined />
@@ -220,9 +220,7 @@ function ConfigureSourceDestination({
               setPrevReference(reference.length ? reference : []);
               setReference([]);
             } else {
-              setReference(
-                prevReference.length ? prevReference : reference
-              );
+              setReference(prevReference.length ? prevReference : reference);
             }
             setModelType(newModelType);
           }}
@@ -236,7 +234,6 @@ function ConfigureSourceDestination({
         {modelType === "child" && (
           <Select
             mode="multiple"
-            style={{ width: "100%" }}
             placeholder="Select the model"
             value={reference}
             onChange={(value) =>
@@ -244,17 +241,15 @@ function ConfigureSourceDestination({
             }
             options={referenceList}
             showSearch
+            popupMatchSelectWidth={false}
           />
         )}
       </Card>
 
       {/* ---------- Configure Source & Destination ---------- */}
       <Card
-        className="configure-tables"
-        style={{
-          backgroundColor: token.colorFillTertiary,
-          marginBottom: "12px",
-        }}
+        className="configure-tables configure-section-card"
+        style={{ backgroundColor: token.colorFillTertiary }}
         bodyStyle={{ padding: "12px 16px" }}
       >
         <h4 style={{ marginTop: 0 }}>
@@ -268,7 +263,6 @@ function ConfigureSourceDestination({
             <Col span={12}>
               <Select
                 className="mb-10"
-                style={{ width: "100%" }}
                 placeholder="Select the schema"
                 value={source.schema_name}
                 onChange={(value) =>
@@ -279,9 +273,7 @@ function ConfigureSourceDestination({
                 popupMatchSelectWidth={false}
                 loading={isLoadingSchemas}
                 notFoundContent={
-                  isLoadingSchemas
-                    ? "Loading schemas..."
-                    : "No schemas found"
+                  isLoadingSchemas ? "Loading schemas..." : "No schemas found"
                 }
               />
             </Col>
@@ -289,12 +281,9 @@ function ConfigureSourceDestination({
           <Col span={isSchemaExists ? 12 : 24}>
             <Select
               className="mb-10"
-              style={{ width: "100%" }}
               placeholder="Select the table"
               value={source.table_name}
-              onChange={(value) =>
-                handleChange("table_name", value, setSource)
-              }
+              onChange={(value) => handleChange("table_name", value, setSource)}
               options={allTables[
                 isSchemaExists ? source.schema_name : "default"
               ]?.map((value) => ({
@@ -304,14 +293,10 @@ function ConfigureSourceDestination({
               popupMatchSelectWidth={false}
               disabled={isSchemaExists && !source.schema_name}
               loading={
-                isLoadingTables[
-                  isSchemaExists ? source.schema_name : "default"
-                ]
+                isLoadingTables[isSchemaExists ? source.schema_name : "default"]
               }
               notFoundContent={
-                isLoadingTables[
-                  isSchemaExists ? source.schema_name : "default"
-                ]
+                isLoadingTables[isSchemaExists ? source.schema_name : "default"]
                   ? "Loading tables..."
                   : "No tables found"
               }
@@ -330,7 +315,6 @@ function ConfigureSourceDestination({
             <Col span={12}>
               <Select
                 className="mb-10"
-                style={{ width: "100%" }}
                 placeholder="Select the schema"
                 value={model.schema_name}
                 onChange={(value) =>
@@ -341,9 +325,7 @@ function ConfigureSourceDestination({
                 popupMatchSelectWidth={false}
                 loading={isLoadingSchemas}
                 notFoundContent={
-                  isLoadingSchemas
-                    ? "Loading schemas..."
-                    : "No schemas found"
+                  isLoadingSchemas ? "Loading schemas..." : "No schemas found"
                 }
               />
             </Col>
@@ -351,17 +333,11 @@ function ConfigureSourceDestination({
           <Col span={isSchemaExists ? 12 : 24}>
             <AutoComplete
               className="mb-10"
-              style={{ width: "100%" }}
               placeholder="Select the table"
               value={model.table_name}
               onChange={(value) => {
                 const noSpacesValue = value.replace(/\s/g, "");
-                handleChange(
-                  "table_name",
-                  noSpacesValue,
-                  setModel,
-                  false
-                );
+                handleChange("table_name", noSpacesValue, setModel, false);
               }}
               disabled={isSchemaExists && !model.schema_name}
             />
