@@ -51,23 +51,21 @@ const DisplayErrorMessages = memo(function DisplayErrorMessages({
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {text}
                   </ReactMarkdown>
+                  {!showAsWarning && onTroubleshoot && text && (
+                    <Button
+                      type="link"
+                      size="small"
+                      icon={<ToolOutlined />}
+                      onClick={() => onTroubleshoot(text)}
+                      style={{ padding: 0, marginTop: 8 }}
+                    >
+                      Troubleshoot this
+                    </Button>
+                  )}
                 </div>
               }
               type={showAsWarning ? "warning" : "error"}
               className="width-100"
-              description={
-                !showAsWarning && onTroubleshoot && text ? (
-                  <Button
-                    type="link"
-                    size="small"
-                    icon={<ToolOutlined />}
-                    onClick={() => onTroubleshoot(text)}
-                    style={{ padding: 0, marginTop: 8 }}
-                  >
-                    Troubleshoot this
-                  </Button>
-                ) : null
-              }
             />
           </div>
         );
