@@ -234,16 +234,33 @@ const IdeExplorer = ({
   };
 
   const applyModelDecorations = (models) => {
+    // Build set of model names to distinguish from external table references
+    const modelNames = new Set(models.map((m) => m.title));
     models.forEach((m) => {
-      if ((m.references || []).length > 0) {
+      const refs = (m.references || []).filter((r) => modelNames.has(r));
+      if (refs.length > 0) {
         m._isChild = true;
       }
     });
   };
 
-  const handleModelSort = (key) => {
-    setModelSortBy(key);
-    rebuildTree();
+  const handleModelSort = (sortBy) => {
+    setModelSortBy(sortBy);
+    if (rawTreeDataRef.current.length > 0) {
+      const freshData = JSON.parse(JSON.stringify(rawTreeDataRef.current));
+      freshData.forEach((node) => {
+        if (node.title === "models" && node.children) {
+          node.children.forEach((child) => {
+            if (child.title === "no_code" && child.children) {
+              child.children = sortModels(child.children, sortBy);
+              applyModelDecorations(child.children);
+            }
+          });
+        }
+      });
+      transformTree(freshData);
+      setTreeData(freshData, false);
+    }
   };
 
   // Function to map string icons from API to actual icon components
