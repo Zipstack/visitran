@@ -82,6 +82,7 @@ const IdeExplorer = ({
   } = useProjectStore();
   const currentSchema = useProjectStore((state) => state.currentSchema);
   const setCurrentSchema = useProjectStore((state) => state.setCurrentSchema);
+  const setSchemaList = useProjectStore((state) => state.setSchemaList);
 
   // Reset currentSchema on unmount to prevent stale data
   useEffect(() => {
@@ -127,6 +128,7 @@ const IdeExplorer = ({
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [fileList, setFileList] = useState([]);
+  const [modelSortBy, setModelSortBy] = useState("dep_chain");
   const MAX_FILE_SIZE_MB = 50;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
   const { refreshModels, setRefreshModels } = useRefreshModelsStore();
@@ -186,6 +188,62 @@ const IdeExplorer = ({
     return schemas.reduce((count, schema) => {
       return count + (schema.children?.length || 0);
     }, 0);
+  };
+
+  // Sort no_code models based on sort option
+  const sortModels = (models, sortBy) => {
+    if (sortBy === "alpha_asc") {
+      return [...models].sort((a, b) => a.title.localeCompare(b.title));
+    }
+    if (sortBy === "alpha_desc") {
+      return [...models].sort((a, b) => b.title.localeCompare(a.title));
+    }
+    if (sortBy === "dep_chain") {
+      const modelSet = new Set(models.map((m) => m.title));
+      const childrenOf = {};
+      models.forEach((m) => {
+        (m.references || []).forEach((ref) => {
+          if (modelSet.has(ref)) {
+            if (!childrenOf[ref]) childrenOf[ref] = [];
+            childrenOf[ref].push(m.title);
+          }
+        });
+      });
+      const modelByName = {};
+      models.forEach((m) => {
+        modelByName[m.title] = m;
+      });
+      const visited = new Set();
+      const result = [];
+      const addChain = (name) => {
+        if (visited.has(name) || !modelByName[name]) return;
+        visited.add(name);
+        result.push(modelByName[name]);
+        (childrenOf[name] || []).forEach(addChain);
+      };
+      models.forEach((m) => {
+        const refs = (m.references || []).filter((r) => modelSet.has(r));
+        if (refs.length === 0) addChain(m.title);
+      });
+      models.forEach((m) => {
+        if (!visited.has(m.title)) result.push(m);
+      });
+      return result;
+    }
+    return [...models];
+  };
+
+  const applyModelDecorations = (models) => {
+    models.forEach((m) => {
+      if ((m.references || []).length > 0) {
+        m._isChild = true;
+      }
+    });
+  };
+
+  const handleModelSort = (key) => {
+    setModelSortBy(key);
+    rebuildTree();
   };
 
   // Function to map string icons from API to actual icon components
@@ -308,6 +366,9 @@ const IdeExplorer = ({
           setCurrentSchema("");
         }
 
+        // Store plain schema list in shared store
+        setSchemaList(allSchemas);
+
         const items = allSchemas.map((el) => ({
           label: el,
           key: el,
@@ -350,6 +411,9 @@ const IdeExplorer = ({
     data.map((item) => {
       if (item.title === "no_code") {
         item.children = item.children || [];
+        // Sort and decorate models
+        item.children = sortModels(item.children, modelSortBy);
+        applyModelDecorations(item.children);
         // Clean up stale selected model keys
         const currentModelKeys = item.children.map((c) => c.key);
         const filtered = selectedModelKeysRef.current.filter((k) =>
@@ -455,6 +519,32 @@ const IdeExplorer = ({
                       <DeleteOutlined />
                     </Typography.Text>
                   </Tooltip>
+                  <Dropdown
+                    menu={{
+                      items: [
+                        {
+                          label: "Dependency Chain",
+                          key: "dep_chain",
+                        },
+                        {
+                          label: "Execution Order",
+                          key: "exec_order",
+                        },
+                        { label: "A \u2192 Z", key: "alpha_asc" },
+                        { label: "Z \u2192 A", key: "alpha_desc" },
+                      ],
+                      selectedKeys: [modelSortBy],
+                      onClick: ({ key }) => handleModelSort(key),
+                    }}
+                    trigger={["click"]}
+                    placement="bottomRight"
+                  >
+                    <Tooltip placement="top" title="Sort Models">
+                      <Typography.Text className="ml-10 icon-highlight">
+                        <Icons.SortAscendingOutlined />
+                      </Typography.Text>
+                    </Tooltip>
+                  </Dropdown>
                 </>
               )}
             </Typography>
@@ -2445,6 +2535,11 @@ function transformTree(tree) {
     node["icon"] = getIconByType(type);
     // change is_folder to isLeaf key and delete is_folder
     delete Object.assign(node, { isLeaf: !node.is_folder }).is_folder;
+
+    // Indent child/reference models
+    if (node._isChild) {
+      node.className = "explorer-child-model";
+    }
 
     if (node.children) {
       transformTree(node.children);

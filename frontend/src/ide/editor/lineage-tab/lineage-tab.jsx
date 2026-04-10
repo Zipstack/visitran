@@ -289,7 +289,81 @@ const transformLineageData = (data) => {
   return data;
 };
 
-function LineageTab({ nodeData }) {
+// Find all ancestor and descendant node IDs for a given model
+const getRelatedNodeIds = (allEdges, selectedLabel, allNodes) => {
+  const nodeByLabel = {};
+  allNodes.forEach((n) => {
+    nodeByLabel[n.data.originalLabel || n.data.label] = n.id;
+  });
+  const selectedId = nodeByLabel[selectedLabel];
+  if (!selectedId) return null;
+
+  const related = new Set([selectedId]);
+  const findAncestors = (id) => {
+    allEdges.forEach((e) => {
+      if (e.target === id && !related.has(e.source)) {
+        related.add(e.source);
+        findAncestors(e.source);
+      }
+    });
+  };
+  const findDescendants = (id) => {
+    allEdges.forEach((e) => {
+      if (e.source === id && !related.has(e.target)) {
+        related.add(e.target);
+        findDescendants(e.target);
+      }
+    });
+  };
+  findAncestors(selectedId);
+  findDescendants(selectedId);
+  return related;
+};
+
+const applyScopedStyles = (layoutedNodes, layoutedEdges, selectedLabel) => {
+  const rawEdges = layoutedEdges.map((e) => ({
+    source: e.source,
+    target: e.target,
+  }));
+  const related = getRelatedNodeIds(rawEdges, selectedLabel, layoutedNodes);
+  if (!related) return { nodes: layoutedNodes, edges: layoutedEdges };
+
+  const styledNodes = layoutedNodes.map((node) => {
+    const nodeLabel = node.data.originalLabel || node.data.label;
+    const isSelected = nodeLabel === selectedLabel;
+    const isRelated = related.has(node.id);
+    return {
+      ...node,
+      style: {
+        ...node.style,
+        opacity: isRelated ? 1 : 0.25,
+        border: isSelected
+          ? "2px dashed #1677ff"
+          : node.style?.border || "1px solid var(--black)",
+      },
+    };
+  });
+
+  const relatedEdgeSet = new Set();
+  layoutedEdges.forEach((e) => {
+    if (related.has(e.source) && related.has(e.target)) {
+      relatedEdgeSet.add(e.id);
+    }
+  });
+
+  const styledEdges = layoutedEdges.map((edge) => ({
+    ...edge,
+    style: {
+      ...edge.style,
+      opacity: relatedEdgeSet.has(edge.id) ? 1 : 0.15,
+      stroke: relatedEdgeSet.has(edge.id) ? "#1677ff" : undefined,
+    },
+  }));
+
+  return { nodes: styledNodes, edges: styledEdges };
+};
+
+function LineageTab({ nodeData, selectedModelName }) {
   const axios = useAxiosPrivate();
   const { selectedOrgId } = orgStore();
   const { projectId } = useProjectStore();
@@ -486,15 +560,32 @@ function LineageTab({ nodeData }) {
             transformedData.edges,
             layoutDirection
           );
-        setNodes(layoutedNodes);
-        setEdges(layoutedEdges);
+        if (selectedModelName) {
+          const scoped = applyScopedStyles(
+            layoutedNodes,
+            layoutedEdges,
+            selectedModelName
+          );
+          setNodes(scoped.nodes);
+          setEdges(scoped.edges);
+        } else {
+          setNodes(layoutedNodes);
+          setEdges(layoutedEdges);
+        }
       })
       .catch((error) => {
         console.error(error);
         notify({ error });
         setLineageData({});
       });
-  }, [projectId, selectedOrgId, setNodes, setEdges, layoutDirection]);
+  }, [
+    projectId,
+    selectedOrgId,
+    setNodes,
+    setEdges,
+    layoutDirection,
+    selectedModelName,
+  ]);
 
   const handleToggleLayout = useCallback(() => {
     const newDirection = layoutDirection === "TB" ? "LR" : "TB";
@@ -504,10 +595,20 @@ function LineageTab({ nodeData }) {
     if (lineageData && lineageData.nodes && lineageData.edges) {
       const { nodes: layoutedNodes, edges: layoutedEdges } =
         getLayoutedElements(lineageData.nodes, lineageData.edges, newDirection);
-      setNodes(layoutedNodes);
-      setEdges(layoutedEdges);
+      if (selectedModelName) {
+        const scoped = applyScopedStyles(
+          layoutedNodes,
+          layoutedEdges,
+          selectedModelName
+        );
+        setNodes(scoped.nodes);
+        setEdges(scoped.edges);
+      } else {
+        setNodes(layoutedNodes);
+        setEdges(layoutedEdges);
+      }
     }
-  }, [layoutDirection, lineageData, setNodes, setEdges]);
+  }, [layoutDirection, lineageData, setNodes, setEdges, selectedModelName]);
 
   // Fetch sequence data for a model
   const fetchSequenceData = useCallback(
@@ -674,15 +775,25 @@ function LineageTab({ nodeData }) {
             transformedData.edges,
             "TB"
           );
-        setNodes(layoutedNodes);
-        setEdges(layoutedEdges);
+        if (selectedModelName) {
+          const scoped = applyScopedStyles(
+            layoutedNodes,
+            layoutedEdges,
+            selectedModelName
+          );
+          setNodes(scoped.nodes);
+          setEdges(scoped.edges);
+        } else {
+          setNodes(layoutedNodes);
+          setEdges(layoutedEdges);
+        }
       })
       .catch((error) => {
         console.error(error);
         notify({ error });
         setLineageData({});
       });
-  }, [projectId, selectedOrgId, setNodes, setEdges]);
+  }, [projectId, selectedOrgId, setNodes, setEdges, selectedModelName]);
 
   if (!lineageData) {
     return <SpinnerLoader />;
@@ -957,6 +1068,7 @@ function LineageTab({ nodeData }) {
 
 LineageTab.propTypes = {
   nodeData: PropTypes.object,
+  selectedModelName: PropTypes.string,
 };
 
 export { LineageTab };

@@ -79,6 +79,11 @@
   width: 8px !important;
 }
 
+/* Indent child/reference models to show hierarchy */
+.explorerTree .explorer-child-model {
+  padding-left: 12px !important;
+}
+
 .contextMenu {
   position: fixed;
   z-index: 1000;
