@@ -250,7 +250,7 @@ function ConfigureSourceDestination({
       <Card
         className="configure-tables configure-section-card"
         style={{ backgroundColor: token.colorFillTertiary }}
-        bodyStyle={{ padding: "12px 16px" }}
+        styles={{ body: { padding: "12px 16px" } }}
       >
         <h4 style={{ marginTop: 0 }}>
           <Space>

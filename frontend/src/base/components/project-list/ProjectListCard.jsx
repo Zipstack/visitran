@@ -145,6 +145,7 @@ function ProjectListCard({
                 if (ShareProjectModal) setIsShareModalOpen(true);
               }}
               onKeyDown={(e) => {
+                e.stopPropagation();
                 if (e.key === "Enter" && ShareProjectModal)
                   setIsShareModalOpen(true);
               }}
