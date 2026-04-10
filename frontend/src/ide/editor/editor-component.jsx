@@ -12,6 +12,11 @@ import "../ide-layout.css";
 import { StartBanner } from "./start-banner.jsx";
 import { useRefreshModelsStore } from "../../store/refresh-models-store.js";
 
+let VersionControlBar;
+try {
+  VersionControlBar = require("../../plugins/version-control/components/VersionControlBar.jsx").VersionControlBar;
+} catch {}
+
 const { Text } = Typography;
 
 const IdeEditor = memo(function IdeEditor({
@@ -449,6 +454,7 @@ const IdeEditor = memo(function IdeEditor({
 
   return (
     <div className="ideEditor">
+      {VersionControlBar && <VersionControlBar />}
       <Tabs
         className="editor-tabs"
         hideAdd

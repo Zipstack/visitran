@@ -208,6 +208,30 @@ def get_supported_models(request: Request, project_id: str, file_name: str) -> R
     return Response(data=response_data, status=status.HTTP_200_OK)
 
 
+@api_view([HTTPMethods.PUT, HTTPMethods.POST])
+@handle_http_request
+@handle_permission
+@clear_cache(patterns=["model_content_{project_id}_*"])
+def update_model_data(request: Request, project_id: str, file_name: str) -> Response:
+    """Directly update model_data in ConfigModels — used by version restore."""
+    try:
+        from backend.core.models.config_models import ConfigModels
+        from backend.core.models.project_details import ProjectDetails
+
+        project = ProjectDetails.objects.get(project_uuid=project_id)
+        model = ConfigModels.objects.get(project_instance=project, model_name=file_name)
+        model_data = request.data.get("model_data")
+        if not model_data:
+            return Response({"error": "model_data is required"}, status=status.HTTP_400_BAD_REQUEST)
+        model.model_data = model_data
+        model.save()
+        return Response({"status": "success", "message": f"Model {file_name} restored"})
+    except ConfigModels.DoesNotExist:
+        return Response({"error": "Model not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 @api_view([HTTPMethods.POST])
 @handle_http_request
 @handle_permission

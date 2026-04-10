@@ -22,6 +22,11 @@ import { ProjectInfoSection } from "./ProjectInfoSection";
 import { ConnectionEnvSection } from "./ConnectionEnvSection";
 import { useNotificationService } from "../../service/notification-service";
 
+let RepositorySection;
+try {
+  RepositorySection = require("../../plugins/version-control/components/RepositorySection.jsx").RepositorySection;
+} catch {}
+
 const DEFAULT_PREFILL_DATA = {
   project_name: "",
   description: "",
@@ -313,6 +318,13 @@ function NewProject({ open, setOpen, getAllProject, id }) {
               setIsEnvModalOpen={setIsEnvModalOpen}
               id={id}
             />
+
+            {RepositorySection && (
+              <>
+                <Divider className="divider-modal" />
+                <RepositorySection />
+              </>
+            )}
 
             <Divider className="divider-modal" />
 

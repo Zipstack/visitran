@@ -73,3 +73,12 @@ try:
 except (ModuleNotFoundError, RuntimeError):
     # RuntimeError occurs when model's app is not in INSTALLED_APPS
     print("Slack Integration Module does not exist.")
+
+try:
+    VERSION_CONTROL = path(
+        "project/<str:project_id>/version/",
+        include("pluggable_apps.version_control.urls"),
+    )
+    urlpatterns.append(VERSION_CONTROL)
+except (ModuleNotFoundError, RuntimeError):
+    pass

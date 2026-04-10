@@ -153,6 +153,18 @@ class Session(BaseSession):
         self._invalidate_models_cache()
         self._invalidate_model_key(model_name)
 
+        # Auto-commit to version control (if configured)
+        try:
+            from pluggable_apps.version_control.services.project_integration import auto_commit_model
+            import json, yaml
+            clean_data = json.loads(json.dumps(model_data, default=str))
+            yaml_content = yaml.dump(clean_data, default_flow_style=False, sort_keys=False)
+            auto_commit_model(config_model.project_instance, model_name, yaml_content)
+        except ImportError:
+            pass
+        except Exception:
+            pass
+
     def update_model_content(self, model_name: str, model_content: str) -> None:
         try:
             # Validate inputs

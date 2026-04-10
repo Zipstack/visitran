@@ -93,6 +93,12 @@ import {
 } from "../../../base/icons/index.js";
 import { SpinnerLoader } from "../../../widgets/spinner_loader/index.js";
 import { CopyableCell } from "../../../widgets/copyable-cell/index.js";
+
+let VersionTab;
+try {
+  VersionTab = require("../../../plugins/version-control/components/VersionTab.jsx").default;
+} catch {}
+
 import "./no-code-model.css";
 import "reactflow/dist/style.css";
 import { useNotificationService } from "../../../service/notification-service.js";
@@ -660,6 +666,51 @@ function NoCodeModel({ nodeData }) {
         </div>
       ),
     },
+    ...(VersionTab
+      ? [
+          {
+            label: (
+              <div className="flex-align-center">
+                <Tech />
+                <Text className="ml-5">Version</Text>
+              </div>
+            ),
+            key: "version",
+            children: (
+              <div
+                style={{
+                  height: `calc(${bottomSectionRef.current.height} - 70px)`,
+                  overflow: "auto",
+                }}
+              >
+                <VersionTab
+                  projectId={projectId}
+                  modelName={nodeData?.node?.title}
+                  yamlContent={spec}
+                  onVersionLoad={async (versionData) => {
+                    try {
+                      const jsYaml = require("js-yaml");
+                      const parsed = jsYaml.load(versionData.yaml_content);
+                      if (parsed && typeof parsed === "object") {
+                        await axiosPrivate.put(
+                          `/api/v1/visitran/${selectedOrgId || "default_org"}/project/${projectId}/no_code_model/${nodeData?.node?.title}/update-model-data`,
+                          { model_data: parsed },
+                          { headers: { "X-CSRFToken": Cookies.get("csrftoken") } }
+                        );
+                        updateSpec(parsed);
+                        runTransformation(parsed);
+                      }
+                    } catch (e) {
+                      console.error("Restore failed:", e);
+                      throw e;
+                    }
+                  }}
+                />
+              </div>
+            ),
+          },
+        ]
+      : []),
   ].filter((tab) => {
     if (
       hideGenAIAndTimeTravelTabs &&
