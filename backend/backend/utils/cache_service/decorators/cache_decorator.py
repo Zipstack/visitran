@@ -96,6 +96,7 @@ def clear_cache(patterns: list[str]):
 
             except Exception as e:
                 Logger.exception("Error executing view function")
+                raise
 
             return response
 

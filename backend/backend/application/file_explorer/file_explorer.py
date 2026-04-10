@@ -93,18 +93,25 @@ class FileExplorer:
         # Sort models by execution order (DAG order)
         sorted_model_names = topological_sort_models(models_with_refs)
 
+        # Build a lookup from model name -> model object for status fields
+        model_lookup = {m.model_name: m for m in all_models}
+
         # Build the model structure in sorted order
         no_code_model_structure = []
         for no_code_model_name in sorted_model_names:
-            no_code_model_structure.append(
-                {
-                    "extension": no_code_model_name,
-                    "title": no_code_model_name,
-                    "key": f"{self.project_name}/models/no_code/{no_code_model_name}",
-                    "is_folder": False,
-                    "type": "NO_CODE_MODEL",
-                }
-            )
+            model = model_lookup.get(no_code_model_name)
+            model_data = {
+                "extension": no_code_model_name,
+                "title": no_code_model_name,
+                "key": f"{self.project_name}/models/no_code/{no_code_model_name}",
+                "is_folder": False,
+                "type": "NO_CODE_MODEL",
+                "run_status": getattr(model, "run_status", None),
+                "failure_reason": getattr(model, "failure_reason", None),
+                "last_run_at": model.last_run_at.isoformat() if getattr(model, "last_run_at", None) else None,
+                "run_duration": getattr(model, "run_duration", None),
+            }
+            no_code_model_structure.append(model_data)
         model_structure: dict[str, Any] = {
             "title": "models",
             "key": f"{self.project_name}/models",

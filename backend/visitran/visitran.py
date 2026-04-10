@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any, TypeVar, Union, Optional, Dict, List
 
 import ibis
 import networkx as nx
+from django.utils import timezone
 from visitran import utils
 from visitran.adapters.adapter import BaseAdapter
 from visitran.adapters.seed import BaseSeed
@@ -70,6 +71,12 @@ from visitran.materialization import Materialization
 from visitran.singleton import Singleton
 from visitran.templates.model import VisitranModel
 from visitran.templates.snapshot import VisitranSnapshot
+
+# Import Django models for status tracking
+try:
+    from backend.core.models.config_models import ConfigModels
+except ImportError:
+    ConfigModels = None
 
 warnings.filterwarnings("ignore", message=".*?pkg_resources.*?")
 from matplotlib import pyplot as plt  # noqa: E402
@@ -228,6 +235,38 @@ class Visitran:
         self.sorted_dag_nodes = list(nx.lexicographical_topological_sort(self.dag, key=sort_func))
         fire_event(SortedDAGNodes(sorted_dag_nodes=str(self.sorted_dag_nodes)))
 
+    def _update_model_status(self, model_name: str, run_status: str, failure_reason: str = None) -> None:
+        """Update the run status of a model in the database."""
+        if ConfigModels is None:
+            return
+
+        try:
+            class_name = model_name.split("'")[1].split(".")[-2] if "'" in model_name else model_name
+
+            session = getattr(self.context, "session", None)
+            if not session:
+                return
+
+            project_id = session.project_id
+            if not project_id:
+                return
+
+            model_instance = ConfigModels.objects.get(
+                project_instance__project_uuid=project_id,
+                model_name=class_name,
+            )
+            model_instance.run_status = run_status
+            model_instance.last_run_at = timezone.now()
+
+            if run_status == ConfigModels.RunStatus.FAILED:
+                model_instance.failure_reason = failure_reason
+            elif run_status == ConfigModels.RunStatus.SUCCESS:
+                model_instance.failure_reason = None
+
+            model_instance.save(update_fields=["run_status", "last_run_at", "failure_reason"])
+        except Exception as e:
+            logging.warning(f"Failed to update model status for {model_name}: {e}")
+
     def execute_graph(self) -> None:
         """Executes the sorted DAG elements one by one."""
         dag_nodes = self.sorted_dag_nodes
@@ -237,6 +276,9 @@ class Visitran:
             node = self.dag.nodes[node_name]["model_object"]
             is_executable = self.dag.nodes[node_name].get("executable", True)
             try:
+                # Set status to RUNNING before execution
+                self._update_model_status(str(node_name), ConfigModels.RunStatus.RUNNING if ConfigModels else "RUNNING")
+
                 # Apply model_configs override from deployment configuration
                 self._apply_model_config_override(node)
 
@@ -270,6 +312,9 @@ class Visitran:
                 self.db_adapter.db_connection.create_schema(node.destination_schema_name)  # create if not exists
                 self.db_adapter.run_model(visitran_model=node)
 
+                # Set status to SUCCESS after successful execution
+                self._update_model_status(str(node_name), ConfigModels.RunStatus.SUCCESS if ConfigModels else "SUCCESS")
+
                 base_result = BaseResult(
                     node_name=str(node_name),
                     sequence_num=sequence_number,
@@ -282,11 +327,22 @@ class Visitran:
                 sequence_number += 1
                 BASE_RESULT.append(base_result)
             except VisitranBaseExceptions as visitran_err:
+                self._update_model_status(
+                    str(node_name),
+                    ConfigModels.RunStatus.FAILED if ConfigModels else "FAILED",
+                    failure_reason=str(visitran_err),
+                )
                 raise visitran_err
             except Exception as err:
                 dest_table = node.destination_table_name
                 sch_name = node.destination_schema_name
                 err_trace = repr(err)
+
+                self._update_model_status(
+                    str(node_name),
+                    ConfigModels.RunStatus.FAILED if ConfigModels else "FAILED",
+                    failure_reason=err_trace,
+                )
                 base_result = BaseResult(
                     node_name=str(node_name),
                     sequence_num=sequence_number,

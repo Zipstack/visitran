@@ -1602,6 +1602,7 @@ function NoCodeModel({ nodeData }) {
     axios(requestOptions)
       .then(() => {
         getSampleData(undefined, undefined, spec);
+        setRefreshModels(true);
       })
       .catch((error) => {
         const notifKey = notify({
@@ -1636,6 +1637,7 @@ function NoCodeModel({ nodeData }) {
         });
         setTransformationErrorFlag(true);
         setIsLoading(false);
+        setRefreshModels(true);
       });
   };
 
