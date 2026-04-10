@@ -57,12 +57,17 @@ def execute_run_command(request: Request, project_id: str) -> Response:
         )
     logger.info(f"[execute_run_command] API called - project_id={project_id}, file_name={file_name}, environment_id={environment_id}")
     app = ApplicationContext(project_id=project_id)
-    app.execute_visitran_run_command(current_model=file_name, environment_id=environment_id)
-    app.visitran_context.close_db_connection()
-    app.backup_current_no_code_model()
-    logger.info(f"[execute_run_command] Completed successfully for file_name={file_name}")
-    _data = {"status": "success"}
-    return Response(data=_data)
+    try:
+        app.execute_visitran_run_command(current_model=file_name, environment_id=environment_id)
+        app.visitran_context.close_db_connection()
+        app.backup_current_no_code_model()
+        logger.info(f"[execute_run_command] Completed successfully for file_name={file_name}")
+        _data = {"status": "success"}
+        return Response(data=_data)
+    except Exception as e:
+        logger.error(f"[execute_run_command] DAG execution failed for file_name={file_name}: {e}")
+        _data = {"status": "failed", "error_message": str(e)}
+        return Response(data=_data, status=status.HTTP_400_BAD_REQUEST)
 
 
 
