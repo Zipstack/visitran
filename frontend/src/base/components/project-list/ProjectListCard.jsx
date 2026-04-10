@@ -89,6 +89,10 @@ function ProjectListCard({
         } ${isDeleting ? "project-list-card--deleting" : ""} ${
           selectionMode || isSelected ? "project-list-card--selection-mode" : ""
         }`}
+        role="button"
+        tabIndex={0}
+        onClick={handleCardClick}
+        onKeyDown={(e) => e.key === "Enter" && handleCardClick()}
       >
         {/* deleting overlay */}
         {isDeleting && (
@@ -141,6 +145,7 @@ function ProjectListCard({
                 if (ShareProjectModal) setIsShareModalOpen(true);
               }}
               onKeyDown={(e) => {
+                e.stopPropagation();
                 if (e.key === "Enter" && ShareProjectModal)
                   setIsShareModalOpen(true);
               }}
@@ -167,14 +172,8 @@ function ProjectListCard({
           )}
         </div>
 
-        {/* ---------- body (clickable) ---------- */}
-        <div
-          className="project-list-card-clickable-content"
-          role="button"
-          tabIndex={0}
-          onClick={handleCardClick}
-          onKeyDown={(e) => e.key === "Enter" && handleCardClick()}
-        >
+        {/* ---------- body ---------- */}
+        <div className="project-list-card-clickable-content">
           {/* description */}
           <div className="project-list-card-detail-section project-list-card-desc-section">
             <Typography.Paragraph

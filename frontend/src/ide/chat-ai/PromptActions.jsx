@@ -1,5 +1,13 @@
-import { memo, useEffect, useMemo } from "react";
-import { Space, Typography, Select, Switch, Segmented, Tooltip } from "antd";
+import { memo, useCallback, useEffect, useMemo } from "react";
+import {
+  Space,
+  Typography,
+  Select,
+  Switch,
+  Segmented,
+  Tooltip,
+  message,
+} from "antd";
 import {
   ConsoleSqlOutlined,
   DatabaseOutlined,
@@ -8,13 +16,15 @@ import {
   WalletOutlined,
 } from "@ant-design/icons";
 import PropTypes from "prop-types";
+import Cookies from "js-cookie";
 
 import { CHAT_INTENTS } from "./helper";
 import CircularTokenDisplay from "./CircularTokenDisplay";
-import InfoChip from "./InfoChip";
 import { useTokenStore } from "../../store/token-store";
 import { useSessionStore } from "../../store/session-store";
 import { useProjectStore } from "../../store/project-store";
+import { orgStore } from "../../store/org-store";
+import { useAxiosPrivate } from "../../service/axios-service";
 
 // Define hidden intents and a fixed order array
 const HIDDEN_CHAT_INTENTS = ["AUTO", "NOTA", "INFO"];
@@ -53,6 +63,39 @@ const PromptActions = memo(function PromptActions({
   const { tokenBalance, isLoading: isTokenLoading } = useTokenStore();
   const isCloud = useSessionStore((state) => state.sessionDetails?.is_cloud);
   const currentSchema = useProjectStore((state) => state.currentSchema);
+  const setCurrentSchema = useProjectStore((state) => state.setCurrentSchema);
+  const schemaList = useProjectStore((state) => state.schemaList);
+  const projectId = useProjectStore((state) => state.projectId);
+  const { selectedOrgId } = orgStore();
+  const axios = useAxiosPrivate();
+
+  const schemaOptions = useMemo(
+    () => schemaList.map((s) => ({ label: s, value: s })),
+    [schemaList]
+  );
+
+  const handleSchemaChange = useCallback(
+    (value) => {
+      const csrfToken = Cookies.get("csrftoken");
+      axios({
+        url: `/api/v1/visitran/${
+          selectedOrgId || "default_org"
+        }/project/${projectId}/set_schema`,
+        method: "POST",
+        data: { schema_name: value },
+        headers: { "X-CSRFToken": csrfToken },
+      })
+        .then(() => {
+          setCurrentSchema(value);
+          message.success("Schema updated successfully");
+        })
+        .catch((error) => {
+          console.error(error);
+          message.error("Failed to update schema");
+        });
+    },
+    [axios, selectedOrgId, projectId, setCurrentSchema]
+  );
 
   const llmOptions = useMemo(
     () =>
@@ -169,13 +212,22 @@ const PromptActions = memo(function PromptActions({
           </a>
         )}
 
-        {/* Schema indicator */}
-        {currentSchema && (
-          <InfoChip
-            icon={<DatabaseOutlined className="chat-ai-info-chip-icon" />}
-            text={currentSchema}
-            tooltipTitle="All new models generated will be created inside this schema. To modify it, click the settings icon from the left explorer."
-          />
+        {/* Schema selector */}
+        {schemaList.length > 0 && (
+          <div className="chat-ai-info-chip chat-ai-info-chip-clickable">
+            <DatabaseOutlined className="chat-ai-info-chip-icon" />
+            <Select
+              size="small"
+              variant="borderless"
+              showSearch
+              placeholder="Schema"
+              value={currentSchema || undefined}
+              onChange={handleSchemaChange}
+              options={schemaOptions}
+              popupMatchSelectWidth={false}
+              className="chat-ai-schema-select"
+            />
+          </div>
         )}
       </Space>
 

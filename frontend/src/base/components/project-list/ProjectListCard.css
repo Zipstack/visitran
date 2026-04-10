@@ -9,6 +9,7 @@
   background-color: var(--project-detail-bg);
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .project-list-card-wrapper:hover {
@@ -171,7 +172,7 @@
 
 /* ---------- body ---------- */
 .project-list-card-clickable-content {
-  cursor: pointer;
+  /* clickable via parent wrapper */
 }
 
 .project-list-card-detail-section {
