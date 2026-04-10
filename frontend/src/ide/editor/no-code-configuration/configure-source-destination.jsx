@@ -204,178 +204,167 @@ function ConfigureSourceDestination({
   }, [reference]);
   return (
     <>
-      <Card style={{ marginBottom: "16px" }}>
-        <Row
-          className="configure-tables mb-16"
-          gutter={[16, 16]}
-          style={{ position: "relative", marginBottom: 0 }}
+      {/* ---------- Hierarchy ---------- */}
+      <Card style={{ marginBottom: "12px" }}>
+        <h4 style={{ marginTop: 0 }}>
+          <Space>
+            <ApartmentOutlined />
+            Hierarchy
+          </Space>
+        </h4>
+        <Radio.Group
+          value={modelType}
+          onChange={(e) => {
+            const newModelType = e.target.value;
+            if (newModelType === "root") {
+              setPrevReference(reference.length ? reference : []);
+              setReference([]);
+            } else {
+              setReference(
+                prevReference.length ? prevReference : reference
+              );
+            }
+            setModelType(newModelType);
+          }}
+          className="mb-10"
         >
-          <Col
-            span={9}
-            style={{
-              borderRight: `1px solid ${token.colorBorderSecondary}`,
-              paddingRight: "16px",
-              height: "100%",
-              position: "absolute",
-              left: 0,
-              top: 0,
-              bottom: 0,
-              width: "50%",
-            }}
-          >
-            <h4>
-              <Space>
-                <ApartmentOutlined />
-                Hierarchy
-              </Space>
-            </h4>
-            <Radio.Group
-              value={modelType}
-              onChange={(e) => {
-                const newModelType = e.target.value;
-                if (newModelType === "root") {
-                  setPrevReference(reference.length ? reference : []);
-                  setReference([]);
-                } else {
-                  setReference(
-                    prevReference.length ? prevReference : reference
-                  );
+          <Radio value="root">Root model</Radio>
+          <Space>
+            <Radio value="child">Child of</Radio>
+          </Space>
+        </Radio.Group>
+        {modelType === "child" && (
+          <Select
+            mode="multiple"
+            style={{ width: "100%" }}
+            placeholder="Select the model"
+            value={reference}
+            onChange={(value) =>
+              handleChange("reference", value, setReference, false)
+            }
+            options={referenceList}
+            showSearch
+          />
+        )}
+      </Card>
+
+      {/* ---------- Configure Source & Destination ---------- */}
+      <Card
+        className="configure-tables"
+        style={{
+          backgroundColor: token.colorFillTertiary,
+          marginBottom: "12px",
+        }}
+        bodyStyle={{ padding: "12px 16px" }}
+      >
+        <h4 style={{ marginTop: 0 }}>
+          <Space>
+            <DatabaseOutlined />
+            Configure Source
+          </Space>
+        </h4>
+        <Row gutter={[12]}>
+          {isSchemaExists && (
+            <Col span={12}>
+              <Select
+                className="mb-10"
+                style={{ width: "100%" }}
+                placeholder="Select the schema"
+                value={source.schema_name}
+                onChange={(value) =>
+                  handleChange("schema_name", value, setSource)
                 }
-                setModelType(newModelType);
-              }}
+                options={allSchemas.map((value) => ({ value }))}
+                showSearch
+                popupMatchSelectWidth={false}
+                loading={isLoadingSchemas}
+                notFoundContent={
+                  isLoadingSchemas
+                    ? "Loading schemas..."
+                    : "No schemas found"
+                }
+              />
+            </Col>
+          )}
+          <Col span={isSchemaExists ? 12 : 24}>
+            <Select
               className="mb-10"
-            >
-              <Radio value="root">Root model</Radio>
-              <Space>
-                <Radio value="child">Child of</Radio>
-              </Space>
-            </Radio.Group>
-            {modelType === "child" && (
-              <>
-                <Select
-                  mode="multiple"
-                  className="mb-10"
-                  placeholder="Select the model"
-                  value={reference}
-                  onChange={(value) =>
-                    handleChange("reference", value, setReference, false)
-                  }
-                  options={referenceList}
-                  showSearch
-                />
-              </>
-            )}
+              style={{ width: "100%" }}
+              placeholder="Select the table"
+              value={source.table_name}
+              onChange={(value) =>
+                handleChange("table_name", value, setSource)
+              }
+              options={allTables[
+                isSchemaExists ? source.schema_name : "default"
+              ]?.map((value) => ({
+                value,
+              }))}
+              showSearch
+              popupMatchSelectWidth={false}
+              disabled={isSchemaExists && !source.schema_name}
+              loading={
+                isLoadingTables[
+                  isSchemaExists ? source.schema_name : "default"
+                ]
+              }
+              notFoundContent={
+                isLoadingTables[
+                  isSchemaExists ? source.schema_name : "default"
+                ]
+                  ? "Loading tables..."
+                  : "No tables found"
+              }
+            />
           </Col>
-          <Col span={15} style={{ marginLeft: "38%" }}>
-            <Card
-              style={{ backgroundColor: token.colorFillTertiary, padding: 0 }}
-              bodyStyle={{ padding: "0 10px 10px" }}
-            >
-              <h4>
-                <Space>
-                  <DatabaseOutlined />
-                  Configure Source
-                </Space>
-              </h4>
-              <Row gutter={[12]}>
-                {isSchemaExists && (
-                  <Col span={12}>
-                    <Select
-                      className="mb-10"
-                      placeholder="Select the schema"
-                      value={source.schema_name}
-                      onChange={(value) =>
-                        handleChange("schema_name", value, setSource)
-                      }
-                      options={allSchemas.map((value) => ({ value }))}
-                      showSearch
-                      loading={isLoadingSchemas}
-                      notFoundContent={
-                        isLoadingSchemas
-                          ? "Loading schemas..."
-                          : "No schemas found"
-                      }
-                    />
-                  </Col>
-                )}
-                <Col span={isSchemaExists ? 12 : 24}>
-                  <Select
-                    className="mb-10"
-                    placeholder="Select the table"
-                    value={source.table_name}
-                    onChange={(value) =>
-                      handleChange("table_name", value, setSource)
-                    }
-                    options={allTables[
-                      isSchemaExists ? source.schema_name : "default"
-                    ]?.map((value) => ({
-                      value,
-                    }))}
-                    showSearch
-                    disabled={isSchemaExists && !source.schema_name}
-                    loading={
-                      isLoadingTables[
-                        isSchemaExists ? source.schema_name : "default"
-                      ]
-                    }
-                    notFoundContent={
-                      isLoadingTables[
-                        isSchemaExists ? source.schema_name : "default"
-                      ]
-                        ? "Loading tables..."
-                        : "No tables found"
-                    }
-                  />
-                </Col>
-              </Row>
-              <Divider />
-              <h4>
-                <Space>
-                  <ApiOutlined />
-                  Configure Destination
-                </Space>
-              </h4>
-              <Row gutter={[12]}>
-                {isSchemaExists && (
-                  <Col span={12}>
-                    <Select
-                      className="mb-10 width-100"
-                      placeholder="Select the schema"
-                      value={model.schema_name}
-                      onChange={(value) =>
-                        handleChange("schema_name", value, setModel, false)
-                      }
-                      options={allSchemas.map((value) => ({ value }))}
-                      showSearch
-                      loading={isLoadingSchemas}
-                      notFoundContent={
-                        isLoadingSchemas
-                          ? "Loading schemas..."
-                          : "No schemas found"
-                      }
-                    />
-                  </Col>
-                )}
-                <Col span={isSchemaExists ? 12 : 24}>
-                  <AutoComplete
-                    className="mb-10 width-100"
-                    placeholder="Select the table"
-                    value={model.table_name}
-                    onChange={(value) => {
-                      // Block spaces by replacing them with an empty string
-                      const noSpacesValue = value.replace(/\s/g, "");
-                      handleChange(
-                        "table_name",
-                        noSpacesValue,
-                        setModel,
-                        false
-                      );
-                    }}
-                    disabled={isSchemaExists && !model.schema_name}
-                  />
-                </Col>
-              </Row>
-            </Card>
+        </Row>
+        <Divider />
+        <h4>
+          <Space>
+            <ApiOutlined />
+            Configure Destination
+          </Space>
+        </h4>
+        <Row gutter={[12]}>
+          {isSchemaExists && (
+            <Col span={12}>
+              <Select
+                className="mb-10"
+                style={{ width: "100%" }}
+                placeholder="Select the schema"
+                value={model.schema_name}
+                onChange={(value) =>
+                  handleChange("schema_name", value, setModel, false)
+                }
+                options={allSchemas.map((value) => ({ value }))}
+                showSearch
+                popupMatchSelectWidth={false}
+                loading={isLoadingSchemas}
+                notFoundContent={
+                  isLoadingSchemas
+                    ? "Loading schemas..."
+                    : "No schemas found"
+                }
+              />
+            </Col>
+          )}
+          <Col span={isSchemaExists ? 12 : 24}>
+            <AutoComplete
+              className="mb-10"
+              style={{ width: "100%" }}
+              placeholder="Select the table"
+              value={model.table_name}
+              onChange={(value) => {
+                const noSpacesValue = value.replace(/\s/g, "");
+                handleChange(
+                  "table_name",
+                  noSpacesValue,
+                  setModel,
+                  false
+                );
+              }}
+              disabled={isSchemaExists && !model.schema_name}
+            />
           </Col>
         </Row>
       </Card>

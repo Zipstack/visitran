@@ -82,6 +82,7 @@ const IdeExplorer = ({
   } = useProjectStore();
   const currentSchema = useProjectStore((state) => state.currentSchema);
   const setCurrentSchema = useProjectStore((state) => state.setCurrentSchema);
+  const setSchemaList = useProjectStore((state) => state.setSchemaList);
 
   // Reset currentSchema on unmount to prevent stale data
   useEffect(() => {
@@ -307,6 +308,9 @@ const IdeExplorer = ({
         } else {
           setCurrentSchema("");
         }
+
+        // Store plain schema list in shared store
+        setSchemaList(allSchemas);
 
         const items = allSchemas.map((el) => ({
           label: el,
