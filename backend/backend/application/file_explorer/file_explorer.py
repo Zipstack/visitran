@@ -93,6 +93,9 @@ class FileExplorer:
         # Sort models by execution order (DAG order)
         sorted_model_names = topological_sort_models(models_with_refs)
 
+        # Build lookup for references by model name
+        refs_by_name = {m["model_name"]: m["references"] for m in models_with_refs}
+
         # Build the model structure in sorted order
         no_code_model_structure = []
         for no_code_model_name in sorted_model_names:
@@ -103,6 +106,7 @@ class FileExplorer:
                     "key": f"{self.project_name}/models/no_code/{no_code_model_name}",
                     "is_folder": False,
                     "type": "NO_CODE_MODEL",
+                    "references": refs_by_name.get(no_code_model_name, []),
                 }
             )
         model_structure: dict[str, Any] = {
