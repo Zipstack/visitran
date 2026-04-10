@@ -1,6 +1,7 @@
 import { memo, useMemo } from "react";
 import PropTypes from "prop-types";
-import { Alert, Space } from "antd";
+import { Alert, Button, Space } from "antd";
+import { ToolOutlined } from "@ant-design/icons";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -16,6 +17,7 @@ const DisplayErrorMessages = memo(function DisplayErrorMessages({
   socketError,
   promptError,
   transformError,
+  onTroubleshoot,
 }) {
   const errors = useMemo(() => {
     const list = [];
@@ -53,6 +55,19 @@ const DisplayErrorMessages = memo(function DisplayErrorMessages({
               }
               type={showAsWarning ? "warning" : "error"}
               className="width-100"
+              description={
+                !showAsWarning && onTroubleshoot ? (
+                  <Button
+                    type="link"
+                    size="small"
+                    icon={<ToolOutlined />}
+                    onClick={() => onTroubleshoot(text)}
+                    style={{ padding: 0, marginTop: 8 }}
+                  >
+                    Troubleshoot this
+                  </Button>
+                ) : null
+              }
             />
           </div>
         );
@@ -77,12 +92,14 @@ DisplayErrorMessages.propTypes = {
   transformError: PropTypes.shape({
     error_message: PropTypes.string,
   }),
+  onTroubleshoot: PropTypes.func,
 };
 
 DisplayErrorMessages.defaultProps = {
   socketError: null,
   promptError: null,
   transformError: null,
+  onTroubleshoot: null,
 };
 
 export { DisplayErrorMessages };
