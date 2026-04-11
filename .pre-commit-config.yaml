@@ -24,10 +24,10 @@ ci:
 default_language_version:
   python: python3.10
 default_stages:
-  - commit
+  - pre-commit
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
         exclude_types:
@@ -64,8 +64,8 @@ repos:
         args: [--branch, main]
       # - id: requirements-txt-fixer
       # - id: file-contents-sorter
-  - repo: https://github.com/psf/black
-    rev: 24.1.1
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 26.3.1
     hooks:
       - id: black
         args: [--config=backend/pyproject.toml]
@@ -81,30 +81,30 @@ repos:
       - id: absolufy-imports
 
   - repo: https://github.com/tox-dev/tox-ini-fmt
-    rev: "1.3.1"
+    rev: "1.7.1"
     hooks:
       - id: tox-ini-fmt
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.15.0
+    rev: v3.21.2
     hooks:
       - id: pyupgrade
         entry: pyupgrade --py39-plus --keep-runtime-typing
         types:
           - python
   - repo: https://github.com/hadialqattan/pycln
-    rev: v2.4.0
+    rev: v2.6.0
     hooks:
       - id: pycln
         args: [--config=backend/pyproject.toml]
   - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
+    rev: 8.0.1
     hooks:
       - id: isort
         files: "\\.(py)$"
         args: [--settings-path=backend/pyproject.toml]
   - repo: https://github.com/pycqa/flake8
-    rev: 7.0.0
+    rev: 7.3.0
     hooks:
       - id: flake8
         args: [--max-line-length=120]
@@ -129,7 +129,7 @@ repos:
   #       language: system
   #       exclude: tests/unit/data/|cloud/
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.8.0
+    rev: v1.20.0
     hooks:
       - id: mypy
         name: mypy
@@ -140,11 +140,11 @@ repos:
         types: [python]
         exclude: tests/unit/data/|cloud/|ci/
   - repo: https://github.com/yoheimuta/protolint
-    rev: v0.47.5
+    rev: v0.56.4
     hooks:
       - id: protolint-docker
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.18.2
+    rev: v8.30.0
     hooks:
       - id: gitleaks
   - repo: https://github.com/asottile/yesqa
@@ -170,7 +170,7 @@ repos:
     hooks:
       - id: htmlhint
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.39.0
+    rev: v0.48.0
     hooks:
     - id: markdownlint
       args: ["--config", "markdownlint.yaml"]
@@ -179,17 +179,17 @@ repos:
     hooks:
       - id: docformatter
   - repo: https://github.com/adrienverge/yamllint
-    rev: v1.34.0
+    rev: v1.38.0
     hooks:
       - id: yamllint
         args: ["--config-file", "yamllint.yaml"]
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.6.26
+    rev: v1.7.12
     hooks:
       - id: actionlint
         args: ["--config-file", "actionlint.yaml"]
   - repo: https://github.com/hadolint/hadolint
-    rev: v2.12.0
+    rev: v2.14.0
     hooks:
       - id: hadolint-docker
         args:
