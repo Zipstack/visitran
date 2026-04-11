@@ -32,7 +32,7 @@
     "react-datasheet": "^1.4.12",
     "react-dom": "^18.2.0",
     "react-drag-listview": "^2.0.0",
-    "react-draggable": "^4.4.6",
+    "react-draggable": "^4.5.0",
     "react-js-cron": "^5.2.0",
     "react-markdown": "^10.1.0",
     "react-resizable": "^3.0.5",
