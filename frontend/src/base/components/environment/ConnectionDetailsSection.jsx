@@ -1,6 +1,7 @@
-import { memo, useEffect } from "react";
+import { memo, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import { Typography, Input, Select, Form } from "antd";
+import { debounce } from "lodash";
 
 import ConnectionUsageSection from "./ConnectionUsageSection";
 import {
@@ -19,6 +20,19 @@ const ConnectionDetailsSection = memo(
     dbUsage,
   }) => {
     const [form] = Form.useForm();
+
+    // Debounce the parent state update to avoid stale closure issues
+    const debouncedHandleConnectionNameDesc = useMemo(
+      () => debounce(handleConnectionNameDesc, 300),
+      [handleConnectionNameDesc]
+    );
+
+    // Cleanup debounce on unmount
+    useEffect(() => {
+      return () => {
+        debouncedHandleConnectionNameDesc.cancel();
+      };
+    }, [debouncedHandleConnectionNameDesc]);
 
     // Update form values when dbSelectionInfo changes (e.g., when editing a connection)
     useEffect(() => {
@@ -45,7 +59,7 @@ const ConnectionDetailsSection = memo(
               <Input
                 className="field"
                 onChange={(e) =>
-                  handleConnectionNameDesc(
+                  debouncedHandleConnectionNameDesc(
                     "name",
                     collapseSpaces(e.target.value)
                   )
@@ -62,7 +76,10 @@ const ConnectionDetailsSection = memo(
                 className="field"
                 rows={2}
                 onChange={(e) =>
-                  handleConnectionNameDesc("description", e.target.value)
+                  debouncedHandleConnectionNameDesc(
+                    "description",
+                    e.target.value
+                  )
                 }
               />
             </Form.Item>
