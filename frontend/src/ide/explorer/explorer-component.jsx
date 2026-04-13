@@ -259,36 +259,8 @@ const IdeExplorer = ({
     });
   };
 
-  const handleModelSort = useCallback(
-    (sortBy) => {
-      setModelSortBy(sortBy);
-      if (rawTreeDataRef.current.length > 0) {
-        const freshData = JSON.parse(JSON.stringify(rawTreeDataRef.current));
-        freshData.forEach((node) => {
-          if (node.title === "models" && node.children) {
-            node.children.forEach((child) => {
-              if (child.title === "no_code" && child.children) {
-                child.children = sortModels(child.children, sortBy);
-                applyModelDecorations(child.children);
-              }
-            });
-          }
-        });
-        transformTree(freshData);
-        setTreeData(freshData, false);
-      }
-    },
-    [setTreeData]
-  );
-
-  const modelSortMenu = useMemo(
-    () => ({
-      items: MODEL_SORT_ITEMS,
-      selectedKeys: [modelSortBy],
-      onClick: ({ key }) => handleModelSort(key),
-    }),
-    [modelSortBy, handleModelSort]
-  );
+  // handleModelSort and modelSortMenu are defined after setTreeData (line ~816)
+  // to avoid temporal dead zone — see sortMenuRef below for the Dropdown binding
 
   // Function to map string icons from API to actual icon components
   // depth: 0 = root (Database), 1 = schema, 2 = table, 3 = column
@@ -1098,6 +1070,34 @@ const IdeExplorer = ({
       setTreeData(freshData, false);
     }
   };
+
+  const handleModelSort = (sortBy) => {
+    setModelSortBy(sortBy);
+    if (rawTreeDataRef.current.length > 0) {
+      const freshData = JSON.parse(JSON.stringify(rawTreeDataRef.current));
+      freshData.forEach((node) => {
+        if (node.title === "models" && node.children) {
+          node.children.forEach((child) => {
+            if (child.title === "no_code" && child.children) {
+              child.children = sortModels(child.children, sortBy);
+              applyModelDecorations(child.children);
+            }
+          });
+        }
+      });
+      transformTree(freshData);
+      setTreeData(freshData, false);
+    }
+  };
+
+  const modelSortMenu = useMemo(
+    () => ({
+      items: MODEL_SORT_ITEMS,
+      selectedKeys: [modelSortBy],
+      onClick: ({ key }) => handleModelSort(key),
+    }),
+    [modelSortBy]
+  );
 
   useEffect(() => {
     if (schemaMenu) {
