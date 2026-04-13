@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { debounce } from "lodash";
 import Cookies from "js-cookie";
 import PropTypes from "prop-types";
 
@@ -119,26 +118,9 @@ const CreateConnection = ({
     getConnectionFields();
   }, [getConnectionFields]);
 
-  const debouncedSetDbSelectionInfo = useMemo(
-    () =>
-      debounce((name, value) => {
-        setDbSelectionInfo((prev) => ({ ...prev, [name]: value }));
-      }, 300),
-    []
-  );
-
-  useEffect(() => {
-    return () => {
-      debouncedSetDbSelectionInfo.cancel();
-    };
-  }, [debouncedSetDbSelectionInfo]);
-
-  const handleConnectionNameDesc = useCallback(
-    (name, value) => {
-      debouncedSetDbSelectionInfo(name, value);
-    },
-    [debouncedSetDbSelectionInfo]
-  );
+  const handleConnectionNameDesc = useCallback((name, value) => {
+    setDbSelectionInfo((prev) => ({ ...prev, [name]: value }));
+  }, []);
 
   const handleCreateOrUpdate = useCallback(async () => {
     setIsCreateOrUpdateLoading(true);
