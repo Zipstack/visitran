@@ -52,9 +52,7 @@ const ConnectionDetailsSection = memo(
 
     const handleNameChange = (e) => {
       isUserEditingRef.current = true;
-      const collapsed = collapseSpaces(e.target.value);
-      form.setFieldValue("name", collapsed);
-      debouncedHandleConnectionNameDesc("name", collapsed);
+      debouncedHandleConnectionNameDesc("name", collapseSpaces(e.target.value));
     };
 
     const handleDescriptionChange = (e) => {
@@ -70,6 +68,7 @@ const ConnectionDetailsSection = memo(
             <Form.Item
               label="Name"
               name="name"
+              normalize={collapseSpaces}
               rules={[
                 { required: true, message: "Please enter the connection name" },
                 { validator: validateFormFieldName },
