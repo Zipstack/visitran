@@ -12,17 +12,11 @@ from backend.core.models.config_models import ConfigModels
 from backend.core.models.model_version import ModelVersion
 from backend.core.models.project_details import ProjectDetails
 from backend.core.routers.version_history.serializers import (
-    CommitFromDraftSerializer,
     CommitProjectSerializer,
-    FinalizeResolutionsSerializer,
-    ResolveConflictSerializer,
     RetryGitSyncSerializer,
     RollbackSerializer,
 )
 from backend.core.services import audit_trail_service
-from backend.core.services import conflict_detection_service
-from backend.core.services import conflict_resolution_service
-from backend.core.services import draft_service
 from backend.core.services import model_version_service
 from backend.core.services import rollback_validation_service
 from backend.core.utils import handle_http_request
@@ -45,35 +39,100 @@ def _get_project(project_id: str) -> ProjectDetails:
 @api_view([HTTPMethods.POST])
 @handle_http_request
 def commit_project(request: Request, project_id: str) -> Response:
-    """Create a project-level version snapshot of ALL models."""
-    serializer = CommitProjectSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
+    """Queue a manual commit — pushes combined YAML to git asynchronously."""
+    title = (request.data.get("title") or "").strip()
+    description = (request.data.get("description") or "").strip()
+    if not title:
+        return Response(data={"status": "failed", "error_message": "Commit title is required."}, status=status.HTTP_400_BAD_REQUEST)
 
     project_instance = _get_project(project_id)
-    data = model_version_service.commit_project(
-        project_instance=project_instance,
-        commit_message=serializer.validated_data["commit_message"],
+
+    import threading
+    from backend.core.scheduler.version_celery_tasks import _run_manual_commit
+    from backend.utils.tenant_context import get_current_user, get_current_tenant, _get_tenant_context
+    user_info = get_current_user() or {}
+    tenant_id = get_current_tenant()
+    pid = str(project_instance.project_uuid)
+
+    def _commit():
+        from django.db import connection
+        _get_tenant_context().set_tenant(tenant_id)
+        try:
+            _run_manual_commit(
+                project_id=pid, title=title,
+                description=description, author_info=user_info,
+            )
+        except Exception as ex:
+            logger.warning("Manual commit thread failed for %s: %s", pid, str(ex))
+        finally:
+            connection.close()
+
+    threading.Thread(target=_commit, daemon=True).start()
+    return Response(
+        data={"status": "pending", "message": "Commit queued — version history will update shortly."},
+        status=status.HTTP_200_OK,
     )
-    return Response(data={"status": "success", "data": data}, status=status.HTTP_200_OK)
 
 
-@api_view([HTTPMethods.GET])
+@api_view([HTTPMethods.POST])
 @handle_http_request
-def preview_pending_changes(request: Request, project_id: str) -> Response:
-    """Preview per-model YAML diffs of uncommitted changes."""
+def import_from_branch(request: Request, project_id: str) -> Response:
+    """Import models from a source project folder on the configured branch."""
+    from backend.core.models.git_repo_config import GitRepoConfig
+
     project_instance = _get_project(project_id)
-    data = model_version_service.preview_pending_changes(project_instance)
-    return Response(data={"status": "success", "data": data}, status=status.HTTP_200_OK)
+    source_folder = request.data.get("source_folder")
+    source_branch = request.data.get("source_branch", "")
+    if not source_folder:
+        return Response(
+            data={"status": "failed", "error_message": "source_folder is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    config = GitRepoConfig.objects.filter(
+        project_id=project_id, is_deleted=False, is_active=True,
+    ).first()
+    if not config:
+        return Response(
+            data={"status": "failed", "error_message": "Git is not configured for this project."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    result = model_version_service.import_from_branch(
+        project_instance=project_instance,
+        git_config=config,
+        source_folder=source_folder,
+        source_branch=source_branch,
+    )
+    return Response(data={"status": "success", "data": result}, status=status.HTTP_200_OK)
 
 
 @api_view([HTTPMethods.GET])
 @handle_http_request
 def get_version_history(request: Request, project_id: str) -> Response:
-    """Get paginated project-level version history."""
+    """Get paginated version history — from GitHub commits if git configured, else DB."""
     page = int(request.GET.get("page", 1))
     limit = int(request.GET.get("limit", 10))
 
     project_instance = _get_project(project_id)
+
+    from backend.core.models.git_repo_config import GitRepoConfig
+    git_config = GitRepoConfig.objects.filter(
+        project_id=project_id, is_deleted=False, is_active=True,
+    ).first()
+    if git_config:
+        try:
+            versions = model_version_service.get_versions_from_github(
+                project_instance, git_config, page=page, per_page=limit,
+            )
+            return Response(data={"status": "success", "data": {
+                "page_items": versions,
+                "total_count": len(versions) if len(versions) < limit else len(versions) + 1,
+                "source": "git",
+            }}, status=status.HTTP_200_OK)
+        except Exception:
+            logger.warning("GitHub version fetch failed for project %s — falling back to DB", project_id, exc_info=True)
+
     data = model_version_service.get_versions(project_instance, page=page, limit=limit)
     return Response(data={"status": "success", "data": data}, status=status.HTTP_200_OK)
 
@@ -93,6 +152,43 @@ def get_version_by_id(request: Request, project_id: str, version_id: str) -> Res
     """Get full details of a specific version by UUID."""
     project_instance = _get_project(project_id)
     data = model_version_service.get_version_detail(project_instance, version_id=version_id)
+    return Response(data={"status": "success", "data": data}, status=status.HTTP_200_OK)
+
+
+@api_view([HTTPMethods.GET])
+@handle_http_request
+def get_version_detail_by_sha(request: Request, project_id: str, commit_sha: str) -> Response:
+    """Get version detail by git commit SHA — fetches from GitHub/GitLab."""
+    from backend.core.models.git_repo_config import GitRepoConfig
+    from backend.core.services.git_service import get_git_service
+
+    project_instance = _get_project(project_id)
+    git_config = GitRepoConfig.objects.filter(
+        project_id=project_id, is_deleted=False, is_active=True,
+    ).first()
+    if not git_config:
+        return Response(data={"status": "failed", "error_message": "Git is not configured for this project."}, status=status.HTTP_400_BAD_REQUEST)
+
+    git_svc = get_git_service(git_config)
+    commit = git_svc.get_commit_detail(commit_sha)
+    if not commit:
+        return Response(data={"status": "failed", "error_message": f"Commit {commit_sha} not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    db_version = ModelVersion.objects.filter(project_instance=project_instance, git_commit_sha=commit_sha).first()
+    data = {
+        "commit_sha": commit["sha"],
+        "commit_message": commit["message"],
+        "author_name": commit["author_name"],
+        "author_email": commit["author_email"],
+        "committed_at": commit["date"],
+        "commit_url": commit["html_url"],
+        "files_changed": commit["files_changed"],
+        "version_number": db_version.version_number if db_version else None,
+        "is_auto_commit": db_version.is_auto_commit if db_version else None,
+        "is_current": db_version.is_current if db_version else False,
+        "pr_number": db_version.pr_number if db_version else None,
+        "pr_url": db_version.pr_url or "" if db_version else None,
+    }
     return Response(data={"status": "success", "data": data}, status=status.HTTP_200_OK)
 
 
@@ -136,9 +232,10 @@ def get_version_pr(request: Request, project_id: str, version_number: int) -> Re
 @api_view([HTTPMethods.POST])
 @handle_http_request
 def create_version_pr(request: Request, project_id: str, version_number: int) -> Response:
-    """Create a PR for a version that has been pushed to a branch (manual mode)."""
+    """Create a PR from the working branch to the base branch."""
     from backend.core.models.git_repo_config import GitRepoConfig
     from backend.core.services import git_pr_service
+    from backend.errors.exceptions import GitPRAlreadyExistsException
 
     project_instance = _get_project(project_id)
     try:
@@ -159,7 +256,14 @@ def create_version_pr(request: Request, project_id: str, version_number: int) ->
     if config.pr_mode == "disabled":
         return Response(data={"status": "failed", "error_message": "PR workflow is not enabled for this project."}, status=status.HTTP_400_BAD_REQUEST)
 
-    pr_result = git_pr_service.create_pr_for_version(project_instance, version, config)
+    try:
+        pr_result = git_pr_service.create_pr_for_version(project_instance, version, config)
+    except GitPRAlreadyExistsException:
+        return Response(data={"status": "failed", "data": {
+            "pr_number": version.pr_number, "pr_url": version.pr_url or "",
+            "message": f"A PR already exists from {config.branch_name} to {config.pr_base_branch}",
+        }}, status=status.HTTP_409_CONFLICT)
+
     return Response(data={"status": "success", "data": {
         "pr_number": pr_result["pr_number"],
         "pr_url": pr_result["pr_url"],
@@ -229,48 +333,6 @@ def retry_git_sync(request: Request, project_id: str) -> Response:
 
 @api_view([HTTPMethods.GET])
 @handle_http_request
-def get_draft_status(request: Request, project_id: str) -> Response:
-    """Return draft status summary for the current user in this project."""
-    from backend.core.models.user_draft import UserDraft
-    from backend.utils.tenant_context import get_current_user
-
-    project_instance = _get_project(project_id)
-    user_info = get_current_user()
-    owner_id = user_info.get("username", "")
-
-    config_model_ids = ConfigModels.objects.filter(
-        project_instance=project_instance,
-    ).values_list("model_id", flat=True)
-
-    drafts = UserDraft.objects.filter(
-        owner_id=owner_id, config_model_id__in=config_model_ids,
-    ).select_related("config_model")
-
-    # Only flag models where draft content actually differs from the
-    # latest committed version — avoids false positives after a commit.
-    models_with_drafts = []
-    for d in drafts:
-        latest_version = ModelVersion.objects.filter(
-            project_instance=d.config_model.project_instance,
-            config_model=None,
-        ).order_by("-version_number").first()
-        committed_data = (
-            latest_version.model_data.get(d.config_model.model_name, {})
-            if latest_version else {}
-        )
-        if d.draft_data != committed_data:
-            models_with_drafts.append(d.config_model.model_name)
-
-    data = {
-        "has_draft": len(models_with_drafts) > 0,
-        "draft_count": len(models_with_drafts),
-        "models_with_drafts": sorted(models_with_drafts),
-    }
-    return Response(data={"status": "success", "data": data}, status=status.HTTP_200_OK)
-
-
-@api_view([HTTPMethods.GET])
-@handle_http_request
 def verify_version_integrity(request: Request, project_id: str, version_number: int) -> Response:
     """Verify the integrity of a stored version snapshot."""
     project_instance = _get_project(project_id)
@@ -289,159 +351,6 @@ def verify_version_integrity(request: Request, project_id: str, version_number: 
         }
     data["version_number"] = version.version_number
     data["version_id"] = str(version.version_id)
-    return Response(data={"status": "success", "data": data}, status=status.HTTP_200_OK)
-
-
-# ==================================================================
-# Model-scoped endpoints (drafts, conflicts)
-# ==================================================================
-
-
-@api_view([HTTPMethods.GET])
-@handle_http_request
-def list_user_drafts(request: Request, project_id: str) -> Response:
-    """List the current user's drafts for a project."""
-    page = int(request.GET.get("page", 1))
-    limit = int(request.GET.get("limit", 10))
-    project_instance = _get_project(project_id)
-    data = draft_service.get_user_drafts(project_instance, page=page, limit=limit)
-    return Response(data={"status": "success", "data": data}, status=status.HTTP_200_OK)
-
-
-@api_view([HTTPMethods.GET])
-@handle_http_request
-def get_draft(request: Request, project_id: str, model_name: str) -> Response:
-    """Get the user's draft for a model, or fall back to published."""
-    model_name = model_name.replace(" ", "_")
-    project_instance = _get_project(project_id)
-    data = draft_service.get_draft_or_published(project_instance, model_name=model_name)
-    return Response(data={"status": "success", "data": data}, status=status.HTTP_200_OK)
-
-
-@api_view([HTTPMethods.DELETE])
-@handle_http_request
-def discard_draft(request: Request, project_id: str, model_name: str) -> Response:
-    """Discard (delete) the user's draft for a model. Idempotent."""
-    model_name = model_name.replace(" ", "_")
-    project_instance = _get_project(project_id)
-    data = draft_service.discard_draft(project_instance, model_name=model_name)
-    return Response(data={"status": "success", "data": data}, status=status.HTTP_200_OK)
-
-
-@api_view([HTTPMethods.POST])
-@handle_http_request
-def commit_from_draft(request: Request, project_id: str, model_name: str) -> Response:
-    """Commit a user's draft as a new immutable version."""
-    serializer = CommitFromDraftSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    model_name = model_name.replace(" ", "_")
-
-    project_instance = _get_project(project_id)
-    config_model = ConfigModels.objects.get(project_instance=project_instance, model_name=model_name)
-    draft = draft_service.get_draft(config_model=config_model)
-
-    if draft is None:
-        # No draft — fall back to project commit
-        data = model_version_service.commit_project(
-            project_instance=project_instance,
-            commit_message=serializer.validated_data["commit_message"],
-        )
-    else:
-        lock_token = serializer.validated_data.get("lock_token") or None
-        data = model_version_service.serialize_version_detail(
-            model_version_service.commit_from_draft(
-                config_model=config_model, draft=draft, project_instance=project_instance,
-                commit_message=serializer.validated_data["commit_message"], lock_token=lock_token,
-            )
-        )
-    return Response(data={"status": "success", "data": data}, status=status.HTTP_200_OK)
-
-
-@api_view([HTTPMethods.POST])
-@handle_http_request
-def check_conflicts(request: Request, project_id: str, model_name: str) -> Response:
-    """Detect transformation-level conflicts before committing a draft."""
-    model_name = model_name.replace(" ", "_")
-    project_instance = _get_project(project_id)
-    config_model = ConfigModels.objects.get(project_instance=project_instance, model_name=model_name)
-    draft = draft_service.get_draft(config_model=config_model)
-
-    if draft is None:
-        return Response(
-            data={"status": "success", "data": {"conflict_exists": False, "conflict_count": 0, "conflict_ids": []}},
-            status=status.HTTP_200_OK,
-        )
-    data = conflict_detection_service.detect_conflicts(config_model=config_model, draft=draft)
-    return Response(data={"status": "success", "data": data}, status=status.HTTP_200_OK)
-
-
-@api_view([HTTPMethods.GET])
-@handle_http_request
-def get_conflicts(request: Request, project_id: str, model_name: str) -> Response:
-    """Get pending conflicts for the user's draft."""
-    model_name = model_name.replace(" ", "_")
-    project_instance = _get_project(project_id)
-    config_model = ConfigModels.objects.get(project_instance=project_instance, model_name=model_name)
-    draft = draft_service.get_draft(config_model=config_model)
-
-    if draft is None:
-        return Response(data={"status": "success", "data": []}, status=status.HTTP_200_OK)
-    data = conflict_detection_service.get_conflicts_for_draft(draft=draft)
-    return Response(data={"status": "success", "data": data}, status=status.HTTP_200_OK)
-
-
-@api_view([HTTPMethods.POST])
-@handle_http_request
-def resolve_single_conflict(request: Request, project_id: str, model_name: str) -> Response:
-    """Resolve a single transformation conflict."""
-    serializer = ResolveConflictSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    d = serializer.validated_data
-    data = conflict_resolution_service.resolve_conflict(
-        conflict_id=str(d["conflict_id"]), strategy=d["strategy"], resolved_data=d.get("resolved_data"),
-    )
-    return Response(data={"status": "success", "data": data}, status=status.HTTP_200_OK)
-
-
-@api_view([HTTPMethods.POST])
-@handle_http_request
-def finalize_conflict_resolutions(request: Request, project_id: str, model_name: str) -> Response:
-    """Finalize all resolved conflicts and create a merged version."""
-    serializer = FinalizeResolutionsSerializer(data=request.data)
-    serializer.is_valid(raise_exception=True)
-    model_name = model_name.replace(" ", "_")
-
-    project_instance = _get_project(project_id)
-    config_model = ConfigModels.objects.get(project_instance=project_instance, model_name=model_name)
-    draft = draft_service.get_draft(config_model=config_model)
-
-    if draft is None:
-        return Response(
-            data={"status": "failed", "error_message": "No draft found for this model"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    data = conflict_resolution_service.finalize_resolutions(
-        config_model=config_model, draft=draft, project_instance=project_instance,
-        commit_message=serializer.validated_data["commit_message"],
-    )
-    return Response(data={"status": "success", "data": data}, status=status.HTTP_200_OK)
-
-
-@api_view([HTTPMethods.GET])
-@handle_http_request
-def preview_resolution(request: Request, project_id: str, model_name: str) -> Response:
-    """Preview the merged model_data from current resolution choices."""
-    model_name = model_name.replace(" ", "_")
-    project_instance = _get_project(project_id)
-    config_model = ConfigModels.objects.get(project_instance=project_instance, model_name=model_name)
-    draft = draft_service.get_draft(config_model=config_model)
-
-    if draft is None:
-        return Response(
-            data={"status": "failed", "error_message": "No draft found for this model"},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    data = conflict_resolution_service.get_resolution_preview(draft=draft)
     return Response(data={"status": "success", "data": data}, status=status.HTTP_200_OK)
 
 
@@ -580,9 +489,10 @@ def execute_version(request: Request, project_id: str) -> Response:
     """
     payload = request.data
     version_number = payload.get("version_number")
-    if version_number is None:
+    commit_sha = payload.get("commit_sha")
+    if version_number is None and commit_sha is None:
         return Response(
-            data={"status": "failed", "error_message": "version_number is required"},
+            data={"status": "failed", "error_message": "version_number or commit_sha is required"},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -592,12 +502,43 @@ def execute_version(request: Request, project_id: str) -> Response:
     from visitran.singleton import Singleton
 
     project_instance = _get_project(project_id)
-    target_version = model_version_service.get_version(project_instance, int(version_number))
-    target_data = target_version.model_data or {}
+
+    # Try DB lookup first; fall back to GitHub for git-sourced versions
+    target_version = None
+    target_data = None
+    if version_number is not None:
+        try:
+            target_version = model_version_service.get_version(project_instance, int(version_number))
+        except Exception:
+            pass
+
+    if target_version:
+        target_data = target_version.model_data
+        if not target_data and target_version.git_commit_sha:
+            from backend.core.services.model_version_service import _fetch_models_data_from_github
+            target_data = _fetch_models_data_from_github(project_instance, target_version)
+    elif commit_sha:
+        # Git-sourced version: fetch directly from GitHub at this SHA
+        from backend.core.models.git_repo_config import GitRepoConfig
+        from backend.core.services.git_service import get_git_service
+        from backend.core.services.yaml_serializer import deserialize_project_yaml, get_project_yaml_path
+
+        git_config = GitRepoConfig.objects.filter(
+            project_id=project_id, is_deleted=False, is_active=True,
+        ).first()
+        if git_config:
+            folder_name = git_config.git_project_folder or project_instance.project_name
+            file_path = get_project_yaml_path(folder_name)
+            git_svc = get_git_service(git_config)
+            raw, _ = git_svc.get_file(file_path, ref=commit_sha)
+            if raw:
+                target_data = deserialize_project_yaml(raw)
+
+    target_data = target_data or {}
 
     if not target_data:
         return Response(
-            data={"status": "failed", "error_message": "Version has no model data to execute."},
+            data={"status": "failed", "error_message": "Could not load version data from GitHub or DB."},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -633,21 +574,61 @@ def execute_version(request: Request, project_id: str) -> Response:
 
 
 def _execute_version_locked(project_instance, project_id, target_data, version_number, environment_id):
-    """Inner logic — runs while the Redis lock is held."""
+    """Inner logic — runs while the Redis lock is held.
+
+    Makes the project state match the executed version exactly:
+    - Models in the version get their model_data set to the version snapshot
+    - Models NOT in the version but in the current project are deleted on success
+    - Models in the version but NOT in the current project are created
+
+    On failure everything is rolled back to the pre-execution state.
+    """
     from backend.application.context.application import ApplicationContext
     from django.db import transaction
     from visitran.singleton import Singleton
 
-    model_names = list(target_data.keys())
+    historical_models = set(target_data.keys())
+    current_model_names = set(
+        ConfigModels.objects.filter(
+            project_instance=project_instance,
+        ).values_list("model_name", flat=True)
+    )
+
+    models_to_create = historical_models - current_model_names
+    models_to_remove = current_model_names - historical_models
+
+    created_models = []
+    removed_snapshots = []
 
     with transaction.atomic():
-        # Lock the rows we are about to mutate
+        # Create ConfigModels for models in the version that don't exist yet
+        for model_name in models_to_create:
+            cm = ConfigModels(
+                project_instance=project_instance,
+                model_name=model_name,
+                model_data=target_data[model_name],
+                model_py_content="",
+            )
+            cm.save()
+            created_models.append(cm)
+
+        # Snapshot models that will be removed on success (for rollback on failure)
+        if models_to_remove:
+            remove_qs = ConfigModels.objects.select_for_update().filter(
+                project_instance=project_instance, model_name__in=models_to_remove,
+            )
+            for cm in remove_qs:
+                removed_snapshots.append({
+                    "model_name": cm.model_name,
+                    "model_data": cm.model_data,
+                    "model_py_content_name": cm.model_py_content.name if cm.model_py_content else "",
+                })
+
+        # Lock and swap model_data for all historical models
         locked_models = list(
             ConfigModels.objects.select_for_update()
-            .filter(project_instance=project_instance, model_name__in=model_names)
+            .filter(project_instance=project_instance, model_name__in=historical_models)
         )
-
-        # Capture originals from the locked snapshot
         original_data = {cm.model_name: cm.model_data for cm in locked_models}
 
         succeeded = False
@@ -660,41 +641,49 @@ def _execute_version_locked(project_instance, project_id, target_data, version_n
 
             Singleton.reset_cache()
             app = ApplicationContext(project_id=project_id)
-            app.execute_visitran_run_command(current_model="", environment_id=environment_id)
+            # Execute only the historical models
+            app.execute_visitran_run_command(
+                current_models=sorted(historical_models),
+                environment_id=environment_id,
+            )
             app.visitran_context.close_db_connection()
 
             model_version_service.set_current_version(project_instance, int(version_number))
             succeeded = True
 
+            # Success: delete models not in this version so the project
+            # reflects the executed version state exactly
+            if models_to_remove:
+                ConfigModels.objects.filter(
+                    project_instance=project_instance, model_name__in=models_to_remove,
+                ).delete()
+                logger.info(
+                    "Execute v%s: removed %d model(s) not in version: %s",
+                    version_number, len(models_to_remove), sorted(models_to_remove),
+                )
+
             result = Response(
                 data={"status": "success", "data": {
                     "message": f"Execution of version {version_number} completed successfully.",
                     "version_number": int(version_number),
+                    "models_created": sorted(models_to_create),
+                    "models_removed": sorted(models_to_remove),
                 }},
                 status=status.HTTP_200_OK,
             )
         except Exception as exc:
             logger.exception("Execute version v%s failed", version_number)
-            # Restore original model_data only on failure
+            # Restore original model_data for historical models
             for cm in locked_models:
                 if cm.model_name in original_data:
                     cm.model_data = original_data[cm.model_name]
                     cm.save(update_fields=["model_data"])
+            # Delete models we created for this version
+            for cm in created_models:
+                cm.delete()
             result = Response(
                 data={"status": "failed", "error_message": str(exc)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     return result
-
-
-@api_view([HTTPMethods.POST])
-@handle_http_request
-def validate_draft(request: Request, project_id: str, model_name: str) -> Response:
-    """Validate draft content without persisting."""
-    from backend.application.model_validator.draft_validator import DraftValidator
-
-    payload = request.data
-    content = payload.get("model_data") or payload.get("yaml_content", {})
-    result = DraftValidator(content=content).validate()
-    return Response(data={"status": "success", "data": result}, status=status.HTTP_200_OK)

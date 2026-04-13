@@ -16,7 +16,7 @@ import { useVersionHistoryStore } from "../../store/version-history-store";
 import { useRefreshModelsStore } from "../../store/refresh-models-store";
 import { useAxiosPrivate } from "../../service/axios-service";
 import { orgStore } from "../../store/org-store";
-import { createVersionPR, fetchDraftStatus, fetchGitConfig } from "./services";
+import { createVersionPR, fetchGitConfig } from "./services";
 import "./version-history.css";
 
 const TAB_OPTIONS = ["History", "Config"];
@@ -32,6 +32,7 @@ const VersionHistoryDrawer = memo(function VersionHistoryDrawer({
   const isVersioningEnabled = useVersionHistoryStore(
     (state) => state.isVersioningEnabled
   );
+  const saveCounter = useVersionHistoryStore((state) => state.saveCounter);
 
   const axiosRef = useAxiosPrivate();
   const [refreshKey, setRefreshKey] = useState(0);
@@ -47,34 +48,13 @@ const VersionHistoryDrawer = memo(function VersionHistoryDrawer({
   const [executeOpen, setExecuteOpen] = useState(false);
   const [executeTarget, setExecuteTarget] = useState(null);
   const [syncStatus, setSyncStatus] = useState({ pending: 0, failed: 0 });
-  const [draftStatus, setDraftStatus] = useState({
-    hasDraft: false,
-    draftCount: 0,
-    modelsWithDrafts: [],
-  });
-  const [compareMode, setCompareMode] = useState(null);
   const [creatingPR, setCreatingPR] = useState(false);
-
-  const loadDraftStatus = useCallback(async () => {
-    try {
-      const orgId = orgStore.getState().selectedOrgId;
-      const data = await fetchDraftStatus(axiosRef, orgId, projectId);
-      setDraftStatus({
-        hasDraft: data.has_draft,
-        draftCount: data.draft_count,
-        modelsWithDrafts: data.models_with_drafts || [],
-      });
-    } catch {
-      setDraftStatus({ hasDraft: false, draftCount: 0, modelsWithDrafts: [] });
-    }
-  }, [axiosRef, projectId]);
 
   useEffect(() => {
     if (isVersionDrawerOpen && projectId) {
       loadGitConfig();
-      loadDraftStatus();
     }
-  }, [isVersionDrawerOpen, projectId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isVersionDrawerOpen, projectId]); // eslint-disable-line
 
   const loadGitConfig = useCallback(async () => {
     setConfigLoading(true);
@@ -107,12 +87,23 @@ const VersionHistoryDrawer = memo(function VersionHistoryDrawer({
 
   useEffect(() => {
     return () => clearState();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line
+
+  // Refresh once after a transform save (auto-commit needs ~3s to land on GitHub)
+  useEffect(() => {
+    if (!saveCounter || !isVersionDrawerOpen || !projectId) return;
+    const timer = setTimeout(() => {
+      setRefreshKey((k) => k + 1);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [saveCounter, isVersionDrawerOpen, projectId]);
 
   const handleCommitSuccess = useCallback(() => {
+    // Immediate refresh to show "pending" state, then delayed refresh
+    // after the async commit thread lands on GitHub
     setRefreshKey((k) => k + 1);
-    loadDraftStatus();
-  }, [loadDraftStatus]);
+    setTimeout(() => setRefreshKey((k) => k + 1), 3000);
+  }, []);
   const handleViewVersion = useCallback((v) => {
     setViewTarget(v.version_number);
     setViewOpen(true);
@@ -135,13 +126,6 @@ const VersionHistoryDrawer = memo(function VersionHistoryDrawer({
     setCompareOpen(false);
     setCompareVersionA(null);
     setCompareVersionB(null);
-    setCompareMode(null);
-  }, []);
-  const handleViewDraftChanges = useCallback(() => {
-    setCompareMode("draft");
-    setCompareVersionA(null);
-    setCompareVersionB(null);
-    setCompareOpen(true);
   }, []);
   const handleRollbackVersion = useCallback((v) => {
     setRollbackTarget(v.version_number);
@@ -157,7 +141,10 @@ const VersionHistoryDrawer = memo(function VersionHistoryDrawer({
     setRefreshKey((k) => k + 1);
   }, []);
   const handleExecuteVersion = useCallback((v) => {
-    setExecuteTarget(v.version_number);
+    setExecuteTarget({
+      versionNumber: v.version_number,
+      commitSha: v.commit_sha || "",
+    });
     setExecuteOpen(true);
   }, []);
   const handleCloseExecute = useCallback(() => {
@@ -168,8 +155,7 @@ const VersionHistoryDrawer = memo(function VersionHistoryDrawer({
   const handleExecuteSuccess = useCallback(() => {
     setRefreshKey((k) => k + 1);
     setRefreshModels(true);
-    loadDraftStatus();
-  }, [setRefreshModels, loadDraftStatus]);
+  }, [setRefreshModels]);
   const handleCreatePR = useCallback(
     async (versionNumber) => {
       setCreatingPR(true);
@@ -282,9 +268,6 @@ const VersionHistoryDrawer = memo(function VersionHistoryDrawer({
             onRollbackVersion={handleRollbackVersion}
             onExecuteVersion={handleExecuteVersion}
             onSyncStatusChange={handleSyncStatusChange}
-            hasDraft={draftStatus.hasDraft}
-            modelsWithDrafts={draftStatus.modelsWithDrafts}
-            onViewDraftChanges={handleViewDraftChanges}
             onCreatePR={handleCreatePR}
             creatingPR={creatingPR}
           />
@@ -296,11 +279,7 @@ const VersionHistoryDrawer = memo(function VersionHistoryDrawer({
 
   return (
     <div className="chat-ai-container">
-      <Header
-        closeDrawer={closeVersionDrawer}
-        hasDraft={draftStatus.hasDraft}
-        draftCount={draftStatus.draftCount}
-      />
+      <Header closeDrawer={closeVersionDrawer} onSync={() => setRefreshKey((k) => k + 1)} />
       <div className="version-history-tabs">
         <Segmented
           value={activeTab}
@@ -322,7 +301,6 @@ const VersionHistoryDrawer = memo(function VersionHistoryDrawer({
         onClose={handleCloseCompare}
         initialVersionA={compareVersionA}
         initialVersionB={compareVersionB}
-        mode={compareMode}
       />
       <RollbackModal
         open={rollbackOpen}

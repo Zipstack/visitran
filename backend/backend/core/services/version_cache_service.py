@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 VERSION_HISTORY_TTL = 300
 LATEST_VERSION_TTL = 300
 VERSION_DETAIL_TTL = 600
-DRAFT_TTL = 60
 
 _PREFIX = "vc"
 
@@ -41,12 +40,6 @@ def _key_latest_version(model_id: str) -> str:
 
 def _key_version_detail(model_id: str, version_number: int) -> str:
     return f"{_PREFIX}:ver:{model_id}:{version_number}"
-
-def _key_user_drafts(user_id: str, project_id: str) -> str:
-    return f"{_PREFIX}:drafts:{user_id}:{project_id}"
-
-def _key_draft(user_id: str, model_id: str) -> str:
-    return f"{_PREFIX}:draft:{user_id}:{model_id}"
 
 
 # ------------------------------------------------------------------
@@ -102,18 +95,6 @@ def get_version_detail(model_id: str, version_number: int) -> dict[str, Any] | N
 def set_version_detail(model_id: str, version_number: int, data: dict[str, Any]) -> None:
     set_cached(_key_version_detail(model_id, version_number), data, VERSION_DETAIL_TTL)
 
-def get_user_drafts(user_id: str, project_id: str) -> dict[str, Any] | None:
-    return get_cached(_key_user_drafts(user_id, project_id))
-
-def set_user_drafts(user_id: str, project_id: str, data: dict[str, Any]) -> None:
-    set_cached(_key_user_drafts(user_id, project_id), data, DRAFT_TTL)
-
-def get_draft(user_id: str, model_id: str) -> dict[str, Any] | None:
-    return get_cached(_key_draft(user_id, model_id))
-
-def set_draft(user_id: str, model_id: str, data: dict[str, Any]) -> None:
-    set_cached(_key_draft(user_id, model_id), data, DRAFT_TTL)
-
 
 # ------------------------------------------------------------------
 # Invalidation
@@ -128,19 +109,9 @@ def invalidate_model_versions(model_id: str) -> None:
     logger.info("Invalidated version cache for model %s (%d keys)", model_id, len(keys_to_delete))
 
 
-def invalidate_user_drafts(user_id: str, project_id: str) -> None:
-    _bulk_delete([_key_user_drafts(user_id, project_id)])
-
-def invalidate_draft(user_id: str, model_id: str) -> None:
-    _bulk_delete([_key_draft(user_id, model_id)])
-
-
-def invalidate_on_commit(model_id: str, user_id: str = "", project_id: str = "") -> None:
+def invalidate_on_commit(model_id: str) -> None:
     def _do_invalidate():
         invalidate_model_versions(model_id)
-        if user_id and project_id:
-            invalidate_user_drafts(user_id, project_id)
-            invalidate_draft(user_id, model_id)
     transaction.on_commit(_do_invalidate)
 
 

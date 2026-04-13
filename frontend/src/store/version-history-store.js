@@ -7,6 +7,7 @@ const DEFAULT_STATE = {
   isLoading: false,
   gitConfig: null,
   isVersioningEnabled: false,
+  saveCounter: 0,
 };
 
 const useVersionHistoryStore = create((set) => ({
@@ -19,6 +20,7 @@ const useVersionHistoryStore = create((set) => ({
   setGitConfig: (value) =>
     set({ gitConfig: value, isVersioningEnabled: !!value }),
   setIsVersioningEnabled: (value) => set({ isVersioningEnabled: value }),
+  notifySave: () => set((s) => ({ saveCounter: s.saveCounter + 1 })),
   clearState: () => set({ ...DEFAULT_STATE }),
 }));
 

@@ -82,6 +82,11 @@ class GitRepoConfig(DefaultOrganizationMixin, BaseModel):
     pr_base_branch = models.CharField(max_length=255, default="main")
     pr_branch_prefix = models.CharField(max_length=100, default="visitran/")
 
+    # Import: overrides project name slug for YAML path construction.
+    # When set, all commits read/write to {git_project_folder}/models.yaml
+    # instead of {project_slug}/models.yaml.
+    git_project_folder = models.CharField(max_length=200, blank=True, default="")
+
     @property
     def pr_workflow_enabled(self):
         return self.pr_mode != self.PR_MODE_DISABLED

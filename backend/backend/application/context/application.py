@@ -182,6 +182,7 @@ class ApplicationContext(ModelGraph):
         explorer."""
         new_model_name = self.session.create_model(model_name=model_name, is_generate_ai_request=is_generate_ai_request)
         self.add_node_to_model_graph(new_model_name)  # add node to the graph and persist them in db
+        self._trigger_auto_commit(f"model_created:{new_model_name}")
         return new_model_name
 
     def add_node_to_model_graph(self, model_name: str) -> None:
@@ -221,6 +222,7 @@ class ApplicationContext(ModelGraph):
             except ModelNotExists:
                 logger.debug("Model '%s' not found in DB during delete; skipping.", file_name)
             self.delete_node_from_model_graph(file_name)
+            self._trigger_auto_commit(f"model_deleted:{file_name}")
         elif file_path.startswith("seeds/"):
             file_name = file_path.split("seeds/")[-1]
             self.session.delete_csv_model(file_name=file_name)
@@ -447,26 +449,63 @@ class ApplicationContext(ModelGraph):
                 children.add(name)
         return children
 
-    def _update_model(self, model_name: str, model_data: dict[str, Any], skip_draft_write: bool = False) -> None:
+    def _trigger_auto_commit(self, trigger_action: str) -> None:
+        """Fire-and-forget auto-commit to git in a background thread."""
+        try:
+            from backend.core.scheduler.version_celery_tasks import (
+                _run_auto_commit,
+            )
+            from backend.utils.tenant_context import (
+                get_current_user, get_current_tenant,
+                _get_tenant_context,
+            )
+            import threading
+            user_info = get_current_user() or {}
+            tenant_id = get_current_tenant()
+            project_id = str(
+                self.session.project_instance.project_uuid
+            )
+
+            def _commit():
+                from django.db import connection
+                _get_tenant_context().set_tenant(tenant_id)
+                try:
+                    _run_auto_commit(
+                        project_id=project_id,
+                        trigger_action=trigger_action,
+                        author_info=user_info,
+                    )
+                except Exception as ex:
+                    logger.warning(
+                        "Auto-commit background thread failed "
+                        "for %s: %s", trigger_action, str(ex),
+                    )
+                finally:
+                    connection.close()
+
+            thread = threading.Thread(
+                target=_commit, daemon=True,
+            )
+            thread.start()
+        except Exception as e:
+            logger.warning(
+                "Auto-commit trigger failed for %s (%s: %s) "
+                "— non-blocking",
+                trigger_action, type(e).__name__, str(e),
+            )
+
+    def _update_model(self, model_name: str, model_data: dict[str, Any], skip_auto_commit: bool = False) -> None:
         """This method is used to update the model in a database and redis.
 
         :param model_name:
         :param model_data:
-        :param skip_draft_write: True when called from execution pipeline (not user edits)
+        :param skip_auto_commit: True when called from execution pipeline
         :return:
         """
         self.session.update_model(model_name=model_name, model_data=model_data)
-        # Dual-write: keep UserDraft in sync so draft status is accurate
-        if not skip_draft_write:
-            try:
-                from backend.core.services.draft_service import (
-                    get_or_create_draft, save_draft_data,
-                )
-                config_model = self.session.fetch_model(model_name=model_name)
-                draft = get_or_create_draft(config_model=config_model)
-                save_draft_data(draft=draft, model_data=model_data)
-            except Exception:
-                logger.debug("Draft dual-write failed for %s — non-blocking", model_name)
+        # Auto-commit to git
+        if not skip_auto_commit:
+            self._trigger_auto_commit(f"transform_updated:{model_name}")
         # Updating the model spec in cache
         if visitran_models := self.session.redis_client.get(self.redis_model_key):
             models = yaml.safe_load(visitran_models)
@@ -480,11 +519,11 @@ class ApplicationContext(ModelGraph):
                 yaml_models = yaml.dump(models, default_flow_style=False, sort_keys=False)
                 self.session.redis_client.set(self.redis_model_key, yaml_models)
 
-    def update_model(self, model_name: str, model_data: dict[str, Any], skip_draft_write: bool = False):
+    def update_model(self, model_name: str, model_data: dict[str, Any], skip_auto_commit: bool = False):
         # Converting the current model to python.
         self.update_model_graph(model_data, model_name)
         parser: ConfigParser = self.convert_to_python(model_data, model_name)
-        self._update_model(model_name=model_name, model_data=model_data, skip_draft_write=skip_draft_write)
+        self._update_model(model_name=model_name, model_data=model_data, skip_auto_commit=skip_auto_commit)
         sequence_orders, sequence_lineage = set_transformation_sequence(parser)
 
         model_data_yaml: Any | str = yaml.dump(model_data, indent=4, default_flow_style=False)
@@ -735,7 +774,7 @@ class ApplicationContext(ModelGraph):
             for model in self.session.fetch_all_models(fetch_all=True):
                 if model_data := model.model_data:
                     logging.info(f"[Model Update] Converting YAML to Python: {model.model_name}")
-                    self.update_model(model_name=model.model_name, model_data=model_data, skip_draft_write=True)
+                    self.update_model(model_name=model.model_name, model_data=model_data, skip_auto_commit=True)
             self.session.add_sys_path()
             visitran_obj.search_n_run_models(model_name=model_name, model_names=model_names)
             return visitran_obj

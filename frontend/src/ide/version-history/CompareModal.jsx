@@ -8,23 +8,12 @@ import { useProjectStore } from "../../store/project-store";
 import { orgStore } from "../../store/org-store";
 import { SpinnerLoader } from "../../widgets/spinner_loader";
 import { DiffViewer } from "./DiffViewer";
-import {
-  fetchPendingChanges,
-  fetchVersionDetail,
-  fetchVersionHistory,
-} from "./services";
+import { fetchVersionDetail, fetchVersionHistory } from "./services";
 
 const MODAL_WIDTH = "90vw";
 const CURRENT_STATE_VALUE = "current";
 
-function CompareModal({
-  open,
-  onClose,
-  initialVersionA,
-  initialVersionB,
-  mode,
-}) {
-  const isDraftMode = mode === "draft";
+function CompareModal({ open, onClose, initialVersionA, initialVersionB }) {
   const [versionA, setVersionA] = useState(initialVersionA);
   const [versionB, setVersionB] = useState(initialVersionB);
   const [contentA, setContentA] = useState("");
@@ -62,7 +51,7 @@ function CompareModal({
       }
     };
     loadOptions();
-  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open]); // eslint-disable-line
 
   useEffect(() => {
     setVersionA(initialVersionA);
@@ -70,35 +59,7 @@ function CompareModal({
   }, [initialVersionA, initialVersionB]);
 
   useEffect(() => {
-    if (!open) return;
-    if (isDraftMode) {
-      const loadDraftComparison = async () => {
-        setLoading(true);
-        try {
-          const data = await fetchPendingChanges(axiosRef, orgId, projectId);
-          const changes = data?.changes || [];
-          const oldParts = [];
-          const newParts = [];
-          for (const c of changes) {
-            oldParts.push(
-              `# --- ${c.model_name} (committed) ---\n${c.old_yaml || ""}`
-            );
-            newParts.push(
-              `# --- ${c.model_name} (draft) ---\n${c.new_yaml || ""}`
-            );
-          }
-          setContentA(oldParts.join("\n") || "# No committed version");
-          setContentB(newParts.join("\n") || "# No draft changes");
-        } catch (error) {
-          notify({ error });
-        } finally {
-          setLoading(false);
-        }
-      };
-      loadDraftComparison();
-      return;
-    }
-    if (!versionA || !versionB) return;
+    if (!open || !versionA || !versionB) return;
     const loadContents = async () => {
       setLoading(true);
       try {
@@ -115,7 +76,7 @@ function CompareModal({
       }
     };
     loadContents();
-  }, [open, versionA, versionB, isDraftMode]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, versionA, versionB]); // eslint-disable-line
 
   const loadVersionContent = async (version) => {
     if (version === CURRENT_STATE_VALUE) {
@@ -152,7 +113,7 @@ function CompareModal({
 
   return (
     <Modal
-      title={isDraftMode ? "Draft vs Committed" : "Compare Versions"}
+      title="Compare Versions"
       open={open}
       onCancel={handleClose}
       footer={null}
@@ -161,26 +122,24 @@ function CompareModal({
       maskClosable={false}
       destroyOnClose
     >
-      {!isDraftMode && (
-        <Space style={{ marginBottom: 12 }}>
-          <Typography.Text>From:</Typography.Text>
-          <Select
-            value={versionA}
-            onChange={setVersionA}
-            options={versionOptions}
-            style={{ width: 300 }}
-            placeholder="Select base version"
-          />
-          <Typography.Text>To:</Typography.Text>
-          <Select
-            value={versionB}
-            onChange={setVersionB}
-            options={versionOptions}
-            style={{ width: 300 }}
-            placeholder="Select target version"
-          />
-        </Space>
-      )}
+      <Space style={{ marginBottom: 12 }}>
+        <Typography.Text>From:</Typography.Text>
+        <Select
+          value={versionA}
+          onChange={setVersionA}
+          options={versionOptions}
+          style={{ width: 300 }}
+          placeholder="Select base version"
+        />
+        <Typography.Text>To:</Typography.Text>
+        <Select
+          value={versionB}
+          onChange={setVersionB}
+          options={versionOptions}
+          style={{ width: 300 }}
+          placeholder="Select target version"
+        />
+      </Space>
       <div style={{ height: 500 }}>
         {loading ? (
           <SpinnerLoader />
@@ -188,8 +147,8 @@ function CompareModal({
           <DiffViewer
             originalContent={contentA}
             modifiedContent={contentB}
-            originalTitle={isDraftMode ? "Last Committed" : getLabel(versionA)}
-            modifiedTitle={isDraftMode ? "Current Draft" : getLabel(versionB)}
+            originalTitle={getLabel(versionA)}
+            modifiedTitle={getLabel(versionB)}
           />
         )}
       </div>
@@ -202,7 +161,6 @@ CompareModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   initialVersionA: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
   initialVersionB: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-  mode: PropTypes.string,
 };
 
 export { CompareModal };

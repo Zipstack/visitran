@@ -82,12 +82,26 @@ class GitServiceBase(ABC):
     def create_branch(self, branch_name: str, from_branch: Optional[str] = None) -> dict[str, Any]: ...
 
     @abstractmethod
+    def list_directory(
+        self, path: str = "", ref: Optional[str] = None
+    ) -> list[dict[str, Any]]: ...
+
+    @abstractmethod
     def create_pull_request(
         self, title: str, body: str, head_branch: str, base_branch: Optional[str] = None,
     ) -> dict[str, Any]: ...
 
     @abstractmethod
     def get_pull_request(self, pr_number: int) -> dict[str, Any]: ...
+
+    @abstractmethod
+    def get_commit_detail(self, sha: str) -> Optional[dict[str, Any]]: ...
+
+    @abstractmethod
+    def push_combined_file(
+        self, file_path: str, content: str, commit_message: str,
+        author_name: Optional[str] = None, author_email: Optional[str] = None,
+    ) -> dict[str, Any]: ...
 
 
 class GitHubService(GitServiceBase):
@@ -307,6 +321,47 @@ class GitHubService(GitServiceBase):
             for c in response.json()
         ]
 
+    def get_commit_detail(self, sha: str) -> Optional[dict[str, Any]]:
+        response = self._request_with_retry("GET", f"/repos/{self._owner}/{self._repo}/commits/{sha}")
+        self._handle_auth_error(response)
+        if response.status_code == 404:
+            return None
+        if response.status_code != 200:
+            return None
+        data = response.json()
+        commit = data.get("commit", {})
+        author = commit.get("author", {})
+        return {
+            "sha": data.get("sha", ""),
+            "message": commit.get("message", ""),
+            "author_name": author.get("name", ""),
+            "author_email": author.get("email", ""),
+            "date": author.get("date", ""),
+            "html_url": data.get("html_url", ""),
+            "files_changed": [
+                {"filename": f.get("filename", ""), "status": f.get("status", ""), "additions": f.get("additions", 0), "deletions": f.get("deletions", 0)}
+                for f in data.get("files", [])
+            ],
+        }
+
+    def list_directory(self, path: str = "", ref: Optional[str] = None) -> list[dict[str, Any]]:
+        branch = ref or self._branch
+        params: dict[str, Any] = {"ref": branch}
+        url_path = f"/repos/{self._owner}/{self._repo}/contents/{path}" if path else f"/repos/{self._owner}/{self._repo}/contents"
+        response = self._request_with_retry("GET", url_path, params=params)
+        self._handle_auth_error(response)
+        if response.status_code != 200:
+            logger.warning("Failed to list directory (HTTP %d): %s", response.status_code, response.text[:200])
+            return []
+        data = response.json()
+        if not isinstance(data, list):
+            return []
+        return [
+            {"name": entry.get("name", ""), "type": entry.get("type", ""), "path": entry.get("path", "")}
+            for entry in data
+            if entry.get("type") == "dir"
+        ]
+
     def list_branches(self, per_page: int = 100) -> list[dict[str, Any]]:
         response = self._request_with_retry(
             "GET", f"/repos/{self._owner}/{self._repo}/branches",
@@ -417,6 +472,37 @@ class GitHubService(GitServiceBase):
             "state": data.get("state", ""),
             "mergeable": data.get("mergeable"),
         }
+
+    def push_combined_file(
+        self, file_path: str, content: str, commit_message: str,
+        author_name: Optional[str] = None, author_email: Optional[str] = None,
+    ) -> dict[str, Any]:
+        _existing, current_sha = self.get_file(file_path)
+        payload: dict[str, Any] = {
+            "message": commit_message,
+            "content": b64encode(content.encode("utf-8")).decode("ascii"),
+            "branch": self._branch,
+        }
+        if current_sha:
+            payload["sha"] = current_sha
+        if author_name and author_email:
+            payload["author"] = {"name": author_name, "email": author_email}
+        response = self._request_with_retry(
+            "PUT", f"/repos/{self._owner}/{self._repo}/contents/{file_path}", json=payload,
+        )
+        self._handle_auth_error(response)
+        if response.status_code == 409:
+            raise GitPushFailedException(model_name=file_path, error_message="File was modified externally. Please retry.")
+        if response.status_code not in (200, 201):
+            raise GitPushFailedException(model_name=file_path, error_message=f"Failed to push file (HTTP {response.status_code}): {response.text[:200]}")
+        data = response.json()
+        commit_sha = data.get("commit", {}).get("sha", "")
+        commit_url = data.get("commit", {}).get("html_url", "")
+        new_sha = data.get("content", {}).get("sha", "")
+        if new_sha:
+            self._sha_cache[file_path] = new_sha
+        logger.info("Combined file pushed: %s (commit=%s)", file_path, commit_sha[:8] if commit_sha else "?")
+        return {"commit_sha": commit_sha, "commit_url": commit_url}
 
     def get_repo_info(self) -> dict[str, Any]:
         response = self._request_with_retry("GET", f"/repos/{self._owner}/{self._repo}")
@@ -625,6 +711,46 @@ class GitLabService(GitServiceBase):
             for c in response.json()
         ]
 
+    def get_commit_detail(self, sha: str) -> Optional[dict[str, Any]]:
+        response = self._request_with_retry("GET", f"/projects/{self._proj()}/repository/commits/{sha}")
+        self._handle_auth_error(response)
+        if response.status_code in (404, 400):
+            return None
+        if response.status_code != 200:
+            return None
+        data = response.json()
+        # Fetch diff stats separately
+        diff_response = self._request_with_retry("GET", f"/projects/{self._proj()}/repository/commits/{sha}/diff")
+        files_changed = []
+        if diff_response.status_code == 200:
+            for d in diff_response.json():
+                files_changed.append({"filename": d.get("new_path", ""), "status": "modified" if not d.get("new_file") else "added", "additions": 0, "deletions": 0})
+        return {
+            "sha": data.get("id", ""),
+            "message": data.get("message", ""),
+            "author_name": data.get("author_name", ""),
+            "author_email": data.get("author_email", ""),
+            "date": data.get("created_at", ""),
+            "html_url": data.get("web_url", ""),
+            "files_changed": files_changed,
+        }
+
+    def list_directory(self, path: str = "", ref: Optional[str] = None) -> list[dict[str, Any]]:
+        branch = ref or self._branch
+        params: dict[str, Any] = {"ref": branch, "per_page": 100}
+        if path:
+            params["path"] = path
+        response = self._request_with_retry("GET", f"/projects/{self._proj()}/repository/tree", params=params)
+        self._handle_auth_error(response)
+        if response.status_code != 200:
+            logger.warning("Failed to list directory (HTTP %d): %s", response.status_code, response.text[:200])
+            return []
+        return [
+            {"name": entry.get("name", ""), "type": entry.get("type", ""), "path": entry.get("path", "")}
+            for entry in response.json()
+            if entry.get("type") == "tree"
+        ]
+
     def list_branches(self, per_page: int = 100) -> list[dict[str, Any]]:
         response = self._request_with_retry("GET", f"/projects/{self._proj()}/repository/branches", params={"per_page": min(per_page, 100)})
         self._handle_auth_error(response)
@@ -691,6 +817,37 @@ class GitLabService(GitServiceBase):
             "pr_number": data.get("iid", 0), "pr_url": data.get("web_url", ""), "title": data.get("title", ""),
             "state": data.get("state", ""), "mergeable": data.get("merge_status", "") == "can_be_merged",
         }
+
+    def push_combined_file(
+        self, file_path: str, content: str, commit_message: str,
+        author_name: Optional[str] = None, author_email: Optional[str] = None,
+    ) -> dict[str, Any]:
+        import urllib.parse
+        encoded_path = urllib.parse.quote(file_path, safe="")
+        _existing, current_sha = self.get_file(file_path)
+        payload: dict[str, Any] = {
+            "branch": self._branch,
+            "content": b64encode(content.encode("utf-8")).decode("ascii"),
+            "commit_message": commit_message,
+            "encoding": "base64",
+        }
+        if author_name:
+            payload["author_name"] = author_name
+        if author_email:
+            payload["author_email"] = author_email
+        method = "PUT" if current_sha else "POST"
+        response = self._request_with_retry(method, f"/projects/{self._proj()}/repository/files/{encoded_path}", json=payload)
+        self._handle_auth_error(response)
+        if response.status_code == 400 and method == "POST":
+            body = response.json() if response.content else {}
+            if "already exists" in body.get("message", "").lower():
+                response = self._request_with_retry("PUT", f"/projects/{self._proj()}/repository/files/{encoded_path}", json=payload)
+        if response.status_code not in (200, 201):
+            raise GitPushFailedException(model_name=file_path, error_message=f"Failed to push file (HTTP {response.status_code}): {response.text[:200]}")
+        data = response.json()
+        commit_sha = data.get("commit_id", "") if isinstance(data, dict) else ""
+        logger.info("GitLab combined file pushed: %s (commit=%s)", file_path, commit_sha[:8] if commit_sha else "?")
+        return {"commit_sha": commit_sha, "commit_url": ""}
 
     def get_repo_info(self) -> dict[str, Any]:
         response = self._request_with_retry("GET", f"/projects/{self._proj()}")

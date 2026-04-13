@@ -38,18 +38,30 @@ function ExecuteVersionModal({
   const orgId = orgStore.getState().selectedOrgId;
   const csrfToken = Cookies.get("csrftoken");
 
+  const displayVersion =
+    targetVersion && typeof targetVersion === "object"
+      ? targetVersion.versionNumber
+      : targetVersion;
   const currentStep = result ? 2 : executing ? 1 : 0;
 
   const handleExecute = useCallback(async () => {
     setExecuting(true);
     setResult(null);
     try {
+      const vn =
+        typeof targetVersion === "object"
+          ? targetVersion.versionNumber
+          : targetVersion;
+      const sha =
+        typeof targetVersion === "object" ? targetVersion.commitSha || "" : "";
       const res = await executeVersion(
         axiosRef,
         orgId,
         projectId,
         csrfToken,
-        targetVersion
+        vn,
+        undefined,
+        sha
       );
       if (res?.status === "success") {
         setResult({
@@ -79,22 +91,17 @@ function ExecuteVersionModal({
     setExecuting(false);
     onClose();
   };
-  const handleMakeCurrent = () => {
-    handleClose();
-    onRollbackToVersion?.(targetVersion);
-  };
-
   const renderConfirmation = () => (
     <>
       <Alert
         type="warning"
         showIcon
-        message={`This will execute version ${targetVersion}'s transformations against your current data`}
+        message={`This will execute version ${displayVersion}'s transformations against your current data`}
         description="All models will be temporarily updated during execution and restored to their current state afterward."
         style={{ marginBottom: 16 }}
       />
       <Typography.Paragraph>
-        <strong>Version:</strong> v{targetVersion}
+        <strong>Version:</strong> v{displayVersion}
       </Typography.Paragraph>
     </>
   );
@@ -103,7 +110,7 @@ function ExecuteVersionModal({
     <div style={{ textAlign: "center", padding: "24px 0" }}>
       <SpinnerLoader />
       <Typography.Paragraph type="secondary" style={{ marginTop: 16 }}>
-        Running transformations for v{targetVersion}...
+        Running transformations for v{displayVersion}...
       </Typography.Paragraph>
     </div>
   );
@@ -116,7 +123,7 @@ function ExecuteVersionModal({
           status="success"
           icon={<CheckCircleOutlined />}
           title="Execution Successful"
-          subTitle={`Version ${targetVersion} executed successfully and is now the current version.`}
+          subTitle={`Version ${displayVersion} executed successfully and is now the current version.`}
         />
       );
     }
@@ -179,7 +186,7 @@ function ExecuteVersionModal({
 
   return (
     <Modal
-      title={`Execute Version ${targetVersion}`}
+      title={`Execute Version ${displayVersion}`}
       open={open}
       onCancel={handleClose}
       footer={getFooter()}
@@ -208,7 +215,7 @@ function ExecuteVersionModal({
 ExecuteVersionModal.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  targetVersion: PropTypes.number,
+  targetVersion: PropTypes.oneOfType([PropTypes.number, PropTypes.object]),
   onExecuteSuccess: PropTypes.func,
   onRollbackToVersion: PropTypes.func,
 };

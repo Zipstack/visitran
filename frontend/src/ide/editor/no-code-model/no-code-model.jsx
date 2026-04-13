@@ -107,6 +107,7 @@ import {
 } from "./helper.js";
 import { useRefreshModelsStore } from "../../../store/refresh-models-store.js";
 import { useLineageTabStore } from "../../../store/lineage-tab-store.js";
+import { useVersionHistoryStore } from "../../../store/version-history-store.js";
 
 import initialSpec from "../../../skeleton/initialSpec.json";
 
@@ -1012,6 +1013,9 @@ function NoCodeModel({ nodeData }) {
 
     /* re-run model */
     runTransformation(res?.data?.model_data);
+
+    // Signal version history to refresh (auto-commit lands after ~2-3s)
+    useVersionHistoryStore.getState().notifySave();
 
     return { status: "success", spec: res?.data?.model_data };
   };

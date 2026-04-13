@@ -1,13 +1,13 @@
 import { memo } from "react";
 import PropTypes from "prop-types";
-import { Badge, Button, Typography } from "antd";
-import { CloseOutlined, PlusCircleOutlined } from "@ant-design/icons";
+import { Button, Typography } from "antd";
+import { CloseOutlined, PlusCircleOutlined, SyncOutlined } from "@ant-design/icons";
 
 import { useProjectStore } from "../../store/project-store";
 import { useVersionHistoryStore } from "../../store/version-history-store";
 import { getActiveModelName } from "../../common/helpers";
 
-const Header = memo(function Header({ closeDrawer, hasDraft, draftCount }) {
+const Header = memo(function Header({ closeDrawer, onSync }) {
   const { projectId, projectDetails } = useProjectStore.getState();
   const modelName = getActiveModelName(projectId, projectDetails);
   const openCommitModal = useVersionHistoryStore(
@@ -23,17 +23,22 @@ const Header = memo(function Header({ closeDrawer, hasDraft, draftCount }) {
         {modelName && <Typography.Text italic> {modelName}</Typography.Text>}
       </div>
       <div>
-        <Badge count={hasDraft ? draftCount : 0} size="small" offset={[-4, 0]}>
-          <Button
-            type="text"
-            size="small"
-            icon={<PlusCircleOutlined />}
-            onClick={openCommitModal}
-            className="commit-btn-header"
-          >
-            Commit
-          </Button>
-        </Badge>
+        <Button
+          type="text"
+          size="small"
+          icon={<PlusCircleOutlined />}
+          onClick={openCommitModal}
+          className="commit-btn-header"
+        >
+          Commit
+        </Button>
+        <Button
+          type="text"
+          size="small"
+          icon={<SyncOutlined />}
+          onClick={onSync}
+          title="Sync version history"
+        />
         <Button
           type="text"
           size="small"
@@ -47,8 +52,7 @@ const Header = memo(function Header({ closeDrawer, hasDraft, draftCount }) {
 
 Header.propTypes = {
   closeDrawer: PropTypes.func.isRequired,
-  hasDraft: PropTypes.bool,
-  draftCount: PropTypes.number,
+  onSync: PropTypes.func,
 };
 
 Header.displayName = "VersionHistoryHeader";

@@ -43,7 +43,7 @@ function ViewVersionModal({ open, onClose, versionNumber }) {
       }
     };
     load();
-  }, [open, versionNumber]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, versionNumber]); // eslint-disable-line
 
   const handleClose = () => {
     setVersionData(null);

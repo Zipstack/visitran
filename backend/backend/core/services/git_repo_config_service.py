@@ -16,7 +16,12 @@ from backend.errors.exceptions import (
     GitConnectionFailedException,
     ResourcePermissionDeniedException,
 )
-from backend.core.services.git_service import get_git_service, GitHubService
+from backend.core.services.git_service import (
+    get_git_service,
+    GitHubService,
+    GitLabService,
+    _is_gitlab_host,
+)
 from backend.utils.tenant_context import get_current_user
 
 logger = logging.getLogger(__name__)
@@ -63,6 +68,8 @@ def get_config(project_id: str) -> Optional[dict[str, Any]]:
 # ------------------------------------------------------------------
 
 def save_config(project_id: str, config_data: dict[str, Any]) -> dict[str, Any]:
+    logger.warning("save_config called with data: %s",
+                   {k: v for k, v in config_data.items() if k != 'token'})
     _check_project_access(project_id)
     repo_type = config_data.get("repo_type", "custom")
     if repo_type == "default":
@@ -74,9 +81,10 @@ def save_config(project_id: str, config_data: dict[str, Any]) -> dict[str, Any]:
     repo_url = config_data.get("repo_url", "")
     if token and repo_url:
         try:
-            service = GitHubService(repo_url, token, config_data.get("branch_name", "main"))
+            service = _build_service_from_data(config_data)
             service.test_connection()
         except Exception as exc:
+            logger.warning("save_config failed: %s", str(exc))
             raise GitConnectionFailedException(
                 error_message=f"Token validation failed: {exc}"
             )
@@ -107,21 +115,87 @@ def delete_config(project_id: str) -> None:
 # Test Connection
 # ------------------------------------------------------------------
 
+def _build_service_from_data(config_data: dict[str, Any]):
+    """Instantiate a GitHubService or GitLabService from raw config_data (no saved model)."""
+    repo_url = config_data.get("repo_url", "")
+    credentials = config_data.get("credentials", {})
+    token = credentials.get("token", "")
+    branch = config_data.get("branch_name", "main")
+
+    if not repo_url:
+        raise GitConnectionFailedException(error_message="Repository URL is required.")
+
+    if "github.com" in repo_url:
+        return GitHubService(repo_url, token, branch)
+    if "gitlab.com" in repo_url or _is_gitlab_host(repo_url):
+        return GitLabService(repo_url, token, branch)
+    raise GitConnectionFailedException(
+        error_message=f"Unsupported git provider. Only GitHub and GitLab are supported: {repo_url}"
+    )
+
+
 def test_connection(project_id: str, config_data: dict[str, Any]) -> dict[str, Any]:
     _check_project_access(project_id)
     repo_type = config_data.get("repo_type", "custom")
     if repo_type == "default":
         config_data = _prepare_default_config(config_data)
 
-    repo_url = config_data.get("repo_url", "")
-    credentials = config_data.get("credentials", {})
-    token = credentials.get("token", "")
+    service = _build_service_from_data(config_data)
+    result = service.test_connection()
 
-    if not repo_url or "github.com" not in repo_url:
-        raise GitConnectionFailedException(error_message=f"Invalid or unsupported repository URL: {repo_url}")
+    # Include branch list so frontend can populate branch dropdown
+    try:
+        result["branches"] = service.list_branches()
+    except Exception:
+        result["branches"] = []
 
-    service = GitHubService(repo_url, token, config_data.get("branch_name", "main"))
-    return service.test_connection()
+    return result
+
+
+def create_branch_from_data(
+    project_id: str, config_data: dict[str, Any],
+) -> dict[str, Any]:
+    """Create a branch using inline credentials (before config is saved)."""
+    _check_project_access(project_id)
+    repo_type = config_data.get("repo_type", "custom")
+    if repo_type == "default":
+        config_data = _prepare_default_config(config_data)
+
+    branch_name = config_data.get("branch_name", "")
+    from_branch = config_data.get("from_branch", "main")
+    if not branch_name:
+        raise GitConnectionFailedException(error_message="Branch name is required.")
+
+    service = _build_service_from_data({**config_data, "branch_name": from_branch})
+    result = service.create_branch(branch_name, from_branch=from_branch)
+    return {"branch_name": result.get("branch_name", branch_name), "sha": result.get("sha", "")}
+
+
+def list_project_folders(
+    project_id: str, config_data: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """List project folders in repo that contain models.yaml."""
+    _check_project_access(project_id)
+    repo_type = config_data.get("repo_type", "custom")
+    if repo_type == "default":
+        config_data = _prepare_default_config(config_data)
+
+    source_branch = config_data.get("source_branch", config_data.get("branch_name", "main"))
+    service = _build_service_from_data({**config_data, "branch_name": source_branch})
+
+    dirs = service.list_directory(path="", ref=source_branch)
+    folders = []
+    for d in dirs:
+        content, _ = service.get_file(f"{d['name']}/models.yaml", ref=source_branch)
+        if content:
+            from backend.core.services.yaml_serializer import deserialize_project_yaml
+            models_data = deserialize_project_yaml(content)
+            folders.append({
+                "name": d["name"],
+                "model_count": len(models_data),
+                "model_names": sorted(models_data.keys())[:10],
+            })
+    return folders
 
 
 # ------------------------------------------------------------------
@@ -180,9 +254,11 @@ def _create_config(project_id: str, config_data: dict[str, Any]) -> GitRepoConfi
         encrypted_credentials=config_data.get("credentials", {}),
         branch_name=config_data.get("branch_name", "main"),
         base_path=config_data.get("base_path", ""),
+        git_project_folder=config_data.get("git_project_folder", ""),
         connection_status=config_data.get("connection_status", "pending"),
     )
     config.save()
+    logger.warning("GitRepoConfig created: %s", config.git_repo_config_id)
     return config
 
 
@@ -191,12 +267,13 @@ def _update_config(project_id: str, config_data: dict[str, Any]) -> GitRepoConfi
     if not config:
         raise GitConfigurationNotFoundException(project_id=project_id)
     _READONLY_PROPS = {"pr_workflow_enabled"}
-    for field in ("repo_type", "repo_url", "auth_type", "branch_name", "base_path", "connection_status", "error_message", "pr_mode", "pr_base_branch", "pr_branch_prefix"):
+    for field in ("repo_type", "repo_url", "auth_type", "branch_name", "base_path", "connection_status", "error_message", "pr_mode", "pr_base_branch", "pr_branch_prefix", "git_project_folder"):
         if field in config_data and field not in _READONLY_PROPS:
             setattr(config, field, config_data[field])
     if "credentials" in config_data:
         config.encrypted_credentials = config_data["credentials"]
     config.save()
+    logger.warning("GitRepoConfig updated: %s", config.git_repo_config_id)
     return config
 
 
@@ -234,6 +311,7 @@ def _serialize_config(config: GitRepoConfig) -> dict[str, Any]:
         "pr_workflow_enabled": config.pr_workflow_enabled,
         "pr_base_branch": config.pr_base_branch,
         "pr_branch_prefix": config.pr_branch_prefix,
+        "git_project_folder": config.git_project_folder,
         "last_synced_at": config.last_synced_at.isoformat() if config.last_synced_at else None,
         "created_by": config.created_by,
         "last_modified_by": config.last_modified_by,

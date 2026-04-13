@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import {
-  Alert,
   Timeline,
   Button,
   Tag,
@@ -83,21 +82,12 @@ function GitSyncBadge({ status }) {
 
 GitSyncBadge.propTypes = { status: PropTypes.string };
 
-function formatDraftModels(models) {
-  if (!models || models.length === 0) return "";
-  if (models.length <= 3) return models.join(", ");
-  return `${models.slice(0, 3).join(", ")} +${models.length - 3} more`;
-}
-
 function VersionTimeline({
   onViewVersion,
   onCompareVersion,
   onRollbackVersion,
   onExecuteVersion,
   onSyncStatusChange,
-  hasDraft,
-  modelsWithDrafts,
-  onViewDraftChanges,
   onCreatePR,
   creatingPR,
 }) {
@@ -152,13 +142,13 @@ function VersionTimeline({
       }
     },
     [axiosRef, orgId, projectId, notify]
-  ); // eslint-disable-line react-hooks/exhaustive-deps
+  ); // eslint-disable-line
 
   useEffect(() => {
     setVersions([]);
     setPage(1);
     loadVersions(1);
-  }, [projectId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [projectId]); // eslint-disable-line
 
   const handleRetrySync = useCallback(
     async (versionId) => {
@@ -346,21 +336,6 @@ function VersionTimeline({
 
   return (
     <div className="version-timeline-container">
-      {hasDraft && modelsWithDrafts?.length > 0 && (
-        <Alert
-          type="warning"
-          showIcon
-          message={`Uncommitted changes in ${formatDraftModels(
-            modelsWithDrafts
-          )}`}
-          action={
-            <Button size="small" type="link" onClick={onViewDraftChanges}>
-              View Changes
-            </Button>
-          }
-          style={{ marginBottom: 8 }}
-        />
-      )}
       <Timeline items={timelineItems} />
       {hasMore && (
         <div className="version-load-more">
@@ -383,9 +358,6 @@ VersionTimeline.propTypes = {
   onRollbackVersion: PropTypes.func,
   onExecuteVersion: PropTypes.func,
   onSyncStatusChange: PropTypes.func,
-  hasDraft: PropTypes.bool,
-  modelsWithDrafts: PropTypes.arrayOf(PropTypes.string),
-  onViewDraftChanges: PropTypes.func,
   onCreatePR: PropTypes.func,
   creatingPR: PropTypes.bool,
 };

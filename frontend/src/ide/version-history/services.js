@@ -21,14 +21,6 @@ export async function fetchVersionHistory(
   return res.data.data;
 }
 
-export async function fetchPendingChanges(axiosRef, orgId, projectId) {
-  const res = await axiosRef({
-    method: "GET",
-    url: `${getVersionUrl(orgId, projectId)}/pending-changes`,
-  });
-  return res.data.data;
-}
-
 export async function fetchVersionDetail(
   axiosRef,
   orgId,
@@ -47,12 +39,13 @@ export async function commitProjectVersion(
   orgId,
   projectId,
   csrfToken,
-  commitMessage
+  title,
+  description
 ) {
   const res = await axiosRef({
     method: "POST",
     url: `${getVersionUrl(orgId, projectId)}/commit`,
-    data: { commit_message: commitMessage },
+    data: { title, description: description || "" },
     headers: { "X-CSRFToken": csrfToken },
   });
   return res.data.data;
@@ -90,126 +83,24 @@ export async function executeRollback(
   return res.data.data;
 }
 
-export async function fetchAuditEvents(
-  axiosRef,
-  orgId,
-  projectId,
-  page,
-  limit,
-  filters
-) {
-  const res = await axiosRef({
-    method: "GET",
-    url: `${getVersionUrl(orgId, projectId)}/audit`,
-    params: { page, limit, ...filters },
-  });
-  return res.data.data;
-}
-
-export async function exportAuditCsv(axiosRef, orgId, projectId, filters) {
-  const res = await axiosRef({
-    method: "GET",
-    url: `${getVersionUrl(orgId, projectId)}/audit`,
-    params: { ...filters, format: "csv" },
-    responseType: "blob",
-  });
-  return res.data;
-}
-
-export async function checkConflicts(
-  axiosRef,
-  orgId,
-  projectId,
-  modelName,
-  csrfToken
-) {
-  const res = await axiosRef({
-    method: "POST",
-    url: `${getVersionUrl(orgId, projectId)}/${modelName}/conflicts/check`,
-    headers: { "X-CSRFToken": csrfToken },
-  });
-  return res.data.data;
-}
-
-export async function getConflicts(axiosRef, orgId, projectId, modelName) {
-  const res = await axiosRef({
-    method: "GET",
-    url: `${getVersionUrl(orgId, projectId)}/${modelName}/conflicts`,
-  });
-  return res.data.data;
-}
-
-export async function resolveSingleConflict(
-  axiosRef,
-  orgId,
-  projectId,
-  modelName,
-  csrfToken,
-  conflictId,
-  strategy,
-  resolvedData
-) {
-  const res = await axiosRef({
-    method: "POST",
-    url: `${getVersionUrl(orgId, projectId)}/${modelName}/conflicts/resolve`,
-    data: {
-      conflict_id: conflictId,
-      strategy,
-      ...(resolvedData && { resolved_data: resolvedData }),
-    },
-    headers: { "X-CSRFToken": csrfToken },
-  });
-  return res.data.data;
-}
-
-export async function finalizeConflictResolutions(
-  axiosRef,
-  orgId,
-  projectId,
-  modelName,
-  csrfToken,
-  commitMessage
-) {
-  const res = await axiosRef({
-    method: "POST",
-    url: `${getVersionUrl(orgId, projectId)}/${modelName}/conflicts/finalize`,
-    data: { commit_message: commitMessage },
-    headers: { "X-CSRFToken": csrfToken },
-  });
-  return res.data.data;
-}
-
-export async function previewResolution(axiosRef, orgId, projectId, modelName) {
-  const res = await axiosRef({
-    method: "GET",
-    url: `${getVersionUrl(orgId, projectId)}/${modelName}/conflicts/preview`,
-  });
-  return res.data.data;
-}
-
 export async function executeVersion(
   axiosRef,
   orgId,
   projectId,
   csrfToken,
   versionNumber,
-  environment
+  environment,
+  commitSha
 ) {
+  const data = { version_number: versionNumber, environment: environment || {} };
+  if (commitSha) data.commit_sha = commitSha;
   const res = await axiosRef({
     method: "POST",
     url: `${getVersionUrl(orgId, projectId)}/execute-version`,
-    data: { version_number: versionNumber, environment: environment || {} },
+    data,
     headers: { "X-CSRFToken": csrfToken },
   });
   return res.data;
-}
-
-export async function fetchDraftStatus(axiosRef, orgId, projectId) {
-  const res = await axiosRef({
-    method: "GET",
-    url: `${getVersionUrl(orgId, projectId)}/draft-status`,
-  });
-  return res.data.data;
 }
 
 export async function retryGitSync(
@@ -301,8 +192,7 @@ export async function updatePRMode(
   projectId,
   csrfToken,
   prMode,
-  prBaseBranch,
-  prBranchPrefix
+  prBaseBranch
 ) {
   const res = await axiosRef({
     method: "POST",
@@ -310,8 +200,23 @@ export async function updatePRMode(
     data: {
       pr_mode: prMode,
       pr_base_branch: prBaseBranch,
-      pr_branch_prefix: prBranchPrefix,
     },
+    headers: { "X-CSRFToken": csrfToken },
+  });
+  return res.data.data;
+}
+
+export async function createBranch(
+  axiosRef,
+  orgId,
+  projectId,
+  csrfToken,
+  payload
+) {
+  const res = await axiosRef({
+    method: "POST",
+    url: `${getGitConfigUrl(orgId, projectId)}/create-branch`,
+    data: payload,
     headers: { "X-CSRFToken": csrfToken },
   });
   return res.data.data;
@@ -344,6 +249,40 @@ export async function fetchVersionPR(
   const res = await axiosRef({
     method: "GET",
     url: `${getVersionUrl(orgId, projectId)}/version/${versionNumber}/pr`,
+  });
+  return res.data.data;
+}
+
+// ── Import from Branch ──
+
+export async function listProjectFolders(
+  axiosRef,
+  orgId,
+  projectId,
+  csrfToken,
+  payload
+) {
+  const res = await axiosRef({
+    method: "POST",
+    url: `${getGitConfigUrl(orgId, projectId)}/project-folders`,
+    data: payload,
+    headers: { "X-CSRFToken": csrfToken },
+  });
+  return res.data.data;
+}
+
+export async function importFromBranch(
+  axiosRef,
+  orgId,
+  projectId,
+  csrfToken,
+  payload
+) {
+  const res = await axiosRef({
+    method: "POST",
+    url: `${getVersionUrl(orgId, projectId)}/import`,
+    data: payload,
+    headers: { "X-CSRFToken": csrfToken },
   });
   return res.data.data;
 }

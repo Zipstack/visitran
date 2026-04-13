@@ -7,7 +7,6 @@ import {
   Divider,
   Input,
   Modal,
-  Segmented,
   Select,
   Space,
   Tag,
@@ -21,6 +20,7 @@ import {
   ExclamationCircleOutlined,
   GithubOutlined,
   LinkOutlined,
+  PlusOutlined,
   SafetyCertificateOutlined,
 } from "@ant-design/icons";
 import Cookies from "js-cookie";
@@ -28,11 +28,15 @@ import Cookies from "js-cookie";
 import { useAxiosPrivate } from "../../service/axios-service";
 import { useNotificationService } from "../../service/notification-service";
 import { orgStore } from "../../store/org-store";
+import { useProjectStore } from "../../store/project-store";
 import { useVersionHistoryStore } from "../../store/version-history-store";
 import {
+  createBranch,
   deleteGitConfig,
   fetchAvailableRepos,
   fetchBranches,
+  importFromBranch,
+  listProjectFolders,
   saveGitConfig,
   testGitConnection,
   updatePRMode,
@@ -44,6 +48,8 @@ const AUTH_TYPE_OPTIONS = [
   { value: "ssh", label: "SSH Key" },
 ];
 
+const CREATE_BRANCH_VALUE = "__create_new__";
+
 const GitConfigTab = memo(function GitConfigTab({
   projectId,
   gitConfig,
@@ -52,6 +58,7 @@ const GitConfigTab = memo(function GitConfigTab({
   const axiosRef = useAxiosPrivate();
   const { notify } = useNotificationService();
   const orgId = orgStore.getState().selectedOrgId;
+  const projectName = useProjectStore((s) => s.projectName);
   const csrfToken = Cookies.get("csrftoken");
   const setGitConfig = useVersionHistoryStore((s) => s.setGitConfig);
 
@@ -63,10 +70,8 @@ const GitConfigTab = memo(function GitConfigTab({
     (repoUrl && !repoUrl.includes("github.com") && repoUrl.includes("gitlab"))
       ? "gitlab"
       : "github";
-  const prLabel = provider === "gitlab" ? "MR" : "PR";
   const [token, setToken] = useState("");
   const [branchName, setBranchName] = useState("main");
-  const [basePath, setBasePath] = useState("");
   const [availableRepos, setAvailableRepos] = useState([]);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
@@ -74,13 +79,24 @@ const GitConfigTab = memo(function GitConfigTab({
   const [saving, setSaving] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
 
-  // PR workflow state
-  const [prMode, setPrMode] = useState(gitConfig?.pr_mode || "disabled");
+  // Branch creation state
+  const [showCreateBranch, setShowCreateBranch] = useState(false);
+  const [newBranchName, setNewBranchName] = useState("");
+  const [fromBranch, setFromBranch] = useState("main");
+  const [creatingBranch, setCreatingBranch] = useState(false);
+
+  // Import from branch state
+  const [importEnabled, setImportEnabled] = useState(false);
+  const [sourceBranch, setSourceBranch] = useState("");
+  const [projectFolders, setProjectFolders] = useState([]);
+  const [foldersLoading, setFoldersLoading] = useState(false);
+  const [selectedFolder, setSelectedFolder] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState(null);
+
+  // PR base branch state
   const [prBaseBranch, setPrBaseBranch] = useState(
     gitConfig?.pr_base_branch || "main"
-  );
-  const [prBranchPrefix, setPrBranchPrefix] = useState(
-    gitConfig?.pr_branch_prefix || "visitran/"
   );
   const [branches, setBranches] = useState([]);
   const [branchesLoading, setBranchesLoading] = useState(false);
@@ -88,26 +104,29 @@ const GitConfigTab = memo(function GitConfigTab({
   const [prSaveResult, setPrSaveResult] = useState(null);
 
   const isConfigured = !!gitConfig;
+  const isGitLab = (gitConfig?.repo_url || repoUrl || "").includes("gitlab");
+  const prLabel = isGitLab ? "MR" : "PR";
 
   useEffect(() => {
-    if (gitConfig?.pr_mode) {
-      setPrMode(gitConfig.pr_mode);
-    }
     if (gitConfig?.pr_base_branch) {
       setPrBaseBranch(gitConfig.pr_base_branch);
     }
-    if (gitConfig?.pr_branch_prefix) {
-      setPrBranchPrefix(gitConfig.pr_branch_prefix);
+  }, [gitConfig?.pr_base_branch]);
+
+  // Load branches for the PR base branch dropdown when configured
+  useEffect(() => {
+    if (isConfigured && branches.length === 0) {
+      setBranchesLoading(true);
+      fetchBranches(axiosRef, orgId, projectId)
+        .then((list) => setBranches(list || []))
+        .catch(() => {})
+        .finally(() => setBranchesLoading(false));
     }
-  }, [
-    gitConfig?.pr_mode,
-    gitConfig?.pr_base_branch,
-    gitConfig?.pr_branch_prefix,
-  ]);
+  }, [isConfigured]); // eslint-disable-line
 
   useEffect(() => {
     loadAvailableRepos();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line
 
   const loadAvailableRepos = useCallback(async () => {
     try {
@@ -134,17 +153,15 @@ const GitConfigTab = memo(function GitConfigTab({
   const buildPayload = useCallback(
     (mode) => {
       if (mode === "default") return { repo_type: "default" };
-      const payload = {
+      return {
         repo_type: "custom",
         repo_url: repoUrl,
         auth_type: authType,
         credentials: { token },
         branch_name: branchName,
       };
-      if (basePath) payload.base_path = basePath;
-      return payload;
     },
-    [repoUrl, authType, token, branchName, basePath]
+    [repoUrl, authType, token, branchName]
   );
 
   const handleTestConnection = useCallback(async () => {
@@ -160,6 +177,15 @@ const GitConfigTab = memo(function GitConfigTab({
         buildPayload(selectedMode)
       );
       setTestResult(result);
+      // Set branch dropdown from test result
+      if (result.branches?.length > 0) {
+        const branchNames = result.branches.map((b) => b.name);
+        if (!branchNames.includes(branchName)) {
+          setBranchName(
+            result.repo_info?.default_branch || branchNames[0] || "main"
+          );
+        }
+      }
     } catch (error) {
       setTestError(
         error?.response?.data?.error_message ||
@@ -169,20 +195,202 @@ const GitConfigTab = memo(function GitConfigTab({
     } finally {
       setTesting(false);
     }
-  }, [axiosRef, orgId, projectId, csrfToken, selectedMode, buildPayload]);
+  }, [
+    axiosRef,
+    orgId,
+    projectId,
+    csrfToken,
+    selectedMode,
+    buildPayload,
+    branchName,
+  ]);
+
+  const handleCreateBranch = useCallback(async () => {
+    if (!newBranchName.trim()) return;
+    setCreatingBranch(true);
+    try {
+      await createBranch(axiosRef, orgId, projectId, csrfToken, {
+        repo_url: repoUrl,
+        credentials: { token },
+        branch_name: newBranchName.trim(),
+        from_branch: fromBranch,
+      });
+      // Add the new branch to the list and select it
+      const updatedBranches = [
+        ...(testResult?.branches || []),
+        { name: newBranchName.trim(), protected: false },
+      ];
+      setTestResult((prev) => ({ ...prev, branches: updatedBranches }));
+      setBranchName(newBranchName.trim());
+      setShowCreateBranch(false);
+      setNewBranchName("");
+      notify({
+        type: "success",
+        message: `Branch "${newBranchName.trim()}" created`,
+      });
+    } catch (error) {
+      notify({
+        error:
+          error?.response?.data?.error_message ||
+          error?.message ||
+          "Failed to create branch",
+      });
+    } finally {
+      setCreatingBranch(false);
+    }
+  }, [
+    axiosRef,
+    orgId,
+    projectId,
+    csrfToken,
+    repoUrl,
+    token,
+    newBranchName,
+    fromBranch,
+    testResult,
+    notify,
+  ]);
+
+  const handleSourceBranchChange = useCallback(
+    async (branch) => {
+      setSourceBranch(branch);
+      setSelectedFolder("");
+      setProjectFolders([]);
+      if (!branch) return;
+      setFoldersLoading(true);
+      try {
+        const folders = await listProjectFolders(
+          axiosRef,
+          orgId,
+          projectId,
+          csrfToken,
+          {
+            repo_url: repoUrl,
+            credentials: { token },
+            source_branch: branch,
+          }
+        );
+        setProjectFolders(folders || []);
+      } catch {
+        setProjectFolders([]);
+      } finally {
+        setFoldersLoading(false);
+      }
+    },
+    [axiosRef, orgId, projectId, csrfToken, repoUrl, token]
+  );
+
+  // Compute the migration branch name (used for preview + save)
+  const migrationBranchName = (() => {
+    const slug = (projectName || "project")
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+    return `${slug}/migrated`;
+  })();
+
+  const handleFolderSelect = useCallback(
+    (folder) => {
+      setSelectedFolder(folder);
+      if (folder) {
+        // Preview the auto-generated branch name
+        setBranchName(migrationBranchName);
+      }
+    },
+    [migrationBranchName]
+  );
 
   const handleSave = useCallback(async () => {
     setSaving(true);
+    setImportResult(null);
     try {
+      // Step 1: If importing, create the migration branch first
+      if (importEnabled && selectedFolder && sourceBranch) {
+        try {
+          await createBranch(axiosRef, orgId, projectId, csrfToken, {
+            repo_url: repoUrl,
+            credentials: { token },
+            branch_name: migrationBranchName,
+            from_branch: sourceBranch,
+          });
+        } catch (branchErr) {
+          const msg =
+            branchErr?.response?.data?.error_message ||
+            branchErr?.message ||
+            "";
+          if (!msg.toLowerCase().includes("already exists")) {
+            notify({ error: msg || "Failed to create migration branch" });
+            setSaving(false);
+            return;
+          }
+        }
+      }
+
+      // Step 2: Save git config (branch_name is already set to migration branch)
+      const payload = buildPayload(selectedMode);
       const saved = await saveGitConfig(
         axiosRef,
         orgId,
         projectId,
         csrfToken,
-        buildPayload(selectedMode)
+        payload
       );
       setGitConfig(saved);
-      notify({ type: "success", message: "Git versioning enabled" });
+
+      // Step 3: Import models if enabled
+      if (importEnabled && selectedFolder) {
+        setImporting(true);
+        try {
+          const result = await importFromBranch(
+            axiosRef,
+            orgId,
+            projectId,
+            csrfToken,
+            { source_folder: selectedFolder, source_branch: sourceBranch }
+          );
+          setImportResult(result);
+          notify({
+            type: "success",
+            message: `Imported ${result.models_imported} models. Executing latest version...`,
+          });
+          // Step 4: Auto-execute the imported version
+          try {
+            const { executeVersion } = await import("./services");
+            await executeVersion(
+              axiosRef,
+              orgId,
+              projectId,
+              csrfToken,
+              result.version_number
+            );
+            notify({
+              type: "success",
+              message: "Models imported and executed successfully",
+            });
+          } catch (execErr) {
+            const execMsg =
+              execErr?.response?.data?.error_message ||
+              execErr?.message ||
+              "Execution failed";
+            notify({
+              type: "warning",
+              message: `Models imported but execution failed: ${execMsg}. Check your connection settings.`,
+            });
+          }
+        } catch (err) {
+          notify({
+            error:
+              err?.response?.data?.error_message ||
+              err?.message ||
+              "Import failed",
+          });
+        } finally {
+          setImporting(false);
+        }
+      } else {
+        notify({ type: "success", message: "Git versioning enabled" });
+      }
       onConfigSaved?.(saved);
     } catch (error) {
       notify({ error });
@@ -194,8 +402,14 @@ const GitConfigTab = memo(function GitConfigTab({
     orgId,
     projectId,
     csrfToken,
+    repoUrl,
+    token,
     selectedMode,
     buildPayload,
+    importEnabled,
+    selectedFolder,
+    sourceBranch,
+    migrationBranchName,
     setGitConfig,
     notify,
     onConfigSaved,
@@ -221,7 +435,6 @@ const GitConfigTab = memo(function GitConfigTab({
           setRepoUrl("");
           setToken("");
           setBranchName("main");
-          setBasePath("");
         } catch (error) {
           notify({ error });
         } finally {
@@ -277,70 +490,7 @@ const GitConfigTab = memo(function GitConfigTab({
     onConfigSaved,
   ]);
 
-  const handlePRModeChange = useCallback(
-    async (newMode) => {
-      const prevMode = prMode;
-      setPrMode(newMode);
-      setPrSaveResult(null);
-      if (newMode !== "disabled" && branches.length === 0) {
-        setBranchesLoading(true);
-        try {
-          const branchList = await fetchBranches(axiosRef, orgId, projectId);
-          setBranches(branchList);
-        } catch {
-          /* silent */
-        } finally {
-          setBranchesLoading(false);
-        }
-      }
-      setPrSaving(true);
-      try {
-        const updated = await updatePRMode(
-          axiosRef,
-          orgId,
-          projectId,
-          csrfToken,
-          newMode,
-          prBaseBranch,
-          prBranchPrefix
-        );
-        setGitConfig(updated);
-        const modeLabel =
-          newMode === "auto" ? "Auto" : newMode === "manual" ? "Manual" : "Off";
-        setPrSaveResult({
-          type: "success",
-          message:
-            newMode === "disabled"
-              ? "PR workflow disabled"
-              : `${modeLabel} PR workflow enabled`,
-        });
-      } catch (error) {
-        setPrMode(prevMode);
-        setPrSaveResult({
-          type: "error",
-          message:
-            error?.response?.data?.error_message ||
-            error?.message ||
-            "Failed to update PR mode",
-        });
-      } finally {
-        setPrSaving(false);
-      }
-    },
-    [
-      axiosRef,
-      orgId,
-      projectId,
-      csrfToken,
-      prBaseBranch,
-      prBranchPrefix,
-      prMode,
-      branches.length,
-      setGitConfig,
-    ]
-  );
-
-  const handlePrSettingsSave = useCallback(async () => {
+  const handlePrBaseBranchSave = useCallback(async () => {
     setPrSaving(true);
     setPrSaveResult(null);
     try {
@@ -349,19 +499,21 @@ const GitConfigTab = memo(function GitConfigTab({
         orgId,
         projectId,
         csrfToken,
-        prMode,
-        prBaseBranch,
-        prBranchPrefix
+        "manual",
+        prBaseBranch
       );
       setGitConfig(updated);
-      setPrSaveResult({ type: "success", message: "PR settings saved" });
+      setPrSaveResult({
+        type: "success",
+        message: `${prLabel} target branch saved`,
+      });
     } catch (error) {
       setPrSaveResult({
         type: "error",
         message:
           error?.response?.data?.error_message ||
           error?.message ||
-          "Failed to save PR settings",
+          `Failed to save ${prLabel} settings`,
       });
     } finally {
       setPrSaving(false);
@@ -371,9 +523,8 @@ const GitConfigTab = memo(function GitConfigTab({
     orgId,
     projectId,
     csrfToken,
-    prMode,
     prBaseBranch,
-    prBranchPrefix,
+    prLabel,
     setGitConfig,
   ]);
 
@@ -382,7 +533,38 @@ const GitConfigTab = memo(function GitConfigTab({
     (selectedMode === "custom" && repoUrl && token);
   const canSave = testResult?.success === true;
 
+  // Build branch options for the setup dropdown
+  const branchOptions = (testResult?.branches || []).map((b) => ({
+    value: b.name,
+    label: `${b.name}${b.protected ? " (protected)" : ""}`,
+  }));
+  branchOptions.push({
+    value: CREATE_BRANCH_VALUE,
+    label: (
+      <span>
+        <PlusOutlined style={{ marginRight: 4 }} />
+        Create new branch...
+      </span>
+    ),
+  });
+
+  const handleBranchSelect = useCallback(
+    (value) => {
+      if (value === CREATE_BRANCH_VALUE) {
+        setShowCreateBranch(true);
+        setFromBranch(testResult?.repo_info?.default_branch || "main");
+      } else {
+        setBranchName(value);
+        setShowCreateBranch(false);
+      }
+    },
+    [testResult]
+  );
+
   if (isConfigured) {
+    const workingBranch = gitConfig.branch_name || "main";
+    const sameBranch = workingBranch === prBaseBranch;
+
     return (
       <div className="git-config-tab">
         <Alert
@@ -406,8 +588,8 @@ const GitConfigTab = memo(function GitConfigTab({
             </Tag>
           </div>
           <div className="git-config-info-row">
-            <Text type="secondary">Branch</Text>
-            <Text>{gitConfig.branch_name}</Text>
+            <Text type="secondary">Working Branch</Text>
+            <Tag color="cyan">{workingBranch}</Tag>
           </div>
           <div className="git-config-info-row">
             <Text type="secondary">Status</Text>
@@ -423,12 +605,6 @@ const GitConfigTab = memo(function GitConfigTab({
               {gitConfig.connection_status}
             </Tag>
           </div>
-          {gitConfig.base_path && (
-            <div className="git-config-info-row">
-              <Text type="secondary">Base Path</Text>
-              <Text>{gitConfig.base_path}</Text>
-            </div>
-          )}
           {gitConfig.last_synced_at && (
             <div className="git-config-info-row">
               <Text type="secondary">Last Synced</Text>
@@ -436,83 +612,59 @@ const GitConfigTab = memo(function GitConfigTab({
             </div>
           )}
         </div>
-        <Divider plain>
-          {(gitConfig.repo_url || "").includes("gitlab") ? "MR" : "PR"} Workflow
-        </Divider>
-        <div style={{ marginBottom: 12 }}>
-          <Segmented
+        <Divider plain>{prLabel} Workflow</Divider>
+        <Alert
+          type="info"
+          message={`${prLabel}s will be raised from "${workingBranch}" to the target branch below. Use "Create ${prLabel}" in the version timeline.`}
+          showIcon
+          style={{ marginBottom: 12 }}
+        />
+        <div className="git-config-form">
+          <div className="git-config-field">
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {prLabel} Target Branch
+            </Text>
+            <Select
+              value={prBaseBranch}
+              onChange={setPrBaseBranch}
+              loading={branchesLoading}
+              style={{ width: "100%" }}
+              placeholder="Select target branch"
+              options={branches.map((b) => ({
+                value: b.name,
+                label: `${b.name}${b.protected ? " (protected)" : ""}`,
+              }))}
+            />
+          </div>
+          {sameBranch && (
+            <Alert
+              type="warning"
+              message={`Working branch and target branch are both "${workingBranch}". Select a different target branch.`}
+              showIcon
+              style={{ marginBottom: 8 }}
+            />
+          )}
+          <Button
+            type="primary"
+            onClick={handlePrBaseBranchSave}
+            loading={prSaving}
+            disabled={sameBranch}
             block
             size="small"
-            value={prMode}
-            onChange={handlePRModeChange}
-            disabled={prSaving}
-            options={(() => {
-              const isGL = (gitConfig.repo_url || "").includes("gitlab");
-              return [
-                { label: "Off", value: "disabled" },
-                { label: isGL ? "Auto MR" : "Auto PR", value: "auto" },
-                { label: isGL ? "Manual MR" : "Manual PR", value: "manual" },
-              ];
-            })()}
-          />
+          >
+            Save
+          </Button>
+          {prSaveResult && (
+            <Alert
+              type={prSaveResult.type}
+              message={prSaveResult.message}
+              showIcon
+              closable
+              onClose={() => setPrSaveResult(null)}
+              style={{ marginTop: 8 }}
+            />
+          )}
         </div>
-        {prMode === "manual" && (
-          <Alert
-            type="info"
-            message="Commits push to a feature branch. Create PRs manually from the version timeline."
-            showIcon
-            style={{ marginBottom: 8 }}
-          />
-        )}
-        {prMode !== "disabled" && (
-          <div className="git-config-form" style={{ marginTop: 8 }}>
-            <div className="git-config-field">
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                Base Branch
-              </Text>
-              <Select
-                value={prBaseBranch}
-                onChange={setPrBaseBranch}
-                loading={branchesLoading}
-                style={{ width: "100%" }}
-                placeholder="Select base branch"
-                options={branches.map((b) => ({
-                  value: b.name,
-                  label: `${b.name}${b.protected ? " (protected)" : ""}`,
-                }))}
-              />
-            </div>
-            <div className="git-config-field">
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                Branch Prefix
-              </Text>
-              <Input
-                value={prBranchPrefix}
-                onChange={(e) => setPrBranchPrefix(e.target.value)}
-                placeholder="visitran/"
-              />
-            </div>
-            <Button
-              type="primary"
-              onClick={handlePrSettingsSave}
-              loading={prSaving}
-              block
-              size="small"
-            >
-              Save Settings
-            </Button>
-            {prSaveResult && (
-              <Alert
-                type={prSaveResult.type}
-                message={prSaveResult.message}
-                showIcon
-                closable
-                onClose={() => setPrSaveResult(null)}
-                style={{ marginTop: 8 }}
-              />
-            )}
-          </div>
-        )}
         <Divider />
         <Button
           danger
@@ -668,24 +820,167 @@ const GitConfigTab = memo(function GitConfigTab({
           </div>
           <div className="git-config-field">
             <Text type="secondary" style={{ fontSize: 12 }}>
-              Branch Name
+              Working Branch *
             </Text>
-            <Input
-              placeholder="main"
-              value={branchName}
-              onChange={(e) => setBranchName(e.target.value)}
-            />
+            {importEnabled && selectedFolder ? (
+              <Input value={branchName} disabled />
+            ) : testResult?.branches?.length > 0 ? (
+              <Select
+                value={branchName}
+                onChange={handleBranchSelect}
+                style={{ width: "100%" }}
+                placeholder="Select a branch"
+                options={branchOptions}
+              />
+            ) : (
+              <Input
+                placeholder="Run Test Connection to load branches"
+                value={branchName}
+                onChange={(e) => setBranchName(e.target.value)}
+                disabled={!testResult}
+              />
+            )}
           </div>
-          <div className="git-config-field">
-            <Text type="secondary" style={{ fontSize: 12 }}>
-              Base Path (optional)
-            </Text>
-            <Input
-              placeholder="e.g. packages/models"
-              value={basePath}
-              onChange={(e) => setBasePath(e.target.value)}
-            />
-          </div>
+          {showCreateBranch && (
+            <div
+              className="git-config-field"
+              style={{
+                background: "#fafafa",
+                padding: 12,
+                borderRadius: 6,
+                border: "1px solid #f0f0f0",
+              }}
+            >
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                New Branch Name *
+              </Text>
+              <Input
+                placeholder="e.g. feature/my-branch"
+                value={newBranchName}
+                onChange={(e) => setNewBranchName(e.target.value)}
+                style={{ marginBottom: 8 }}
+              />
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                Create from
+              </Text>
+              <Select
+                value={fromBranch}
+                onChange={setFromBranch}
+                style={{ width: "100%", marginBottom: 8 }}
+                options={(testResult?.branches || []).map((b) => ({
+                  value: b.name,
+                  label: b.name,
+                }))}
+              />
+              <Space>
+                <Button
+                  type="primary"
+                  size="small"
+                  onClick={handleCreateBranch}
+                  loading={creatingBranch}
+                  disabled={!newBranchName.trim()}
+                >
+                  Create
+                </Button>
+                <Button size="small" onClick={() => setShowCreateBranch(false)}>
+                  Cancel
+                </Button>
+              </Space>
+            </div>
+          )}
+          {testResult?.branches?.length > 0 && (
+            <>
+              <Divider plain style={{ margin: "12px 0", fontSize: 12 }}>
+                Import from existing project
+              </Divider>
+              <div className="git-config-field">
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    cursor: "pointer",
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={importEnabled}
+                    onChange={(e) => {
+                      setImportEnabled(e.target.checked);
+                      if (!e.target.checked) {
+                        setSourceBranch("");
+                        setProjectFolders([]);
+                        setSelectedFolder("");
+                      }
+                    }}
+                  />
+                  <Text style={{ fontSize: 12 }}>
+                    Import models from an existing project in this repo
+                  </Text>
+                </label>
+              </div>
+              {importEnabled && (
+                <>
+                  <div className="git-config-field">
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      Source Branch
+                    </Text>
+                    <Select
+                      value={sourceBranch || undefined}
+                      onChange={handleSourceBranchChange}
+                      style={{ width: "100%" }}
+                      placeholder="Select branch to import from"
+                      options={(testResult?.branches || []).map((b) => ({
+                        value: b.name,
+                        label: b.name,
+                      }))}
+                    />
+                  </div>
+                  {foldersLoading && (
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      Scanning for projects...
+                    </Text>
+                  )}
+                  {projectFolders.length > 0 && (
+                    <div className="git-config-field">
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        Source Project
+                      </Text>
+                      <Select
+                        value={selectedFolder || undefined}
+                        onChange={handleFolderSelect}
+                        style={{ width: "100%" }}
+                        placeholder="Select project to import"
+                        options={projectFolders.map((f) => ({
+                          value: f.name,
+                          label: `${f.name} (${f.model_count} models)`,
+                        }))}
+                      />
+                    </div>
+                  )}
+                  {selectedFolder && (
+                    <Alert
+                      type="info"
+                      message={`Will import "${selectedFolder}" from "${sourceBranch}" → working branch "${branchName}"`}
+                      description={`Models will be migrated to project "${projectName}". Commit history from the source branch will be preserved.`}
+                      showIcon
+                      style={{ marginBottom: 8 }}
+                    />
+                  )}
+                  {sourceBranch &&
+                    !foldersLoading &&
+                    projectFolders.length === 0 && (
+                      <Alert
+                        type="warning"
+                        message="No project folders found on this branch."
+                        showIcon
+                        style={{ marginBottom: 8 }}
+                      />
+                    )}
+                </>
+              )}
+            </>
+          )}
           <Space direction="vertical" style={{ width: "100%", marginTop: 12 }}>
             <Button
               icon={<LinkOutlined />}
@@ -699,13 +994,32 @@ const GitConfigTab = memo(function GitConfigTab({
             <Button
               type="primary"
               onClick={handleSave}
-              loading={saving}
-              disabled={!canSave}
+              loading={saving || importing}
+              disabled={!canSave || (importEnabled && !selectedFolder)}
               block
             >
-              Save Configuration
+              {importing
+                ? "Importing..."
+                : importEnabled && selectedFolder
+                ? "Save & Import"
+                : "Save Configuration"}
             </Button>
           </Space>
+          {importResult && (
+            <Alert
+              type="success"
+              message={`Imported ${importResult.models_imported} models`}
+              description={
+                importResult.schemas_required?.length > 0
+                  ? `Required schemas: ${importResult.schemas_required.join(
+                      ", "
+                    )}. Ensure your connection has access before executing.`
+                  : undefined
+              }
+              showIcon
+              style={{ marginTop: 8 }}
+            />
+          )}
         </div>
       )}
       {testResult && (

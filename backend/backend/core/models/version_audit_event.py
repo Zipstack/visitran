@@ -28,10 +28,6 @@ class VersionAuditEvent(DefaultOrganizationMixin, BaseModel):
     class EventType(models.TextChoices):
         VERSION_COMMITTED = "version_committed", "Version Committed"
         VERSION_ROLLED_BACK = "version_rolled_back", "Version Rolled Back"
-        DRAFT_SAVED = "draft_saved", "Draft Saved"
-        DRAFT_DISCARDED = "draft_discarded", "Draft Discarded"
-        CONFLICT_RESOLVED = "conflict_resolved", "Conflict Resolved"
-        CONFLICT_FINALIZED = "conflict_finalized", "Conflict Finalized"
         VERSION_VIEWED = "version_viewed", "Version Viewed"
 
     event_id = models.UUIDField(

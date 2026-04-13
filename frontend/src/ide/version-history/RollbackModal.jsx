@@ -1,19 +1,17 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { Modal, Typography, Tag, Checkbox, Input, Alert, Steps } from "antd";
+import { Modal, Checkbox, Input, Alert } from "antd";
 import Cookies from "js-cookie";
 
 import { useAxiosPrivate } from "../../service/axios-service";
 import { useNotificationService } from "../../service/notification-service";
 import { useProjectStore } from "../../store/project-store";
 import { orgStore } from "../../store/org-store";
-import { SpinnerLoader } from "../../widgets/spinner_loader";
 import { executeRollback } from "./services";
 
 const MODAL_WIDTH = 800;
 
 function RollbackModal({ open, onClose, targetVersion, onRollbackSuccess }) {
-  const [loading, setLoading] = useState(false);
   const [executing, setExecuting] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
   const [reason, setReason] = useState("");
@@ -51,7 +49,7 @@ function RollbackModal({ open, onClose, targetVersion, onRollbackSuccess }) {
     }
   };
 
-  const canConfirm = confirmed && !loading && !executing;
+  const canConfirm = confirmed && !executing;
 
   return (
     <Modal

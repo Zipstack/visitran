@@ -122,56 +122,6 @@ def log_version_rolled_back(
     )
 
 
-def log_draft_saved(
-    project_instance: ProjectDetails,
-    config_model: ConfigModels,
-    user_info: dict | None = None,
-) -> None:
-    log_event(
-        event_type=VersionAuditEvent.EventType.DRAFT_SAVED,
-        config_model=config_model, project_instance=project_instance, user_info=user_info,
-    )
-
-
-def log_draft_discarded(
-    project_instance: ProjectDetails,
-    config_model: ConfigModels,
-    user_info: dict | None = None,
-) -> None:
-    log_event(
-        event_type=VersionAuditEvent.EventType.DRAFT_DISCARDED,
-        config_model=config_model, project_instance=project_instance, user_info=user_info,
-    )
-
-
-def log_conflict_resolved(
-    project_instance: ProjectDetails,
-    config_model: ConfigModels,
-    user_info: dict | None = None,
-    metadata: dict[str, Any] | None = None,
-) -> None:
-    log_event(
-        event_type=VersionAuditEvent.EventType.CONFLICT_RESOLVED,
-        config_model=config_model, project_instance=project_instance,
-        user_info=user_info, metadata=metadata,
-    )
-
-
-def log_conflict_finalized(
-    project_instance: ProjectDetails,
-    config_model: ConfigModels,
-    version: ModelVersion,
-    user_info: dict | None = None,
-    commit_message: str = "",
-) -> None:
-    log_event(
-        event_type=VersionAuditEvent.EventType.CONFLICT_FINALIZED,
-        config_model=config_model, project_instance=project_instance,
-        version=version, version_number=version.version_number,
-        user_info=user_info, commit_message=commit_message,
-    )
-
-
 # ------------------------------------------------------------------
 # Query layer (merged from audit_trail_session)
 # ------------------------------------------------------------------

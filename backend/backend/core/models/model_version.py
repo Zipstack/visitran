@@ -43,9 +43,8 @@ class ModelVersion(DefaultOrganizationMixin, BaseModel):
         related_name="model_versions",
     )
     version_number = models.PositiveIntegerField()
-    model_data = models.JSONField(default=dict)
+    model_data = models.JSONField(null=True, blank=True, default=None)
     commit_message = models.CharField(max_length=500, blank=True, default="")
-    change_summary = models.TextField(blank=True, null=True)
 
     # User attribution — JSONField following this repo's convention
     committed_by = models.JSONField(default=dict)
@@ -58,8 +57,7 @@ class ModelVersion(DefaultOrganizationMixin, BaseModel):
     # Tamper detection
     content_hash = models.CharField(max_length=64, blank=True, default="")
 
-    # Publishing and commit metadata
-    is_published = models.BooleanField(default=False)
+    # Commit metadata
     is_auto_commit = models.BooleanField(default=False)
 
     # Rollback metadata (populated for rollback versions)
@@ -84,15 +82,7 @@ class ModelVersion(DefaultOrganizationMixin, BaseModel):
     pr_number = models.IntegerField(null=True, blank=True)
     pr_url = models.CharField(max_length=500, null=True, blank=True)
 
-    # Denormalized search fields (extracted from model_data for indexed queries)
-    extracted_model_name = models.CharField(
-        max_length=200, blank=True, default="", db_index=True
-    )
-    extracted_source_table = models.CharField(
-        max_length=200, blank=True, default="", db_index=True
-    )
-    extracted_transformation_count = models.PositiveIntegerField(default=0)
-    extracted_has_incremental_filter = models.BooleanField(default=False)
+    # Project-level model count (set when config_model is None)
     extracted_model_count = models.PositiveIntegerField(default=0)
 
     # Active version tracking
@@ -113,10 +103,6 @@ class ModelVersion(DefaultOrganizationMixin, BaseModel):
             models.Index(
                 fields=["project_instance", "-version_number"],
                 name="idx_mv_proj_version",
-            ),
-            models.Index(
-                fields=["project_instance", "is_published", "-created_at"],
-                name="idx_mv_proj_published",
             ),
             models.Index(
                 fields=["organization", "project_instance", "-created_at"],
@@ -155,31 +141,11 @@ class ModelVersion(DefaultOrganizationMixin, BaseModel):
             return False
         return True
 
-    def _extract_search_fields(self):
-        """Populate extracted columns from model_data for indexed queries."""
-        data = self.model_data or {}
-        self.extracted_model_name = str(
-            data.get("model", {}).get("name", "")
-        )[:200]
-        source = data.get("source", {})
-        self.extracted_source_table = str(
-            source.get("table", source.get("name", ""))
-        )[:200]
-        transforms = data.get("transform", [])
-        self.extracted_transformation_count = (
-            len(transforms) if isinstance(transforms, list) else 0
-        )
-        self.extracted_has_incremental_filter = bool(
-            data.get("incremental_filter")
-        )
-
     def save(self, *args, **kwargs):
         if self._state.adding:
             if self.config_model is None:
                 data = self.model_data or {}
                 self.extracted_model_count = len(data)
-            else:
-                self._extract_search_fields()
             self.content_hash = self.compute_content_hash()
         super().save(*args, **kwargs)
 

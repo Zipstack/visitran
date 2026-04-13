@@ -86,12 +86,32 @@ def list_branches(request: Request, project_id: str) -> Response:
 @api_view([HTTPMethods.POST])
 @handle_http_request
 @handle_permission
+def create_branch(request: Request, project_id: str) -> Response:
+    """Create a new branch in the git repository using inline credentials."""
+    result = git_repo_config_service.create_branch_from_data(
+        project_id=project_id, config_data=request.data,
+    )
+    return Response(data={"status": "success", "data": result}, status=status.HTTP_200_OK)
+
+
+@api_view([HTTPMethods.POST])
+@handle_http_request
+def list_project_folders(request: Request, project_id: str) -> Response:
+    """List project folders in the repo that contain models.yaml."""
+    folders = git_repo_config_service.list_project_folders(
+        project_id=project_id, config_data=request.data,
+    )
+    return Response(data={"status": "success", "data": folders}, status=status.HTTP_200_OK)
+
+
+@api_view([HTTPMethods.POST])
+@handle_http_request
+@handle_permission
 def enable_pr_workflow(request: Request, project_id: str) -> Response:
     """Enable PR workflow for a project's git configuration."""
     payload = request.data
-    pr_mode = payload.get("pr_mode", "auto")
+    pr_mode = payload.get("pr_mode", "manual")
     pr_base_branch = payload.get("pr_base_branch", "main")
-    pr_branch_prefix = payload.get("pr_branch_prefix", "visitran/")
 
     from backend.core.models.git_repo_config import GitRepoConfig
 
@@ -102,6 +122,13 @@ def enable_pr_workflow(request: Request, project_id: str) -> Response:
         return Response(
             data={"status": "failed", "error_message": "No git configuration found for this project."},
             status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # Validate working branch != base branch
+    if config.branch_name == pr_base_branch:
+        return Response(
+            data={"status": "failed", "error_message": f"Target branch cannot be the same as the working branch ({config.branch_name})."},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
     # Validate that the base branch exists
@@ -118,7 +145,6 @@ def enable_pr_workflow(request: Request, project_id: str) -> Response:
         config_data={
             "pr_mode": pr_mode,
             "pr_base_branch": pr_base_branch,
-            "pr_branch_prefix": pr_branch_prefix,
         },
     )
     return Response(data={"status": "success", "data": updated}, status=status.HTTP_200_OK)

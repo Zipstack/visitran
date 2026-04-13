@@ -52,6 +52,28 @@ def create_model_explorer(request: Request, project_id: str) -> Response:
         model_name = request_data.get("model_name", "").replace(" ", "_").strip()
         app = ApplicationContext(project_id=project_id)
         app.create_a_model(model_name=model_name, is_generate_ai_request=False)
+        try:
+            import threading
+            from backend.core.scheduler.version_celery_tasks import _run_auto_commit
+            from backend.utils.tenant_context import get_current_user, get_current_tenant, _get_tenant_context
+            user_info = get_current_user() or {}
+            tenant_id = get_current_tenant()
+            pid = str(project_id)
+            action = f"model_created:{model_name}"
+
+            def _commit():
+                from django.db import connection
+                _get_tenant_context().set_tenant(tenant_id)
+                try:
+                    _run_auto_commit(project_id=pid, trigger_action=action, author_info=user_info)
+                except Exception:
+                    pass
+                finally:
+                    connection.close()
+
+            threading.Thread(target=_commit, daemon=True).start()
+        except Exception:
+            pass
         return Response(data={"status": "success"}, status=status.HTTP_200_OK)
     except FileExistsError:
         return Response(
@@ -96,6 +118,29 @@ def delete_a_file_or_folder(request: Request, project_id: str) -> Response:
             deleted_files.append(file_name)
 
         response_json = {"status": "success", "message": f"successfully deleted files {deleted_files}"}
+    try:
+        import threading
+        from backend.core.scheduler.version_celery_tasks import _run_auto_commit
+        from backend.utils.tenant_context import get_current_user, get_current_tenant, _get_tenant_context
+        deleted_names = ", ".join(sorted(deleting_models)) if not wipe_all_enabled else "all models"
+        user_info = get_current_user() or {}
+        tenant_id = get_current_tenant()
+        pid = str(project_id)
+        action = f"model_deleted:{deleted_names}"
+
+        def _commit():
+            from django.db import connection
+            _get_tenant_context().set_tenant(tenant_id)
+            try:
+                _run_auto_commit(project_id=pid, trigger_action=action, author_info=user_info)
+            except Exception:
+                pass
+            finally:
+                connection.close()
+
+        threading.Thread(target=_commit, daemon=True).start()
+    except Exception:
+        pass
     return Response(data=response_json)
 
 
