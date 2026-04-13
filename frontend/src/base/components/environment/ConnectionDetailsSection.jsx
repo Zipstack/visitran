@@ -34,13 +34,13 @@ const ConnectionDetailsSection = memo(
       };
     }, [debouncedHandleConnectionNameDesc]);
 
-    // Update form values when dbSelectionInfo changes (e.g., when editing a connection)
+    // Populate form values only when connection is first loaded (connectionId changes)
     useEffect(() => {
       form.setFieldsValue({
         name: dbSelectionInfo.name,
         description: dbSelectionInfo.description,
       });
-    }, [form, dbSelectionInfo.name, dbSelectionInfo.description]);
+    }, [form, connectionId]);
 
     return (
       <div className="createConnectionSection flex-1 createConnectionSectionDivider overflow-y-auto">
