@@ -244,6 +244,7 @@ const IdeExplorer = ({
       });
       return result;
     }
+    // "exec_order" and default: keep original backend order (topological/execution)
     return [...models];
   };
 
