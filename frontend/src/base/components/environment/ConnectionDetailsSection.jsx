@@ -41,10 +41,11 @@ const ConnectionDetailsSection = memo(
     }, [connectionId]);
 
     // Populate form values when connection data is loaded (not during user edits)
+    // Apply collapseSpaces since setFieldsValue bypasses the normalize prop
     useEffect(() => {
       if (!isUserEditingRef.current) {
         form.setFieldsValue({
-          name: dbSelectionInfo.name,
+          name: collapseSpaces(dbSelectionInfo.name || ""),
           description: dbSelectionInfo.description,
         });
       }
