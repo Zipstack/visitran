@@ -102,7 +102,7 @@ class ProjectDetails(DefaultOrganizationMixin, BaseModel):
     project_path = models.CharField(max_length=100)
     profile_path = models.CharField(max_length=100)
 
-    project_schema = models.CharField(max_length=1024, blank=True, null=True)
+    project_schema = models.CharField(max_length=20, blank=True, null=True)
     # User specific access control fields
     created_by = models.JSONField(default=dict)
     created_at = models.DateTimeField(auto_now_add=True)

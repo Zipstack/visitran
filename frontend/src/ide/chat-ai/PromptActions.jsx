@@ -1,13 +1,5 @@
 import { memo, useCallback, useEffect, useMemo } from "react";
-import {
-  Space,
-  Typography,
-  Select,
-  Switch,
-  Segmented,
-  Tooltip,
-  message,
-} from "antd";
+import { Space, Typography, Select, Switch, Segmented, Tooltip } from "antd";
 import {
   ConsoleSqlOutlined,
   DatabaseOutlined,
@@ -16,15 +8,15 @@ import {
   WalletOutlined,
 } from "@ant-design/icons";
 import PropTypes from "prop-types";
-import Cookies from "js-cookie";
 
 import { CHAT_INTENTS } from "./helper";
 import CircularTokenDisplay from "./CircularTokenDisplay";
+import InfoChip from "./InfoChip";
 import { useTokenStore } from "../../store/token-store";
 import { useSessionStore } from "../../store/session-store";
 import { useProjectStore } from "../../store/project-store";
-import { orgStore } from "../../store/org-store";
-import { useAxiosPrivate } from "../../service/axios-service";
+import { explorerService } from "../explorer/explorer-service";
+import { useNotificationService } from "../../service/notification-service";
 
 // Define hidden intents and a fixed order array
 const HIDDEN_CHAT_INTENTS = ["AUTO", "NOTA", "INFO"];
@@ -66,8 +58,8 @@ const PromptActions = memo(function PromptActions({
   const setCurrentSchema = useProjectStore((state) => state.setCurrentSchema);
   const schemaList = useProjectStore((state) => state.schemaList);
   const projectId = useProjectStore((state) => state.projectId);
-  const { selectedOrgId } = orgStore();
-  const axios = useAxiosPrivate();
+  const expService = explorerService();
+  const { notify } = useNotificationService();
 
   const schemaOptions = useMemo(
     () => schemaList.map((s) => ({ label: s, value: s })),
@@ -76,25 +68,18 @@ const PromptActions = memo(function PromptActions({
 
   const handleSchemaChange = useCallback(
     (value) => {
-      const csrfToken = Cookies.get("csrftoken");
-      axios({
-        url: `/api/v1/visitran/${
-          selectedOrgId || "default_org"
-        }/project/${projectId}/set_schema`,
-        method: "POST",
-        data: { schema_name: value },
-        headers: { "X-CSRFToken": csrfToken },
-      })
+      expService
+        .setProjectSchema(projectId, value)
         .then(() => {
           setCurrentSchema(value);
-          message.success("Schema updated successfully");
+          notify({ type: "success", message: "Schema updated successfully" });
         })
         .catch((error) => {
           console.error(error);
-          message.error("Failed to update schema");
+          notify({ error });
         });
     },
-    [axios, selectedOrgId, projectId, setCurrentSchema]
+    [expService, projectId, setCurrentSchema, notify]
   );
 
   const llmOptions = useMemo(
@@ -213,7 +198,7 @@ const PromptActions = memo(function PromptActions({
         )}
 
         {/* Schema selector */}
-        {schemaList.length > 0 && (
+        {schemaList.length > 0 ? (
           <div className="chat-ai-info-chip chat-ai-info-chip-clickable">
             <DatabaseOutlined className="chat-ai-info-chip-icon" />
             <Select
@@ -228,6 +213,13 @@ const PromptActions = memo(function PromptActions({
               className="chat-ai-schema-select"
             />
           </div>
+        ) : (
+          <InfoChip
+            icon={<DatabaseOutlined className="chat-ai-info-chip-icon" />}
+            text="No schema"
+            tooltipTitle="No schemas available. Please configure a database connection and select a schema from the explorer."
+            className="chat-ai-info-chip-error"
+          />
         )}
       </Space>
 
