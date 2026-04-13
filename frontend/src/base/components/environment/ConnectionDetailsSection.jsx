@@ -58,12 +58,11 @@ const ConnectionDetailsSection = memo(
             >
               <Input
                 className="field"
-                onChange={(e) =>
-                  debouncedHandleConnectionNameDesc(
-                    "name",
-                    collapseSpaces(e.target.value)
-                  )
-                }
+                onChange={(e) => {
+                  const collapsed = collapseSpaces(e.target.value);
+                  form.setFieldValue("name", collapsed);
+                  debouncedHandleConnectionNameDesc("name", collapsed);
+                }}
               />
             </Form.Item>
 
