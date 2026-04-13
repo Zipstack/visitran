@@ -1071,7 +1071,7 @@ const IdeExplorer = ({
     }
   };
 
-  const handleModelSort = (sortBy) => {
+  const handleModelSort = useCallback((sortBy) => {
     setModelSortBy(sortBy);
     if (rawTreeDataRef.current.length > 0) {
       const freshData = JSON.parse(JSON.stringify(rawTreeDataRef.current));
@@ -1088,7 +1088,7 @@ const IdeExplorer = ({
       transformTree(freshData);
       setTreeData(freshData, false);
     }
-  };
+  }, []);
 
   const modelSortMenu = useMemo(
     () => ({
@@ -1096,7 +1096,7 @@ const IdeExplorer = ({
       selectedKeys: [modelSortBy],
       onClick: ({ key }) => handleModelSort(key),
     }),
-    [modelSortBy]
+    [modelSortBy, handleModelSort]
   );
 
   useEffect(() => {
