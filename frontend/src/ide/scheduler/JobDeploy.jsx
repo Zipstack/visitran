@@ -678,7 +678,7 @@ const JobDeploy = memo(function JobDeploy({
                             validator: (_, value) => {
                               if (!value || value.length === 0)
                                 return Promise.resolve();
-                              const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                              const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
                               const invalid = value.filter(
                                 (e) => !emailRegex.test(e)
                               );
