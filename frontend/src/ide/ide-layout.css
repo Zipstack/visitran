@@ -80,8 +80,8 @@
 }
 
 /* Indent child/reference models to show hierarchy */
-.explorerTree .explorer-child-model {
-  padding-left: 12px !important;
+.explorerTree .ant-tree-treenode.explorer-child-model {
+  padding-left: 12px;
 }
 
 .contextMenu {

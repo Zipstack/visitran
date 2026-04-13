@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  useMemo,
+} from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import {
@@ -57,6 +63,14 @@ import { useNotificationService } from "../../service/notification-service.js";
 import { SpinnerLoader } from "../../widgets/spinner_loader/index.js";
 import { useRefreshModelsStore } from "../../store/refresh-models-store.js";
 import { LinearScale } from "../../base/icons";
+
+// Static sort options for model explorer
+const MODEL_SORT_ITEMS = [
+  { label: "Dependency Chain", key: "dep_chain" },
+  { label: "Execution Order", key: "exec_order" },
+  { label: "A \u2192 Z", key: "alpha_asc" },
+  { label: "Z \u2192 A", key: "alpha_desc" },
+];
 
 const IdeExplorer = ({
   currentNode,
@@ -244,24 +258,36 @@ const IdeExplorer = ({
     });
   };
 
-  const handleModelSort = (sortBy) => {
-    setModelSortBy(sortBy);
-    if (rawTreeDataRef.current.length > 0) {
-      const freshData = JSON.parse(JSON.stringify(rawTreeDataRef.current));
-      freshData.forEach((node) => {
-        if (node.title === "models" && node.children) {
-          node.children.forEach((child) => {
-            if (child.title === "no_code" && child.children) {
-              child.children = sortModels(child.children, sortBy);
-              applyModelDecorations(child.children);
-            }
-          });
-        }
-      });
-      transformTree(freshData);
-      setTreeData(freshData, false);
-    }
-  };
+  const handleModelSort = useCallback(
+    (sortBy) => {
+      setModelSortBy(sortBy);
+      if (rawTreeDataRef.current.length > 0) {
+        const freshData = JSON.parse(JSON.stringify(rawTreeDataRef.current));
+        freshData.forEach((node) => {
+          if (node.title === "models" && node.children) {
+            node.children.forEach((child) => {
+              if (child.title === "no_code" && child.children) {
+                child.children = sortModels(child.children, sortBy);
+                applyModelDecorations(child.children);
+              }
+            });
+          }
+        });
+        transformTree(freshData);
+        setTreeData(freshData, false);
+      }
+    },
+    [setTreeData]
+  );
+
+  const modelSortMenu = useMemo(
+    () => ({
+      items: MODEL_SORT_ITEMS,
+      selectedKeys: [modelSortBy],
+      onClick: ({ key }) => handleModelSort(key),
+    }),
+    [modelSortBy, handleModelSort]
+  );
 
   // Function to map string icons from API to actual icon components
   // depth: 0 = root (Database), 1 = schema, 2 = table, 3 = column
@@ -537,22 +563,7 @@ const IdeExplorer = ({
                     </Typography.Text>
                   </Tooltip>
                   <Dropdown
-                    menu={{
-                      items: [
-                        {
-                          label: "Dependency Chain",
-                          key: "dep_chain",
-                        },
-                        {
-                          label: "Execution Order",
-                          key: "exec_order",
-                        },
-                        { label: "A \u2192 Z", key: "alpha_asc" },
-                        { label: "Z \u2192 A", key: "alpha_desc" },
-                      ],
-                      selectedKeys: [modelSortBy],
-                      onClick: ({ key }) => handleModelSort(key),
-                    }}
+                    menu={modelSortMenu}
                     trigger={["click"]}
                     placement="bottomRight"
                   >
