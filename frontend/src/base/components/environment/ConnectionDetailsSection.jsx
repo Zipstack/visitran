@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Typography, Input, Select, Form } from "antd";
 
@@ -18,17 +18,24 @@ const ConnectionDetailsSection = memo(
     mappedDataSources,
     dbUsage,
   }) => {
+    const [form] = Form.useForm();
+
+    // Update form values when dbSelectionInfo changes (e.g., when editing a connection)
+    useEffect(() => {
+      form.setFieldsValue({
+        name: dbSelectionInfo.name,
+        description: dbSelectionInfo.description,
+      });
+    }, [form, dbSelectionInfo.name, dbSelectionInfo.description]);
+
     return (
       <div className="createConnectionSection flex-1 createConnectionSectionDivider overflow-y-auto">
         <Typography className="sectionTitle">Connection Details</Typography>
         <div className="formFieldsWrapper">
-          <Form layout="vertical">
+          <Form form={form} layout="vertical">
             <Form.Item
               label="Name"
-              getValueFromEvent={({ target: { value } }) =>
-                // collapse any run of 2+ spaces only when followed by non-space
-                collapseSpaces(value)
-              }
+              name="name"
               rules={[
                 { required: true, message: "Please enter the connection name" },
                 { validator: validateFormFieldName },
@@ -37,21 +44,23 @@ const ConnectionDetailsSection = memo(
             >
               <Input
                 className="field"
-                value={dbSelectionInfo.name}
                 onChange={(e) =>
-                  handleConnectionNameDesc("name", e.target.value)
+                  handleConnectionNameDesc(
+                    "name",
+                    collapseSpaces(e.target.value)
+                  )
                 }
               />
             </Form.Item>
 
             <Form.Item
               label="Description"
+              name="description"
               rules={[{ validator: validateFormFieldDescription }]}
             >
               <Input.TextArea
                 className="field"
                 rows={2}
-                value={dbSelectionInfo.description}
                 onChange={(e) =>
                   handleConnectionNameDesc("description", e.target.value)
                 }
