@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo } from "react";
+import { memo, useEffect, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
 import { Typography, Input, Select, Form } from "antd";
 import { debounce } from "lodash";
@@ -20,6 +20,7 @@ const ConnectionDetailsSection = memo(
     dbUsage,
   }) => {
     const [form] = Form.useForm();
+    const isUserEditingRef = useRef(false);
 
     // Debounce the parent state update to avoid stale closure issues
     const debouncedHandleConnectionNameDesc = useMemo(
@@ -34,13 +35,32 @@ const ConnectionDetailsSection = memo(
       };
     }, [debouncedHandleConnectionNameDesc]);
 
-    // Populate form values only when connection is first loaded (connectionId changes)
+    // Reset editing flag when connectionId changes (new connection loaded)
     useEffect(() => {
-      form.setFieldsValue({
-        name: dbSelectionInfo.name,
-        description: dbSelectionInfo.description,
-      });
-    }, [form, connectionId]);
+      isUserEditingRef.current = false;
+    }, [connectionId]);
+
+    // Populate form values when connection data is loaded (not during user edits)
+    useEffect(() => {
+      if (!isUserEditingRef.current) {
+        form.setFieldsValue({
+          name: dbSelectionInfo.name,
+          description: dbSelectionInfo.description,
+        });
+      }
+    }, [form, connectionId, dbSelectionInfo.name, dbSelectionInfo.description]);
+
+    const handleNameChange = (e) => {
+      isUserEditingRef.current = true;
+      const collapsed = collapseSpaces(e.target.value);
+      form.setFieldValue("name", collapsed);
+      debouncedHandleConnectionNameDesc("name", collapsed);
+    };
+
+    const handleDescriptionChange = (e) => {
+      isUserEditingRef.current = true;
+      debouncedHandleConnectionNameDesc("description", e.target.value);
+    };
 
     return (
       <div className="createConnectionSection flex-1 createConnectionSectionDivider overflow-y-auto">
@@ -56,14 +76,7 @@ const ConnectionDetailsSection = memo(
               ]}
               required
             >
-              <Input
-                className="field"
-                onChange={(e) => {
-                  const collapsed = collapseSpaces(e.target.value);
-                  form.setFieldValue("name", collapsed);
-                  debouncedHandleConnectionNameDesc("name", collapsed);
-                }}
-              />
+              <Input className="field" onChange={handleNameChange} />
             </Form.Item>
 
             <Form.Item
@@ -74,12 +87,7 @@ const ConnectionDetailsSection = memo(
               <Input.TextArea
                 className="field"
                 rows={2}
-                onChange={(e) =>
-                  debouncedHandleConnectionNameDesc(
-                    "description",
-                    e.target.value
-                  )
-                }
+                onChange={handleDescriptionChange}
               />
             </Form.Item>
 
