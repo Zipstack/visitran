@@ -6,6 +6,7 @@ import {
   Switch,
   Button,
   Space,
+  Tooltip,
   Typography,
   Spin,
   Empty,
@@ -15,6 +16,7 @@ import {
   EyeOutlined,
   ThunderboltOutlined,
   ReloadOutlined,
+  InfoCircleOutlined,
 } from "@ant-design/icons";
 
 import { useJobService } from "./service";
@@ -28,23 +30,52 @@ const MATERIALIZATION_OPTIONS = [
     label: "Table",
     icon: <TableOutlined />,
     color: "blue",
-    description: "Full table refresh on each run",
+    description:
+      "Drops and rebuilds the destination table on every run. Slowest on large data but always consistent. Good default when unsure.",
   },
   {
     value: "VIEW",
     label: "View",
     icon: <EyeOutlined />,
     color: "green",
-    description: "Virtual view, no data stored",
+    description:
+      "Stores the transformation as a SQL view — no data is written. Fast to build but every downstream read re-executes the query. Pick for lightweight transforms or small data.",
   },
   {
     value: "INCREMENTAL",
     label: "Incremental",
     icon: <ThunderboltOutlined />,
     color: "orange",
-    description: "Process only new/changed data",
+    description:
+      "Appends/merges only new or changed rows using a watermark (primary key + delta column). Fastest on large, append-only data — but needs a reliable delta column and the right primary key.",
   },
 ];
+
+const MATERIALIZATION_COLUMN_HELP = (
+  <div style={{ maxWidth: 360 }}>
+    <strong>How a model gets written to the warehouse</strong>
+    <ul style={{ paddingLeft: 18, margin: "6px 0" }}>
+      <li>
+        <strong>Table</strong> — full rebuild every run. Safest, slowest on
+        large data.
+      </li>
+      <li>
+        <strong>View</strong> — stored as SQL only; nothing materialized. Cheap,
+        but downstream reads re-run the query.
+      </li>
+      <li>
+        <strong>Incremental</strong> — only new/changed rows appended via a
+        watermark. Fastest on large data; needs a valid primary key + delta
+        column.
+      </li>
+    </ul>
+    <div style={{ marginTop: 6, opacity: 0.85 }}>
+      Switching materialization later is safe, but the first run after a switch
+      rebuilds the destination from scratch (and an Incremental model needs its
+      watermark reset).
+    </div>
+  </div>
+);
 
 const ModelConfigsTable = ({
   models,
@@ -211,14 +242,37 @@ const ModelConfigsTable = ({
         }
         disabled={disabled || !config.enabled}
         style={{ width: 150 }}
-        popupMatchSelectWidth={false}
+        popupMatchSelectWidth={320}
+        optionLabelProp="label"
       >
         {MATERIALIZATION_OPTIONS.map((opt) => (
-          <Select.Option key={opt.value} value={opt.value}>
-            <Space size={4}>
-              {opt.icon}
-              <span>{opt.label}</span>
-            </Space>
+          <Select.Option
+            key={opt.value}
+            value={opt.value}
+            label={
+              <Space size={4}>
+                {opt.icon}
+                <span>{opt.label}</span>
+              </Space>
+            }
+          >
+            <div style={{ padding: "4px 0" }}>
+              <Space size={6}>
+                {opt.icon}
+                <strong>{opt.label}</strong>
+              </Space>
+              <div
+                style={{
+                  fontSize: 12,
+                  opacity: 0.75,
+                  marginTop: 2,
+                  whiteSpace: "normal",
+                  lineHeight: 1.4,
+                }}
+              >
+                {opt.description}
+              </div>
+            </div>
           </Select.Option>
         ))}
       </Select>
@@ -256,9 +310,16 @@ const ModelConfigsTable = ({
       ),
     },
     {
-      title: "Materialization",
+      title: (
+        <Space size={4}>
+          Materialization
+          <Tooltip title={MATERIALIZATION_COLUMN_HELP} placement="top">
+            <InfoCircleOutlined style={{ opacity: 0.55, cursor: "help" }} />
+          </Tooltip>
+        </Space>
+      ),
       key: "materialization",
-      width: 180,
+      width: 200,
       render: (_, record) => renderMaterializationSelect(record),
     },
   ];
