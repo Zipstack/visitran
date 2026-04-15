@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import Cookies from "js-cookie";
 import PropTypes from "prop-types";
+import { Form } from "antd";
 
 import { useAxiosPrivate } from "../../../service/axios-service.js";
 import { orgStore } from "../../../store/org-store.js";
@@ -19,6 +20,7 @@ import {
 } from "./environment-api-service.js";
 import "./environment.css";
 import { useNotificationService } from "../../../service/notification-service.js";
+import { collapseSpaces } from "./helper";
 
 const CreateConnection = ({
   setIsModalOpen,
@@ -54,6 +56,11 @@ const CreateConnection = ({
   const [isCredentialsRevealed, setIsCredentialsRevealed] = useState(false);
   const [isRevealLoading, setIsRevealLoading] = useState(false);
   const { notify } = useNotificationService();
+  const [connectionDetailsForm] = Form.useForm();
+
+  // Watch form fields reactively for hasDetailsChanged comparison
+  const formName = Form.useWatch("name", connectionDetailsForm);
+  const formDescription = Form.useWatch("description", connectionDetailsForm);
 
   // Initialize encryption service
   useEffect(() => {
@@ -118,16 +125,17 @@ const CreateConnection = ({
     getConnectionFields();
   }, [getConnectionFields]);
 
-  const handleConnectionNameDesc = useCallback((name, value) => {
-    setDbSelectionInfo((prev) => ({ ...prev, [name]: value }));
-  }, []);
-
   const handleCreateOrUpdate = useCallback(async () => {
     setIsCreateOrUpdateLoading(true);
     try {
+      // Get name and description directly from the form (source of truth)
+      const { name, description } = connectionDetailsForm.getFieldsValue();
+
       // Prepare connection data
       const connectionData = {
         ...dbSelectionInfo,
+        name,
+        description,
         connection_details: {
           ...inputFields,
           ...(["postgres", "snowflake"].includes(
@@ -199,6 +207,8 @@ const CreateConnection = ({
     }
   }, [
     connectionId,
+    connectionDetailsForm,
+    hasDetailsChanged,
     dbSelectionInfo,
     inputFields,
     connType,
@@ -232,7 +242,10 @@ const CreateConnection = ({
         icon: db_icon,
       };
       setDbSelectionInfo(selectionInfo);
-      setOriginalDbSelectionInfo({ ...selectionInfo });
+      setOriginalDbSelectionInfo({
+        ...selectionInfo,
+        name: collapseSpaces(selectionInfo.name || ""),
+      });
       // Process connection details to handle JSON objects for textarea fields
       const processedConnectionDetails = { ...connection_details };
 
@@ -398,10 +411,10 @@ const CreateConnection = ({
   const hasDetailsChanged = useMemo(() => {
     if (!connectionId || !originalDbSelectionInfo) return false;
     return (
-      dbSelectionInfo.name !== originalDbSelectionInfo.name ||
-      dbSelectionInfo.description !== originalDbSelectionInfo.description
+      formName !== originalDbSelectionInfo.name ||
+      formDescription !== originalDbSelectionInfo.description
     );
-  }, [connectionId, dbSelectionInfo, originalDbSelectionInfo]);
+  }, [connectionId, formName, formDescription, originalDbSelectionInfo]);
 
   const mappedDataSources = useMemo(
     () =>
@@ -428,7 +441,7 @@ const CreateConnection = ({
           <ConnectionDetailsSection
             connectionId={connectionId}
             dbSelectionInfo={dbSelectionInfo}
-            handleConnectionNameDesc={handleConnectionNameDesc}
+            connectionDetailsForm={connectionDetailsForm}
             handleCardClick={(value) => {
               // Clear input fields when datasource changes to prevent old fields from being sent
               setInputFields({});
