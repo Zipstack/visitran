@@ -1,6 +1,6 @@
 import {
   Button,
-  Card,
+  Checkbox,
   Divider,
   Dropdown,
   Empty,
@@ -264,8 +264,8 @@ function NoCodeModel({ nodeData }) {
     step: "loading", // loading | empty | confirm | pick
     candidates: [],
     selectedTaskId: null,
+    runFullJob: false,
     submitting: false,
-    submittingScope: null, // "model" | "job" while a run is dispatching
   });
   const [recentRunsState, setRecentRunsState] = useState({
     loading: false,
@@ -1782,6 +1782,7 @@ function NoCodeModel({ nodeData }) {
       step: "loading",
       candidates: [],
       selectedTaskId: null,
+      runFullJob: false,
       submitting: false,
     });
     try {
@@ -1820,17 +1821,13 @@ function NoCodeModel({ nodeData }) {
     setQuickDeployModal((prev) => ({ ...prev, open: false }));
   };
 
-  const confirmQuickDeploy = async (scope) => {
+  const confirmQuickDeploy = async () => {
     const currentModelName = nodeData?.node?.title;
-    const { selectedTaskId } = quickDeployModal;
+    const { selectedTaskId, runFullJob } = quickDeployModal;
     if (!currentModelName || !selectedTaskId) return;
-    setQuickDeployModal((prev) => ({
-      ...prev,
-      submitting: true,
-      submittingScope: scope,
-    }));
+    setQuickDeployModal((prev) => ({ ...prev, submitting: true }));
     try {
-      if (scope === "job") {
+      if (runFullJob) {
         await runTask(projectId, selectedTaskId);
       } else {
         await runTaskForModel(projectId, selectedTaskId, currentModelName);
@@ -1843,24 +1840,18 @@ function NoCodeModel({ nodeData }) {
       notify({
         type: "success",
         message: "Deploy Triggered",
-        description:
-          scope === "job"
-            ? `Job "${jobName}" is running on "${envName}" (all enabled models). Check Run History for progress.`
-            : `"${currentModelName}" is running on "${envName}" via job "${jobName}". Check Run History for progress.`,
+        description: runFullJob
+          ? `Job "${jobName}" is running on "${envName}" (all enabled models). Check Run History for progress.`
+          : `"${currentModelName}" is running on "${envName}" via job "${jobName}". Check Run History for progress.`,
       });
       setRefreshModels(true);
       setQuickDeployModal((prev) => ({
         ...prev,
         open: false,
         submitting: false,
-        submittingScope: null,
       }));
     } catch (error) {
-      setQuickDeployModal((prev) => ({
-        ...prev,
-        submitting: false,
-        submittingScope: null,
-      }));
+      setQuickDeployModal((prev) => ({ ...prev, submitting: false }));
       notify({ error });
     }
   };
@@ -2985,12 +2976,22 @@ function NoCodeModel({ nodeData }) {
               </Button>
             </Space>
           ) : quickDeployModal.step === "loading" ? null : (
-            <Button
-              onClick={closeQuickDeploy}
-              disabled={quickDeployModal.submitting}
-            >
-              Cancel
-            </Button>
+            <Space>
+              <Button
+                onClick={closeQuickDeploy}
+                disabled={quickDeployModal.submitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="primary"
+                loading={quickDeployModal.submitting}
+                disabled={!quickDeployModal.selectedTaskId}
+                onClick={confirmQuickDeploy}
+              >
+                {quickDeployModal.runFullJob ? "Run full job" : "Run model"}
+              </Button>
+            </Space>
           )
         }
       >
@@ -3025,6 +3026,7 @@ function NoCodeModel({ nodeData }) {
                         setQuickDeployModal((prev) => ({
                           ...prev,
                           selectedTaskId: e.target.value,
+                          runFullJob: false,
                         }))
                       }
                       style={{
@@ -3054,99 +3056,37 @@ function NoCodeModel({ nodeData }) {
                     <strong>{selected.environment_name || "(unnamed)"}</strong>
                   </Typography.Paragraph>
                 )}
-                <Typography.Text strong>Choose scope</Typography.Text>
                 <div
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr",
-                    gap: 12,
-                    marginTop: 8,
+                    padding: "10px 12px",
+                    border: `1px solid ${token.colorBorderSecondary}`,
+                    borderRadius: token.borderRadiusLG,
+                    background: token.colorFillQuaternary,
                   }}
                 >
-                  <Card
-                    hoverable={!quickDeployModal.submitting}
-                    onClick={
-                      quickDeployModal.submitting
-                        ? undefined
-                        : () => confirmQuickDeploy("model")
+                  <Checkbox
+                    checked={quickDeployModal.runFullJob}
+                    disabled={quickDeployModal.submitting || !selected}
+                    onChange={(e) =>
+                      setQuickDeployModal((prev) => ({
+                        ...prev,
+                        runFullJob: e.target.checked,
+                      }))
                     }
-                    styles={{
-                      body: { padding: 12, cursor: "pointer" },
-                    }}
-                    style={{
-                      borderColor:
-                        quickDeployModal.submittingScope === "model"
-                          ? token.colorPrimary
-                          : undefined,
-                      opacity:
-                        quickDeployModal.submitting &&
-                        quickDeployModal.submittingScope !== "model"
-                          ? 0.5
-                          : 1,
-                    }}
                   >
-                    <Typography.Text strong>
-                      Run this model only
+                    Also run the other models in this job
+                  </Checkbox>
+                  <div style={{ marginTop: 4, marginLeft: 24 }}>
+                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                      {quickDeployModal.runFullJob
+                        ? `All ${modelCount || "enabled"} model${
+                            modelCount === 1 ? "" : "s"
+                          } in the job will run against the selected environment.`
+                        : `Only ${
+                            nodeData?.node?.title || "this model"
+                          } will run. Leave checked off for a fast, focused deploy.`}
                     </Typography.Text>
-                    <div>
-                      <Typography.Text
-                        type="secondary"
-                        style={{ fontSize: 12 }}
-                      >
-                        Fast — runs just{" "}
-                        <em>{nodeData?.node?.title || "this model"}</em>.
-                      </Typography.Text>
-                    </div>
-                    {quickDeployModal.submittingScope === "model" && (
-                      <Typography.Text
-                        type="secondary"
-                        style={{ fontSize: 11 }}
-                      >
-                        Submitting…
-                      </Typography.Text>
-                    )}
-                  </Card>
-                  <Card
-                    hoverable={!quickDeployModal.submitting}
-                    onClick={
-                      quickDeployModal.submitting
-                        ? undefined
-                        : () => confirmQuickDeploy("job")
-                    }
-                    styles={{
-                      body: { padding: 12, cursor: "pointer" },
-                    }}
-                    style={{
-                      borderColor:
-                        quickDeployModal.submittingScope === "job"
-                          ? token.colorPrimary
-                          : undefined,
-                      opacity:
-                        quickDeployModal.submitting &&
-                        quickDeployModal.submittingScope !== "job"
-                          ? 0.5
-                          : 1,
-                    }}
-                  >
-                    <Typography.Text strong>Run full job</Typography.Text>
-                    <div>
-                      <Typography.Text
-                        type="secondary"
-                        style={{ fontSize: 12 }}
-                      >
-                        Runs all {modelCount || "enabled"} model
-                        {modelCount === 1 ? "" : "s"} in the job.
-                      </Typography.Text>
-                    </div>
-                    {quickDeployModal.submittingScope === "job" && (
-                      <Typography.Text
-                        type="secondary"
-                        style={{ fontSize: 11 }}
-                      >
-                        Submitting…
-                      </Typography.Text>
-                    )}
-                  </Card>
+                  </div>
                 </div>
               </div>
             );
