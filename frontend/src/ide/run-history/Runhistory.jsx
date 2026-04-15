@@ -15,7 +15,10 @@ import {
   ReloadOutlined,
   CalendarOutlined,
   DatabaseOutlined,
+  CheckCircleFilled,
   CloseCircleFilled,
+  ClockCircleOutlined,
+  SyncOutlined,
 } from "@ant-design/icons";
 import { useSearchParams } from "react-router-dom";
 
@@ -24,7 +27,11 @@ import { orgStore } from "../../store/org-store";
 import { useNotificationService } from "../../service/notification-service";
 import { runHistoryTagColor } from "../../common/constants";
 import { usePagination } from "../../widgets/hooks/usePagination";
-import { getTooltipText } from "../../common/helpers";
+import {
+  getTooltipText,
+  getRelativeTime,
+  formatDateTime,
+} from "../../common/helpers";
 import "./RunHistory.css";
 
 /* ─── Parse duration string to milliseconds for sorting ─── */
@@ -340,6 +347,45 @@ const Runhistory = () => {
     []
   );
 
+  const STATUS_META = {
+    SUCCESS: {
+      icon: <CheckCircleFilled />,
+      label: "Succeeded",
+      color: token.colorSuccess,
+      bg: token.colorSuccessBg,
+    },
+    FAILURE: {
+      icon: <CloseCircleFilled />,
+      label: "Failed",
+      color: token.colorError,
+      bg: token.colorErrorBg,
+    },
+    STARTED: {
+      icon: <SyncOutlined spin />,
+      label: "Running",
+      color: token.colorInfo,
+      bg: token.colorInfoBg,
+    },
+    RETRY: {
+      icon: <SyncOutlined spin />,
+      label: "Retrying",
+      color: token.colorWarning,
+      bg: token.colorWarningBg,
+    },
+    REVOKED: {
+      icon: <ClockCircleOutlined />,
+      label: "Revoked",
+      color: token.colorTextSecondary,
+      bg: token.colorFillQuaternary,
+    },
+    PENDING: {
+      icon: <ClockCircleOutlined />,
+      label: "Pending",
+      color: token.colorTextSecondary,
+      bg: token.colorFillQuaternary,
+    },
+  };
+
   /* ─── empty text ─── */
   const emptyDescription = useMemo(() => {
     if (!jobListItems.length) return "No jobs created yet";
@@ -457,56 +503,94 @@ const Runhistory = () => {
               : {}
           }
           expandable={{
-            expandedRowRender: (record) => (
-              <div
-                className="runhistory-error-row"
-                style={{
-                  borderLeft: `3px solid ${token.colorError}`,
-                  padding: "10px 12px",
-                  background: token.colorErrorBg,
-                }}
-              >
+            expandedRowRender: (record) => {
+              const meta = STATUS_META[record.status] || STATUS_META.PENDING;
+              const { scope, models } = getRunTriggerScope(record);
+              const isFailure = record.status === "FAILURE";
+              return (
                 <div
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    marginBottom: 6,
+                    borderLeft: `3px solid ${meta.color}`,
+                    padding: "10px 12px",
+                    background: meta.bg,
                   }}
                 >
-                  <CloseCircleFilled style={{ color: token.colorError }} />
-                  <Typography.Text strong style={{ color: token.colorError }}>
-                    Error from this run
-                  </Typography.Text>
-                  {record.start_time && (
-                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                      · {record.start_time}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      marginBottom: 8,
+                    }}
+                  >
+                    <span style={{ color: meta.color }}>{meta.icon}</span>
+                    <Typography.Text strong style={{ color: meta.color }}>
+                      {meta.label}
                     </Typography.Text>
+                    {record.start_time && (
+                      <Tooltip
+                        title={new Date(record.start_time).toISOString()}
+                      >
+                        <Typography.Text
+                          type="secondary"
+                          style={{ fontSize: 12 }}
+                        >
+                          · {formatDateTime(record.start_time)} (
+                          {getRelativeTime(record.start_time)})
+                        </Typography.Text>
+                      </Tooltip>
+                    )}
+                    {record.duration && (
+                      <Typography.Text
+                        type="secondary"
+                        style={{ fontSize: 12 }}
+                      >
+                        · {formatDuration(record.duration)}
+                      </Typography.Text>
+                    )}
+                  </div>
+                  <Space
+                    size={8}
+                    wrap
+                    style={{ marginBottom: isFailure ? 8 : 0 }}
+                  >
+                    <Tag color={scope === "model" ? "purple" : "default"}>
+                      {scope === "model" ? "Single model" : "Full job"}
+                    </Tag>
+                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                      {models.length > 0
+                        ? `Models attempted: ${models.join(", ")}`
+                        : "No model configuration recorded for this run."}
+                    </Typography.Text>
+                  </Space>
+                  {isFailure && record.error_message && (
+                    <Alert
+                      type="error"
+                      showIcon={false}
+                      message={
+                        <pre
+                          style={{
+                            margin: 0,
+                            maxHeight: 240,
+                            overflow: "auto",
+                            whiteSpace: "pre-wrap",
+                            wordBreak: "break-word",
+                            fontFamily: token.fontFamilyCode,
+                            fontSize: 12,
+                          }}
+                        >
+                          {record.error_message}
+                        </pre>
+                      }
+                    />
                   )}
                 </div>
-                <Alert
-                  type="error"
-                  showIcon={false}
-                  message={
-                    <pre
-                      style={{
-                        margin: 0,
-                        maxHeight: 240,
-                        overflow: "auto",
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-word",
-                        fontFamily: token.fontFamilyCode,
-                        fontSize: 12,
-                      }}
-                    >
-                      {record.error_message}
-                    </pre>
-                  }
-                />
-              </div>
-            ),
+              );
+            },
             rowExpandable: (record) =>
-              record.status === "FAILURE" && !!record.error_message,
+              ["SUCCESS", "FAILURE", "RETRY", "REVOKED"].includes(
+                record.status
+              ),
             expandedRowKeys,
             onExpand: handleExpand,
           }}
