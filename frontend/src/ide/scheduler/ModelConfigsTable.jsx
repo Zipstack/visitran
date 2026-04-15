@@ -116,10 +116,14 @@ const ModelConfigsTable = ({
     }
   }, [models]);
 
-  // Fetch columns for a model when needed (no environmentId required)
+  // Fetch columns for a model when needed (no environmentId required).
+  // Pass { force: true } from Refresh to bypass the cache check; clearing
+  // columnCache + calling this normally hits a stale-closure race where the
+  // pre-deletion snapshot still reads as populated and the refetch no-ops.
   const fetchColumnsForModel = useCallback(
-    async (modelName) => {
-      if (!projectId || columnCache[modelName]) return;
+    async (modelName, { force = false } = {}) => {
+      if (!projectId) return;
+      if (!force && columnCache[modelName]) return;
 
       setLoadingColumns((prev) => ({ ...prev, [modelName]: true }));
 
@@ -352,12 +356,7 @@ const ModelConfigsTable = ({
             type="text"
             icon={<ReloadOutlined spin={isLoading} />}
             onClick={() => {
-              setColumnCache((prev) => {
-                const updated = { ...prev };
-                delete updated[record.modelName];
-                return updated;
-              });
-              fetchColumnsForModel(record.modelName);
+              fetchColumnsForModel(record.modelName, { force: true });
             }}
             disabled={isLoading}
           >
