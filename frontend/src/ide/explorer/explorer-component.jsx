@@ -59,6 +59,87 @@ import { SpinnerLoader } from "../../widgets/spinner_loader/index.js";
 import { useRefreshModelsStore } from "../../store/refresh-models-store.js";
 import { LinearScale } from "../../base/icons";
 
+const MODEL_STATUS_DOT_STYLE = {
+  display: "inline-block",
+  width: "7px",
+  height: "7px",
+  borderRadius: "50%",
+  verticalAlign: "middle",
+};
+
+const getModelRunStatus = (runStatus, failureReason, lastRunAt, token) => {
+  if (runStatus === "RUNNING") {
+    return (
+      <Tooltip title="Running">
+        <span
+          style={{ ...MODEL_STATUS_DOT_STYLE, backgroundColor: token.colorInfo }}
+        />
+      </Tooltip>
+    );
+  }
+  if (runStatus === "FAILED") {
+    const popoverContent = (
+      <div style={{ maxWidth: 400, maxHeight: 300, overflow: "auto" }}>
+        {failureReason && (
+          <pre
+            style={{
+              margin: 0,
+              fontSize: "12px",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+            }}
+          >
+            {failureReason}
+          </pre>
+        )}
+        {lastRunAt && (
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: "11px",
+              color: token.colorTextSecondary,
+            }}
+          >
+            Last run: {new Date(lastRunAt).toLocaleString()}
+          </div>
+        )}
+      </div>
+    );
+    return (
+      <Popover
+        title="Execution Failed"
+        content={popoverContent}
+        trigger="hover"
+        placement="right"
+      >
+        <span
+          style={{ ...MODEL_STATUS_DOT_STYLE, backgroundColor: token.colorError }}
+        />
+      </Popover>
+    );
+  }
+  if (runStatus === "SUCCESS") {
+    const tooltipTitle = (
+      <div>
+        <div>Success</div>
+        {lastRunAt && (
+          <div style={{ marginTop: 4, fontSize: "11px" }}>
+            Last run: {new Date(lastRunAt).toLocaleString()}
+          </div>
+        )}
+      </div>
+    );
+    return (
+      <Tooltip title={tooltipTitle}>
+        <span
+          style={{ ...MODEL_STATUS_DOT_STYLE, backgroundColor: token.colorSuccess }}
+        />
+      </Tooltip>
+    );
+  }
+  return null;
+};
+
 const IdeExplorer = ({
   currentNode,
   onSelect = () => {},
@@ -466,7 +547,8 @@ const IdeExplorer = ({
           const statusBadge = getModelRunStatus(
             child.run_status,
             child.failure_reason,
-            child.last_run_at
+            child.last_run_at,
+            token
           );
           return {
             ...child,
@@ -574,6 +656,8 @@ const IdeExplorer = ({
       .catch((error) => {
         messageApi.destroy(`model-run-${modelName}`);
         notify({ error });
+        getExplorer(projectId);
+        setRefreshModels(true);
       })
       .finally(() => {
         // Remove model from running set
@@ -652,73 +736,6 @@ const IdeExplorer = ({
         </Tooltip>
       );
     }
-  };
-
-  const getModelRunStatus = (runStatus, failureReason, lastRunAt) => {
-    const dotStyle = {
-      display: "inline-block",
-      width: "7px",
-      height: "7px",
-      borderRadius: "50%",
-      verticalAlign: "middle",
-    };
-
-    if (runStatus === "RUNNING") {
-      return (
-        <Tooltip title="Running">
-          <span style={{ ...dotStyle, backgroundColor: "#1890ff" }} />
-        </Tooltip>
-      );
-    } else if (runStatus === "FAILED") {
-      const popoverContent = (
-        <div style={{ maxWidth: 400, maxHeight: 300, overflow: "auto" }}>
-          {failureReason && (
-            <pre
-              style={{
-                margin: 0,
-                fontSize: "12px",
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-word",
-              }}
-            >
-              {failureReason}
-            </pre>
-          )}
-          {lastRunAt && (
-            <div style={{ marginTop: 8, fontSize: "11px", color: "#888" }}>
-              Last run: {new Date(lastRunAt).toLocaleString()}
-            </div>
-          )}
-        </div>
-      );
-      return (
-        <Popover
-          title="Execution Failed"
-          content={popoverContent}
-          trigger="hover"
-          placement="right"
-        >
-          <span style={{ ...dotStyle, backgroundColor: "#ff4d4f" }} />
-        </Popover>
-      );
-    } else if (runStatus === "SUCCESS") {
-      const tooltipTitle = (
-        <div>
-          <div>Success</div>
-          {lastRunAt && (
-            <div style={{ marginTop: 4, fontSize: "11px" }}>
-              Last run: {new Date(lastRunAt).toLocaleString()}
-            </div>
-          )}
-        </div>
-      );
-      return (
-        <Tooltip title={tooltipTitle}>
-          <span style={{ ...dotStyle, backgroundColor: "#52c41a" }} />
-        </Tooltip>
-      );
-    }
-    return null;
   };
 
   const handleIconFunctions = (type, param) => {

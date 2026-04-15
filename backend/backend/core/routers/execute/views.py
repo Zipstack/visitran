@@ -64,9 +64,9 @@ def execute_run_command(request: Request, project_id: str) -> Response:
         logger.info(f"[execute_run_command] Completed successfully for file_name={file_name}")
         _data = {"status": "success"}
         return Response(data=_data)
-    except Exception as e:
-        logger.error(f"[execute_run_command] DAG execution failed for file_name={file_name}: {e}")
-        _data = {"status": "failed", "error_message": str(e)}
+    except Exception:
+        logger.exception(f"[execute_run_command] DAG execution failed for file_name={file_name}")
+        _data = {"status": "failed", "error_message": "Model execution failed. Check server logs for details."}
         return Response(data=_data, status=status.HTTP_400_BAD_REQUEST)
 
 
