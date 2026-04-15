@@ -719,7 +719,9 @@ def list_deploy_candidates(request, project_id, model_name):
             "user_task_id": task.id,
             "task_name": task.task_name,
             "environment_id": str(task.environment.environment_id),
-            "environment_name": getattr(task.environment, "name", ""),
+            "environment_name": getattr(
+                task.environment, "environment_name", ""
+            ) or getattr(task.environment, "name", ""),
             "status": task.status,
             "prev_run_status": task.prev_run_status,
             "task_run_time": task.task_run_time.isoformat() if task.task_run_time else None,

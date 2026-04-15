@@ -217,6 +217,30 @@ const Runhistory = () => {
         ),
       },
       {
+        title: "Source",
+        key: "source",
+        width: 200,
+        render: (_, record) => {
+          const isQuickDeploy = record.kwargs?.source === "quick_deploy";
+          if (!isQuickDeploy) {
+            return (
+              <Typography.Text type="secondary">Scheduled</Typography.Text>
+            );
+          }
+          const models = record.kwargs?.models_override || [];
+          return (
+            <Space size={4} wrap>
+              <Tag color="blue">Quick Deploy</Tag>
+              {models.length > 0 && (
+                <Typography.Text type="secondary">
+                  {models.join(", ")}
+                </Typography.Text>
+              )}
+            </Space>
+          );
+        },
+      },
+      {
         title: "Triggered",
         dataIndex: "start_time",
         key: "start_time",
