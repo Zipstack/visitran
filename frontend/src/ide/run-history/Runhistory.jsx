@@ -1,8 +1,10 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import {
+  Alert,
   Select,
   Table,
   Tag,
+  theme,
   Typography,
   Empty,
   Button,
@@ -13,6 +15,7 @@ import {
   ReloadOutlined,
   CalendarOutlined,
   DatabaseOutlined,
+  CloseCircleFilled,
 } from "@ant-design/icons";
 
 import { useAxiosPrivate } from "../../service/axios-service";
@@ -98,6 +101,7 @@ const Runhistory = () => {
   });
   const [loading, setLoading] = useState(false);
   const { selectedOrgId } = orgStore();
+  const { token } = theme.useToken();
   const { notify } = useNotificationService();
 
   /* ─── API calls ─── */
@@ -423,10 +427,51 @@ const Runhistory = () => {
           bordered
           expandable={{
             expandedRowRender: (record) => (
-              <div className="runhistory-error-row">
-                <Typography.Text type="danger">
-                  {record.error_message}
-                </Typography.Text>
+              <div
+                className="runhistory-error-row"
+                style={{
+                  borderLeft: `3px solid ${token.colorError}`,
+                  padding: "10px 12px",
+                  background: token.colorErrorBg,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 6,
+                  }}
+                >
+                  <CloseCircleFilled style={{ color: token.colorError }} />
+                  <Typography.Text strong style={{ color: token.colorError }}>
+                    Error from this run
+                  </Typography.Text>
+                  {record.start_time && (
+                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                      · {record.start_time}
+                    </Typography.Text>
+                  )}
+                </div>
+                <Alert
+                  type="error"
+                  showIcon={false}
+                  message={
+                    <pre
+                      style={{
+                        margin: 0,
+                        maxHeight: 240,
+                        overflow: "auto",
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                        fontFamily: token.fontFamilyCode,
+                        fontSize: 12,
+                      }}
+                    >
+                      {record.error_message}
+                    </pre>
+                  }
+                />
               </div>
             ),
             rowExpandable: (record) =>
