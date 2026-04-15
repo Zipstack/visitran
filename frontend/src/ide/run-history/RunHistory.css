@@ -39,3 +39,18 @@
   overflow: auto;
 }
 
+/* Visually bind an expanded error row to its parent run row so the
+ * error panel reads as a continuation of that row, not a sibling. */
+.runhistory-table-container .runhistory-row-expanded > td {
+  border-bottom-color: transparent !important;
+}
+
+.runhistory-table-container .ant-table-expanded-row > td {
+  border-top: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.runhistory-table-container .ant-table-expanded-row:hover > td {
+  background: transparent !important;
+}

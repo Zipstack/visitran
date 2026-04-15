@@ -425,6 +425,18 @@ const Runhistory = () => {
           loading={loading}
           size="small"
           bordered
+          rowClassName={(record) =>
+            expandedRowKeys.includes(record.id) ? "runhistory-row-expanded" : ""
+          }
+          onRow={(record) =>
+            expandedRowKeys.includes(record.id)
+              ? {
+                  style: {
+                    boxShadow: `inset 3px 0 0 0 ${token.colorError}`,
+                  },
+                }
+              : {}
+          }
           expandable={{
             expandedRowRender: (record) => (
               <div
