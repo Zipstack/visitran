@@ -1,7 +1,6 @@
-import { memo, useEffect, useMemo, useRef } from "react";
+import { memo, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Typography, Input, Select, Form } from "antd";
-import { debounce } from "lodash";
 
 import ConnectionUsageSection from "./ConnectionUsageSection";
 import {
@@ -14,58 +13,25 @@ const ConnectionDetailsSection = memo(
   ({
     connectionId,
     dbSelectionInfo,
-    handleConnectionNameDesc,
+    connectionDetailsForm,
     handleCardClick,
     mappedDataSources,
     dbUsage,
   }) => {
-    const [form] = Form.useForm();
-    const isUserEditingRef = useRef(false);
-
-    // Debounce the parent state update to avoid stale closure issues
-    const debouncedHandleConnectionNameDesc = useMemo(
-      () => debounce(handleConnectionNameDesc, 300),
-      [handleConnectionNameDesc]
-    );
-
-    // Cleanup debounce on unmount
-    useEffect(() => {
-      return () => {
-        debouncedHandleConnectionNameDesc.cancel();
-      };
-    }, [debouncedHandleConnectionNameDesc]);
-
-    // Reset editing flag when connectionId changes (new connection loaded)
-    useEffect(() => {
-      isUserEditingRef.current = false;
-    }, [connectionId]);
-
-    // Populate form values when connection data is loaded (not during user edits)
+    // Populate form values when connection data is loaded
     // Apply collapseSpaces since setFieldsValue bypasses the normalize prop
     useEffect(() => {
-      if (!isUserEditingRef.current) {
-        form.setFieldsValue({
-          name: collapseSpaces(dbSelectionInfo.name || ""),
-          description: dbSelectionInfo.description,
-        });
-      }
-    }, [form, connectionId, dbSelectionInfo.name, dbSelectionInfo.description]);
-
-    const handleNameChange = (e) => {
-      isUserEditingRef.current = true;
-      debouncedHandleConnectionNameDesc("name", collapseSpaces(e.target.value));
-    };
-
-    const handleDescriptionChange = (e) => {
-      isUserEditingRef.current = true;
-      debouncedHandleConnectionNameDesc("description", e.target.value);
-    };
+      connectionDetailsForm.setFieldsValue({
+        name: collapseSpaces(dbSelectionInfo.name || ""),
+        description: dbSelectionInfo.description,
+      });
+    }, [connectionDetailsForm, connectionId, dbSelectionInfo.name, dbSelectionInfo.description]);
 
     return (
       <div className="createConnectionSection flex-1 createConnectionSectionDivider overflow-y-auto">
         <Typography className="sectionTitle">Connection Details</Typography>
         <div className="formFieldsWrapper">
-          <Form form={form} layout="vertical">
+          <Form form={connectionDetailsForm} layout="vertical">
             <Form.Item
               label="Name"
               name="name"
@@ -76,7 +42,7 @@ const ConnectionDetailsSection = memo(
               ]}
               required
             >
-              <Input className="field" onChange={handleNameChange} />
+              <Input className="field" />
             </Form.Item>
 
             <Form.Item
@@ -87,7 +53,6 @@ const ConnectionDetailsSection = memo(
               <Input.TextArea
                 className="field"
                 rows={2}
-                onChange={handleDescriptionChange}
               />
             </Form.Item>
 
@@ -123,7 +88,7 @@ ConnectionDetailsSection.propTypes = {
     description: PropTypes.string,
     icon: PropTypes.string,
   }).isRequired,
-  handleConnectionNameDesc: PropTypes.func.isRequired,
+  connectionDetailsForm: PropTypes.object.isRequired,
   handleCardClick: PropTypes.func.isRequired,
   mappedDataSources: PropTypes.array.isRequired,
   dbUsage: PropTypes.shape({
