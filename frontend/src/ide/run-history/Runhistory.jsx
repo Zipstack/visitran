@@ -192,12 +192,9 @@ const Runhistory = () => {
     backUpData,
   ]);
 
-  /* ─── auto-expand failed rows ─── */
+  /* ─── collapse all rows when the underlying data changes ─── */
   useEffect(() => {
-    const failedIds = (JobHistoryData || [])
-      .filter((r) => r.status === "FAILURE" && r.error_message)
-      .map((r) => r.id);
-    setExpandedRowKeys(failedIds);
+    setExpandedRowKeys([]);
   }, [JobHistoryData]);
 
   /* ─── handlers ─── */
