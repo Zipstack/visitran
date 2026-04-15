@@ -76,6 +76,7 @@ const Runhistory = () => {
   const [filterQueries, setFilterQuery] = useState({
     status: "",
     job: "",
+    source: "",
   });
   const [envInfo, setEnvInfo] = useState({
     env_type: "",
@@ -150,16 +151,19 @@ const Runhistory = () => {
     getJobList();
   }, []);
 
-  /* ─── client-side status filter ─── */
+  /* ─── client-side status + source filter ─── */
   useEffect(() => {
+    let filtered = backUpData;
     if (filterQueries.status) {
-      setJobHistoryData(
-        backUpData.filter((el) => el.status === filterQueries.status)
-      );
-    } else {
-      setJobHistoryData(backUpData);
+      filtered = filtered.filter((el) => el.status === filterQueries.status);
     }
-  }, [filterQueries.status, backUpData]);
+    if (filterQueries.source === "quick_deploy") {
+      filtered = filtered.filter((el) => el.kwargs?.source === "quick_deploy");
+    } else if (filterQueries.source === "scheduled") {
+      filtered = filtered.filter((el) => el.kwargs?.source !== "quick_deploy");
+    }
+    setJobHistoryData(filtered);
+  }, [filterQueries.status, filterQueries.source, backUpData]);
 
   /* ─── auto-expand failed rows ─── */
   useEffect(() => {
@@ -171,8 +175,12 @@ const Runhistory = () => {
 
   /* ─── handlers ─── */
   const handleJobChange = useCallback((value) => {
-    setFilterQuery({ status: "", job: value });
+    setFilterQuery({ status: "", job: value, source: "" });
     getRunHistoryList(value);
+  }, []);
+
+  const handleSourceChange = useCallback((value) => {
+    setFilterQuery((prev) => ({ ...prev, source: value || "" }));
   }, []);
 
   const handleStatusChange = useCallback((value) => {
@@ -276,9 +284,15 @@ const Runhistory = () => {
   const emptyDescription = useMemo(() => {
     if (!jobListItems.length) return "No jobs created yet";
     if (!filterQueries.job) return "Select a job to view run history";
-    if (filterQueries.status) return "No matching runs found";
+    if (filterQueries.status || filterQueries.source)
+      return "No matching runs found";
     return "No run history available";
-  }, [jobListItems.length, filterQueries.job, filterQueries.status]);
+  }, [
+    jobListItems.length,
+    filterQueries.job,
+    filterQueries.status,
+    filterQueries.source,
+  ]);
 
   return (
     <div className="runhistory-container">
@@ -306,6 +320,17 @@ const Runhistory = () => {
             onChange={handleStatusChange}
             options={STATUS_OPTIONS}
             value={filterQueries.status || undefined}
+          />
+          <Select
+            allowClear
+            placeholder="Source"
+            className="runhistory-status-select"
+            onChange={handleSourceChange}
+            options={[
+              { label: "Quick Deploy", value: "quick_deploy" },
+              { label: "Scheduled", value: "scheduled" },
+            ]}
+            value={filterQueries.source || undefined}
           />
         </Space>
         <Button
