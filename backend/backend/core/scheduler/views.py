@@ -770,11 +770,17 @@ def list_deploy_candidates(request, project_id, model_name):
 
     candidates = []
     for task in tasks:
-        cfg = (task.model_configs or {}).get(model_name)
+        model_configs = task.model_configs or {}
+        cfg = model_configs.get(model_name)
         if not cfg:
             continue
         if not cfg.get("enabled", True):
             continue
+        enabled_model_count = sum(
+            1
+            for m_cfg in model_configs.values()
+            if m_cfg.get("enabled", True)
+        )
         candidates.append({
             "user_task_id": task.id,
             "task_name": task.task_name,
@@ -786,6 +792,7 @@ def list_deploy_candidates(request, project_id, model_name):
             "prev_run_status": task.prev_run_status,
             "task_run_time": task.task_run_time.isoformat() if task.task_run_time else None,
             "next_run_time": task.next_run_time.isoformat() if task.next_run_time else None,
+            "enabled_model_count": enabled_model_count,
         })
 
     return Response({"data": candidates}, status=status.HTTP_200_OK)

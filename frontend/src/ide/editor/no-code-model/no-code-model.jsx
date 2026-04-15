@@ -1,5 +1,6 @@
 import {
   Button,
+  Card,
   Divider,
   Dropdown,
   Empty,
@@ -250,8 +251,12 @@ function NoCodeModel({ nodeData }) {
   const { setPendingLineageTab } = useLineageTabStore();
   const axiosPrivate = useAxiosPrivate();
   const navigate = useNavigate();
-  const { listDeployCandidates, runTaskForModel, listRecentRunsForModel } =
-    useJobService();
+  const {
+    listDeployCandidates,
+    runTaskForModel,
+    runTask,
+    listRecentRunsForModel,
+  } = useJobService();
   const { token } = theme.useToken();
 
   const [quickDeployModal, setQuickDeployModal] = useState({
@@ -260,6 +265,7 @@ function NoCodeModel({ nodeData }) {
     candidates: [],
     selectedTaskId: null,
     submitting: false,
+    submittingScope: null, // "model" | "job" while a run is dispatching
   });
   const [recentRunsState, setRecentRunsState] = useState({
     loading: false,
@@ -1814,33 +1820,47 @@ function NoCodeModel({ nodeData }) {
     setQuickDeployModal((prev) => ({ ...prev, open: false }));
   };
 
-  const confirmQuickDeploy = async () => {
+  const confirmQuickDeploy = async (scope) => {
     const currentModelName = nodeData?.node?.title;
     const { selectedTaskId } = quickDeployModal;
     if (!currentModelName || !selectedTaskId) return;
-    setQuickDeployModal((prev) => ({ ...prev, submitting: true }));
+    setQuickDeployModal((prev) => ({
+      ...prev,
+      submitting: true,
+      submittingScope: scope,
+    }));
     try {
-      await runTaskForModel(projectId, selectedTaskId, currentModelName);
+      if (scope === "job") {
+        await runTask(projectId, selectedTaskId);
+      } else {
+        await runTaskForModel(projectId, selectedTaskId, currentModelName);
+      }
       const selected = quickDeployModal.candidates.find(
         (c) => c.user_task_id === selectedTaskId
       );
+      const envName = selected?.environment_name || "the selected environment";
+      const jobName = selected?.task_name || "";
       notify({
         type: "success",
         message: "Deploy Triggered",
-        description: `"${currentModelName}" is running on "${
-          selected?.environment_name || "the selected environment"
-        }" via job "${
-          selected?.task_name || ""
-        }". Check Run History for progress.`,
+        description:
+          scope === "job"
+            ? `Job "${jobName}" is running on "${envName}" (all enabled models). Check Run History for progress.`
+            : `"${currentModelName}" is running on "${envName}" via job "${jobName}". Check Run History for progress.`,
       });
       setRefreshModels(true);
       setQuickDeployModal((prev) => ({
         ...prev,
         open: false,
         submitting: false,
+        submittingScope: null,
       }));
     } catch (error) {
-      setQuickDeployModal((prev) => ({ ...prev, submitting: false }));
+      setQuickDeployModal((prev) => ({
+        ...prev,
+        submitting: false,
+        submittingScope: null,
+      }));
       notify({ error });
     }
   };
@@ -2818,7 +2838,7 @@ function NoCodeModel({ nodeData }) {
                     }
                     icon={<PlayCircleOutlined />}
                   >
-                    Deploy Model
+                    Quick Deploy
                   </Button>
                   <Dropdown
                     trigger={["click"]}
@@ -2952,7 +2972,7 @@ function NoCodeModel({ nodeData }) {
         title={
           quickDeployModal.step === "empty"
             ? "No Deployment Job Found"
-            : `Deploy Model "${nodeData?.node?.title || ""}"`
+            : `Quick Deploy "${nodeData?.node?.title || ""}"`
         }
         onCancel={closeQuickDeploy}
         destroyOnClose
@@ -2965,22 +2985,12 @@ function NoCodeModel({ nodeData }) {
               </Button>
             </Space>
           ) : quickDeployModal.step === "loading" ? null : (
-            <Space>
-              <Button
-                onClick={closeQuickDeploy}
-                disabled={quickDeployModal.submitting}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="primary"
-                loading={quickDeployModal.submitting}
-                disabled={!quickDeployModal.selectedTaskId}
-                onClick={confirmQuickDeploy}
-              >
-                Run Now
-              </Button>
-            </Space>
+            <Button
+              onClick={closeQuickDeploy}
+              disabled={quickDeployModal.submitting}
+            >
+              Cancel
+            </Button>
           )
         }
       >
@@ -2996,54 +3006,151 @@ function NoCodeModel({ nodeData }) {
             Deploy against its configured environment.
           </Typography.Paragraph>
         )}
-        {quickDeployModal.step === "confirm" &&
-          quickDeployModal.candidates[0] && (
-            <div>
-              <Typography.Paragraph>
-                This will run <strong>{nodeData?.node?.title}</strong> against
-                environment{" "}
-                <strong>
-                  {quickDeployModal.candidates[0].environment_name ||
-                    "(unnamed)"}
-                </strong>{" "}
-                using job{" "}
-                <strong>{quickDeployModal.candidates[0].task_name}</strong>.
-              </Typography.Paragraph>
-              <Typography.Paragraph
-                type="secondary"
-                style={{ marginBottom: 0 }}
-              >
-                The run is tracked in Run History alongside scheduled runs.
-              </Typography.Paragraph>
-            </div>
-          )}
-        {quickDeployModal.step === "pick" && (
-          <div>
-            <Typography.Paragraph>
-              Multiple jobs deploy <strong>{nodeData?.node?.title}</strong>.
-              Pick one:
-            </Typography.Paragraph>
-            <Radio.Group
-              value={quickDeployModal.selectedTaskId}
-              onChange={(e) =>
-                setQuickDeployModal((prev) => ({
-                  ...prev,
-                  selectedTaskId: e.target.value,
-                }))
-              }
-              style={{ display: "flex", flexDirection: "column", gap: 8 }}
-            >
-              {quickDeployModal.candidates.map((c) => (
-                <Radio key={c.user_task_id} value={c.user_task_id}>
-                  <strong>{c.task_name}</strong>
-                  <span style={{ color: "#888", marginLeft: 8 }}>
-                    env: {c.environment_name || "(unnamed)"}
-                  </span>
-                </Radio>
-              ))}
-            </Radio.Group>
-          </div>
-        )}
+        {(quickDeployModal.step === "confirm" ||
+          quickDeployModal.step === "pick") &&
+          (() => {
+            const selected = quickDeployModal.candidates.find(
+              (c) => c.user_task_id === quickDeployModal.selectedTaskId
+            );
+            const multiple = quickDeployModal.candidates.length > 1;
+            const modelCount = selected?.enabled_model_count || 0;
+            return (
+              <div>
+                {multiple && (
+                  <>
+                    <Typography.Text strong>Pick a job</Typography.Text>
+                    <Radio.Group
+                      value={quickDeployModal.selectedTaskId}
+                      onChange={(e) =>
+                        setQuickDeployModal((prev) => ({
+                          ...prev,
+                          selectedTaskId: e.target.value,
+                        }))
+                      }
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 8,
+                        margin: "8px 0 16px",
+                      }}
+                    >
+                      {quickDeployModal.candidates.map((c) => (
+                        <Radio key={c.user_task_id} value={c.user_task_id}>
+                          <strong>{c.task_name}</strong>
+                          <Typography.Text
+                            type="secondary"
+                            style={{ marginLeft: 8 }}
+                          >
+                            env: {c.environment_name || "(unnamed)"}
+                          </Typography.Text>
+                        </Radio>
+                      ))}
+                    </Radio.Group>
+                  </>
+                )}
+                {!multiple && selected && (
+                  <Typography.Paragraph style={{ marginBottom: 12 }}>
+                    Job <strong>{selected.task_name}</strong> · environment{" "}
+                    <strong>{selected.environment_name || "(unnamed)"}</strong>
+                  </Typography.Paragraph>
+                )}
+                <Typography.Text strong>Choose scope</Typography.Text>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 12,
+                    marginTop: 8,
+                  }}
+                >
+                  <Card
+                    hoverable={!quickDeployModal.submitting}
+                    onClick={
+                      quickDeployModal.submitting
+                        ? undefined
+                        : () => confirmQuickDeploy("model")
+                    }
+                    styles={{
+                      body: { padding: 12, cursor: "pointer" },
+                    }}
+                    style={{
+                      borderColor:
+                        quickDeployModal.submittingScope === "model"
+                          ? token.colorPrimary
+                          : undefined,
+                      opacity:
+                        quickDeployModal.submitting &&
+                        quickDeployModal.submittingScope !== "model"
+                          ? 0.5
+                          : 1,
+                    }}
+                  >
+                    <Typography.Text strong>
+                      Run this model only
+                    </Typography.Text>
+                    <div>
+                      <Typography.Text
+                        type="secondary"
+                        style={{ fontSize: 12 }}
+                      >
+                        Fast — runs just{" "}
+                        <em>{nodeData?.node?.title || "this model"}</em>.
+                      </Typography.Text>
+                    </div>
+                    {quickDeployModal.submittingScope === "model" && (
+                      <Typography.Text
+                        type="secondary"
+                        style={{ fontSize: 11 }}
+                      >
+                        Submitting…
+                      </Typography.Text>
+                    )}
+                  </Card>
+                  <Card
+                    hoverable={!quickDeployModal.submitting}
+                    onClick={
+                      quickDeployModal.submitting
+                        ? undefined
+                        : () => confirmQuickDeploy("job")
+                    }
+                    styles={{
+                      body: { padding: 12, cursor: "pointer" },
+                    }}
+                    style={{
+                      borderColor:
+                        quickDeployModal.submittingScope === "job"
+                          ? token.colorPrimary
+                          : undefined,
+                      opacity:
+                        quickDeployModal.submitting &&
+                        quickDeployModal.submittingScope !== "job"
+                          ? 0.5
+                          : 1,
+                    }}
+                  >
+                    <Typography.Text strong>Run full job</Typography.Text>
+                    <div>
+                      <Typography.Text
+                        type="secondary"
+                        style={{ fontSize: 12 }}
+                      >
+                        Runs all {modelCount || "enabled"} model
+                        {modelCount === 1 ? "" : "s"} in the job.
+                      </Typography.Text>
+                    </div>
+                    {quickDeployModal.submittingScope === "job" && (
+                      <Typography.Text
+                        type="secondary"
+                        style={{ fontSize: 11 }}
+                      >
+                        Submitting…
+                      </Typography.Text>
+                    )}
+                  </Card>
+                </div>
+              </div>
+            );
+          })()}
       </Modal>
     </div>
   );
