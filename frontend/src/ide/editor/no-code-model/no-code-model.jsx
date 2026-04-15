@@ -4,6 +4,7 @@ import {
   Input,
   Modal,
   Pagination,
+  Radio,
   Select,
   Space,
   Table,
@@ -12,6 +13,7 @@ import {
   Tooltip,
   Typography,
 } from "antd";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Resizable } from "react-resizable";
 import Cookies from "js-cookie";
@@ -42,6 +44,7 @@ import {
   LineHeightOutlined,
   LinkOutlined,
   MergeCellsOutlined,
+  PlayCircleOutlined,
   PlusSquareOutlined,
   ProfileOutlined,
   RetweetOutlined,
@@ -98,6 +101,7 @@ import { CopyableCell } from "../../../widgets/copyable-cell/index.js";
 import "./no-code-model.css";
 import "reactflow/dist/style.css";
 import { useNotificationService } from "../../../service/notification-service.js";
+import { useJobService } from "../../scheduler/service.js";
 import { useTransformIdStore } from "../../../store/transform-id-store.js";
 import {
   getCombineColumnsSpec,
@@ -241,6 +245,16 @@ function NoCodeModel({ nodeData }) {
   const { renamedModel, setRenamedModel } = useProjectStore();
   const { setPendingLineageTab } = useLineageTabStore();
   const axiosPrivate = useAxiosPrivate();
+  const navigate = useNavigate();
+  const { listDeployCandidates, runTaskForModel } = useJobService();
+
+  const [quickDeployModal, setQuickDeployModal] = useState({
+    open: false,
+    step: "loading", // loading | empty | confirm | pick
+    candidates: [],
+    selectedTaskId: null,
+    submitting: false,
+  });
 
   const modelName =
     nodeData?.node?.title ||
@@ -1631,6 +1645,88 @@ function NoCodeModel({ nodeData }) {
     setSpecRevert(true);
   };
 
+  const openQuickDeploy = async () => {
+    const currentModelName = nodeData?.node?.title;
+    if (!currentModelName) return;
+    setQuickDeployModal({
+      open: true,
+      step: "loading",
+      candidates: [],
+      selectedTaskId: null,
+      submitting: false,
+    });
+    try {
+      const candidates = await listDeployCandidates(
+        projectId,
+        currentModelName
+      );
+      if (!candidates.length) {
+        setQuickDeployModal((prev) => ({
+          ...prev,
+          step: "empty",
+          candidates: [],
+        }));
+      } else if (candidates.length === 1) {
+        setQuickDeployModal((prev) => ({
+          ...prev,
+          step: "confirm",
+          candidates,
+          selectedTaskId: candidates[0].user_task_id,
+        }));
+      } else {
+        setQuickDeployModal((prev) => ({
+          ...prev,
+          step: "pick",
+          candidates,
+          selectedTaskId: candidates[0].user_task_id,
+        }));
+      }
+    } catch (error) {
+      setQuickDeployModal((prev) => ({ ...prev, open: false }));
+      notify({ error });
+    }
+  };
+
+  const closeQuickDeploy = () => {
+    setQuickDeployModal((prev) => ({ ...prev, open: false }));
+  };
+
+  const confirmQuickDeploy = async () => {
+    const currentModelName = nodeData?.node?.title;
+    const { selectedTaskId } = quickDeployModal;
+    if (!currentModelName || !selectedTaskId) return;
+    setQuickDeployModal((prev) => ({ ...prev, submitting: true }));
+    try {
+      await runTaskForModel(projectId, selectedTaskId, currentModelName);
+      const selected = quickDeployModal.candidates.find(
+        (c) => c.user_task_id === selectedTaskId
+      );
+      notify({
+        type: "success",
+        message: "Quick Deploy Triggered",
+        description: `"${currentModelName}" is running on "${
+          selected?.environment_name || "the selected environment"
+        }" via job "${
+          selected?.task_name || ""
+        }". Check Run History for progress.`,
+      });
+      setRefreshModels(true);
+      setQuickDeployModal((prev) => ({
+        ...prev,
+        open: false,
+        submitting: false,
+      }));
+    } catch (error) {
+      setQuickDeployModal((prev) => ({ ...prev, submitting: false }));
+      notify({ error });
+    }
+  };
+
+  const goToScheduler = () => {
+    setQuickDeployModal((prev) => ({ ...prev, open: false }));
+    navigate("/project/job/list");
+  };
+
   const runTransformation = (spec) => {
     setIsLoading(true);
     const specYaml = yaml.dump(removeUnwantedKeys(spec));
@@ -2587,6 +2683,20 @@ function NoCodeModel({ nodeData }) {
             <div className="custom-pagination-container">
               <Space>
                 <Button
+                  type="primary"
+                  onClick={openQuickDeploy}
+                  disabled={
+                    spec?.source?.table_name === null ||
+                    isLoading ||
+                    previewTimeTravel ||
+                    !can_write ||
+                    !nodeData?.node?.title
+                  }
+                  icon={<PlayCircleOutlined />}
+                >
+                  Quick Deploy
+                </Button>
+                <Button
                   onClick={() => handleModalOpen("clearTransformsAlert")}
                   disabled={
                     spec?.source?.table_name === null || isLoading || !can_write
@@ -2697,6 +2807,105 @@ function NoCodeModel({ nodeData }) {
           </div>
         </EditorBottomSection>
       )}
+      <Modal
+        centered
+        open={quickDeployModal.open}
+        title={
+          quickDeployModal.step === "empty"
+            ? "No Deployment Job Found"
+            : `Quick Deploy "${nodeData?.node?.title || ""}"`
+        }
+        onCancel={closeQuickDeploy}
+        destroyOnClose
+        footer={
+          quickDeployModal.step === "empty" ? (
+            <Space>
+              <Button onClick={closeQuickDeploy}>Close</Button>
+              <Button type="primary" onClick={goToScheduler}>
+                Go to Scheduler
+              </Button>
+            </Space>
+          ) : quickDeployModal.step === "loading" ? null : (
+            <Space>
+              <Button
+                onClick={closeQuickDeploy}
+                disabled={quickDeployModal.submitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="primary"
+                loading={quickDeployModal.submitting}
+                disabled={!quickDeployModal.selectedTaskId}
+                onClick={confirmQuickDeploy}
+              >
+                Run Now
+              </Button>
+            </Space>
+          )
+        }
+      >
+        {quickDeployModal.step === "loading" && (
+          <div style={{ textAlign: "center", padding: 24 }}>
+            <SpinnerLoader />
+          </div>
+        )}
+        {quickDeployModal.step === "empty" && (
+          <Typography.Paragraph>
+            No job includes model <strong>{nodeData?.node?.title}</strong> yet.
+            Create a scheduled job for this model first; then you can Quick
+            Deploy against its configured environment.
+          </Typography.Paragraph>
+        )}
+        {quickDeployModal.step === "confirm" &&
+          quickDeployModal.candidates[0] && (
+            <div>
+              <Typography.Paragraph>
+                This will run <strong>{nodeData?.node?.title}</strong> against
+                environment{" "}
+                <strong>
+                  {quickDeployModal.candidates[0].environment_name ||
+                    "(unnamed)"}
+                </strong>{" "}
+                using job{" "}
+                <strong>{quickDeployModal.candidates[0].task_name}</strong>.
+              </Typography.Paragraph>
+              <Typography.Paragraph
+                type="secondary"
+                style={{ marginBottom: 0 }}
+              >
+                The run is tracked in Run History alongside scheduled runs.
+              </Typography.Paragraph>
+            </div>
+          )}
+        {quickDeployModal.step === "pick" && (
+          <div>
+            <Typography.Paragraph>
+              Multiple jobs deploy <strong>{nodeData?.node?.title}</strong>.
+              Pick one:
+            </Typography.Paragraph>
+            <Radio.Group
+              value={quickDeployModal.selectedTaskId}
+              onChange={(e) =>
+                setQuickDeployModal((prev) => ({
+                  ...prev,
+                  selectedTaskId: e.target.value,
+                }))
+              }
+              style={{ display: "flex", flexDirection: "column", gap: 8 }}
+            >
+              {quickDeployModal.candidates.map((c) => (
+                <Radio key={c.user_task_id} value={c.user_task_id}>
+                  <strong>{c.task_name}</strong>
+                  <span style={{ color: "#888", marginLeft: 8 }}>
+                    env: {c.environment_name || "(unnamed)"}
+                  </span>
+                </Radio>
+              ))}
+            </Radio.Group>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

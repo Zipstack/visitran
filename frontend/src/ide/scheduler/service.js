@@ -63,6 +63,22 @@ export function useJobService() {
     return response.data;
   };
 
+  const runTaskForModel = async (projId, taskId, modelName) => {
+    const url = `${jobsUrl(
+      projId
+    )}/trigger-periodic-task/${taskId}/model/${encodeURIComponent(modelName)}`;
+    const response = await axiosPrivate.post(url, {}, { headers });
+    return response.data;
+  };
+
+  const listDeployCandidates = async (projId, modelName) => {
+    const url = `${jobsUrl(
+      projId
+    )}/quick-deploy/candidates/${encodeURIComponent(modelName)}`;
+    const response = await axiosPrivate.get(url);
+    return response.data?.data || [];
+  };
+
   const getProjects = async () => {
     const url = `/api/v1/visitran/${orgId}/projects`;
     const response = await axiosPrivate.get(url);
@@ -117,6 +133,8 @@ export function useJobService() {
     updateTask,
     deleteTask,
     runTask,
+    runTaskForModel,
+    listDeployCandidates,
     getProjects,
     getEnvironments,
     getProjectModels,

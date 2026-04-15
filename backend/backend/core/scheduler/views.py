@@ -605,30 +605,16 @@ def task_run_history(request, project_id, user_task_id):
         )
 
 
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def trigger_task_once(request, project_id, user_task_id):
-    """Trigger a task to run immediately.
-
-    Tries Celery first; if the broker is unreachable, falls back to
-    synchronous (in-process) execution so local dev works without Redis.
-    """
-    try:
-        task = UserTaskDetails.objects.get(
-            id=user_task_id, project__project_uuid=project_id
-        )
-    except UserTaskDetails.DoesNotExist:
-        return Response(
-            {"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND
-        )
-
+def _dispatch_task_run(task, user_id, models_override=None):
+    """Shared dispatch: try Celery broker, fall back to synchronous execution."""
     run_kwargs = {
         "user_task_id": task.id,
-        "user_id": request.user.id,
+        "user_id": user_id,
         "organization_id": str(task.organization_id) if task.organization_id else None,
     }
+    if models_override:
+        run_kwargs["models_override"] = list(models_override)
 
-    # Try async dispatch via Celery broker
     try:
         from backend.core.scheduler.task_constant import Task as TaskConst
         from celery import current_app
@@ -646,7 +632,6 @@ def trigger_task_once(request, project_id, user_task_id):
     except Exception as broker_err:
         logger.warning("Celery broker unavailable (%s), running synchronously.", broker_err)
 
-    # Fallback: run synchronously in-process
     try:
         from backend.core.scheduler.celery_tasks import trigger_scheduled_run
 
@@ -661,3 +646,84 @@ def trigger_task_once(request, project_id, user_task_id):
         return Response(
             {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def trigger_task_once(request, project_id, user_task_id):
+    """Trigger a task to run immediately.
+
+    Tries Celery first; if the broker is unreachable, falls back to
+    synchronous (in-process) execution so local dev works without Redis.
+    """
+    try:
+        task = UserTaskDetails.objects.get(
+            id=user_task_id, project__project_uuid=project_id
+        )
+    except UserTaskDetails.DoesNotExist:
+        return Response(
+            {"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND
+        )
+
+    return _dispatch_task_run(task, request.user.id)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def trigger_task_once_for_model(request, project_id, user_task_id, model_name):
+    """Quick Deploy: trigger a job to run a single model against its configured environment.
+
+    Execution reuses the scheduler pipeline (TaskRunHistory, retries, Slack
+    notifications) but scopes the DAG run to ``model_name`` only. The model
+    must be present and enabled in the task's ``model_configs``.
+    """
+    try:
+        task = UserTaskDetails.objects.select_related("project").get(
+            id=user_task_id, project__project_uuid=project_id
+        )
+    except UserTaskDetails.DoesNotExist:
+        return Response(
+            {"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND
+        )
+
+    model_cfg = (task.model_configs or {}).get(model_name)
+    if not model_cfg or not model_cfg.get("enabled", True):
+        return Response(
+            {"error": f"Model '{model_name}' is not enabled on this job."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    return _dispatch_task_run(task, request.user.id, models_override=[model_name])
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def list_deploy_candidates(request, project_id, model_name):
+    """Return jobs in ``project_id`` that can deploy ``model_name``.
+
+    A job qualifies when ``model_name`` is a key in ``model_configs`` and its
+    ``enabled`` flag is truthy (defaults to True if the flag is absent).
+    """
+    tasks = UserTaskDetails.objects.select_related("environment", "project").filter(
+        project__project_uuid=project_id,
+    )
+
+    candidates = []
+    for task in tasks:
+        cfg = (task.model_configs or {}).get(model_name)
+        if not cfg:
+            continue
+        if not cfg.get("enabled", True):
+            continue
+        candidates.append({
+            "user_task_id": task.id,
+            "task_name": task.task_name,
+            "environment_id": str(task.environment.environment_id),
+            "environment_name": getattr(task.environment, "name", ""),
+            "status": task.status,
+            "prev_run_status": task.prev_run_status,
+            "task_run_time": task.task_run_time.isoformat() if task.task_run_time else None,
+            "next_run_time": task.next_run_time.isoformat() if task.next_run_time else None,
+        })
+
+    return Response({"data": candidates}, status=status.HTTP_200_OK)
