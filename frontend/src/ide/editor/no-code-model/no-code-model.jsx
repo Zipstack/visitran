@@ -1,5 +1,6 @@
 import {
   Button,
+  Card,
   Checkbox,
   Divider,
   Dropdown,
@@ -264,7 +265,8 @@ function NoCodeModel({ nodeData }) {
     step: "loading", // loading | empty | confirm | pick
     candidates: [],
     selectedTaskId: null,
-    runFullJob: false,
+    selectedScope: null, // "model" | "job"
+    confirmed: false,
     submitting: false,
   });
   const [recentRunsState, setRecentRunsState] = useState({
@@ -1782,7 +1784,8 @@ function NoCodeModel({ nodeData }) {
       step: "loading",
       candidates: [],
       selectedTaskId: null,
-      runFullJob: false,
+      selectedScope: null,
+      confirmed: false,
       submitting: false,
     });
     try {
@@ -1823,11 +1826,13 @@ function NoCodeModel({ nodeData }) {
 
   const confirmQuickDeploy = async () => {
     const currentModelName = nodeData?.node?.title;
-    const { selectedTaskId, runFullJob } = quickDeployModal;
-    if (!currentModelName || !selectedTaskId) return;
+    const { selectedTaskId, selectedScope, confirmed } = quickDeployModal;
+    if (!currentModelName || !selectedTaskId || !selectedScope || !confirmed) {
+      return;
+    }
     setQuickDeployModal((prev) => ({ ...prev, submitting: true }));
     try {
-      if (runFullJob) {
+      if (selectedScope === "job") {
         await runTask(projectId, selectedTaskId);
       } else {
         await runTaskForModel(projectId, selectedTaskId, currentModelName);
@@ -1840,9 +1845,10 @@ function NoCodeModel({ nodeData }) {
       notify({
         type: "success",
         message: "Deploy Triggered",
-        description: runFullJob
-          ? `Job "${jobName}" is running on "${envName}" (all enabled models). Check Run History for progress.`
-          : `"${currentModelName}" is running on "${envName}" via job "${jobName}". Check Run History for progress.`,
+        description:
+          selectedScope === "job"
+            ? `Job "${jobName}" is running on "${envName}" (all enabled models). Check Run History for progress.`
+            : `"${currentModelName}" is running on "${envName}" via job "${jobName}". Check Run History for progress.`,
       });
       setRefreshModels(true);
       setQuickDeployModal((prev) => ({
@@ -2986,10 +2992,18 @@ function NoCodeModel({ nodeData }) {
               <Button
                 type="primary"
                 loading={quickDeployModal.submitting}
-                disabled={!quickDeployModal.selectedTaskId}
+                disabled={
+                  !quickDeployModal.selectedTaskId ||
+                  !quickDeployModal.selectedScope ||
+                  !quickDeployModal.confirmed
+                }
                 onClick={confirmQuickDeploy}
               >
-                {quickDeployModal.runFullJob ? "Run full job" : "Run model"}
+                {quickDeployModal.selectedScope === "job"
+                  ? "Run full job"
+                  : quickDeployModal.selectedScope === "model"
+                  ? "Run model"
+                  : "Run"}
               </Button>
             </Space>
           )
@@ -3026,7 +3040,8 @@ function NoCodeModel({ nodeData }) {
                         setQuickDeployModal((prev) => ({
                           ...prev,
                           selectedTaskId: e.target.value,
-                          runFullJob: false,
+                          selectedScope: null,
+                          confirmed: false,
                         }))
                       }
                       style={{
@@ -3056,6 +3071,79 @@ function NoCodeModel({ nodeData }) {
                     <strong>{selected.environment_name || "(unnamed)"}</strong>
                   </Typography.Paragraph>
                 )}
+                <Typography.Text strong>Choose scope</Typography.Text>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 12,
+                    margin: "8px 0 16px",
+                  }}
+                >
+                  {[
+                    {
+                      key: "model",
+                      title: "Run this model only",
+                      body: (
+                        <>
+                          Fast — runs just{" "}
+                          <em>{nodeData?.node?.title || "this model"}</em>.
+                        </>
+                      ),
+                    },
+                    {
+                      key: "job",
+                      title: "Run full job",
+                      body: (
+                        <>
+                          Runs all {modelCount || "enabled"} model
+                          {modelCount === 1 ? "" : "s"} in the job.
+                        </>
+                      ),
+                    },
+                  ].map((opt) => {
+                    const isSelected =
+                      quickDeployModal.selectedScope === opt.key;
+                    return (
+                      <Card
+                        key={opt.key}
+                        hoverable={!quickDeployModal.submitting}
+                        onClick={
+                          quickDeployModal.submitting
+                            ? undefined
+                            : () =>
+                                setQuickDeployModal((prev) => ({
+                                  ...prev,
+                                  selectedScope: opt.key,
+                                  confirmed: false,
+                                }))
+                        }
+                        styles={{ body: { padding: 12 } }}
+                        style={{
+                          cursor: quickDeployModal.submitting
+                            ? "not-allowed"
+                            : "pointer",
+                          borderColor: isSelected
+                            ? token.colorPrimary
+                            : undefined,
+                          boxShadow: isSelected
+                            ? `0 0 0 2px ${token.controlOutline}`
+                            : undefined,
+                        }}
+                      >
+                        <Typography.Text strong>{opt.title}</Typography.Text>
+                        <div>
+                          <Typography.Text
+                            type="secondary"
+                            style={{ fontSize: 12 }}
+                          >
+                            {opt.body}
+                          </Typography.Text>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
                 <div
                   style={{
                     padding: "10px 12px",
@@ -3065,28 +3153,32 @@ function NoCodeModel({ nodeData }) {
                   }}
                 >
                   <Checkbox
-                    checked={quickDeployModal.runFullJob}
-                    disabled={quickDeployModal.submitting || !selected}
+                    checked={quickDeployModal.confirmed}
+                    disabled={
+                      !quickDeployModal.selectedScope ||
+                      quickDeployModal.submitting
+                    }
                     onChange={(e) =>
                       setQuickDeployModal((prev) => ({
                         ...prev,
-                        runFullJob: e.target.checked,
+                        confirmed: e.target.checked,
                       }))
                     }
                   >
-                    Also run the other models in this job
+                    I understand this will{" "}
+                    {quickDeployModal.selectedScope === "job"
+                      ? `run all ${modelCount || "enabled"} model${
+                          modelCount === 1 ? "" : "s"
+                        } in "${selected?.task_name || "this job"}"`
+                      : quickDeployModal.selectedScope === "model"
+                      ? `run "${nodeData?.node?.title || "this model"}" via "${
+                          selected?.task_name || "the selected job"
+                        }"`
+                      : "run the selected scope"}{" "}
+                    against environment{" "}
+                    <strong>{selected?.environment_name || "(unnamed)"}</strong>
+                    .
                   </Checkbox>
-                  <div style={{ marginTop: 4, marginLeft: 24 }}>
-                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                      {quickDeployModal.runFullJob
-                        ? `All ${modelCount || "enabled"} model${
-                            modelCount === 1 ? "" : "s"
-                          } in the job will run against the selected environment.`
-                        : `Only ${
-                            nodeData?.node?.title || "this model"
-                          } will run. Leave checked off for a fast, focused deploy.`}
-                    </Typography.Text>
-                  </div>
                 </div>
               </div>
             );
