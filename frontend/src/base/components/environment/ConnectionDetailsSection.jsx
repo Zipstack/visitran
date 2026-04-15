@@ -25,7 +25,12 @@ const ConnectionDetailsSection = memo(
         name: collapseSpaces(dbSelectionInfo.name || ""),
         description: dbSelectionInfo.description,
       });
-    }, [connectionDetailsForm, connectionId, dbSelectionInfo.name, dbSelectionInfo.description]);
+    }, [
+      connectionDetailsForm,
+      connectionId,
+      dbSelectionInfo.name,
+      dbSelectionInfo.description,
+    ]);
 
     return (
       <div className="createConnectionSection flex-1 createConnectionSectionDivider overflow-y-auto">
@@ -50,10 +55,7 @@ const ConnectionDetailsSection = memo(
               name="description"
               rules={[{ validator: validateFormFieldDescription }]}
             >
-              <Input.TextArea
-                className="field"
-                rows={2}
-              />
+              <Input.TextArea className="field" rows={2} />
             </Form.Item>
 
             <Form.Item label="Database" required>
