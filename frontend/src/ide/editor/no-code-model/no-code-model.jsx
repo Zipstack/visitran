@@ -252,6 +252,7 @@ function NoCodeModel({ nodeData }) {
   const navigate = useNavigate();
   const { listDeployCandidates, runTaskForModel, listRecentRunsForModel } =
     useJobService();
+  const { token } = theme.useToken();
 
   const [quickDeployModal, setQuickDeployModal] = useState({
     open: false,
@@ -1694,9 +1695,9 @@ function NoCodeModel({ nodeData }) {
     <div
       style={{
         width: 320,
-        background: "#fff",
-        borderRadius: 8,
-        boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
+        background: token.colorBgElevated,
+        borderRadius: token.borderRadiusLG,
+        boxShadow: token.boxShadowSecondary,
         padding: "8px 0",
       }}
     >
@@ -1705,15 +1706,17 @@ function NoCodeModel({ nodeData }) {
           padding: "4px 12px 8px",
           fontSize: 12,
           fontWeight: 600,
-          color: "#555",
+          color: token.colorTextSecondary,
         }}
       >
         Recent runs
       </div>
       {recentRunsState.loading ? (
-        <div style={{ padding: "12px 16px", color: "#888" }}>Loading…</div>
+        <div style={{ padding: "12px 16px", color: token.colorTextSecondary }}>
+          Loading…
+        </div>
       ) : recentRunsState.runs.length === 0 ? (
-        <div style={{ padding: "12px 16px", color: "#888" }}>
+        <div style={{ padding: "12px 16px", color: token.colorTextSecondary }}>
           No runs for this model yet.
         </div>
       ) : (
@@ -1724,7 +1727,7 @@ function NoCodeModel({ nodeData }) {
               key={run.run_id}
               style={{
                 padding: "8px 12px",
-                borderTop: "1px solid #f0f0f0",
+                borderTop: `1px solid ${token.colorBorderSecondary}`,
                 display: "flex",
                 flexDirection: "column",
                 gap: 2,
