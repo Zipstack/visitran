@@ -52,6 +52,8 @@ const TASK_TYPES = {
 
 const DEFAULT_CRON = "30 * * * *";
 
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
 /* ─── cron values reducer (matches CronFields interface) ─── */
 const cronReducer = (state, action) => {
   switch (action.type) {
@@ -678,10 +680,8 @@ const JobDeploy = memo(function JobDeploy({
                             validator: (_, value) => {
                               if (!value || value.length === 0)
                                 return Promise.resolve();
-                              const emailRegex =
-                                /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
                               const invalid = value.filter(
-                                (e) => !emailRegex.test(e)
+                                (e) => !EMAIL_REGEX.test(e)
                               );
                               if (invalid.length > 0) {
                                 return Promise.reject(
