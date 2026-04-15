@@ -20,6 +20,7 @@ import {
 } from "./environment-api-service.js";
 import "./environment.css";
 import { useNotificationService } from "../../../service/notification-service.js";
+import { collapseSpaces } from "./helper";
 
 const CreateConnection = ({
   setIsModalOpen,
@@ -207,6 +208,7 @@ const CreateConnection = ({
   }, [
     connectionId,
     connectionDetailsForm,
+    hasDetailsChanged,
     dbSelectionInfo,
     inputFields,
     connType,
@@ -240,7 +242,10 @@ const CreateConnection = ({
         icon: db_icon,
       };
       setDbSelectionInfo(selectionInfo);
-      setOriginalDbSelectionInfo({ ...selectionInfo });
+      setOriginalDbSelectionInfo({
+        ...selectionInfo,
+        name: collapseSpaces(selectionInfo.name || ""),
+      });
       // Process connection details to handle JSON objects for textarea fields
       const processedConnectionDetails = { ...connection_details };
 
