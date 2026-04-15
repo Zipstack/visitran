@@ -325,9 +325,25 @@ const Runhistory = () => {
           return new Date(a.start_time) - new Date(b.start_time);
         },
         defaultSortOrder: "descend",
-        render: (text) => (
-          <Typography.Text>{text || "Not started yet"}</Typography.Text>
-        ),
+        render: (text) => {
+          if (!text) {
+            return (
+              <Typography.Text type="secondary">
+                Not started yet
+              </Typography.Text>
+            );
+          }
+          return (
+            <Tooltip title={new Date(text).toISOString()}>
+              <Space direction="vertical" size={0}>
+                <Typography.Text>{formatDateTime(text)}</Typography.Text>
+                <Typography.Text type="secondary" style={{ fontSize: 11 }}>
+                  {getRelativeTime(text)}
+                </Typography.Text>
+              </Space>
+            </Tooltip>
+          );
+        },
       },
       {
         title: "Duration",
