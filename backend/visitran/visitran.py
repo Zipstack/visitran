@@ -260,7 +260,7 @@ class Visitran:
                         destination_table_obj=(
                             str(node.destination_table_obj) if hasattr(node, "destination_table_obj") else ""
                         ),
-                        materialization=str(node.materialization),
+                        materialization=node.materialization.value if hasattr(node.materialization, "value") else str(node.materialization),
                         select_statement=(str(node.select_statement) if hasattr(node, "select_statement") else ""),
                         source_schema_name=node.source_schema_name,
                         source_table_name=node.source_table_name,
@@ -276,8 +276,8 @@ class Visitran:
                     ending_time=datetime.datetime.now(),
                     failures=False,
                     info_message=f"Running {node_name}",
-                    status=str(ExecStatus.Success),
-                    end_status=str(ExecStatus.OK),
+                    status=ExecStatus.Success.value,
+                    end_status=ExecStatus.OK.value,
                 )
                 sequence_number += 1
                 BASE_RESULT.append(base_result)
@@ -291,8 +291,8 @@ class Visitran:
                     node_name=str(node_name),
                     sequence_num=sequence_number,
                     ending_time=datetime.datetime.now(),
-                    status=str(ExecStatus.Error),
-                    end_status=str(ExecStatus.Fail),
+                    status=ExecStatus.Error.value,
+                    end_status=ExecStatus.Fail.value,
                     info_message=f"Error occurred while running {node_name}",
                     failures=True,
                 )
@@ -438,7 +438,7 @@ class Visitran:
             )
 
             for cls in cls_set:
-                fire_event(ProcessingModel(cls=str(cls)))
+                fire_event(ProcessingModel(cls=getattr(cls, "__name__", "") or file_name))
                 # process each model only once
                 # they might be imported in several places!
 
@@ -550,9 +550,9 @@ class Visitran:
                     sequence_num=test_files.index(tf),
                     failures=True,
                     ending_time=datetime.datetime.now(),
-                    status=str(ExecStatus.Error),
+                    status=ExecStatus.Error.value,
                     info_message=f"Error occured in {tf} execution",
-                    end_status=str(ExecStatus.Fail),
+                    end_status=ExecStatus.Fail.value,
                 )
                 BASE_RESULT.append(base_result)
                 parse_and_fire_reports()
@@ -611,8 +611,8 @@ class Visitran:
                     info_message=f"Test assertion error: \
                     {repr(err)} in {test_func.__name__}",
                     ending_time=datetime.datetime.now(),
-                    status=str(ExecStatus.Error),
-                    end_status=str(ExecStatus.Fail),
+                    status=ExecStatus.Error.value,
+                    end_status=ExecStatus.Fail.value,
                     sequence_num=sequence_num,
                 )
                 BASE_RESULT.append(base_result)
@@ -624,8 +624,8 @@ class Visitran:
                 ending_time=datetime.datetime.now(),
                 failures=False,
                 info_message=f"Running {tf}",
-                status=str(ExecStatus.Success),
-                end_status=str(ExecStatus.OK),
+                status=ExecStatus.Success.value,
+                end_status=ExecStatus.OK.value,
                 sequence_num=sequence_num,
             )
             BASE_RESULT.append(base_result)
@@ -727,14 +727,14 @@ class Visitran:
                 seed_result = SeedResult(
                     schema_name=schema,
                     seed_path=file_name,
-                    status=str(ExecStatus.START),
+                    status=ExecStatus.START.value,
                 )
                 SEED_RESULT.append(seed_result)
                 seed_obj: BaseSeed = self.db_adapter.run_seeds(schema=schema, abs_path=file_path)
                 seed_result = SeedResult(
                     schema_name=schema,
                     seed_path=file_name,
-                    status=str(ExecStatus.COMPLETED),
+                    status=ExecStatus.COMPLETED.value,
                 )
                 SEED_RESULT.append(seed_result)
                 parse_and_fire_seed_report()
@@ -789,14 +789,14 @@ class Visitran:
                     snapshot_result = SnapshotResult(
                         source_table=obj.source_table_name,
                         unique_key=obj.unique_key,
-                        status=str(ExecStatus.START),
+                        status=ExecStatus.START.value,
                     )
                     SNAPSHOT_RESULT.append(snapshot_result)
                     self.db_adapter.run_scd(visitran_snapshot=obj)
                     snapshot_result = SnapshotResult(
                         source_table=obj.source_table_name,
                         unique_key=obj.unique_key,
-                        status=str(ExecStatus.COMPLETED),
+                        status=ExecStatus.COMPLETED.value,
                     )
                     SNAPSHOT_RESULT.append(snapshot_result)
                     parse_and_fire_snapshot_report()

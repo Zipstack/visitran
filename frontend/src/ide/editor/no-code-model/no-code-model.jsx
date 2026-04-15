@@ -4,6 +4,7 @@ import {
   Input,
   Modal,
   Pagination,
+  Select,
   Space,
   Table,
   Tabs,
@@ -206,7 +207,9 @@ function NoCodeModel({ nodeData }) {
   const [seqEdges, setSeqEdges, onSeqEdgesChange] = useEdgesState();
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
   const [logsInfo, setLogsInfo] = useState([]);
-  // const logsInfo = [];
+  const [logsLevel, setLogsLevel] = useState(
+    () => localStorage.getItem("visitran.logsLevel") || "info"
+  );
   const [reveal, setReveal] = useState(false);
   const [seqOrder, setSeqOrder] = useState({});
   const [specRevert, setSpecRevert] = useState(false);
@@ -365,6 +368,23 @@ function NoCodeModel({ nodeData }) {
       ALLOWED_TAGS: ["span", "br"],
       ALLOWED_ATTR: ["style"],
     });
+
+  const LOG_LEVEL_RANK = { debug: 0, info: 1, warn: 2, warning: 2, error: 3 };
+  const LOG_LEVEL_COLOR = {
+    debug: "#8c8c8c",
+    info: undefined,
+    warn: "#d48806",
+    warning: "#d48806",
+    error: "#cf1322",
+  };
+  const filteredLogs = logsInfo.filter(
+    (entry) =>
+      (LOG_LEVEL_RANK[entry.level] ?? 1) >= (LOG_LEVEL_RANK[logsLevel] ?? 1)
+  );
+  const handleLogsLevelChange = (value) => {
+    setLogsLevel(value);
+    localStorage.setItem("visitran.logsLevel", value);
+  };
 
   const hideGenAIAndTimeTravelTabs = true;
   const BOTTOM_TABS = [
@@ -643,21 +663,43 @@ function NoCodeModel({ nodeData }) {
       ),
       key: "logs",
       children: (
-        <div
-          className="logsSection"
-          style={{
-            height: `calc(${bottomSectionRef.current.height} - 70px)`,
-          }}
-        >
-          {logsInfo?.map((el, index) => {
-            return (
+        <>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              padding: "4px 8px",
+              borderBottom: "1px solid #f0f0f0",
+            }}
+          >
+            <Select
+              size="small"
+              value={logsLevel}
+              onChange={handleLogsLevelChange}
+              style={{ width: 140 }}
+              options={[
+                { value: "debug", label: "All logs" },
+                { value: "info", label: "Info & above" },
+                { value: "warn", label: "Warnings & errors" },
+                { value: "error", label: "Errors only" },
+              ]}
+            />
+          </div>
+          <div
+            className="logsSection"
+            style={{
+              height: `calc(${bottomSectionRef.current.height} - 100px)`,
+            }}
+          >
+            {filteredLogs.map((el, index) => (
               <div
                 key={index}
-                dangerouslySetInnerHTML={{ __html: parseLog(el) }}
-              ></div>
-            );
-          })}
-        </div>
+                style={{ color: LOG_LEVEL_COLOR[el.level] }}
+                dangerouslySetInnerHTML={{ __html: parseLog(el.message) }}
+              />
+            ))}
+          </div>
+        </>
       ),
     },
   ].filter((tab) => {
@@ -1768,16 +1810,16 @@ function NoCodeModel({ nodeData }) {
         const sessionId = data.session_id;
         // Listen for messages in the specific room (session ID)
         newSocket.on(`logs:${sessionId}`, (data) => {
-          const temp = data?.data?.message;
+          const message = data?.data?.message;
+          const level = (data?.data?.level || "info").toLowerCase();
+          if (!message) return;
           const doc = document.getElementsByClassName("logsSection");
           if (doc[0]) {
             setTimeout(() => {
               doc[0].scrollTop = doc[0].scrollHeight;
             }, 800);
           }
-          setLogsInfo((old) => {
-            return [...old, temp];
-          });
+          setLogsInfo((old) => [...old, { level, message }]);
         });
       });
     });
