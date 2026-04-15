@@ -76,8 +76,21 @@ const Runhistory = () => {
   const [filterQueries, setFilterQuery] = useState({
     status: "",
     job: "",
-    source: "",
+    trigger: "",
+    scope: "",
   });
+
+  /* Derive trigger/scope from a run row with back-compat for legacy
+   * rows that only carried kwargs.source === "quick_deploy". */
+  const getRunTriggerScope = (row) => {
+    const kw = row?.kwargs || {};
+    const legacyQuick = kw.source === "quick_deploy";
+    const models = kw.models_override || [];
+    const trigger = kw.trigger || (legacyQuick ? "manual" : "scheduled");
+    const scope =
+      kw.scope || (models.length > 0 || legacyQuick ? "model" : "job");
+    return { trigger, scope, models };
+  };
   const [envInfo, setEnvInfo] = useState({
     env_type: "",
     job_name: "",
@@ -151,19 +164,29 @@ const Runhistory = () => {
     getJobList();
   }, []);
 
-  /* ─── client-side status + source filter ─── */
+  /* ─── client-side status + trigger + scope filters ─── */
   useEffect(() => {
     let filtered = backUpData;
     if (filterQueries.status) {
       filtered = filtered.filter((el) => el.status === filterQueries.status);
     }
-    if (filterQueries.source === "quick_deploy") {
-      filtered = filtered.filter((el) => el.kwargs?.source === "quick_deploy");
-    } else if (filterQueries.source === "scheduled") {
-      filtered = filtered.filter((el) => el.kwargs?.source !== "quick_deploy");
+    if (filterQueries.trigger) {
+      filtered = filtered.filter(
+        (el) => getRunTriggerScope(el).trigger === filterQueries.trigger
+      );
+    }
+    if (filterQueries.scope) {
+      filtered = filtered.filter(
+        (el) => getRunTriggerScope(el).scope === filterQueries.scope
+      );
     }
     setJobHistoryData(filtered);
-  }, [filterQueries.status, filterQueries.source, backUpData]);
+  }, [
+    filterQueries.status,
+    filterQueries.trigger,
+    filterQueries.scope,
+    backUpData,
+  ]);
 
   /* ─── auto-expand failed rows ─── */
   useEffect(() => {
@@ -175,12 +198,16 @@ const Runhistory = () => {
 
   /* ─── handlers ─── */
   const handleJobChange = useCallback((value) => {
-    setFilterQuery({ status: "", job: value, source: "" });
+    setFilterQuery({ status: "", job: value, trigger: "", scope: "" });
     getRunHistoryList(value);
   }, []);
 
-  const handleSourceChange = useCallback((value) => {
-    setFilterQuery((prev) => ({ ...prev, source: value || "" }));
+  const handleTriggerChange = useCallback((value) => {
+    setFilterQuery((prev) => ({ ...prev, trigger: value || "" }));
+  }, []);
+
+  const handleScopeChange = useCallback((value) => {
+    setFilterQuery((prev) => ({ ...prev, scope: value || "" }));
   }, []);
 
   const handleStatusChange = useCallback((value) => {
@@ -225,27 +252,37 @@ const Runhistory = () => {
         ),
       },
       {
-        title: "Source",
-        key: "source",
-        width: 200,
+        title: "Trigger",
+        key: "trigger",
+        width: 120,
         render: (_, record) => {
-          const isQuickDeploy = record.kwargs?.source === "quick_deploy";
-          if (!isQuickDeploy) {
+          const { trigger } = getRunTriggerScope(record);
+          return trigger === "manual" ? (
+            <Tag color="blue">Manual</Tag>
+          ) : (
+            <Tag>Scheduled</Tag>
+          );
+        },
+      },
+      {
+        title: "Scope",
+        key: "scope",
+        width: 220,
+        render: (_, record) => {
+          const { scope, models } = getRunTriggerScope(record);
+          if (scope === "model") {
             return (
-              <Typography.Text type="secondary">Scheduled</Typography.Text>
+              <Space size={4} wrap>
+                <Tag color="purple">Single model</Tag>
+                {models.length > 0 && (
+                  <Typography.Text type="secondary">
+                    {models.join(", ")}
+                  </Typography.Text>
+                )}
+              </Space>
             );
           }
-          const models = record.kwargs?.models_override || [];
-          return (
-            <Space size={4} wrap>
-              <Tag color="blue">Quick Deploy</Tag>
-              {models.length > 0 && (
-                <Typography.Text type="secondary">
-                  {models.join(", ")}
-                </Typography.Text>
-              )}
-            </Space>
-          );
+          return <Typography.Text type="secondary">Full job</Typography.Text>;
         },
       },
       {
@@ -284,14 +321,15 @@ const Runhistory = () => {
   const emptyDescription = useMemo(() => {
     if (!jobListItems.length) return "No jobs created yet";
     if (!filterQueries.job) return "Select a job to view run history";
-    if (filterQueries.status || filterQueries.source)
+    if (filterQueries.status || filterQueries.trigger || filterQueries.scope)
       return "No matching runs found";
     return "No run history available";
   }, [
     jobListItems.length,
     filterQueries.job,
     filterQueries.status,
-    filterQueries.source,
+    filterQueries.trigger,
+    filterQueries.scope,
   ]);
 
   return (
@@ -323,14 +361,25 @@ const Runhistory = () => {
           />
           <Select
             allowClear
-            placeholder="Source"
+            placeholder="Trigger"
             className="runhistory-status-select"
-            onChange={handleSourceChange}
+            onChange={handleTriggerChange}
             options={[
-              { label: "Quick Deploy", value: "quick_deploy" },
+              { label: "Manual", value: "manual" },
               { label: "Scheduled", value: "scheduled" },
             ]}
-            value={filterQueries.source || undefined}
+            value={filterQueries.trigger || undefined}
+          />
+          <Select
+            allowClear
+            placeholder="Scope"
+            className="runhistory-status-select"
+            onChange={handleScopeChange}
+            options={[
+              { label: "Full job", value: "job" },
+              { label: "Single model", value: "model" },
+            ]}
+            value={filterQueries.scope || undefined}
           />
         </Space>
         <Button

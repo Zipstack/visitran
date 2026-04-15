@@ -606,11 +606,17 @@ def task_run_history(request, project_id, user_task_id):
 
 
 def _dispatch_task_run(task, user_id, models_override=None):
-    """Shared dispatch: try Celery broker, fall back to synchronous execution."""
+    """Shared dispatch: try Celery broker, fall back to synchronous execution.
+
+    Always marks the run as ``trigger="manual"`` — only the Celery beat
+    scheduler path hits ``trigger_scheduled_run`` without this dispatch
+    wrapper, and it keeps the default ``trigger="scheduled"``.
+    """
     run_kwargs = {
         "user_task_id": task.id,
         "user_id": user_id,
         "organization_id": str(task.organization_id) if task.organization_id else None,
+        "trigger": "manual",
     }
     if models_override:
         run_kwargs["models_override"] = list(models_override)
@@ -722,6 +728,16 @@ def list_recent_runs_for_model(request, project_id, model_name):
         task = run.user_task_detail
         env = task.environment
         kwargs = run.kwargs or {}
+        models_override = kwargs.get("models_override") or []
+        # Back-compat: rows written before the trigger/scope split only
+        # carried kwargs.source=="quick_deploy" as their manual-model marker.
+        legacy_source = kwargs.get("source")
+        trigger = kwargs.get("trigger") or (
+            "manual" if legacy_source == "quick_deploy" else "scheduled"
+        )
+        scope = kwargs.get("scope") or (
+            "model" if models_override or legacy_source == "quick_deploy" else "job"
+        )
         data.append({
             "run_id": run.id,
             "user_task_id": task.id,
@@ -732,8 +748,9 @@ def list_recent_runs_for_model(request, project_id, model_name):
             "error_message": run.error_message,
             "environment_name": getattr(env, "environment_name", "")
             or getattr(env, "name", ""),
-            "source": kwargs.get("source") or "scheduled",
-            "models_override": kwargs.get("models_override") or [],
+            "trigger": trigger,
+            "scope": scope,
+            "models_override": models_override,
         })
 
     return Response({"data": data}, status=status.HTTP_200_OK)

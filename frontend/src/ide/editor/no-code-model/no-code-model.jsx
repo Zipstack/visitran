@@ -1737,8 +1737,11 @@ function NoCodeModel({ nodeData }) {
                 <Tag color={STATUS_COLOR[run.status] || "default"}>
                   {statusLabel}
                 </Tag>
-                <Tag color={run.source === "quick_deploy" ? "blue" : "default"}>
-                  {run.source === "quick_deploy" ? "Quick Deploy" : "Scheduled"}
+                <Tag color={run.trigger === "manual" ? "blue" : "default"}>
+                  {run.trigger === "manual" ? "Manual" : "Scheduled"}
+                </Tag>
+                <Tag color={run.scope === "model" ? "purple" : "default"}>
+                  {run.scope === "model" ? "Single model" : "Full job"}
                 </Tag>
               </Space>
               <Typography.Text style={{ fontSize: 12 }}>
@@ -1823,7 +1826,7 @@ function NoCodeModel({ nodeData }) {
       );
       notify({
         type: "success",
-        message: "Quick Deploy Triggered",
+        message: "Deploy Triggered",
         description: `"${currentModelName}" is running on "${
           selected?.environment_name || "the selected environment"
         }" via job "${
@@ -2815,7 +2818,7 @@ function NoCodeModel({ nodeData }) {
                     }
                     icon={<PlayCircleOutlined />}
                   >
-                    Quick Deploy
+                    Deploy Model
                   </Button>
                   <Dropdown
                     trigger={["click"]}
@@ -2949,7 +2952,7 @@ function NoCodeModel({ nodeData }) {
         title={
           quickDeployModal.step === "empty"
             ? "No Deployment Job Found"
-            : `Quick Deploy "${nodeData?.node?.title || ""}"`
+            : `Deploy Model "${nodeData?.node?.title || ""}"`
         }
         onCancel={closeQuickDeploy}
         destroyOnClose
