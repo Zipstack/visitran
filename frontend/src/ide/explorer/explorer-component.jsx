@@ -72,7 +72,10 @@ const getModelRunStatus = (runStatus, failureReason, lastRunAt, token) => {
     return (
       <Tooltip title="Running">
         <span
-          style={{ ...MODEL_STATUS_DOT_STYLE, backgroundColor: token.colorInfo }}
+          style={{
+            ...MODEL_STATUS_DOT_STYLE,
+            backgroundColor: token.colorInfo,
+          }}
         />
       </Tooltip>
     );
@@ -113,7 +116,10 @@ const getModelRunStatus = (runStatus, failureReason, lastRunAt, token) => {
         placement="right"
       >
         <span
-          style={{ ...MODEL_STATUS_DOT_STYLE, backgroundColor: token.colorError }}
+          style={{
+            ...MODEL_STATUS_DOT_STYLE,
+            backgroundColor: token.colorError,
+          }}
         />
       </Popover>
     );
@@ -132,7 +138,10 @@ const getModelRunStatus = (runStatus, failureReason, lastRunAt, token) => {
     return (
       <Tooltip title={tooltipTitle}>
         <span
-          style={{ ...MODEL_STATUS_DOT_STYLE, backgroundColor: token.colorSuccess }}
+          style={{
+            ...MODEL_STATUS_DOT_STYLE,
+            backgroundColor: token.colorSuccess,
+          }}
         />
       </Tooltip>
     );
