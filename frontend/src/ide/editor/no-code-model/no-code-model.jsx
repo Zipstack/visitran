@@ -1,5 +1,7 @@
 import {
   Button,
+  Divider,
+  Dropdown,
   Empty,
   Input,
   Modal,
@@ -9,6 +11,7 @@ import {
   Space,
   Table,
   Tabs,
+  Tag,
   theme,
   Tooltip,
   Typography,
@@ -43,6 +46,7 @@ import {
   FilterOutlined,
   LineHeightOutlined,
   LinkOutlined,
+  DownOutlined,
   MergeCellsOutlined,
   PlayCircleOutlined,
   PlusSquareOutlined,
@@ -246,7 +250,8 @@ function NoCodeModel({ nodeData }) {
   const { setPendingLineageTab } = useLineageTabStore();
   const axiosPrivate = useAxiosPrivate();
   const navigate = useNavigate();
-  const { listDeployCandidates, runTaskForModel } = useJobService();
+  const { listDeployCandidates, runTaskForModel, listRecentRunsForModel } =
+    useJobService();
 
   const [quickDeployModal, setQuickDeployModal] = useState({
     open: false,
@@ -254,6 +259,11 @@ function NoCodeModel({ nodeData }) {
     candidates: [],
     selectedTaskId: null,
     submitting: false,
+  });
+  const [recentRunsState, setRecentRunsState] = useState({
+    loading: false,
+    runs: [],
+    fetchedFor: null, // model name the current runs are for
   });
 
   const modelName =
@@ -1645,6 +1655,113 @@ function NoCodeModel({ nodeData }) {
     setSpecRevert(true);
   };
 
+  const STATUS_COLOR = {
+    SUCCESS: "green",
+    FAILURE: "red",
+    STARTED: "processing",
+    RUNNING: "processing",
+    RETRY: "orange",
+  };
+
+  const formatRelativeTime = (iso) => {
+    if (!iso) return "—";
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins} min ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs} hr ago`;
+    const days = Math.floor(hrs / 24);
+    if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
+    return new Date(iso).toLocaleDateString();
+  };
+
+  const fetchRecentRuns = async () => {
+    const name = nodeData?.node?.title;
+    if (!name) return;
+    if (recentRunsState.fetchedFor === name && !recentRunsState.loading) return;
+    setRecentRunsState((prev) => ({ ...prev, loading: true }));
+    try {
+      const runs = await listRecentRunsForModel(projectId, name, 5);
+      setRecentRunsState({ loading: false, runs, fetchedFor: name });
+    } catch (error) {
+      setRecentRunsState((prev) => ({ ...prev, loading: false }));
+      notify({ error });
+    }
+  };
+
+  const renderRecentRunsPanel = () => (
+    <div
+      style={{
+        width: 320,
+        background: "#fff",
+        borderRadius: 8,
+        boxShadow: "0 6px 16px rgba(0,0,0,0.12)",
+        padding: "8px 0",
+      }}
+    >
+      <div
+        style={{
+          padding: "4px 12px 8px",
+          fontSize: 12,
+          fontWeight: 600,
+          color: "#555",
+        }}
+      >
+        Recent runs
+      </div>
+      {recentRunsState.loading ? (
+        <div style={{ padding: "12px 16px", color: "#888" }}>Loading…</div>
+      ) : recentRunsState.runs.length === 0 ? (
+        <div style={{ padding: "12px 16px", color: "#888" }}>
+          No runs for this model yet.
+        </div>
+      ) : (
+        recentRunsState.runs.map((run) => {
+          const statusLabel = run.status === "FAILURE" ? "FAILED" : run.status;
+          return (
+            <div
+              key={run.run_id}
+              style={{
+                padding: "8px 12px",
+                borderTop: "1px solid #f0f0f0",
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+              }}
+            >
+              <Space size={8}>
+                <Tag color={STATUS_COLOR[run.status] || "default"}>
+                  {statusLabel}
+                </Tag>
+                <Tag color={run.source === "quick_deploy" ? "blue" : "default"}>
+                  {run.source === "quick_deploy" ? "Quick Deploy" : "Scheduled"}
+                </Tag>
+              </Space>
+              <Typography.Text style={{ fontSize: 12 }}>
+                {run.task_name}
+                {run.environment_name ? ` · ${run.environment_name}` : ""}
+              </Typography.Text>
+              <Typography.Text type="secondary" style={{ fontSize: 11 }}>
+                {formatRelativeTime(run.start_time)}
+              </Typography.Text>
+            </div>
+          );
+        })
+      )}
+      <Divider style={{ margin: "8px 0" }} />
+      <div style={{ padding: "0 8px 4px" }}>
+        <Button
+          type="link"
+          block
+          onClick={() => navigate("/project/job/history")}
+        >
+          View full Run History →
+        </Button>
+      </div>
+    </div>
+  );
+
   const openQuickDeploy = async () => {
     const currentModelName = nodeData?.node?.title;
     if (!currentModelName) return;
@@ -2682,20 +2799,36 @@ function NoCodeModel({ nodeData }) {
             />
             <div className="custom-pagination-container">
               <Space>
-                <Button
-                  type="primary"
-                  onClick={openQuickDeploy}
-                  disabled={
-                    spec?.source?.table_name === null ||
-                    isLoading ||
-                    previewTimeTravel ||
-                    !can_write ||
-                    !nodeData?.node?.title
-                  }
-                  icon={<PlayCircleOutlined />}
-                >
-                  Quick Deploy
-                </Button>
+                <Space.Compact>
+                  <Button
+                    type="primary"
+                    onClick={openQuickDeploy}
+                    disabled={
+                      spec?.source?.table_name === null ||
+                      isLoading ||
+                      previewTimeTravel ||
+                      !can_write ||
+                      !nodeData?.node?.title
+                    }
+                    icon={<PlayCircleOutlined />}
+                  >
+                    Quick Deploy
+                  </Button>
+                  <Dropdown
+                    trigger={["click"]}
+                    placement="bottomRight"
+                    onOpenChange={(open) => {
+                      if (open) fetchRecentRuns();
+                    }}
+                    dropdownRender={renderRecentRunsPanel}
+                  >
+                    <Button
+                      type="primary"
+                      icon={<DownOutlined />}
+                      disabled={!nodeData?.node?.title}
+                    />
+                  </Dropdown>
+                </Space.Compact>
                 <Button
                   onClick={() => handleModalOpen("clearTransformsAlert")}
                   disabled={

@@ -698,6 +698,49 @@ def trigger_task_once_for_model(request, project_id, user_task_id, model_name):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
+def list_recent_runs_for_model(request, project_id, model_name):
+    """Return recent TaskRunHistory entries for any job in this project that
+    includes ``model_name`` in its ``model_configs``. Mixes scheduled and
+    quick-deploy runs; caller distinguishes via each row's
+    ``kwargs.source``.
+    """
+    try:
+        limit = int(request.GET.get("limit", 5))
+    except (TypeError, ValueError):
+        limit = 5
+    limit = max(1, min(limit, 50))
+
+    runs_qs = TaskRunHistory.objects.select_related(
+        "user_task_detail", "user_task_detail__environment",
+    ).filter(
+        user_task_detail__project__project_uuid=project_id,
+        user_task_detail__model_configs__has_key=model_name,
+    ).order_by("-start_time")[:limit]
+
+    data = []
+    for run in runs_qs:
+        task = run.user_task_detail
+        env = task.environment
+        kwargs = run.kwargs or {}
+        data.append({
+            "run_id": run.id,
+            "user_task_id": task.id,
+            "task_name": task.task_name,
+            "status": run.status,
+            "start_time": run.start_time.isoformat() if run.start_time else None,
+            "end_time": run.end_time.isoformat() if run.end_time else None,
+            "error_message": run.error_message,
+            "environment_name": getattr(env, "environment_name", "")
+            or getattr(env, "name", ""),
+            "source": kwargs.get("source") or "scheduled",
+            "models_override": kwargs.get("models_override") or [],
+        })
+
+    return Response({"data": data}, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def list_deploy_candidates(request, project_id, model_name):
     """Return jobs in ``project_id`` that can deploy ``model_name``.
 

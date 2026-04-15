@@ -10,6 +10,7 @@ from backend.core.scheduler.views import (
     trigger_task_once,
     trigger_task_once_for_model,
     list_deploy_candidates,
+    list_recent_runs_for_model,
     get_periodic_task,
     get_model_columns,
 )
@@ -43,6 +44,11 @@ urlpatterns = [
         "/quick-deploy/candidates/<str:model_name>",
         list_deploy_candidates,
         name="list_deploy_candidates",
+    ),
+    path(
+        "/quick-deploy/recent-runs/<str:model_name>",
+        list_recent_runs_for_model,
+        name="list_recent_runs_for_model",
     ),
     # Model columns endpoint for incremental job configuration
     path(

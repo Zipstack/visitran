@@ -79,6 +79,14 @@ export function useJobService() {
     return response.data?.data || [];
   };
 
+  const listRecentRunsForModel = async (projId, modelName, limit = 5) => {
+    const url = `${jobsUrl(
+      projId
+    )}/quick-deploy/recent-runs/${encodeURIComponent(modelName)}`;
+    const response = await axiosPrivate.get(url, { params: { limit } });
+    return response.data?.data || [];
+  };
+
   const getProjects = async () => {
     const url = `/api/v1/visitran/${orgId}/projects`;
     const response = await axiosPrivate.get(url);
@@ -135,6 +143,7 @@ export function useJobService() {
     runTask,
     runTaskForModel,
     listDeployCandidates,
+    listRecentRunsForModel,
     getProjects,
     getEnvironments,
     getProjectModels,
