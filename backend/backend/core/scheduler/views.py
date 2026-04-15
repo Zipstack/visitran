@@ -164,6 +164,7 @@ def _serialize_task(task):
         "task_status": task.status,
         "task_run_time": task.task_run_time,
         "task_completion_time": task.task_completion_time,
+        "next_run_time": task.next_run_time,
         "task_type": task_type,
         "description": task.description,
         "environment": {

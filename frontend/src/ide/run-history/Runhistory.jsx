@@ -17,6 +17,7 @@ import {
   DatabaseOutlined,
   CloseCircleFilled,
 } from "@ant-design/icons";
+import { useSearchParams } from "react-router-dom";
 
 import { useAxiosPrivate } from "../../service/axios-service";
 import { orgStore } from "../../store/org-store";
@@ -102,6 +103,7 @@ const Runhistory = () => {
   const { selectedOrgId } = orgStore();
   const { token } = theme.useToken();
   const { notify } = useNotificationService();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   /* ─── API calls ─── */
   const getRunHistoryList = async (
@@ -153,8 +155,14 @@ const Runhistory = () => {
       setJobSchedule(scheduledObj);
       setJobListItems(jobIds);
       if (jobIds.length) {
-        setFilterQuery((prev) => ({ ...prev, job: jobIds[0].value }));
-        getRunHistoryList(jobIds[0].value);
+        const taskFromUrl = searchParams.get("task");
+        const taskFromUrlNum = taskFromUrl ? Number(taskFromUrl) : NaN;
+        const matchedFromUrl = !Number.isNaN(taskFromUrlNum)
+          ? jobIds.find((j) => j.value === taskFromUrlNum)
+          : null;
+        const initial = matchedFromUrl?.value ?? jobIds[0].value;
+        setFilterQuery((prev) => ({ ...prev, job: initial }));
+        getRunHistoryList(initial);
       }
     } catch (error) {
       console.error("Failed to load jobs", error);
@@ -200,10 +208,22 @@ const Runhistory = () => {
   }, [backUpData]);
 
   /* ─── handlers ─── */
-  const handleJobChange = useCallback((value) => {
-    setFilterQuery({ status: "", job: value, trigger: "", scope: "" });
-    getRunHistoryList(value);
-  }, []);
+  const handleJobChange = useCallback(
+    (value) => {
+      setFilterQuery({ status: "", job: value, trigger: "", scope: "" });
+      getRunHistoryList(value);
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (value) next.set("task", String(value));
+          else next.delete("task");
+          return next;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams, getRunHistoryList]
+  );
 
   const handleTriggerChange = useCallback((value) => {
     setFilterQuery((prev) => ({ ...prev, trigger: value || "" }));
