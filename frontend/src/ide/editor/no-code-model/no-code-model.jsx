@@ -258,6 +258,7 @@ function NoCodeModel({ nodeData }) {
     runTaskForModel,
     runTask,
     listRecentRunsForModel,
+    getLatestRunStatus,
   } = useJobService();
 
   const [quickDeployModal, setQuickDeployModal] = useState({
@@ -272,8 +273,10 @@ function NoCodeModel({ nodeData }) {
   const [recentRunsState, setRecentRunsState] = useState({
     loading: false,
     runs: [],
-    fetchedFor: null, // model name the current runs are for
+    fetchedFor: null,
   });
+  const [deployPolling, setDeployPolling] = useState(null);
+  const pollingRef = useRef(null);
 
   const modelName =
     nodeData?.node?.title ||
@@ -1850,8 +1853,7 @@ function NoCodeModel({ nodeData }) {
           </span>
         ),
       });
-      setRefreshModels(true);
-      setRecentRunsState((prev) => ({ ...prev, fetchedFor: null }));
+      startDeployPolling(quickDeployModal.selectedTaskId);
       setQuickDeployModal((prev) => ({
         ...prev,
         open: false,
@@ -1862,6 +1864,58 @@ function NoCodeModel({ nodeData }) {
       notify({ error });
     }
   };
+
+  const startDeployPolling = (taskId) => {
+    if (pollingRef.current) clearInterval(pollingRef.current);
+    setDeployPolling({ taskId, status: "STARTED" });
+    pollingRef.current = setInterval(async () => {
+      try {
+        const run = await getLatestRunStatus(projectId, taskId);
+        if (!run) return;
+        const terminal = ["SUCCESS", "FAILURE", "REVOKED"].includes(run.status);
+        if (terminal) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+          setDeployPolling(null);
+          setRefreshModels(true);
+          setRecentRunsState((prev) => ({ ...prev, fetchedFor: null }));
+          notify({
+            type: run.status === "SUCCESS" ? "success" : "error",
+            message:
+              run.status === "SUCCESS" ? "Deploy Completed" : "Deploy Failed",
+            description: (
+              <span>
+                {run.status === "SUCCESS"
+                  ? "Model deployed successfully."
+                  : run.error_message || "Check Run History for details."}{" "}
+                <a
+                  href={`/project/job/history?task=${taskId}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate(`/project/job/history?task=${taskId}`);
+                  }}
+                >
+                  View in Run History →
+                </a>
+              </span>
+            ),
+          });
+        } else {
+          setDeployPolling((prev) =>
+            prev ? { ...prev, status: run.status } : null
+          );
+        }
+      } catch {
+        // Silently retry on next interval
+      }
+    }, 5000);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, []);
 
   const goToScheduler = () => {
     setQuickDeployModal((prev) => ({ ...prev, open: false }));
@@ -2841,9 +2895,10 @@ function NoCodeModel({ nodeData }) {
                       !can_write ||
                       !nodeData?.node?.title
                     }
-                    icon={<PlayCircleOutlined />}
+                    loading={!!deployPolling}
+                    icon={!deployPolling ? <PlayCircleOutlined /> : undefined}
                   >
-                    Quick Deploy
+                    {deployPolling ? "Deploying…" : "Quick Deploy"}
                   </Button>
                   <Dropdown
                     trigger={["click"]}
