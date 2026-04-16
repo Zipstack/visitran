@@ -16,7 +16,15 @@ from typing import TYPE_CHECKING, Any, TypeVar, Union, Optional, Dict, List
 
 import ibis
 import networkx as nx
-from django.utils import timezone
+try:
+    from django.utils import timezone
+except ImportError:
+    from datetime import datetime, timezone as _tz
+
+    class timezone:
+        @staticmethod
+        def now():
+            return datetime.now(_tz.utc)
 from visitran import utils
 from visitran.adapters.adapter import BaseAdapter
 from visitran.adapters.seed import BaseSeed

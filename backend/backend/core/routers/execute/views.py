@@ -59,7 +59,6 @@ def execute_run_command(request: Request, project_id: str) -> Response:
     app = ApplicationContext(project_id=project_id)
     try:
         app.execute_visitran_run_command(current_model=file_name, environment_id=environment_id)
-        app.visitran_context.close_db_connection()
         app.backup_current_no_code_model()
         logger.info(f"[execute_run_command] Completed successfully for file_name={file_name}")
         _data = {"status": "success"}
@@ -68,6 +67,8 @@ def execute_run_command(request: Request, project_id: str) -> Response:
         logger.exception(f"[execute_run_command] DAG execution failed for file_name={file_name}")
         _data = {"status": "failed", "error_message": "Model execution failed. Check server logs for details."}
         return Response(data=_data, status=status.HTTP_400_BAD_REQUEST)
+    finally:
+        app.visitran_context.close_db_connection()
 
 
 
