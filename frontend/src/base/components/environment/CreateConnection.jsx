@@ -125,6 +125,14 @@ const CreateConnection = ({
     getConnectionFields();
   }, [getConnectionFields]);
 
+  const hasDetailsChanged = useMemo(() => {
+    if (!connectionId || !originalDbSelectionInfo) return false;
+    return (
+      formName !== originalDbSelectionInfo.name ||
+      formDescription !== originalDbSelectionInfo.description
+    );
+  }, [connectionId, formName, formDescription, originalDbSelectionInfo]);
+
   const handleCreateOrUpdate = useCallback(async () => {
     setIsCreateOrUpdateLoading(true);
     try {
@@ -406,15 +414,6 @@ const CreateConnection = ({
     },
     [dbSelectionInfo.datasource_name, selectedOrgId, csrfToken, connType]
   );
-
-  // Detect if connection name or description changed (metadata-only changes)
-  const hasDetailsChanged = useMemo(() => {
-    if (!connectionId || !originalDbSelectionInfo) return false;
-    return (
-      formName !== originalDbSelectionInfo.name ||
-      formDescription !== originalDbSelectionInfo.description
-    );
-  }, [connectionId, formName, formDescription, originalDbSelectionInfo]);
 
   const mappedDataSources = useMemo(
     () =>
