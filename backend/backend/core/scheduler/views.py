@@ -29,8 +29,9 @@ def _compute_next_run_time(periodic, last_run_at):
         schedule = periodic.schedule
         reference = last_run_at or periodic.last_run_at or timezone.now()
         remaining = schedule.remaining_estimate(reference)
-        return reference + remaining
+        return timezone.now() + remaining
     except Exception:
+        logger.debug("Failed to compute next_run_time for %s", periodic, exc_info=True)
         return None
 
 

@@ -153,10 +153,13 @@ const Runhistory = () => {
       const { page_items } = res.data.data;
       const scheduledObj = {};
       const jobIds = page_items.map((el) => {
-        scheduledObj[el.user_task_id] = getTooltipText(
-          el.periodic_task_details[el.task_type],
-          el.task_type
-        );
+        const taskDetails = el.periodic_task_details?.[el.task_type];
+        if (taskDetails) {
+          scheduledObj[el.user_task_id] = getTooltipText(
+            taskDetails,
+            el.task_type
+          );
+        }
         return { label: el.task_name, value: el.user_task_id };
       });
       setJobSchedule(scheduledObj);
@@ -206,7 +209,7 @@ const Runhistory = () => {
     backUpData,
   ]);
 
-  /* ─── auto-expand failed rows on fresh data load ─── */
+  /* ─── auto-expand failed rows on fresh data load (not on filter changes) ─── */
   useEffect(() => {
     const failedIds = (backUpData || [])
       .filter((r) => r.status === "FAILURE" && r.error_message)
@@ -383,6 +386,12 @@ const Runhistory = () => {
         color: token.colorInfo,
         bg: token.colorInfoBg,
       },
+      RUNNING: {
+        icon: <SyncOutlined spin />,
+        label: "Running",
+        color: token.colorInfo,
+        bg: token.colorInfoBg,
+      },
       RETRY: {
         icon: <SyncOutlined spin />,
         label: "Retrying",
@@ -400,12 +409,6 @@ const Runhistory = () => {
         label: "Pending",
         color: token.colorTextSecondary,
         bg: token.colorFillQuaternary,
-      },
-      RUNNING: {
-        icon: <SyncOutlined spin />,
-        label: "Running",
-        color: token.colorInfo,
-        bg: token.colorInfoBg,
       },
     }),
     [token]
