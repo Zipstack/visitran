@@ -12,6 +12,7 @@ const MonacoPromptInput = memo(function MonacoPromptInput({
   value,
   editorHeight,
   isPromptRunning,
+  isResponseStreaming,
   onEditorMount,
   onMonacoChange,
   onSubmit,
@@ -159,9 +160,8 @@ const MonacoPromptInput = memo(function MonacoPromptInput({
   return (
     <div className="monaco-editor-wrapper">
       {editorContent}
-
       <div className="monaco-editor-send">
-        {isPromptRunning ? (
+        {isPromptRunning && !isResponseStreaming ? (
           <Tooltip title="Stop">
             <Button type="text" icon={<CloseOutlined />} onClick={onCancel} />
           </Tooltip>
@@ -204,6 +204,7 @@ MonacoPromptInput.propTypes = {
   value: PropTypes.string.isRequired,
   editorHeight: PropTypes.number.isRequired,
   isPromptRunning: PropTypes.bool.isRequired,
+  isResponseStreaming: PropTypes.bool,
   onEditorMount: PropTypes.func,
   onMonacoChange: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
