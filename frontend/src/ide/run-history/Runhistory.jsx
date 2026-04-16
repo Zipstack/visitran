@@ -363,44 +363,53 @@ const Runhistory = () => {
     []
   );
 
-  const STATUS_META = {
-    SUCCESS: {
-      icon: <CheckCircleFilled />,
-      label: "Succeeded",
-      color: token.colorSuccess,
-      bg: token.colorSuccessBg,
-    },
-    FAILURE: {
-      icon: <CloseCircleFilled />,
-      label: "Failed",
-      color: token.colorError,
-      bg: token.colorErrorBg,
-    },
-    STARTED: {
-      icon: <SyncOutlined spin />,
-      label: "Running",
-      color: token.colorInfo,
-      bg: token.colorInfoBg,
-    },
-    RETRY: {
-      icon: <SyncOutlined spin />,
-      label: "Retrying",
-      color: token.colorWarning,
-      bg: token.colorWarningBg,
-    },
-    REVOKED: {
-      icon: <ClockCircleOutlined />,
-      label: "Revoked",
-      color: token.colorTextSecondary,
-      bg: token.colorFillQuaternary,
-    },
-    PENDING: {
-      icon: <ClockCircleOutlined />,
-      label: "Pending",
-      color: token.colorTextSecondary,
-      bg: token.colorFillQuaternary,
-    },
-  };
+  const STATUS_META = useMemo(
+    () => ({
+      SUCCESS: {
+        icon: <CheckCircleFilled />,
+        label: "Succeeded",
+        color: token.colorSuccess,
+        bg: token.colorSuccessBg,
+      },
+      FAILURE: {
+        icon: <CloseCircleFilled />,
+        label: "Failed",
+        color: token.colorError,
+        bg: token.colorErrorBg,
+      },
+      STARTED: {
+        icon: <SyncOutlined spin />,
+        label: "Running",
+        color: token.colorInfo,
+        bg: token.colorInfoBg,
+      },
+      RETRY: {
+        icon: <SyncOutlined spin />,
+        label: "Retrying",
+        color: token.colorWarning,
+        bg: token.colorWarningBg,
+      },
+      REVOKED: {
+        icon: <ClockCircleOutlined />,
+        label: "Revoked",
+        color: token.colorTextSecondary,
+        bg: token.colorFillQuaternary,
+      },
+      PENDING: {
+        icon: <ClockCircleOutlined />,
+        label: "Pending",
+        color: token.colorTextSecondary,
+        bg: token.colorFillQuaternary,
+      },
+      RUNNING: {
+        icon: <SyncOutlined spin />,
+        label: "Running",
+        color: token.colorInfo,
+        bg: token.colorInfoBg,
+      },
+    }),
+    [token]
+  );
 
   /* ─── empty text ─── */
   const emptyDescription = useMemo(() => {
