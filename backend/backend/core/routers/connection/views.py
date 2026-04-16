@@ -121,8 +121,10 @@ def connection_usage(request: Request, connection_id: str) -> Response:
 @handle_permission
 def delete_connection(request: Request, connection_id: str) -> Response:
     con_context = ConnectionContext()
+    conn_data = con_context.get_connection(connection_id=connection_id)
+    conn_name = conn_data.get("name", connection_id) if conn_data else connection_id
     con_context.delete_connection(connection_id=connection_id)
-    fire_event(ConnectionDeletedEvt(connection_id=connection_id))
+    fire_event(ConnectionDeletedEvt(connection_id=conn_name))
     response_data = {
         "status": "success",
         "data": f"{connection_id} is deleted successfully.",

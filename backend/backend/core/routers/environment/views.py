@@ -78,8 +78,15 @@ def update_environment(request, environment_id: str) -> Response:
 def delete_environment(request: Request, environment_id: str):
     env_context = EnvironmentContext()
     try:
+        from backend.core.models.environment_models import EnvironmentModels
+        env_name = environment_id
+        try:
+            env_obj = EnvironmentModels.objects.get(environment_id=environment_id)
+            env_name = env_obj.environment_name or environment_id
+        except EnvironmentModels.DoesNotExist:
+            pass
         env_context.delete_environment(environment_id=environment_id)
-        fire_event(EnvironmentDeleted(environment_id=environment_id))
+        fire_event(EnvironmentDeleted(environment_id=env_name))
         response_data = {"status": "success"}
         return Response(data=response_data, status=status.HTTP_200_OK)
     except ProtectedError as e:
