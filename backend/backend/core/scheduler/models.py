@@ -132,6 +132,18 @@ class TaskRunHistory(DefaultOrganizationMixin, BaseModel):
     kwargs = models.JSONField(blank=True, null=True)
     result = models.JSONField(blank=True, null=True)
     error_message = models.TextField(blank=True, null=True)
+    trigger = models.CharField(
+        max_length=20,
+        choices=[("scheduled", "Scheduled"), ("manual", "Manual")],
+        default="scheduled",
+        help_text="How the run was initiated: cron/interval schedule or manual dispatch.",
+    )
+    scope = models.CharField(
+        max_length=20,
+        choices=[("job", "Full job"), ("model", "Single model")],
+        default="job",
+        help_text="Whether the run executed all job models or a single model.",
+    )
 
     user_task_detail = models.ForeignKey(
         UserTaskDetails,
@@ -154,6 +166,8 @@ class TaskRunHistory(DefaultOrganizationMixin, BaseModel):
             models.Index(
                 fields=["user_task_detail"], name="job_schedul_user_ta_5cd43a_idx"
             ),
+            models.Index(fields=["trigger"], name="job_schedul_trigger_idx"),
+            models.Index(fields=["scope"], name="job_schedul_scope_idx"),
         ]
 
     def __str__(self):

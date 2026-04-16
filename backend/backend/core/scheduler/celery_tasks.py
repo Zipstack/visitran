@@ -264,6 +264,8 @@ def trigger_scheduled_run(
         start_time=timezone.now(),
         user_task_detail=user_task,
         kwargs=run_kwargs,
+        trigger=trigger,
+        scope=scope,
     )
 
     # ── Mark task as running ──────────────────────────────────────────

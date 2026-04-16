@@ -73,9 +73,12 @@ const getRunTriggerScope = (row) => {
   const kw = row?.kwargs || {};
   const legacyQuick = kw.source === "quick_deploy";
   const models = kw.models_override || [];
-  const trigger = kw.trigger || (legacyQuick ? "manual" : "scheduled");
+  const trigger =
+    row?.trigger || kw.trigger || (legacyQuick ? "manual" : "scheduled");
   const scope =
-    kw.scope || (models.length > 0 || legacyQuick ? "model" : "job");
+    row?.scope ||
+    kw.scope ||
+    (models.length > 0 || legacyQuick ? "model" : "job");
   return { trigger, scope, models };
 };
 
