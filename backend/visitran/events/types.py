@@ -986,7 +986,7 @@ class ConnectionDeletedEvt(UserLevel, proto_type.ConnectionDeletedEvt):
         return "U017"
 
     def message(self) -> str:
-        return f'Connection "{self.connection_id}" deleted'
+        return f'Connection "{self.connection_name}" deleted'
 
 
 @dataclass
@@ -1004,4 +1004,4 @@ class EnvironmentDeleted(UserLevel, proto_type.EnvironmentDeleted):
         return "U019"
 
     def message(self) -> str:
-        return f'Environment "{self.environment_id}" deleted'
+        return f'Environment "{self.environment_name}" deleted'

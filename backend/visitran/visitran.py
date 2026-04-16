@@ -865,7 +865,9 @@ class Visitran:
             # Catches all kind of errors and raises with custom exceptions for seeds
             fire_event(SeedExecutionError(file_name, str(err)))
             fire_event(SeedCompleted(
-                seed_name=file_name, schema_name="", status="Failed",
+                seed_name=file_name,
+                schema_name=getattr(self.context, "schema_name", "") or "",
+                status="Failed",
             ))
             logging.exception(f"validate and run seed failed with exception {err}")
             raise RunSeedFailedException(file_name=file_name, error_message=str(err))

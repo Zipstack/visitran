@@ -100,7 +100,7 @@ def delete_environment(request: Request, environment_id: str):
             job_names=", ".join(job_names) if job_names else "unknown",
         )
 
-    fire_event(EnvironmentDeleted(environment_id=env_name))
+    fire_event(EnvironmentDeleted(environment_name=env_name))
     response_data = {"status": "success"}
     return Response(data=response_data, status=status.HTTP_200_OK)
 

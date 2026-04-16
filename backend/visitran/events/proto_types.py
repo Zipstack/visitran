@@ -1197,7 +1197,7 @@ class ConnectionTestedMsg(betterproto.Message):
 
 @dataclass
 class ConnectionDeletedEvt(betterproto.Message):
-    connection_id: str = betterproto.string_field(1)
+    connection_name: str = betterproto.string_field(1)
 
 @dataclass
 class ConnectionDeletedEvtMsg(betterproto.Message):
@@ -1215,7 +1215,7 @@ class EnvironmentCreatedMsg(betterproto.Message):
 
 @dataclass
 class EnvironmentDeleted(betterproto.Message):
-    environment_id: str = betterproto.string_field(1)
+    environment_name: str = betterproto.string_field(1)
 
 @dataclass
 class EnvironmentDeletedMsg(betterproto.Message):
