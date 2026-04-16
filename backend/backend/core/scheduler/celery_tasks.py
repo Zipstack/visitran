@@ -334,7 +334,7 @@ def trigger_scheduled_run(
 
             user_results = [
                 r for r in BASE_RESULT
-                if not _clean_name(r.node_name).endswith("Source")
+                if not _clean_name(r.node_name).startswith("Source")
             ]
             run.result = {
                 "models": [
@@ -419,7 +419,7 @@ def _mark_failure(run: TaskRunHistory, user_task: UserTaskDetails, error_msg: st
             return raw.split("'")[1].split(".")[-1] if "'" in raw else raw
 
         user_results = [
-            r for r in BASE_RESULT if not _clean(r.node_name).endswith("Source")
+            r for r in BASE_RESULT if not _clean(r.node_name).startswith("Source")
         ]
         run.result = {
             "models": [
