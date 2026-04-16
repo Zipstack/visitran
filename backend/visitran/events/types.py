@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import visitran.events.proto_types as proto_type
-from visitran.events.base_types import DebugLevel, ErrorLevel, InfoLevel, WarnLevel
+from visitran.events.base_types import DebugLevel, ErrorLevel, InfoLevel, UserLevel, WarnLevel
 
 #
 # | Code |     Description     |
@@ -820,3 +820,37 @@ class UpdateFailedCronJob(ErrorLevel, proto_type.UpdateFailedCronJob):
 
     def message(self) -> str:
         return f"{self.task_type} Task update failed, task_ID: {self.task_id}. task details: {self.cron_data}"
+
+
+# ─── User-facing activity events ─────────────────────────────────────
+# These inherit from UserLevel so they carry audience="user" and are
+# shown in the frontend's "User activity" log view by default.
+
+@dataclass
+class ModelRunStartedEvent(UserLevel, proto_type.ModelRunStarted):
+    def code(self) -> str:
+        return "U001"
+
+    def message(self) -> str:
+        mat = f" as {self.materialization}" if self.materialization else ""
+        return f'Building model "{self.model_name}" → {self.destination_table}{mat} from "{self.source_table}"'
+
+
+@dataclass
+class ModelRunSucceededEvent(UserLevel, proto_type.ModelRunSucceeded):
+    def code(self) -> str:
+        return "U002"
+
+    def message(self) -> str:
+        dur = f" in {self.duration_seconds:.1f}s" if self.duration_seconds else ""
+        return f'Model "{self.model_name}" built successfully{dur}'
+
+
+@dataclass
+class ModelRunFailedEvent(UserLevel, proto_type.ModelRunFailed):
+    def code(self) -> str:
+        return "U003"
+
+    def message(self) -> str:
+        short_err = (self.error[:120] + "…") if len(self.error) > 120 else self.error
+        return f'Model "{self.model_name}" failed: {short_err}'

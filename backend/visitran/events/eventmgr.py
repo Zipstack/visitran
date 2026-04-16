@@ -129,7 +129,8 @@ class _Logger:
             # send_to_logger(self._python_logger, msg.info.level, line) #send logs to file
             # Using shared memory to write the logs
             # LogHelper.publish(LogHelper.log(line, msg.info.level))
-            LogHelper.publish_log(StateStore.get("log_events_id"), LogHelper.log(line, msg.info.level))
+            audience = getattr(msg.data, "audience", lambda: "developer")()
+            LogHelper.publish_log(StateStore.get("log_events_id"), LogHelper.log(line, msg.info.level, audience))
 
         if self._stream is not None and self.name == "stdout_log":
             self._stream.write(line + "\n")

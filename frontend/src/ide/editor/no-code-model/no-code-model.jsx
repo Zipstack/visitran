@@ -230,7 +230,7 @@ function NoCodeModel({ nodeData }) {
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
   const [logsInfo, setLogsInfo] = useState([]);
   const [logsLevel, setLogsLevel] = useState(
-    () => localStorage.getItem("visitran.logsLevel") || "info"
+    () => localStorage.getItem("visitran.logsLevel") || "user"
   );
   const [reveal, setReveal] = useState(false);
   const [seqOrder, setSeqOrder] = useState({});
@@ -415,10 +415,12 @@ function NoCodeModel({ nodeData }) {
 
   const filteredLogs = useMemo(
     () =>
-      logsInfo.filter(
-        (entry) =>
+      logsInfo.filter((entry) => {
+        if (logsLevel === "user") return entry.audience === "user";
+        return (
           (LOG_LEVEL_RANK[entry.level] ?? 1) >= (LOG_LEVEL_RANK[logsLevel] ?? 1)
-      ),
+        );
+      }),
     [logsInfo, logsLevel]
   );
   const handleLogsLevelChange = (value) => {
@@ -716,8 +718,9 @@ function NoCodeModel({ nodeData }) {
               size="small"
               value={logsLevel}
               onChange={handleLogsLevelChange}
-              style={{ width: 140 }}
+              style={{ width: 160 }}
               options={[
+                { value: "user", label: "User activity" },
                 { value: "debug", label: "All logs" },
                 { value: "info", label: "Info & above" },
                 { value: "warn", label: "Warnings & errors" },
@@ -2046,6 +2049,7 @@ function NoCodeModel({ nodeData }) {
         newSocket.on(`logs:${socketSessionId}`, (data) => {
           const message = data?.data?.message;
           const level = (data?.data?.level || "info").toLowerCase();
+          const audience = data?.data?.audience || "developer";
           if (!message) return;
           const doc = document.getElementsByClassName("logsSection");
           if (doc[0]) {
@@ -2053,7 +2057,7 @@ function NoCodeModel({ nodeData }) {
               doc[0].scrollTop = doc[0].scrollHeight;
             }, 800);
           }
-          setLogsInfo((old) => [...old, { level, message }]);
+          setLogsInfo((old) => [...old, { level, message, audience }]);
         });
       });
     });

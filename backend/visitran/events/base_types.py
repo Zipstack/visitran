@@ -28,6 +28,9 @@ class BaseEvent:
     def level_tag(self) -> EventLevel:
         return EventLevel.DEBUG
 
+    def audience(self) -> str:
+        return "developer"
+
     def message(self) -> str:
         raise NotImplementedError("message() not implemented for event")
 
@@ -85,6 +88,17 @@ class WarnLevel(BaseEvent):
 class ErrorLevel(BaseEvent):
     def level_tag(self) -> EventLevel:
         return EventLevel.ERROR
+
+
+@dataclass
+class UserLevel(BaseEvent):
+    """User-facing events shown in the activity log (not developer noise)."""
+
+    def level_tag(self) -> EventLevel:
+        return EventLevel.INFO
+
+    def audience(self) -> str:
+        return "user"
 
 
 class NoFile:

@@ -1033,3 +1033,36 @@ class FailedScheduleJob(betterproto.Message):
 class FailedScheduleJobMsg(betterproto.Message):
     info: "EventInfo" = betterproto.message_field(1)
     data: "FailedScheduleJob" = betterproto.message_field(2)
+
+
+@dataclass
+class ModelRunStarted(betterproto.Message):
+    model_name: str = betterproto.string_field(1)
+    source_table: str = betterproto.string_field(2)
+    destination_table: str = betterproto.string_field(3)
+    materialization: str = betterproto.string_field(4)
+
+@dataclass
+class ModelRunStartedMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "ModelRunStarted" = betterproto.message_field(2)
+
+@dataclass
+class ModelRunSucceeded(betterproto.Message):
+    model_name: str = betterproto.string_field(1)
+    duration_seconds: float = betterproto.float_field(2)
+
+@dataclass
+class ModelRunSucceededMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "ModelRunSucceeded" = betterproto.message_field(2)
+
+@dataclass
+class ModelRunFailed(betterproto.Message):
+    model_name: str = betterproto.string_field(1)
+    error: str = betterproto.string_field(2)
+
+@dataclass
+class ModelRunFailedMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "ModelRunFailed" = betterproto.message_field(2)
