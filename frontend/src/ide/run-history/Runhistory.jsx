@@ -597,7 +597,7 @@ const Runhistory = () => {
                         : "No model configuration recorded for this run."}
                     </Typography.Text>
                   </Space>
-                  {record.result && (
+                  {record.result?.total > 0 && (
                     <div
                       style={{
                         display: "flex",
