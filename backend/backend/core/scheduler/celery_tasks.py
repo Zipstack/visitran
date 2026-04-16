@@ -323,11 +323,31 @@ def trigger_scheduled_run(
             else:
                 app_context.execute_visitran_run_command(environment_id=environment_id)
 
+        # ── Capture execution metrics from BASE_RESULT ──────────────
+        try:
+            from visitran.events.printer import BASE_RESULT
+            run.result = {
+                "models": [
+                    {
+                        "name": r.node_name,
+                        "status": r.status,
+                        "end_status": r.end_status,
+                        "sequence": r.sequence_num,
+                    }
+                    for r in BASE_RESULT
+                ],
+                "total": len(BASE_RESULT),
+                "passed": sum(1 for r in BASE_RESULT if r.end_status == "OK"),
+                "failed": sum(1 for r in BASE_RESULT if r.end_status == "FAIL"),
+            }
+        except Exception:
+            logger.debug("Could not capture BASE_RESULT metrics", exc_info=True)
+
         # ── Mark success ──────────────────────────────────────────────
         success = True
         run.status = "SUCCESS"
         run.end_time = timezone.now()
-        run.save(update_fields=["status", "end_time"])
+        run.save(update_fields=["status", "end_time", "result"])
 
         user_task.status = TaskStatus.SUCCESS
         user_task.task_completion_time = run.end_time
@@ -382,10 +402,28 @@ def trigger_scheduled_run(
 
 def _mark_failure(run: TaskRunHistory, user_task: UserTaskDetails, error_msg: str):
     """Helper to mark a run and its parent task as failed."""
+    try:
+        from visitran.events.printer import BASE_RESULT
+        run.result = {
+            "models": [
+                {
+                    "name": r.node_name,
+                    "status": r.status,
+                    "end_status": r.end_status,
+                    "sequence": r.sequence_num,
+                }
+                for r in BASE_RESULT
+            ],
+            "total": len(BASE_RESULT),
+            "passed": sum(1 for r in BASE_RESULT if r.end_status == "OK"),
+            "failed": sum(1 for r in BASE_RESULT if r.end_status == "FAIL"),
+        }
+    except Exception:
+        pass
     run.status = "FAILURE"
     run.end_time = timezone.now()
     run.error_message = error_msg
-    run.save(update_fields=["status", "end_time", "error_message"])
+    run.save(update_fields=["status", "end_time", "error_message", "result"])
 
     user_task.status = TaskStatus.FAILED
     user_task.task_completion_time = run.end_time

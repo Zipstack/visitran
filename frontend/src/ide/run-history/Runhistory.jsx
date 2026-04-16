@@ -597,6 +597,37 @@ const Runhistory = () => {
                         : "No model configuration recorded for this run."}
                     </Typography.Text>
                   </Space>
+                  {record.result && (
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 16,
+                        margin: "8px 0",
+                        padding: "8px 12px",
+                        background: token.colorFillQuaternary,
+                        borderRadius: token.borderRadiusLG,
+                        fontSize: 12,
+                      }}
+                    >
+                      <span>
+                        <strong>{record.result.total || 0}</strong> models
+                        attempted
+                      </span>
+                      <span style={{ color: token.colorSuccess }}>
+                        <strong>{record.result.passed || 0}</strong> passed
+                      </span>
+                      <span style={{ color: token.colorError }}>
+                        <strong>{record.result.failed || 0}</strong> failed
+                      </span>
+                      {record.result.models?.length > 0 && (
+                        <span style={{ color: token.colorTextSecondary }}>
+                          {record.result.models
+                            .map((m) => `${m.name} (${m.end_status})`)
+                            .join(", ")}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   {isFailure && record.error_message && (
                     <Alert
                       type="error"
