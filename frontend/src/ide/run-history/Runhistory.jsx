@@ -191,10 +191,13 @@ const Runhistory = () => {
     backUpData,
   ]);
 
-  /* ─── collapse all rows when the underlying data changes ─── */
+  /* ─── auto-expand failed rows on fresh data load ─── */
   useEffect(() => {
-    setExpandedRowKeys([]);
-  }, [JobHistoryData]);
+    const failedIds = (backUpData || [])
+      .filter((r) => r.status === "FAILURE" && r.error_message)
+      .map((r) => r.id);
+    setExpandedRowKeys(failedIds);
+  }, [backUpData]);
 
   /* ─── handlers ─── */
   const handleJobChange = useCallback((value) => {

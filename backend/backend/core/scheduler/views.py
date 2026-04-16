@@ -778,7 +778,7 @@ def list_deploy_candidates(request, project_id, model_name):
         enabled_model_count = sum(
             1
             for m_cfg in model_configs.values()
-            if m_cfg.get("enabled", True)
+            if isinstance(m_cfg, dict) and m_cfg.get("enabled", True)
         )
         env = task.environment
         candidates.append({

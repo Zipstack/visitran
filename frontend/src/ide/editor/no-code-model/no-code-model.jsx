@@ -90,6 +90,7 @@ import {
   addIdToObjects,
   checkPermission,
   getBaseUrl,
+  getRelativeTime,
   removeIdFromObjects,
   removeUnwantedKeys,
 } from "../../../common/helpers.js";
@@ -258,7 +259,6 @@ function NoCodeModel({ nodeData }) {
     runTask,
     listRecentRunsForModel,
   } = useJobService();
-  const { token } = theme.useToken();
 
   const [quickDeployModal, setQuickDeployModal] = useState({
     open: false,
@@ -1672,19 +1672,6 @@ function NoCodeModel({ nodeData }) {
     RETRY: "orange",
   };
 
-  const formatRelativeTime = (iso) => {
-    if (!iso) return "—";
-    const diff = Date.now() - new Date(iso).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 1) return "just now";
-    if (mins < 60) return `${mins} min ago`;
-    const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs} hr ago`;
-    const days = Math.floor(hrs / 24);
-    if (days < 7) return `${days} day${days > 1 ? "s" : ""} ago`;
-    return new Date(iso).toLocaleDateString();
-  };
-
   const fetchRecentRuns = async () => {
     const name = nodeData?.node?.title;
     if (!name) return;
@@ -1757,7 +1744,7 @@ function NoCodeModel({ nodeData }) {
                 {run.environment_name ? ` · ${run.environment_name}` : ""}
               </Typography.Text>
               <Typography.Text type="secondary" style={{ fontSize: 11 }}>
-                {formatRelativeTime(run.start_time)}
+                {getRelativeTime(run.start_time)}
               </Typography.Text>
             </div>
           );
