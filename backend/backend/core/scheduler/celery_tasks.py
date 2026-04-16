@@ -329,7 +329,7 @@ def trigger_scheduled_run(
             run.result = {
                 "models": [
                     {
-                        "name": r.node_name.split("'")[1].split(".")[-2] if "'" in r.node_name else r.node_name,
+                        "name": r.node_name.split("'")[1].split(".")[-1] if "'" in r.node_name else r.node_name,
                         "status": r.status,
                         "end_status": r.end_status,
                         "sequence": r.sequence_num,
@@ -407,7 +407,7 @@ def _mark_failure(run: TaskRunHistory, user_task: UserTaskDetails, error_msg: st
         run.result = {
             "models": [
                 {
-                    "name": r.node_name.split("'")[1].split(".")[-2] if "'" in r.node_name else r.node_name,
+                    "name": r.node_name.split("'")[1].split(".")[-1] if "'" in r.node_name else r.node_name,
                     "status": r.status,
                     "end_status": r.end_status,
                     "sequence": r.sequence_num,
