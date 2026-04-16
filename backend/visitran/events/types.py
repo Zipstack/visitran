@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import visitran.events.proto_types as proto_type
-from visitran.events.base_types import DebugLevel, ErrorLevel, InfoLevel, UserLevel, WarnLevel
+from visitran.events.base_types import DebugLevel, ErrorLevel, EventLevel, InfoLevel, UserLevel, WarnLevel
 
 #
 # | Code |     Description     |
@@ -987,6 +987,19 @@ class ConnectionDeletedEvt(UserLevel, proto_type.ConnectionDeletedEvt):
 
     def message(self) -> str:
         return f'Connection "{self.connection_name}" deleted'
+
+
+@dataclass
+class ConnectionDeleteFailedEvt(UserLevel, proto_type.ConnectionDeleteFailed):
+    def code(self) -> str:
+        return "U020"
+
+    def level_tag(self) -> EventLevel:
+        return EventLevel.ERROR
+
+    def message(self) -> str:
+        short = (self.reason[:120] + "…") if len(self.reason) > 120 else self.reason
+        return f'Failed to delete connection "{self.connection_name}": {short}'
 
 
 @dataclass

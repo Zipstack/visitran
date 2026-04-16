@@ -11,7 +11,7 @@ from backend.core.utils import handle_http_request
 from backend.utils.constants import HTTPMethods
 from rbac.factory import handle_permission
 from visitran.events.functions import fire_event
-from visitran.events.types import ConnectionCreated, ConnectionTested, ConnectionDeletedEvt
+from visitran.events.types import ConnectionCreated, ConnectionTested, ConnectionDeletedEvt, ConnectionDeleteFailedEvt
 
 RESOURCE_NAME = "connectiondetails"
 
@@ -130,7 +130,7 @@ def delete_connection(request: Request, connection_id: str) -> Response:
         con_context.delete_connection(connection_id=connection_id)
         fire_event(ConnectionDeletedEvt(connection_name=conn_name))
     except Exception as e:
-        fire_event(ConnectionDeletedEvt(connection_name=conn_name))
+        fire_event(ConnectionDeleteFailedEvt(connection_name=conn_name, reason=str(e)))
         raise ConnectionDeleteFailed(
             connection_name=conn_name,
             reason=str(e),

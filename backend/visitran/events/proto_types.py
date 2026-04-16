@@ -1221,3 +1221,13 @@ class EnvironmentDeleted(betterproto.Message):
 class EnvironmentDeletedMsg(betterproto.Message):
     info: "EventInfo" = betterproto.message_field(1)
     data: "EnvironmentDeleted" = betterproto.message_field(2)
+
+@dataclass
+class ConnectionDeleteFailed(betterproto.Message):
+    connection_name: str = betterproto.string_field(1)
+    reason: str = betterproto.string_field(2)
+
+@dataclass
+class ConnectionDeleteFailedMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "ConnectionDeleteFailed" = betterproto.message_field(2)
