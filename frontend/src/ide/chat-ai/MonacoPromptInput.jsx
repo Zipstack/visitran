@@ -12,7 +12,7 @@ const MonacoPromptInput = memo(function MonacoPromptInput({
   value,
   editorHeight,
   isPromptRunning,
-  isResponseStreaming,
+  isResponseStreaming = false,
   onEditorMount,
   onMonacoChange,
   onSubmit,

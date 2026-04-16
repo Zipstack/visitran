@@ -6,7 +6,7 @@ import { Sender } from "@ant-design/x";
 function DefaultPromptInput({
   value,
   isPromptRunning,
-  isResponseStreaming,
+  isResponseStreaming = false,
   onSenderChange,
   onSubmit,
   onCancel,
@@ -52,7 +52,7 @@ function DefaultPromptInput({
                 />
               }
               shape="default"
-              disabled={!value}
+              disabled={!value || isPromptRunning}
               className={shouldHighlightSend ? "onboarding-send-highlight" : ""}
             />
           </Tooltip>
