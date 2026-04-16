@@ -1832,7 +1832,7 @@ function NoCodeModel({ nodeData }) {
       );
       const envName = selected?.environment_name || "the selected environment";
       const jobName = selected?.task_name || "";
-      const taskId = quickDeployModal.selectedTaskId;
+      const taskId = encodeURIComponent(quickDeployModal.selectedTaskId);
       notify({
         type: "success",
         message: "Deploy Triggered",
@@ -1891,10 +1891,10 @@ function NoCodeModel({ nodeData }) {
                   ? "Model deployed successfully."
                   : run.error_message || "Check Run History for details."}{" "}
                 <a
-                  href={`/project/job/history?task=${taskId}`}
+                  href={`/project/job/history?task=${encodeURIComponent(taskId)}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    navigate(`/project/job/history?task=${taskId}`);
+                    navigate(`/project/job/history?task=${encodeURIComponent(taskId)}`);
                   }}
                 >
                   View in Run History →

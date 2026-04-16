@@ -255,19 +255,27 @@ const Runhistory = () => {
 
   const handleRefresh = useCallback(() => {
     if (filterQueries.job) {
-      getRunHistoryList(filterQueries.job);
+      getRunHistoryList(filterQueries.job, currentPage, pageSize, {
+        status: filterQueries.status,
+        trigger: filterQueries.trigger,
+        scope: filterQueries.scope,
+      });
     }
-  }, [filterQueries.job]);
+  }, [filterQueries, currentPage, pageSize, getRunHistoryList]);
 
   const handlePagination = useCallback(
     (newPage, newPageSize) => {
       if (currentPage !== newPage || pageSize !== newPageSize) {
         setCurrentPage(newPage);
         setPageSize(newPageSize);
-        getRunHistoryList(envInfo.id, newPage, newPageSize);
+        getRunHistoryList(envInfo.id, newPage, newPageSize, {
+          status: filterQueries.status,
+          trigger: filterQueries.trigger,
+          scope: filterQueries.scope,
+        });
       }
     },
-    [currentPage, pageSize, envInfo.id]
+    [currentPage, pageSize, envInfo.id, filterQueries, getRunHistoryList]
   );
 
   const handleExpand = useCallback((expanded, record) => {

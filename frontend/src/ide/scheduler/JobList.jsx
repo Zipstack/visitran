@@ -40,6 +40,7 @@ const JobList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
   const [prefillModel, setPrefillModel] = useState(null);
+  const [prefillProject, setPrefillProject] = useState(null);
   const [filters, setFilters] = useState({ proj: "all", env: "all" });
   const {
     currentPage,
@@ -159,12 +160,14 @@ const JobList = () => {
     if (!openJobDeploy) {
       setSelectedJobId(null);
       setPrefillModel(null);
+      setPrefillProject(null);
     }
   }, [openJobDeploy]);
 
   useEffect(() => {
     if (searchParams.get("create") === "1") {
       setPrefillModel(searchParams.get("model") || null);
+      setPrefillProject(searchParams.get("project") || null);
       setOpenJobDeploy(true);
       setSearchParams({}, { replace: true });
     }
@@ -273,6 +276,7 @@ const JobList = () => {
         selectedJobDeployId={selectedJobId}
         setIsJobListModified={setIsJobListModified}
         prefillModel={prefillModel}
+        prefillProject={prefillProject}
       />
 
       <Modal

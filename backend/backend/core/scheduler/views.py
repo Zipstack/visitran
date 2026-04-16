@@ -759,13 +759,13 @@ def list_recent_runs_for_model(request, project_id, model_name):
         env = task.environment
         kwargs = run.kwargs or {}
         models_override = kwargs.get("models_override") or []
-        # Back-compat: rows written before the trigger/scope split only
-        # carried kwargs.source=="quick_deploy" as their manual-model marker.
+        # Prefer first-class DB columns; fall back to kwargs for rows
+        # written before the trigger/scope migration.
         legacy_source = kwargs.get("source")
-        trigger = kwargs.get("trigger") or (
+        trigger = run.trigger or kwargs.get("trigger") or (
             "manual" if legacy_source == "quick_deploy" else "scheduled"
         )
-        scope = kwargs.get("scope") or (
+        scope = run.scope or kwargs.get("scope") or (
             "model" if models_override or legacy_source == "quick_deploy" else "job"
         )
         data.append({

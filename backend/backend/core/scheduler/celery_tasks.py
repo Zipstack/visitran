@@ -148,6 +148,19 @@ def _send_notification(user_task: UserTaskDetails, run: TaskRunHistory, success:
 
 
 # ---------------------------------------------------------------------------
+# BASE_RESULT cleanup helper
+# ---------------------------------------------------------------------------
+
+def _clear_base_result():
+    """Clear the module-level BASE_RESULT global to prevent stale data across worker reuse."""
+    try:
+        from visitran.events.printer import BASE_RESULT
+        BASE_RESULT.clear()
+    except Exception:
+        pass
+
+
+# ---------------------------------------------------------------------------
 # Job chaining helper
 # ---------------------------------------------------------------------------
 
@@ -327,13 +340,18 @@ def trigger_scheduled_run(
         try:
             from visitran.events.printer import BASE_RESULT
 
+            # Snapshot and immediately clear the global to prevent stale
+            # data leaking into a subsequent run on the same worker process.
+            results_snapshot = list(BASE_RESULT)
+            BASE_RESULT.clear()
+
             def _clean_name(raw):
                 if "'" in raw:
                     return raw.split("'")[1].split(".")[-1]
                 return raw
 
             user_results = [
-                r for r in BASE_RESULT
+                r for r in results_snapshot
                 if not _clean_name(r.node_name).startswith("Source")
             ]
             run.result = {
@@ -351,6 +369,7 @@ def trigger_scheduled_run(
                 "failed": sum(1 for r in user_results if r.end_status == "FAIL"),
             }
         except Exception:
+            _clear_base_result()
             logger.debug("Could not capture BASE_RESULT metrics", exc_info=True)
 
         # ── Mark success ──────────────────────────────────────────────
@@ -367,11 +386,13 @@ def trigger_scheduled_run(
     except (_RunTimeout, SoftTimeLimitExceeded) as exc:
         error_msg = str(exc) if str(exc) else f"Job exceeded timeout of {timeout}s"
         logger.warning("Job %s timed out: %s", user_task.task_name, error_msg)
+        _clear_base_result()
         _mark_failure(run, user_task, error_msg)
 
     except Exception as exc:
         error_msg = str(exc)
         logger.exception("Job %s failed: %s", user_task.task_name, error_msg)
+        _clear_base_result()
         _mark_failure(run, user_task, error_msg)
 
     # ── Retry logic ───────────────────────────────────────────────────
