@@ -734,13 +734,34 @@ function NoCodeModel({ nodeData }) {
               height: `calc(${bottomSectionRef.current.height} - 100px)`,
             }}
           >
-            {filteredLogs.map((el, index) => (
-              <div
-                key={index}
-                style={{ color: LOG_LEVEL_COLOR[el.level] }}
-                dangerouslySetInnerHTML={{ __html: parseLog(el.message) }}
-              />
-            ))}
+            {filteredLogs.map((el, index) =>
+              el.audience === "user" ? (
+                <div
+                  key={index}
+                  style={{
+                    padding: "4px 8px",
+                    margin: "2px 0",
+                    borderLeft: `3px solid ${token.colorPrimary}`,
+                    background: token.colorFillQuaternary,
+                    borderRadius: token.borderRadiusSM,
+                    fontWeight: 500,
+                    fontSize: 13,
+                    color:
+                      el.level === "error" ? token.colorError : token.colorText,
+                  }}
+                >
+                  {el.message}
+                </div>
+              ) : (
+                <div
+                  key={index}
+                  style={{ color: LOG_LEVEL_COLOR[el.level] }}
+                  dangerouslySetInnerHTML={{
+                    __html: parseLog(el.message),
+                  }}
+                />
+              )
+            )}
           </div>
         </>
       ),
