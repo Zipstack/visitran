@@ -751,7 +751,6 @@ function NoCodeModel({ nodeData }) {
         setSeqEdges(layoutedEdges);
         runTransformation(res?.data?.model_data);
         setConfigApply(true);
-        setRefreshModels(true);
         handleModalClose("ok");
       })
       .catch((error) => {
@@ -1614,6 +1613,9 @@ function NoCodeModel({ nodeData }) {
     axios(requestOptions)
       .then(() => {
         getSampleData(undefined, undefined, spec);
+        // Trigger explorer refresh after run completes so updated references
+        // (from set-model save) reflect in the dependency chain sort
+        setRefreshModels(true);
       })
       .catch((error) => {
         const notifKey = notify({

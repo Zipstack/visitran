@@ -441,12 +441,12 @@
   cursor: pointer;
 }
 .chat-ai-info-chip-error {
-  background-color: var(--ant-color-error-bg);
-  border-color: var(--ant-color-error-border);
+  background-color: var(--content-bg);
+  border-color: var(--border-color-3);
 }
 .chat-ai-info-chip-error .chat-ai-info-chip-icon,
 .chat-ai-info-chip-error .chat-ai-info-chip-text {
-  color: var(--ant-color-error);
+  color: var(--error-color);
 }
 .chat-ai-manage-credits-link:hover {
   color: var(--icons-color);
