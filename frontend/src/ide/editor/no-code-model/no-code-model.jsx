@@ -11,7 +11,7 @@ import {
   Tooltip,
   Typography,
 } from "antd";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Resizable } from "react-resizable";
 import Cookies from "js-cookie";
 import AnsiToHtml from "ansi-to-html";
@@ -145,6 +145,15 @@ const ResizableTitle = (props) => {
 ResizableTitle.propTypes = {
   onResize: PropTypes.func,
   width: PropTypes.number,
+};
+
+const LOG_LEVEL_RANK = { debug: 0, info: 1, warn: 2, warning: 2, error: 3 };
+const LOG_LEVEL_COLOR = {
+  debug: "#8c8c8c",
+  info: undefined,
+  warn: "#d48806",
+  warning: "#d48806",
+  error: "#cf1322",
 };
 
 function NoCodeModel({ nodeData }) {
@@ -369,17 +378,13 @@ function NoCodeModel({ nodeData }) {
       ALLOWED_ATTR: ["style"],
     });
 
-  const LOG_LEVEL_RANK = { debug: 0, info: 1, warn: 2, warning: 2, error: 3 };
-  const LOG_LEVEL_COLOR = {
-    debug: "#8c8c8c",
-    info: undefined,
-    warn: "#d48806",
-    warning: "#d48806",
-    error: "#cf1322",
-  };
-  const filteredLogs = logsInfo.filter(
-    (entry) =>
-      (LOG_LEVEL_RANK[entry.level] ?? 1) >= (LOG_LEVEL_RANK[logsLevel] ?? 1)
+  const filteredLogs = useMemo(
+    () =>
+      logsInfo.filter(
+        (entry) =>
+          (LOG_LEVEL_RANK[entry.level] ?? 1) >= (LOG_LEVEL_RANK[logsLevel] ?? 1)
+      ),
+    [logsInfo, logsLevel]
   );
   const handleLogsLevelChange = (value) => {
     setLogsLevel(value);
@@ -1804,12 +1809,13 @@ function NoCodeModel({ nodeData }) {
     };
     const newSocket = io(getBaseUrl(), body);
 
+    let socketSessionId = null;
     newSocket.on("connect", () => {
       // Listen for the session ID sent by the server
       newSocket.on("session_id", (data) => {
-        const sessionId = data.session_id;
+        socketSessionId = data.session_id;
         // Listen for messages in the specific room (session ID)
-        newSocket.on(`logs:${sessionId}`, (data) => {
+        newSocket.on(`logs:${socketSessionId}`, (data) => {
           const message = data?.data?.message;
           const level = (data?.data?.level || "info").toLowerCase();
           if (!message) return;
@@ -1825,7 +1831,10 @@ function NoCodeModel({ nodeData }) {
     });
     return () => {
       // unsubscribe to the channel to stop listening the socket messages for the logId
-      newSocket.off(`logs:${sessionId}`);
+      if (socketSessionId) {
+        newSocket.off(`logs:${socketSessionId}`);
+      }
+      newSocket.disconnect();
     };
   }, [sessionId]);
 
