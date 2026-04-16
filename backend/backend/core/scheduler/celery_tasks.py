@@ -326,19 +326,29 @@ def trigger_scheduled_run(
         # ── Capture execution metrics from BASE_RESULT ──────────────
         try:
             from visitran.events.printer import BASE_RESULT
+
+            def _clean_name(raw):
+                if "'" in raw:
+                    return raw.split("'")[1].split(".")[-1]
+                return raw
+
+            user_results = [
+                r for r in BASE_RESULT
+                if not _clean_name(r.node_name).endswith("Source")
+            ]
             run.result = {
                 "models": [
                     {
-                        "name": r.node_name.split("'")[1].split(".")[-1] if "'" in r.node_name else r.node_name,
+                        "name": _clean_name(r.node_name),
                         "status": r.status,
                         "end_status": r.end_status,
                         "sequence": r.sequence_num,
                     }
-                    for r in BASE_RESULT
+                    for r in user_results
                 ],
-                "total": len(BASE_RESULT),
-                "passed": sum(1 for r in BASE_RESULT if r.end_status == "OK"),
-                "failed": sum(1 for r in BASE_RESULT if r.end_status == "FAIL"),
+                "total": len(user_results),
+                "passed": sum(1 for r in user_results if r.end_status == "OK"),
+                "failed": sum(1 for r in user_results if r.end_status == "FAIL"),
             }
         except Exception:
             logger.debug("Could not capture BASE_RESULT metrics", exc_info=True)
@@ -404,19 +414,26 @@ def _mark_failure(run: TaskRunHistory, user_task: UserTaskDetails, error_msg: st
     """Helper to mark a run and its parent task as failed."""
     try:
         from visitran.events.printer import BASE_RESULT
+
+        def _clean(raw):
+            return raw.split("'")[1].split(".")[-1] if "'" in raw else raw
+
+        user_results = [
+            r for r in BASE_RESULT if not _clean(r.node_name).endswith("Source")
+        ]
         run.result = {
             "models": [
                 {
-                    "name": r.node_name.split("'")[1].split(".")[-1] if "'" in r.node_name else r.node_name,
+                    "name": _clean(r.node_name),
                     "status": r.status,
                     "end_status": r.end_status,
                     "sequence": r.sequence_num,
                 }
-                for r in BASE_RESULT
+                for r in user_results
             ],
-            "total": len(BASE_RESULT),
-            "passed": sum(1 for r in BASE_RESULT if r.end_status == "OK"),
-            "failed": sum(1 for r in BASE_RESULT if r.end_status == "FAIL"),
+            "total": len(user_results),
+            "passed": sum(1 for r in user_results if r.end_status == "OK"),
+            "failed": sum(1 for r in user_results if r.end_status == "FAIL"),
         }
     except Exception:
         pass
