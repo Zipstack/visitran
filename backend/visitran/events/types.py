@@ -892,3 +892,40 @@ class SeedCompleted(UserLevel, proto_type.SeedCompleted):
         if self.status == "Success":
             return f'Seed "{self.seed_name}" loaded into "{self.schema_name}"'
         return f'Seed "{self.seed_name}" failed in "{self.schema_name}"'
+
+
+@dataclass
+class JobCreated(UserLevel, proto_type.JobCreated):
+    def code(self) -> str:
+        return "U008"
+
+    def message(self) -> str:
+        return f'Job "{self.job_name}" created for environment "{self.environment_name}"'
+
+
+@dataclass
+class JobUpdated(UserLevel, proto_type.JobUpdated):
+    def code(self) -> str:
+        return "U009"
+
+    def message(self) -> str:
+        return f'Job "{self.job_name}" updated'
+
+
+@dataclass
+class JobDeleted(UserLevel, proto_type.JobDeleted):
+    def code(self) -> str:
+        return "U010"
+
+    def message(self) -> str:
+        return f'Job "{self.job_name}" deleted'
+
+
+@dataclass
+class JobTriggered(UserLevel, proto_type.JobTriggered):
+    def code(self) -> str:
+        return "U011"
+
+    def message(self) -> str:
+        scope_desc = "all models" if self.scope == "job" else f"model {self.scope}"
+        return f'Job "{self.job_name}" triggered manually — running {scope_desc}'

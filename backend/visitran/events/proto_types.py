@@ -1108,3 +1108,41 @@ class SeedCompleted(betterproto.Message):
 class SeedCompletedMsg(betterproto.Message):
     info: "EventInfo" = betterproto.message_field(1)
     data: "SeedCompleted" = betterproto.message_field(2)
+
+@dataclass
+class JobCreated(betterproto.Message):
+    job_name: str = betterproto.string_field(1)
+    environment_name: str = betterproto.string_field(2)
+
+@dataclass
+class JobCreatedMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "JobCreated" = betterproto.message_field(2)
+
+@dataclass
+class JobUpdated(betterproto.Message):
+    job_name: str = betterproto.string_field(1)
+
+@dataclass
+class JobUpdatedMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "JobUpdated" = betterproto.message_field(2)
+
+@dataclass
+class JobDeleted(betterproto.Message):
+    job_name: str = betterproto.string_field(1)
+
+@dataclass
+class JobDeletedMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "JobDeleted" = betterproto.message_field(2)
+
+@dataclass
+class JobTriggered(betterproto.Message):
+    job_name: str = betterproto.string_field(1)
+    scope: str = betterproto.string_field(2)
+
+@dataclass
+class JobTriggeredMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "JobTriggered" = betterproto.message_field(2)
