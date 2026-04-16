@@ -125,13 +125,14 @@ def delete_connection(request: Request, connection_id: str) -> Response:
     try:
         conn_data = con_context.get_connection(connection_id=connection_id)
         conn_name = conn_data.get("name", connection_id) if conn_data else connection_id
+        con_context.delete_connection(connection_id=connection_id)
+        fire_event(ConnectionDeletedEvt(connection_name=conn_name))
     except Exception:
-        pass  # Best-effort name lookup; deletion proceeds regardless
-    con_context.delete_connection(connection_id=connection_id)
-    fire_event(ConnectionDeletedEvt(connection_name=conn_name))
+        fire_event(ConnectionDeletedEvt(connection_name=conn_name))
+        raise
     response_data = {
         "status": "success",
-        "data": f"{connection_id} is deleted successfully.",
+        "data": f"{conn_name} is deleted successfully.",
     }
     return Response(data=response_data, status=status.HTTP_200_OK)
 
