@@ -19,6 +19,12 @@ class ConfigModels(DefaultOrganizationMixin, BaseModel):
     This model is used to store the no code models.
     """
 
+    class RunStatus(models.TextChoices):
+        NOT_STARTED = "NOT_STARTED", "Not Started"
+        RUNNING = "RUNNING", "Running"
+        SUCCESS = "SUCCESS", "Success"
+        FAILED = "FAILED", "Failed"
+
     def get_model_upload_path(self, filename: str) -> str:
         """
         This returns the file path based on the org and project dynamically.
@@ -93,6 +99,29 @@ class ConfigModels(DefaultOrganizationMixin, BaseModel):
 
     last_modified_by = models.JSONField(default=dict)
     last_modified_at = models.DateTimeField(auto_now=True)
+
+    # Execution status tracking
+    run_status = models.CharField(
+        max_length=20,
+        choices=RunStatus.choices,
+        default=RunStatus.NOT_STARTED,
+        help_text="Current execution status of the model",
+    )
+    failure_reason = models.TextField(
+        null=True,
+        blank=True,
+        help_text="Error message if the model execution failed",
+    )
+    last_run_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="Timestamp of the last execution",
+    )
+    run_duration = models.FloatField(
+        null=True,
+        blank=True,
+        help_text="Duration of last execution in seconds",
+    )
 
     # Current Manager
     config_objects = models.Manager()

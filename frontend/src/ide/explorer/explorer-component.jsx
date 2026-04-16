@@ -16,6 +16,7 @@ import {
   Badge,
   theme,
   Checkbox,
+  Popover,
 } from "antd";
 import {
   CaretDownOutlined,
@@ -57,6 +58,96 @@ import { useNotificationService } from "../../service/notification-service.js";
 import { SpinnerLoader } from "../../widgets/spinner_loader/index.js";
 import { useRefreshModelsStore } from "../../store/refresh-models-store.js";
 import { LinearScale } from "../../base/icons";
+
+const MODEL_STATUS_DOT_STYLE = {
+  display: "inline-block",
+  width: "7px",
+  height: "7px",
+  borderRadius: "50%",
+  verticalAlign: "middle",
+};
+
+const getModelRunStatus = (runStatus, failureReason, lastRunAt, token) => {
+  if (runStatus === "RUNNING") {
+    return (
+      <Tooltip title="Running">
+        <span
+          style={{
+            ...MODEL_STATUS_DOT_STYLE,
+            backgroundColor: token.colorInfo,
+          }}
+        />
+      </Tooltip>
+    );
+  }
+  if (runStatus === "FAILED") {
+    const popoverContent = (
+      <div style={{ maxWidth: 400, maxHeight: 300, overflow: "auto" }}>
+        {failureReason && (
+          <pre
+            style={{
+              margin: 0,
+              fontSize: "12px",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+            }}
+          >
+            {failureReason}
+          </pre>
+        )}
+        {lastRunAt && (
+          <div
+            style={{
+              marginTop: 8,
+              fontSize: "11px",
+              color: token.colorTextSecondary,
+            }}
+          >
+            Last run: {new Date(lastRunAt).toLocaleString()}
+          </div>
+        )}
+      </div>
+    );
+    return (
+      <Popover
+        title="Execution Failed"
+        content={popoverContent}
+        trigger="hover"
+        placement="right"
+      >
+        <span
+          style={{
+            ...MODEL_STATUS_DOT_STYLE,
+            backgroundColor: token.colorError,
+          }}
+        />
+      </Popover>
+    );
+  }
+  if (runStatus === "SUCCESS") {
+    const tooltipTitle = (
+      <div>
+        <div>Success</div>
+        {lastRunAt && (
+          <div style={{ marginTop: 4, fontSize: "11px" }}>
+            Last run: {new Date(lastRunAt).toLocaleString()}
+          </div>
+        )}
+      </div>
+    );
+    return (
+      <Tooltip title={tooltipTitle}>
+        <span
+          style={{
+            ...MODEL_STATUS_DOT_STYLE,
+            backgroundColor: token.colorSuccess,
+          }}
+        />
+      </Tooltip>
+    );
+  }
+  return null;
+};
 
 const IdeExplorer = ({
   currentNode,
@@ -460,29 +551,48 @@ const IdeExplorer = ({
             </Typography>
           </Typography.Text>
         );
-        // Add checkboxes to model children when in delete mode
-        item.children = item.children.map((child) => ({
-          ...child,
-          title: (
-            <Typography.Text type="span" disabled={previewTimeTravel}>
-              {modelDeleteModeRef.current && (
-                <Checkbox
-                  checked={selectedModelKeysRef.current.includes(child.key)}
-                  onChange={() =>
-                    handleItemSelectToggle(
-                      child.key,
-                      selectedModelKeysRef,
-                      setSelectedModelKeys
-                    )
-                  }
-                  onClick={(e) => e.stopPropagation()}
-                  style={{ marginRight: 6 }}
-                />
-              )}
-              {child.title}
-            </Typography.Text>
-          ),
-        }));
+        // Add checkboxes and run status to model children
+        item.children = item.children.map((child) => {
+          const statusBadge = getModelRunStatus(
+            child.run_status,
+            child.failure_reason,
+            child.last_run_at,
+            token
+          );
+          return {
+            ...child,
+            title: (
+              <Typography.Text type="span" disabled={previewTimeTravel}>
+                {modelDeleteModeRef.current && (
+                  <Checkbox
+                    checked={selectedModelKeysRef.current.includes(child.key)}
+                    onChange={() =>
+                      handleItemSelectToggle(
+                        child.key,
+                        selectedModelKeysRef,
+                        setSelectedModelKeys
+                      )
+                    }
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ marginRight: 6 }}
+                  />
+                )}
+                {statusBadge && (
+                  <span
+                    style={{
+                      position: "relative",
+                      display: "inline-block",
+                      marginRight: 4,
+                    }}
+                  >
+                    {statusBadge}
+                  </span>
+                )}
+                {child.title}
+              </Typography.Text>
+            ),
+          };
+        });
       }
       return item;
     });
@@ -555,6 +665,8 @@ const IdeExplorer = ({
       .catch((error) => {
         messageApi.destroy(`model-run-${modelName}`);
         notify({ error });
+        getExplorer(projectId);
+        setRefreshModels(true);
       })
       .finally(() => {
         // Remove model from running set
