@@ -208,13 +208,20 @@ const Runhistory = () => {
     backUpData,
   ]);
 
-  /* ─── auto-expand failed rows on fresh data load (not on filter changes) ─── */
+  /* ─── auto-expand on fresh data load ─── */
   useEffect(() => {
-    const failedIds = (backUpData || [])
+    const ids = [];
+    const fromDeepLink = searchParams.has("task");
+    if (fromDeepLink && backUpData.length > 0) {
+      ids.push(backUpData[0].id);
+    }
+    (backUpData || [])
       .filter((r) => r.status === "FAILURE" && r.error_message)
-      .map((r) => r.id);
-    setExpandedRowKeys(failedIds);
-  }, [backUpData]);
+      .forEach((r) => {
+        if (!ids.includes(r.id)) ids.push(r.id);
+      });
+    setExpandedRowKeys(ids);
+  }, [backUpData, searchParams]);
 
   /* ─── handlers ─── */
   const handleJobChange = useCallback(

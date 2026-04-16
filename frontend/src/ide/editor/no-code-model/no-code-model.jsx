@@ -1829,13 +1829,26 @@ function NoCodeModel({ nodeData }) {
       );
       const envName = selected?.environment_name || "the selected environment";
       const jobName = selected?.task_name || "";
+      const taskId = quickDeployModal.selectedTaskId;
       notify({
         type: "success",
         message: "Deploy Triggered",
-        description:
-          selectedScope === "job"
-            ? `Job "${jobName}" is running on "${envName}" (all enabled models). Check Run History for progress.`
-            : `"${currentModelName}" is running on "${envName}" via job "${jobName}". Check Run History for progress.`,
+        description: (
+          <span>
+            {selectedScope === "job"
+              ? `Job "${jobName}" is running on "${envName}" (all enabled models). `
+              : `"${currentModelName}" is running on "${envName}" via job "${jobName}". `}
+            <a
+              href={`/project/job/history?task=${taskId}`}
+              onClick={(e) => {
+                e.preventDefault();
+                navigate(`/project/job/history?task=${taskId}`);
+              }}
+            >
+              View in Run History →
+            </a>
+          </span>
+        ),
       });
       setRefreshModels(true);
       setRecentRunsState((prev) => ({ ...prev, fetchedFor: null }));
