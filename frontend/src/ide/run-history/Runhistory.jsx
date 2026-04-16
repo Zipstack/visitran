@@ -113,33 +113,32 @@ const Runhistory = () => {
   const [searchParams, setSearchParams] = useSearchParams();
 
   /* ─── API calls ─── */
-  const getRunHistoryList = async (
-    Id,
-    page = currentPage,
-    limit = pageSize
-  ) => {
-    setLoading(true);
-    try {
-      const res = await axios({
-        method: "GET",
-        url: `/api/v1/visitran/${
-          selectedOrgId || "default_org"
-        }/project/_all/jobs/run-history/${Id}`,
-        params: { page, limit },
-      });
-      const { page_items, total_items, current_page } = res.data.data;
-      setTotalCount(total_items);
-      setCurrentPage(current_page);
-      const { env_type, job_name, run_history, id } = page_items;
-      setEnvInfo({ env_type, job_name, id });
-      setJobHistoryData(run_history);
-      setBackUpData(run_history);
-    } catch (error) {
-      notify({ error });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const getRunHistoryList = useCallback(
+    async (Id, page = currentPage, limit = pageSize) => {
+      setLoading(true);
+      try {
+        const res = await axios({
+          method: "GET",
+          url: `/api/v1/visitran/${
+            selectedOrgId || "default_org"
+          }/project/_all/jobs/run-history/${Id}`,
+          params: { page, limit },
+        });
+        const { page_items, total_items, current_page } = res.data.data;
+        setTotalCount(total_items);
+        setCurrentPage(current_page);
+        const { env_type, job_name, run_history, id } = page_items;
+        setEnvInfo({ env_type, job_name, id });
+        setJobHistoryData(run_history);
+        setBackUpData(run_history);
+      } catch (error) {
+        notify({ error });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [axios, selectedOrgId, currentPage, pageSize, notify]
+  );
 
   const getJobList = async () => {
     setLoading(true);
