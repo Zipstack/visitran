@@ -75,9 +75,9 @@ from visitran.events.types import (
     SortedDAGNodes,
     TestExecutionCompleted,
     TestExecutionFailed,
-    ModelRunStartedEvent,
-    ModelRunSucceededEvent,
-    ModelRunFailedEvent,
+    ModelRunStarted,
+    ModelRunSucceeded,
+    ModelRunFailed,
 )
 from visitran.materialization import Materialization
 from visitran.singleton import Singleton
@@ -319,7 +319,7 @@ class Visitran:
                 _model_display = getattr(node, "destination_table_name", "") or str(node_name)
                 _mat = node.materialization.value if hasattr(node.materialization, "value") else str(node.materialization)
                 fire_event(
-                    ModelRunStartedEvent(
+                    ModelRunStarted(
                         model_name=_model_display,
                         source_table=f"{node.source_schema_name}.{node.source_table_name}",
                         destination_table=f"{node.destination_schema_name}.{node.destination_table_name}",
@@ -348,7 +348,7 @@ class Visitran:
 
                 _elapsed = time.monotonic() - start_time
                 fire_event(
-                    ModelRunSucceededEvent(
+                    ModelRunSucceeded(
                         model_name=_model_display,
                         duration_seconds=round(_elapsed, 2),
                     )
@@ -372,7 +372,7 @@ class Visitran:
                 BASE_RESULT.append(base_result)
             except VisitranBaseExceptions as visitran_err:
                 fire_event(
-                    ModelRunFailedEvent(
+                    ModelRunFailed(
                         model_name=getattr(node, "destination_table_name", "") or str(node_name),
                         error=str(visitran_err),
                     )
@@ -389,7 +389,7 @@ class Visitran:
                 sch_name = node.destination_schema_name
                 err_trace = repr(err)
                 fire_event(
-                    ModelRunFailedEvent(
+                    ModelRunFailed(
                         model_name=dest_table or str(node_name),
                         error=err_trace,
                     )

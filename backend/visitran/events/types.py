@@ -827,7 +827,7 @@ class UpdateFailedCronJob(ErrorLevel, proto_type.UpdateFailedCronJob):
 # shown in the frontend's "User activity" log view by default.
 
 @dataclass
-class ModelRunStartedEvent(UserLevel, proto_type.ModelRunStarted):
+class ModelRunStarted(UserLevel, proto_type.ModelRunStarted):
     def code(self) -> str:
         return "U001"
 
@@ -837,7 +837,7 @@ class ModelRunStartedEvent(UserLevel, proto_type.ModelRunStarted):
 
 
 @dataclass
-class ModelRunSucceededEvent(UserLevel, proto_type.ModelRunSucceeded):
+class ModelRunSucceeded(UserLevel, proto_type.ModelRunSucceeded):
     def code(self) -> str:
         return "U002"
 
@@ -847,7 +847,7 @@ class ModelRunSucceededEvent(UserLevel, proto_type.ModelRunSucceeded):
 
 
 @dataclass
-class ModelRunFailedEvent(UserLevel, proto_type.ModelRunFailed):
+class ModelRunFailed(UserLevel, proto_type.ModelRunFailed):
     def code(self) -> str:
         return "U003"
 
