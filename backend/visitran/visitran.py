@@ -78,6 +78,7 @@ from visitran.events.types import (
     ModelRunStarted,
     ModelRunSucceeded,
     ModelRunFailed,
+    SeedCompleted,
 )
 from visitran.materialization import Materialization
 from visitran.singleton import Singleton
@@ -851,6 +852,9 @@ class Visitran:
                 )
                 SEED_RESULT.append(seed_result)
                 parse_and_fire_seed_report()
+                fire_event(SeedCompleted(
+                    seed_name=file_name, schema_name=schema, status="Success",
+                ))
                 return {
                     "file_name": file_name,
                     "status": "Success",
@@ -860,6 +864,9 @@ class Visitran:
         except Exception as err:
             # Catches all kind of errors and raises with custom exceptions for seeds
             fire_event(SeedExecutionError(file_name, str(err)))
+            fire_event(SeedCompleted(
+                seed_name=file_name, schema_name="", status="Failed",
+            ))
             logging.exception(f"validate and run seed failed with exception {err}")
             raise RunSeedFailedException(file_name=file_name, error_message=str(err))
 

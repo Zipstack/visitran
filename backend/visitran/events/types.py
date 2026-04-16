@@ -854,3 +854,41 @@ class ModelRunFailed(UserLevel, proto_type.ModelRunFailed):
     def message(self) -> str:
         short_err = (self.error[:120] + "…") if len(self.error) > 120 else self.error
         return f'Model "{self.model_name}" failed: {short_err}'
+
+
+@dataclass
+class TransformationApplied(UserLevel, proto_type.TransformationApplied):
+    def code(self) -> str:
+        return "U004"
+
+    def message(self) -> str:
+        return f'Applied {self.transformation_type} transformation on "{self.model_name}"'
+
+
+@dataclass
+class TransformationDeleted(UserLevel, proto_type.TransformationDeleted):
+    def code(self) -> str:
+        return "U005"
+
+    def message(self) -> str:
+        return f'Removed {self.transformation_type} transformation from "{self.model_name}"'
+
+
+@dataclass
+class ModelConfigured(UserLevel, proto_type.ModelConfigured):
+    def code(self) -> str:
+        return "U006"
+
+    def message(self) -> str:
+        return f'Configured "{self.model_name}" — source: {self.source}, destination: {self.destination}'
+
+
+@dataclass
+class SeedCompleted(UserLevel, proto_type.SeedCompleted):
+    def code(self) -> str:
+        return "U007"
+
+    def message(self) -> str:
+        if self.status == "Success":
+            return f'Seed "{self.seed_name}" loaded into "{self.schema_name}"'
+        return f'Seed "{self.seed_name}" failed in "{self.schema_name}"'

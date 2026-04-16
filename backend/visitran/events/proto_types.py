@@ -1066,3 +1066,45 @@ class ModelRunFailed(betterproto.Message):
 class ModelRunFailedMsg(betterproto.Message):
     info: "EventInfo" = betterproto.message_field(1)
     data: "ModelRunFailed" = betterproto.message_field(2)
+
+@dataclass
+class TransformationApplied(betterproto.Message):
+    model_name: str = betterproto.string_field(1)
+    transformation_type: str = betterproto.string_field(2)
+
+@dataclass
+class TransformationAppliedMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "TransformationApplied" = betterproto.message_field(2)
+
+@dataclass
+class TransformationDeleted(betterproto.Message):
+    model_name: str = betterproto.string_field(1)
+    transformation_type: str = betterproto.string_field(2)
+
+@dataclass
+class TransformationDeletedMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "TransformationDeleted" = betterproto.message_field(2)
+
+@dataclass
+class ModelConfigured(betterproto.Message):
+    model_name: str = betterproto.string_field(1)
+    source: str = betterproto.string_field(2)
+    destination: str = betterproto.string_field(3)
+
+@dataclass
+class ModelConfiguredMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "ModelConfigured" = betterproto.message_field(2)
+
+@dataclass
+class SeedCompleted(betterproto.Message):
+    seed_name: str = betterproto.string_field(1)
+    schema_name: str = betterproto.string_field(2)
+    status: str = betterproto.string_field(3)
+
+@dataclass
+class SeedCompletedMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "SeedCompleted" = betterproto.message_field(2)
