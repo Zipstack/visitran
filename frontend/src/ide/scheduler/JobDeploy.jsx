@@ -99,6 +99,7 @@ const JobDeploy = memo(function JobDeploy({
   setOpen,
   selectedJobDeployId,
   setIsJobListModified,
+  prefillModel,
 }) {
   const [form] = Form.useForm();
   const canWrite = checkPermission("JOB_DEPLOYMENT", "can_write");
@@ -222,6 +223,22 @@ const JobDeploy = memo(function JobDeploy({
       );
     }
   }, [selectedProjectId]);
+
+  /* ─── pre-fill model from Quick Deploy CTA ─── */
+  useEffect(() => {
+    if (!open || !prefillModel || isEditMode) return;
+    setModelConfigs((prev) => ({
+      ...prev,
+      [prefillModel]: {
+        ...prev[prefillModel],
+        enabled: true,
+        materialization: prev[prefillModel]?.materialization || "TABLE",
+      },
+    }));
+    setModelConfigActiveKey((prev) =>
+      prev.includes("model-config") ? prev : ["model-config"]
+    );
+  }, [open, prefillModel, isEditMode]);
 
   /* ─── load existing job when editing ─── */
   useEffect(() => {
@@ -779,6 +796,7 @@ JobDeploy.propTypes = {
     PropTypes.number,
   ]),
   setIsJobListModified: PropTypes.func.isRequired,
+  prefillModel: PropTypes.string,
 };
 
 JobDeploy.displayName = "JobDeploy";

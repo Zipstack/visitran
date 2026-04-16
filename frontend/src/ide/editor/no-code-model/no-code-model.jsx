@@ -1865,7 +1865,12 @@ function NoCodeModel({ nodeData }) {
 
   const goToScheduler = () => {
     setQuickDeployModal((prev) => ({ ...prev, open: false }));
-    navigate("/project/job/list");
+    const params = new URLSearchParams();
+    params.set("create", "1");
+    if (projectId) params.set("project", projectId);
+    const modelTitle = nodeData?.node?.title;
+    if (modelTitle) params.set("model", modelTitle);
+    navigate(`/project/job/list?${params.toString()}`);
   };
 
   const runTransformation = (spec) => {

@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { Alert, Button, Space, Typography, Modal, Pagination } from "antd";
 import debounce from "lodash/debounce";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { checkPermission } from "../../common/helpers";
 import { useNotificationService } from "../../service/notification-service";
@@ -38,6 +38,8 @@ const JobList = () => {
   const [openJobDeploy, setOpenJobDeploy] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [prefillModel, setPrefillModel] = useState(null);
   const [filters, setFilters] = useState({ proj: "all", env: "all" });
   const {
     currentPage,
@@ -154,8 +156,19 @@ const JobList = () => {
   }, []);
 
   useEffect(() => {
-    if (!openJobDeploy) setSelectedJobId(null);
+    if (!openJobDeploy) {
+      setSelectedJobId(null);
+      setPrefillModel(null);
+    }
   }, [openJobDeploy]);
+
+  useEffect(() => {
+    if (searchParams.get("create") === "1") {
+      setPrefillModel(searchParams.get("model") || null);
+      setOpenJobDeploy(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const onDelete = async () => {
     try {
@@ -259,6 +272,7 @@ const JobList = () => {
         setOpen={setOpenJobDeploy}
         selectedJobDeployId={selectedJobId}
         setIsJobListModified={setIsJobListModified}
+        prefillModel={prefillModel}
       />
 
       <Modal
