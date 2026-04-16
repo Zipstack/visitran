@@ -189,7 +189,7 @@ const MonacoPromptInput = memo(function MonacoPromptInput({
                   }
                 />
               }
-              disabled={!value}
+              disabled={!value || isPromptRunning}
               onClick={handleSubmit}
               className={shouldHighlightSend ? "onboarding-send-highlight" : ""}
             />
