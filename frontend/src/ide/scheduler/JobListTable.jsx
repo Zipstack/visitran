@@ -198,7 +198,7 @@ const JobListTable = memo(
           key: "actions",
           render: (_, record) => (
             <Space>
-              <Tooltip title="run">
+              <Tooltip title="Deploy Job">
                 <Button
                   type="link"
                   icon={

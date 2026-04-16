@@ -1,8 +1,10 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import {
+  Alert,
   Select,
   Table,
   Tag,
+  theme,
   Typography,
   Empty,
   Button,
@@ -13,6 +15,7 @@ import {
   ReloadOutlined,
   CalendarOutlined,
   DatabaseOutlined,
+  CloseCircleFilled,
 } from "@ant-design/icons";
 
 import { useAxiosPrivate } from "../../service/axios-service";
@@ -58,6 +61,16 @@ const STATUS_OPTIONS = [
   { label: "Revoked", value: "REVOKED" },
 ];
 
+const getRunTriggerScope = (row) => {
+  const kw = row?.kwargs || {};
+  const legacyQuick = kw.source === "quick_deploy";
+  const models = kw.models_override || [];
+  const trigger = kw.trigger || (legacyQuick ? "manual" : "scheduled");
+  const scope =
+    kw.scope || (models.length > 0 || legacyQuick ? "model" : "job");
+  return { trigger, scope, models };
+};
+
 const Runhistory = () => {
   const axios = useAxiosPrivate();
   const {
@@ -76,7 +89,10 @@ const Runhistory = () => {
   const [filterQueries, setFilterQuery] = useState({
     status: "",
     job: "",
+    trigger: "",
+    scope: "",
   });
+
   const [envInfo, setEnvInfo] = useState({
     env_type: "",
     job_name: "",
@@ -84,6 +100,7 @@ const Runhistory = () => {
   });
   const [loading, setLoading] = useState(false);
   const { selectedOrgId } = orgStore();
+  const { token } = theme.useToken();
   const { notify } = useNotificationService();
 
   /* ─── API calls ─── */
@@ -150,29 +167,50 @@ const Runhistory = () => {
     getJobList();
   }, []);
 
-  /* ─── client-side status filter ─── */
+  /* ─── client-side status + trigger + scope filters ─── */
   useEffect(() => {
+    let filtered = backUpData;
     if (filterQueries.status) {
-      setJobHistoryData(
-        backUpData.filter((el) => el.status === filterQueries.status)
-      );
-    } else {
-      setJobHistoryData(backUpData);
+      filtered = filtered.filter((el) => el.status === filterQueries.status);
     }
-  }, [filterQueries.status, backUpData]);
+    if (filterQueries.trigger) {
+      filtered = filtered.filter(
+        (el) => getRunTriggerScope(el).trigger === filterQueries.trigger
+      );
+    }
+    if (filterQueries.scope) {
+      filtered = filtered.filter(
+        (el) => getRunTriggerScope(el).scope === filterQueries.scope
+      );
+    }
+    setJobHistoryData(filtered);
+  }, [
+    filterQueries.status,
+    filterQueries.trigger,
+    filterQueries.scope,
+    backUpData,
+  ]);
 
-  /* ─── auto-expand failed rows ─── */
+  /* ─── auto-expand failed rows on fresh data load ─── */
   useEffect(() => {
-    const failedIds = (JobHistoryData || [])
+    const failedIds = (backUpData || [])
       .filter((r) => r.status === "FAILURE" && r.error_message)
       .map((r) => r.id);
     setExpandedRowKeys(failedIds);
-  }, [JobHistoryData]);
+  }, [backUpData]);
 
   /* ─── handlers ─── */
   const handleJobChange = useCallback((value) => {
-    setFilterQuery({ status: "", job: value });
+    setFilterQuery({ status: "", job: value, trigger: "", scope: "" });
     getRunHistoryList(value);
+  }, []);
+
+  const handleTriggerChange = useCallback((value) => {
+    setFilterQuery((prev) => ({ ...prev, trigger: value || "" }));
+  }, []);
+
+  const handleScopeChange = useCallback((value) => {
+    setFilterQuery((prev) => ({ ...prev, scope: value || "" }));
   }, []);
 
   const handleStatusChange = useCallback((value) => {
@@ -217,6 +255,40 @@ const Runhistory = () => {
         ),
       },
       {
+        title: "Trigger",
+        key: "trigger",
+        width: 120,
+        render: (_, record) => {
+          const { trigger } = getRunTriggerScope(record);
+          return trigger === "manual" ? (
+            <Tag color="blue">Manual</Tag>
+          ) : (
+            <Tag>Scheduled</Tag>
+          );
+        },
+      },
+      {
+        title: "Scope",
+        key: "scope",
+        width: 220,
+        render: (_, record) => {
+          const { scope, models } = getRunTriggerScope(record);
+          if (scope === "model") {
+            return (
+              <Space size={4} wrap>
+                <Tag color="purple">Single model</Tag>
+                {models.length > 0 && (
+                  <Typography.Text type="secondary">
+                    {models.join(", ")}
+                  </Typography.Text>
+                )}
+              </Space>
+            );
+          }
+          return <Typography.Text type="secondary">Full job</Typography.Text>;
+        },
+      },
+      {
         title: "Triggered",
         dataIndex: "start_time",
         key: "start_time",
@@ -252,9 +324,16 @@ const Runhistory = () => {
   const emptyDescription = useMemo(() => {
     if (!jobListItems.length) return "No jobs created yet";
     if (!filterQueries.job) return "Select a job to view run history";
-    if (filterQueries.status) return "No matching runs found";
+    if (filterQueries.status || filterQueries.trigger || filterQueries.scope)
+      return "No matching runs found";
     return "No run history available";
-  }, [jobListItems.length, filterQueries.job, filterQueries.status]);
+  }, [
+    jobListItems.length,
+    filterQueries.job,
+    filterQueries.status,
+    filterQueries.trigger,
+    filterQueries.scope,
+  ]);
 
   return (
     <div className="runhistory-container">
@@ -282,6 +361,28 @@ const Runhistory = () => {
             onChange={handleStatusChange}
             options={STATUS_OPTIONS}
             value={filterQueries.status || undefined}
+          />
+          <Select
+            allowClear
+            placeholder="Trigger"
+            className="runhistory-status-select"
+            onChange={handleTriggerChange}
+            options={[
+              { label: "Manual", value: "manual" },
+              { label: "Scheduled", value: "scheduled" },
+            ]}
+            value={filterQueries.trigger || undefined}
+          />
+          <Select
+            allowClear
+            placeholder="Scope"
+            className="runhistory-status-select"
+            onChange={handleScopeChange}
+            options={[
+              { label: "Full job", value: "job" },
+              { label: "Single model", value: "model" },
+            ]}
+            value={filterQueries.scope || undefined}
           />
         </Space>
         <Button
@@ -323,12 +424,65 @@ const Runhistory = () => {
           loading={loading}
           size="small"
           bordered
+          rowClassName={(record) =>
+            expandedRowKeys.includes(record.id) ? "runhistory-row-expanded" : ""
+          }
+          onRow={(record) =>
+            expandedRowKeys.includes(record.id)
+              ? {
+                  style: {
+                    boxShadow: `inset 3px 0 0 0 ${token.colorError}`,
+                  },
+                }
+              : {}
+          }
           expandable={{
             expandedRowRender: (record) => (
-              <div className="runhistory-error-row">
-                <Typography.Text type="danger">
-                  {record.error_message}
-                </Typography.Text>
+              <div
+                className="runhistory-error-row"
+                style={{
+                  borderLeft: `3px solid ${token.colorError}`,
+                  padding: "10px 12px",
+                  background: token.colorErrorBg,
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 6,
+                  }}
+                >
+                  <CloseCircleFilled style={{ color: token.colorError }} />
+                  <Typography.Text strong style={{ color: token.colorError }}>
+                    Error from this run
+                  </Typography.Text>
+                  {record.start_time && (
+                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                      · {record.start_time}
+                    </Typography.Text>
+                  )}
+                </div>
+                <Alert
+                  type="error"
+                  showIcon={false}
+                  message={
+                    <pre
+                      style={{
+                        margin: 0,
+                        maxHeight: 240,
+                        overflow: "auto",
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                        fontFamily: token.fontFamilyCode,
+                        fontSize: 12,
+                      }}
+                    >
+                      {record.error_message}
+                    </pre>
+                  }
+                />
               </div>
             ),
             rowExpandable: (record) =>
