@@ -4,13 +4,15 @@ import {
   Input,
   Modal,
   Pagination,
+  Select,
   Space,
   Table,
   Tabs,
+  theme,
   Tooltip,
   Typography,
 } from "antd";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Resizable } from "react-resizable";
 import Cookies from "js-cookie";
 import AnsiToHtml from "ansi-to-html";
@@ -146,7 +148,17 @@ ResizableTitle.propTypes = {
   width: PropTypes.number,
 };
 
+const LOG_LEVEL_RANK = { debug: 0, info: 1, warn: 2, warning: 2, error: 3 };
+const LOG_LEVEL_COLOR = {
+  debug: "#8c8c8c",
+  info: undefined,
+  warn: "#d48806",
+  warning: "#d48806",
+  error: "#cf1322",
+};
+
 function NoCodeModel({ nodeData }) {
+  const { token } = theme.useToken();
   const axios = useAxiosPrivate();
   const csrfToken = Cookies.get("csrftoken");
   const sessionId = Cookies.get("sessionid");
@@ -206,7 +218,9 @@ function NoCodeModel({ nodeData }) {
   const [seqEdges, setSeqEdges, onSeqEdgesChange] = useEdgesState();
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
   const [logsInfo, setLogsInfo] = useState([]);
-  // const logsInfo = [];
+  const [logsLevel, setLogsLevel] = useState(
+    () => localStorage.getItem("visitran.logsLevel") || "info"
+  );
   const [reveal, setReveal] = useState(false);
   const [seqOrder, setSeqOrder] = useState({});
   const [specRevert, setSpecRevert] = useState(false);
@@ -365,6 +379,19 @@ function NoCodeModel({ nodeData }) {
       ALLOWED_TAGS: ["span", "br"],
       ALLOWED_ATTR: ["style"],
     });
+
+  const filteredLogs = useMemo(
+    () =>
+      logsInfo.filter(
+        (entry) =>
+          (LOG_LEVEL_RANK[entry.level] ?? 1) >= (LOG_LEVEL_RANK[logsLevel] ?? 1)
+      ),
+    [logsInfo, logsLevel]
+  );
+  const handleLogsLevelChange = (value) => {
+    setLogsLevel(value);
+    localStorage.setItem("visitran.logsLevel", value);
+  };
 
   const hideGenAIAndTimeTravelTabs = true;
   const BOTTOM_TABS = [
@@ -643,21 +670,43 @@ function NoCodeModel({ nodeData }) {
       ),
       key: "logs",
       children: (
-        <div
-          className="logsSection"
-          style={{
-            height: `calc(${bottomSectionRef.current.height} - 70px)`,
-          }}
-        >
-          {logsInfo?.map((el, index) => {
-            return (
+        <>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              padding: "4px 8px",
+              borderBottom: `1px solid ${token.colorBorderSecondary}`,
+            }}
+          >
+            <Select
+              size="small"
+              value={logsLevel}
+              onChange={handleLogsLevelChange}
+              style={{ width: 140 }}
+              options={[
+                { value: "debug", label: "All logs" },
+                { value: "info", label: "Info & above" },
+                { value: "warn", label: "Warnings & errors" },
+                { value: "error", label: "Errors only" },
+              ]}
+            />
+          </div>
+          <div
+            className="logsSection"
+            style={{
+              height: `calc(${bottomSectionRef.current.height} - 100px)`,
+            }}
+          >
+            {filteredLogs.map((el, index) => (
               <div
                 key={index}
-                dangerouslySetInnerHTML={{ __html: parseLog(el) }}
-              ></div>
-            );
-          })}
-        </div>
+                style={{ color: LOG_LEVEL_COLOR[el.level] }}
+                dangerouslySetInnerHTML={{ __html: parseLog(el.message) }}
+              />
+            ))}
+          </div>
+        </>
       ),
     },
   ].filter((tab) => {
@@ -1762,28 +1811,32 @@ function NoCodeModel({ nodeData }) {
     };
     const newSocket = io(getBaseUrl(), body);
 
+    let socketSessionId = null;
     newSocket.on("connect", () => {
       // Listen for the session ID sent by the server
       newSocket.on("session_id", (data) => {
-        const sessionId = data.session_id;
+        socketSessionId = data.session_id;
         // Listen for messages in the specific room (session ID)
-        newSocket.on(`logs:${sessionId}`, (data) => {
-          const temp = data?.data?.message;
+        newSocket.on(`logs:${socketSessionId}`, (data) => {
+          const message = data?.data?.message;
+          const level = (data?.data?.level || "info").toLowerCase();
+          if (!message) return;
           const doc = document.getElementsByClassName("logsSection");
           if (doc[0]) {
             setTimeout(() => {
               doc[0].scrollTop = doc[0].scrollHeight;
             }, 800);
           }
-          setLogsInfo((old) => {
-            return [...old, temp];
-          });
+          setLogsInfo((old) => [...old, { level, message }]);
         });
       });
     });
     return () => {
       // unsubscribe to the channel to stop listening the socket messages for the logId
-      newSocket.off(`logs:${sessionId}`);
+      if (socketSessionId) {
+        newSocket.off(`logs:${socketSessionId}`);
+      }
+      newSocket.disconnect();
     };
   }, [sessionId]);
 
