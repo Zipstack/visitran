@@ -117,15 +117,19 @@ const Runhistory = () => {
 
   /* ─── API calls ─── */
   const getRunHistoryList = useCallback(
-    async (Id, page = currentPage, limit = pageSize) => {
+    async (Id, page = currentPage, limit = pageSize, filters = {}) => {
       setLoading(true);
       try {
+        const params = { page, limit };
+        if (filters.status) params.status = filters.status;
+        if (filters.trigger) params.trigger = filters.trigger;
+        if (filters.scope) params.scope = filters.scope;
         const res = await axios({
           method: "GET",
           url: `/api/v1/visitran/${
             selectedOrgId || "default_org"
           }/project/_all/jobs/run-history/${Id}`,
-          params: { page, limit },
+          params,
         });
         const { page_items, total_items, current_page } = res.data.data;
         setTotalCount(total_items);
@@ -187,28 +191,21 @@ const Runhistory = () => {
     getJobList();
   }, []);
 
-  /* ─── client-side status + trigger + scope filters ─── */
+  /* ─── server-side filtering: refetch when filters change ─── */
   useEffect(() => {
-    let filtered = backUpData;
-    if (filterQueries.status) {
-      filtered = filtered.filter((el) => el.status === filterQueries.status);
-    }
-    if (filterQueries.trigger) {
-      filtered = filtered.filter(
-        (el) => getRunTriggerScope(el).trigger === filterQueries.trigger
-      );
-    }
-    if (filterQueries.scope) {
-      filtered = filtered.filter(
-        (el) => getRunTriggerScope(el).scope === filterQueries.scope
-      );
-    }
-    setJobHistoryData(filtered);
+    if (!filterQueries.job) return;
+    getRunHistoryList(filterQueries.job, 1, pageSize, {
+      status: filterQueries.status,
+      trigger: filterQueries.trigger,
+      scope: filterQueries.scope,
+    });
   }, [
     filterQueries.status,
     filterQueries.trigger,
     filterQueries.scope,
-    backUpData,
+    filterQueries.job,
+    getRunHistoryList,
+    pageSize,
   ]);
 
   /* ─── auto-expand on fresh data load ─── */

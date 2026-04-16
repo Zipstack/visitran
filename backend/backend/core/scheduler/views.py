@@ -586,7 +586,19 @@ def task_run_history(request, project_id, user_task_id):
         if _is_valid_project_id(project_id):
             query["project__project_uuid"] = project_id
         task = UserTaskDetails.objects.get(**query)
-        runs = TaskRunHistory.objects.filter(user_task_detail=task).order_by("-start_time")
+        runs = TaskRunHistory.objects.filter(user_task_detail=task)
+
+        trigger_filter = request.GET.get("trigger")
+        scope_filter = request.GET.get("scope")
+        status_filter = request.GET.get("status")
+        if trigger_filter:
+            runs = runs.filter(trigger=trigger_filter)
+        if scope_filter:
+            runs = runs.filter(scope=scope_filter)
+        if status_filter:
+            runs = runs.filter(status=status_filter)
+
+        runs = runs.order_by("-start_time")
         total = runs.count()
 
         offset = (page - 1) * limit
