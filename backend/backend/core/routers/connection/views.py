@@ -120,6 +120,8 @@ def connection_usage(request: Request, connection_id: str) -> Response:
 @handle_http_request
 @handle_permission
 def delete_connection(request: Request, connection_id: str) -> Response:
+    from backend.errors.validation_exceptions import ConnectionDeleteFailed
+
     con_context = ConnectionContext()
     conn_name = connection_id
     try:
@@ -127,9 +129,12 @@ def delete_connection(request: Request, connection_id: str) -> Response:
         conn_name = conn_data.get("name", connection_id) if conn_data else connection_id
         con_context.delete_connection(connection_id=connection_id)
         fire_event(ConnectionDeletedEvt(connection_name=conn_name))
-    except Exception:
+    except Exception as e:
         fire_event(ConnectionDeletedEvt(connection_name=conn_name))
-        raise
+        raise ConnectionDeleteFailed(
+            connection_name=conn_name,
+            reason=str(e),
+        )
     response_data = {
         "status": "success",
         "data": f"{conn_name} is deleted successfully.",

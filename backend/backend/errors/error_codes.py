@@ -87,6 +87,12 @@ class BackendErrorMessages(BaseConstant):
         "\nPlease delete the projects or **ask for a feature to modify the connections in projects** and retry."
     )
 
+    CONNECTION_DELETE_FAILED = (
+        '### **Connection Delete Failed!**\n'
+        'Unable to delete connection **"{connection_name}"**.\n\n'
+        'Reason: {reason}'
+    )
+
     ENVIRONMENT_IN_USE = (
         '### **Environment In Use!**\n'
         'Environment **"{environment_name}"** cannot be deleted because it is '

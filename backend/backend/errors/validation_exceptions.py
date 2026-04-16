@@ -156,3 +156,21 @@ class EnvironmentInUse(VisitranBackendBaseException):
     @property
     def severity(self) -> str:
         return "Warning"
+
+
+class ConnectionDeleteFailed(VisitranBackendBaseException):
+    """
+    Raised when a connection cannot be deleted.
+    """
+
+    def __init__(self, connection_name: str, reason: str) -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.CONNECTION_DELETE_FAILED,
+            http_status_code=status.HTTP_400_BAD_REQUEST,
+            connection_name=connection_name,
+            reason=reason,
+        )
+
+    @property
+    def severity(self) -> str:
+        return "Warning"
