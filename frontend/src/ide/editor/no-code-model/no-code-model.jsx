@@ -1836,6 +1836,7 @@ function NoCodeModel({ nodeData }) {
       notify({
         type: "success",
         message: "Deploy Triggered",
+        renderMarkdown: false,
         description: (
           <span>
             {selectedScope === "job"
@@ -1883,6 +1884,7 @@ function NoCodeModel({ nodeData }) {
             type: run.status === "SUCCESS" ? "success" : "error",
             message:
               run.status === "SUCCESS" ? "Deploy Completed" : "Deploy Failed",
+            renderMarkdown: false,
             description: (
               <span>
                 {run.status === "SUCCESS"
