@@ -1891,10 +1891,14 @@ function NoCodeModel({ nodeData }) {
                   ? "Model deployed successfully."
                   : run.error_message || "Check Run History for details."}{" "}
                 <a
-                  href={`/project/job/history?task=${encodeURIComponent(taskId)}`}
+                  href={`/project/job/history?task=${encodeURIComponent(
+                    taskId
+                  )}`}
                   onClick={(e) => {
                     e.preventDefault();
-                    navigate(`/project/job/history?task=${encodeURIComponent(taskId)}`);
+                    navigate(
+                      `/project/job/history?task=${encodeURIComponent(taskId)}`
+                    );
                   }}
                 >
                   View in Run History →
