@@ -766,28 +766,29 @@ def list_deploy_candidates(request, project_id, model_name):
     """
     tasks = UserTaskDetails.objects.select_related("environment", "project").filter(
         project__project_uuid=project_id,
+        model_configs__has_key=model_name,
     )
 
     candidates = []
     for task in tasks:
         model_configs = task.model_configs or {}
         cfg = model_configs.get(model_name)
-        if not cfg:
-            continue
-        if not cfg.get("enabled", True):
+        if not cfg or not cfg.get("enabled", True):
             continue
         enabled_model_count = sum(
             1
             for m_cfg in model_configs.values()
             if m_cfg.get("enabled", True)
         )
+        env = task.environment
         candidates.append({
             "user_task_id": task.id,
             "task_name": task.task_name,
-            "environment_id": str(task.environment.environment_id),
-            "environment_name": getattr(
-                task.environment, "environment_name", ""
-            ) or getattr(task.environment, "name", ""),
+            "environment_id": str(env.environment_id) if env else "",
+            "environment_name": (
+                getattr(env, "environment_name", "")
+                or getattr(env, "name", "")
+            ) if env else "",
             "status": task.status,
             "prev_run_status": task.prev_run_status,
             "task_run_time": task.task_run_time.isoformat() if task.task_run_time else None,

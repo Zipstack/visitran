@@ -61,6 +61,16 @@ const STATUS_OPTIONS = [
   { label: "Revoked", value: "REVOKED" },
 ];
 
+const getRunTriggerScope = (row) => {
+  const kw = row?.kwargs || {};
+  const legacyQuick = kw.source === "quick_deploy";
+  const models = kw.models_override || [];
+  const trigger = kw.trigger || (legacyQuick ? "manual" : "scheduled");
+  const scope =
+    kw.scope || (models.length > 0 || legacyQuick ? "model" : "job");
+  return { trigger, scope, models };
+};
+
 const Runhistory = () => {
   const axios = useAxiosPrivate();
   const {
@@ -83,17 +93,6 @@ const Runhistory = () => {
     scope: "",
   });
 
-  /* Derive trigger/scope from a run row with back-compat for legacy
-   * rows that only carried kwargs.source === "quick_deploy". */
-  const getRunTriggerScope = (row) => {
-    const kw = row?.kwargs || {};
-    const legacyQuick = kw.source === "quick_deploy";
-    const models = kw.models_override || [];
-    const trigger = kw.trigger || (legacyQuick ? "manual" : "scheduled");
-    const scope =
-      kw.scope || (models.length > 0 || legacyQuick ? "model" : "job");
-    return { trigger, scope, models };
-  };
   const [envInfo, setEnvInfo] = useState({
     env_type: "",
     job_name: "",

@@ -1851,6 +1851,7 @@ function NoCodeModel({ nodeData }) {
             : `"${currentModelName}" is running on "${envName}" via job "${jobName}". Check Run History for progress.`,
       });
       setRefreshModels(true);
+      setRecentRunsState((prev) => ({ ...prev, fetchedFor: null }));
       setQuickDeployModal((prev) => ({
         ...prev,
         open: false,
