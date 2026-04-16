@@ -50,4 +50,13 @@ class Migration(migrations.Migration):
                 null=True,
             ),
         ),
+        migrations.AlterField(
+            model_name="projectdetails",
+            name="project_schema",
+            field=models.CharField(
+                max_length=1024,
+                blank=True,
+                null=True,
+            ),
+        ),
     ]
