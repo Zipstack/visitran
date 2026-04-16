@@ -11,6 +11,8 @@ from backend.application.utils import test_connection_data
 from backend.core.utils import handle_http_request
 from backend.utils.constants import HTTPMethods
 from rbac.factory import handle_permission
+from visitran.events.functions import fire_event
+from visitran.events.types import EnvironmentCreated, EnvironmentDeleted
 
 RESOURCE_NAME = "environmentmodels"
 
@@ -50,6 +52,9 @@ def create_environment(request) -> Response:
     env_data: dict[str, Any] = env_context.create_environment(
         environment_details=request_payload
     )
+    fire_event(EnvironmentCreated(
+        environment_name=request_payload.get("name", ""),
+    ))
     response_data = {"status": "success", "data": env_data}
     return Response(data=response_data, status=status.HTTP_201_CREATED)
 
@@ -74,6 +79,7 @@ def delete_environment(request: Request, environment_id: str):
     env_context = EnvironmentContext()
     try:
         env_context.delete_environment(environment_id=environment_id)
+        fire_event(EnvironmentDeleted(environment_id=environment_id))
         response_data = {"status": "success"}
         return Response(data=response_data, status=status.HTTP_200_OK)
     except ProtectedError as e:

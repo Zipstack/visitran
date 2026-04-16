@@ -1146,3 +1146,78 @@ class JobTriggered(betterproto.Message):
 class JobTriggeredMsg(betterproto.Message):
     info: "EventInfo" = betterproto.message_field(1)
     data: "JobTriggered" = betterproto.message_field(2)
+
+@dataclass
+class ModelCreated(betterproto.Message):
+    model_name: str = betterproto.string_field(1)
+
+@dataclass
+class ModelCreatedMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "ModelCreated" = betterproto.message_field(2)
+
+@dataclass
+class FileDeleted(betterproto.Message):
+    file_names: str = betterproto.string_field(1)
+
+@dataclass
+class FileDeletedMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "FileDeleted" = betterproto.message_field(2)
+
+@dataclass
+class FileRenamed(betterproto.Message):
+    old_name: str = betterproto.string_field(1)
+    new_name: str = betterproto.string_field(2)
+
+@dataclass
+class FileRenamedMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "FileRenamed" = betterproto.message_field(2)
+
+@dataclass
+class ConnectionCreated(betterproto.Message):
+    connection_name: str = betterproto.string_field(1)
+    datasource: str = betterproto.string_field(2)
+
+@dataclass
+class ConnectionCreatedMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "ConnectionCreated" = betterproto.message_field(2)
+
+@dataclass
+class ConnectionTested(betterproto.Message):
+    datasource: str = betterproto.string_field(1)
+    result: str = betterproto.string_field(2)
+
+@dataclass
+class ConnectionTestedMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "ConnectionTested" = betterproto.message_field(2)
+
+@dataclass
+class ConnectionDeletedEvt(betterproto.Message):
+    connection_id: str = betterproto.string_field(1)
+
+@dataclass
+class ConnectionDeletedEvtMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "ConnectionDeletedEvt" = betterproto.message_field(2)
+
+@dataclass
+class EnvironmentCreated(betterproto.Message):
+    environment_name: str = betterproto.string_field(1)
+
+@dataclass
+class EnvironmentCreatedMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "EnvironmentCreated" = betterproto.message_field(2)
+
+@dataclass
+class EnvironmentDeleted(betterproto.Message):
+    environment_id: str = betterproto.string_field(1)
+
+@dataclass
+class EnvironmentDeletedMsg(betterproto.Message):
+    info: "EventInfo" = betterproto.message_field(1)
+    data: "EnvironmentDeleted" = betterproto.message_field(2)

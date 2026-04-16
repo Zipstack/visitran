@@ -10,6 +10,8 @@ from backend.application.context.connection import ConnectionContext
 from backend.core.utils import handle_http_request
 from backend.utils.constants import HTTPMethods
 from rbac.factory import handle_permission
+from visitran.events.functions import fire_event
+from visitran.events.types import ConnectionCreated, ConnectionTested, ConnectionDeletedEvt
 
 RESOURCE_NAME = "connectiondetails"
 
@@ -42,6 +44,10 @@ def create_connection(request: Request) -> Response:
     connection_data = con_context.create_connection(
         connection_details=request_payload, force_create=bool(force_create)
     )
+    fire_event(ConnectionCreated(
+        connection_name=request_payload.get("name", ""),
+        datasource=request_payload.get("datasource_name", ""),
+    ))
     response_data = {"status": "success", "data": connection_data}
     return Response(data=response_data, status=status.HTTP_200_OK)
 
@@ -116,6 +122,7 @@ def connection_usage(request: Request, connection_id: str) -> Response:
 def delete_connection(request: Request, connection_id: str) -> Response:
     con_context = ConnectionContext()
     con_context.delete_connection(connection_id=connection_id)
+    fire_event(ConnectionDeletedEvt(connection_id=connection_id))
     response_data = {
         "status": "success",
         "data": f"{connection_id} is deleted successfully.",
@@ -158,4 +165,5 @@ def test_connection(request: Request) -> Response:
     )
     connection_id: str = cast(str, request_data.get("connection_id", "")) or None
     con_context.test_connection(datasource=datasource, connection_data=connection_data, connection_id=connection_id)
+    fire_event(ConnectionTested(datasource=datasource, result="success"))
     return Response(data={"status": "success"}, status=status.HTTP_200_OK)

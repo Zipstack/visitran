@@ -929,3 +929,79 @@ class JobTriggered(UserLevel, proto_type.JobTriggered):
     def message(self) -> str:
         scope_desc = "all models" if self.scope == "job" else f"model {self.scope}"
         return f'Job "{self.job_name}" triggered manually — running {scope_desc}'
+
+
+# ─── P3: Model/project CRUD ──────────────────────────────────────────
+
+@dataclass
+class ModelCreated(UserLevel, proto_type.ModelCreated):
+    def code(self) -> str:
+        return "U012"
+
+    def message(self) -> str:
+        return f'Model "{self.model_name}" created'
+
+
+@dataclass
+class FileDeleted(UserLevel, proto_type.FileDeleted):
+    def code(self) -> str:
+        return "U013"
+
+    def message(self) -> str:
+        return f'Deleted: {self.file_names}'
+
+
+@dataclass
+class FileRenamed(UserLevel, proto_type.FileRenamed):
+    def code(self) -> str:
+        return "U014"
+
+    def message(self) -> str:
+        return f'Renamed "{self.old_name}" → "{self.new_name}"'
+
+
+# ─── P4: Connection & environment ────────────────────────────────────
+
+@dataclass
+class ConnectionCreated(UserLevel, proto_type.ConnectionCreated):
+    def code(self) -> str:
+        return "U015"
+
+    def message(self) -> str:
+        return f'Connection created ({self.datasource})'
+
+
+@dataclass
+class ConnectionTested(UserLevel, proto_type.ConnectionTested):
+    def code(self) -> str:
+        return "U016"
+
+    def message(self) -> str:
+        return f'Connection test: {self.result} ({self.datasource})'
+
+
+@dataclass
+class ConnectionDeletedEvt(UserLevel, proto_type.ConnectionDeletedEvt):
+    def code(self) -> str:
+        return "U017"
+
+    def message(self) -> str:
+        return f'Connection "{self.connection_id}" deleted'
+
+
+@dataclass
+class EnvironmentCreated(UserLevel, proto_type.EnvironmentCreated):
+    def code(self) -> str:
+        return "U018"
+
+    def message(self) -> str:
+        return f'Environment "{self.environment_name}" created'
+
+
+@dataclass
+class EnvironmentDeleted(UserLevel, proto_type.EnvironmentDeleted):
+    def code(self) -> str:
+        return "U019"
+
+    def message(self) -> str:
+        return f'Environment "{self.environment_id}" deleted'
