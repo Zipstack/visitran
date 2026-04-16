@@ -15,15 +15,23 @@ import {
   ReloadOutlined,
   CalendarOutlined,
   DatabaseOutlined,
+  CheckCircleFilled,
   CloseCircleFilled,
+  ClockCircleOutlined,
+  SyncOutlined,
 } from "@ant-design/icons";
+import { useSearchParams } from "react-router-dom";
 
 import { useAxiosPrivate } from "../../service/axios-service";
 import { orgStore } from "../../store/org-store";
 import { useNotificationService } from "../../service/notification-service";
 import { runHistoryTagColor } from "../../common/constants";
 import { usePagination } from "../../widgets/hooks/usePagination";
-import { getTooltipText } from "../../common/helpers";
+import {
+  getTooltipText,
+  getRelativeTime,
+  formatDateTime,
+} from "../../common/helpers";
 import "./RunHistory.css";
 
 /* ─── Parse duration string to milliseconds for sorting ─── */
@@ -102,35 +110,35 @@ const Runhistory = () => {
   const { selectedOrgId } = orgStore();
   const { token } = theme.useToken();
   const { notify } = useNotificationService();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   /* ─── API calls ─── */
-  const getRunHistoryList = async (
-    Id,
-    page = currentPage,
-    limit = pageSize
-  ) => {
-    setLoading(true);
-    try {
-      const res = await axios({
-        method: "GET",
-        url: `/api/v1/visitran/${
-          selectedOrgId || "default_org"
-        }/project/_all/jobs/run-history/${Id}`,
-        params: { page, limit },
-      });
-      const { page_items, total_items, current_page } = res.data.data;
-      setTotalCount(total_items);
-      setCurrentPage(current_page);
-      const { env_type, job_name, run_history, id } = page_items;
-      setEnvInfo({ env_type, job_name, id });
-      setJobHistoryData(run_history);
-      setBackUpData(run_history);
-    } catch (error) {
-      notify({ error });
-    } finally {
-      setLoading(false);
-    }
-  };
+  const getRunHistoryList = useCallback(
+    async (Id, page = currentPage, limit = pageSize) => {
+      setLoading(true);
+      try {
+        const res = await axios({
+          method: "GET",
+          url: `/api/v1/visitran/${
+            selectedOrgId || "default_org"
+          }/project/_all/jobs/run-history/${Id}`,
+          params: { page, limit },
+        });
+        const { page_items, total_items, current_page } = res.data.data;
+        setTotalCount(total_items);
+        setCurrentPage(current_page);
+        const { env_type, job_name, run_history, id } = page_items;
+        setEnvInfo({ env_type, job_name, id });
+        setJobHistoryData(run_history);
+        setBackUpData(run_history);
+      } catch (error) {
+        notify({ error });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [axios, selectedOrgId, currentPage, pageSize, notify]
+  );
 
   const getJobList = async () => {
     setLoading(true);
@@ -144,17 +152,26 @@ const Runhistory = () => {
       const { page_items } = res.data.data;
       const scheduledObj = {};
       const jobIds = page_items.map((el) => {
-        scheduledObj[el.user_task_id] = getTooltipText(
-          el.periodic_task_details[el.task_type],
-          el.task_type
-        );
+        const taskDetails = el.periodic_task_details?.[el.task_type];
+        if (taskDetails) {
+          scheduledObj[el.user_task_id] = getTooltipText(
+            taskDetails,
+            el.task_type
+          );
+        }
         return { label: el.task_name, value: el.user_task_id };
       });
       setJobSchedule(scheduledObj);
       setJobListItems(jobIds);
       if (jobIds.length) {
-        setFilterQuery((prev) => ({ ...prev, job: jobIds[0].value }));
-        getRunHistoryList(jobIds[0].value);
+        const taskFromUrl = searchParams.get("task");
+        const taskFromUrlNum = taskFromUrl ? Number(taskFromUrl) : NaN;
+        const matchedFromUrl = !Number.isNaN(taskFromUrlNum)
+          ? jobIds.find((j) => j.value === taskFromUrlNum)
+          : null;
+        const initial = matchedFromUrl?.value ?? jobIds[0].value;
+        setFilterQuery((prev) => ({ ...prev, job: initial }));
+        getRunHistoryList(initial);
       }
     } catch (error) {
       console.error("Failed to load jobs", error);
@@ -191,7 +208,7 @@ const Runhistory = () => {
     backUpData,
   ]);
 
-  /* ─── auto-expand failed rows on fresh data load ─── */
+  /* ─── auto-expand failed rows on fresh data load (not on filter changes) ─── */
   useEffect(() => {
     const failedIds = (backUpData || [])
       .filter((r) => r.status === "FAILURE" && r.error_message)
@@ -200,10 +217,22 @@ const Runhistory = () => {
   }, [backUpData]);
 
   /* ─── handlers ─── */
-  const handleJobChange = useCallback((value) => {
-    setFilterQuery({ status: "", job: value, trigger: "", scope: "" });
-    getRunHistoryList(value);
-  }, []);
+  const handleJobChange = useCallback(
+    (value) => {
+      setFilterQuery({ status: "", job: value, trigger: "", scope: "" });
+      getRunHistoryList(value);
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (value) next.set("task", String(value));
+          else next.delete("task");
+          return next;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams, getRunHistoryList]
+  );
 
   const handleTriggerChange = useCallback((value) => {
     setFilterQuery((prev) => ({ ...prev, trigger: value || "" }));
@@ -298,9 +327,25 @@ const Runhistory = () => {
           return new Date(a.start_time) - new Date(b.start_time);
         },
         defaultSortOrder: "descend",
-        render: (text) => (
-          <Typography.Text>{text || "Not started yet"}</Typography.Text>
-        ),
+        render: (text) => {
+          if (!text) {
+            return (
+              <Typography.Text type="secondary">
+                Not started yet
+              </Typography.Text>
+            );
+          }
+          return (
+            <Tooltip title={new Date(text).toISOString()}>
+              <Space direction="vertical" size={0}>
+                <Typography.Text>{formatDateTime(text)}</Typography.Text>
+                <Typography.Text type="secondary" style={{ fontSize: 11 }}>
+                  {getRelativeTime(text)}
+                </Typography.Text>
+              </Space>
+            </Tooltip>
+          );
+        },
       },
       {
         title: "Duration",
@@ -318,6 +363,54 @@ const Runhistory = () => {
       },
     ],
     []
+  );
+
+  const STATUS_META = useMemo(
+    () => ({
+      SUCCESS: {
+        icon: <CheckCircleFilled />,
+        label: "Succeeded",
+        color: token.colorSuccess,
+        bg: token.colorSuccessBg,
+      },
+      FAILURE: {
+        icon: <CloseCircleFilled />,
+        label: "Failed",
+        color: token.colorError,
+        bg: token.colorErrorBg,
+      },
+      STARTED: {
+        icon: <SyncOutlined spin />,
+        label: "Running",
+        color: token.colorInfo,
+        bg: token.colorInfoBg,
+      },
+      RUNNING: {
+        icon: <SyncOutlined spin />,
+        label: "Running",
+        color: token.colorInfo,
+        bg: token.colorInfoBg,
+      },
+      RETRY: {
+        icon: <SyncOutlined spin />,
+        label: "Retrying",
+        color: token.colorWarning,
+        bg: token.colorWarningBg,
+      },
+      REVOKED: {
+        icon: <ClockCircleOutlined />,
+        label: "Revoked",
+        color: token.colorTextSecondary,
+        bg: token.colorFillQuaternary,
+      },
+      PENDING: {
+        icon: <ClockCircleOutlined />,
+        label: "Pending",
+        color: token.colorTextSecondary,
+        bg: token.colorFillQuaternary,
+      },
+    }),
+    [token]
   );
 
   /* ─── empty text ─── */
@@ -437,56 +530,94 @@ const Runhistory = () => {
               : {}
           }
           expandable={{
-            expandedRowRender: (record) => (
-              <div
-                className="runhistory-error-row"
-                style={{
-                  borderLeft: `3px solid ${token.colorError}`,
-                  padding: "10px 12px",
-                  background: token.colorErrorBg,
-                }}
-              >
+            expandedRowRender: (record) => {
+              const meta = STATUS_META[record.status] || STATUS_META.PENDING;
+              const { scope, models } = getRunTriggerScope(record);
+              const isFailure = record.status === "FAILURE";
+              return (
                 <div
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    marginBottom: 6,
+                    borderLeft: `3px solid ${meta.color}`,
+                    padding: "10px 12px",
+                    background: meta.bg,
                   }}
                 >
-                  <CloseCircleFilled style={{ color: token.colorError }} />
-                  <Typography.Text strong style={{ color: token.colorError }}>
-                    Error from this run
-                  </Typography.Text>
-                  {record.start_time && (
-                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                      · {record.start_time}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      marginBottom: 8,
+                    }}
+                  >
+                    <span style={{ color: meta.color }}>{meta.icon}</span>
+                    <Typography.Text strong style={{ color: meta.color }}>
+                      {meta.label}
                     </Typography.Text>
+                    {record.start_time && (
+                      <Tooltip
+                        title={new Date(record.start_time).toISOString()}
+                      >
+                        <Typography.Text
+                          type="secondary"
+                          style={{ fontSize: 12 }}
+                        >
+                          · {formatDateTime(record.start_time)} (
+                          {getRelativeTime(record.start_time)})
+                        </Typography.Text>
+                      </Tooltip>
+                    )}
+                    {record.duration && (
+                      <Typography.Text
+                        type="secondary"
+                        style={{ fontSize: 12 }}
+                      >
+                        · {formatDuration(record.duration)}
+                      </Typography.Text>
+                    )}
+                  </div>
+                  <Space
+                    size={8}
+                    wrap
+                    style={{ marginBottom: isFailure ? 8 : 0 }}
+                  >
+                    <Tag color={scope === "model" ? "purple" : "default"}>
+                      {scope === "model" ? "Single model" : "Full job"}
+                    </Tag>
+                    <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                      {models.length > 0
+                        ? `Models attempted: ${models.join(", ")}`
+                        : "No model configuration recorded for this run."}
+                    </Typography.Text>
+                  </Space>
+                  {isFailure && record.error_message && (
+                    <Alert
+                      type="error"
+                      showIcon={false}
+                      message={
+                        <pre
+                          style={{
+                            margin: 0,
+                            maxHeight: 240,
+                            overflow: "auto",
+                            whiteSpace: "pre-wrap",
+                            wordBreak: "break-word",
+                            fontFamily: token.fontFamilyCode,
+                            fontSize: 12,
+                          }}
+                        >
+                          {record.error_message}
+                        </pre>
+                      }
+                    />
                   )}
                 </div>
-                <Alert
-                  type="error"
-                  showIcon={false}
-                  message={
-                    <pre
-                      style={{
-                        margin: 0,
-                        maxHeight: 240,
-                        overflow: "auto",
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-word",
-                        fontFamily: token.fontFamilyCode,
-                        fontSize: 12,
-                      }}
-                    >
-                      {record.error_message}
-                    </pre>
-                  }
-                />
-              </div>
-            ),
+              );
+            },
             rowExpandable: (record) =>
-              record.status === "FAILURE" && !!record.error_message,
+              ["SUCCESS", "FAILURE", "RETRY", "REVOKED"].includes(
+                record.status
+              ),
             expandedRowKeys,
             onExpand: handleExpand,
           }}

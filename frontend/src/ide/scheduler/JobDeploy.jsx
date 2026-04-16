@@ -21,6 +21,7 @@ import {
   Divider,
   Spin,
   Collapse,
+  Tooltip,
 } from "antd";
 import {
   ClockCircleOutlined,
@@ -32,6 +33,8 @@ import {
   LinkOutlined,
   ExpandAltOutlined,
   ShrinkOutlined,
+  PlusOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 
 import { checkPermission } from "../../common/helpers";
@@ -459,7 +462,35 @@ const JobDeploy = memo(function JobDeploy({
           </Form.Item>
 
           <Form.Item
-            label="Environment"
+            label={
+              <Space size={8}>
+                <span>Environment</span>
+                <Button
+                  type="link"
+                  size="small"
+                  style={{ padding: 0, height: "auto" }}
+                  icon={<PlusOutlined />}
+                  onClick={() =>
+                    window.open("/project/env/list", "_blank", "noopener")
+                  }
+                >
+                  Create new
+                </Button>
+                <Tooltip title="Refresh environment list (after creating one in the other tab)">
+                  <Button
+                    type="link"
+                    size="small"
+                    style={{ padding: 0, height: "auto" }}
+                    icon={<ReloadOutlined />}
+                    onClick={() =>
+                      getEnvironments()
+                        .then(setEnvironments)
+                        .catch((err) => notify({ error: err }))
+                    }
+                  />
+                </Tooltip>
+              </Space>
+            }
             name="environment"
             rules={[
               { required: true, message: "Please select an environment" },
