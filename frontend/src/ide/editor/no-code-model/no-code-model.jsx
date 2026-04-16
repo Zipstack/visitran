@@ -8,6 +8,7 @@ import {
   Space,
   Table,
   Tabs,
+  theme,
   Tooltip,
   Typography,
 } from "antd";
@@ -157,6 +158,7 @@ const LOG_LEVEL_COLOR = {
 };
 
 function NoCodeModel({ nodeData }) {
+  const { token } = theme.useToken();
   const axios = useAxiosPrivate();
   const csrfToken = Cookies.get("csrftoken");
   const sessionId = Cookies.get("sessionid");
@@ -674,7 +676,7 @@ function NoCodeModel({ nodeData }) {
               display: "flex",
               justifyContent: "flex-end",
               padding: "4px 8px",
-              borderBottom: "1px solid #f0f0f0",
+              borderBottom: `1px solid ${token.colorBorderSecondary}`,
             }}
           >
             <Select
