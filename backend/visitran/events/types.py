@@ -846,7 +846,7 @@ class ModelRunStarted(UserLevel, proto_type.ModelRunStarted):
         parts.append(f"{self.source_table} → {self.destination_table}")
         return " · ".join(parts)
 
-    def status(self) -> str:
+    def event_status(self) -> str:
         return "running"
 
 
@@ -881,7 +881,7 @@ class ModelRunFailed(UserLevel, proto_type.ModelRunFailed):
     def subtitle(self) -> str:
         return (self.error[:150] + "…") if len(self.error) > 150 else self.error
 
-    def status(self) -> str:
+    def event_status(self) -> str:
         return "error"
 
     def level_tag(self) -> EventLevel:
@@ -945,7 +945,7 @@ class SeedCompleted(UserLevel, proto_type.SeedCompleted):
     def subtitle(self) -> str:
         return f"Schema: {self.schema_name}"
 
-    def status(self) -> str:
+    def event_status(self) -> str:
         return "success" if self.status == "Success" else "error"
 
 
@@ -987,7 +987,7 @@ class JobDeleted(UserLevel, proto_type.JobDeleted):
     def title(self) -> str:
         return f'Job "{self.job_name}" deleted'
 
-    def status(self) -> str:
+    def event_status(self) -> str:
         return "warning"
 
 
@@ -1007,7 +1007,7 @@ class JobTriggered(UserLevel, proto_type.JobTriggered):
         scope_desc = "All models" if self.scope == "job" else f"Model: {self.scope}"
         return f"{scope_desc} · Manual trigger"
 
-    def status(self) -> str:
+    def event_status(self) -> str:
         return "running"
 
 
@@ -1036,7 +1036,7 @@ class FileDeleted(UserLevel, proto_type.FileDeleted):
     def title(self) -> str:
         return f'Deleted: {self.file_names}'
 
-    def status(self) -> str:
+    def event_status(self) -> str:
         return "warning"
 
 
@@ -1099,7 +1099,7 @@ class ConnectionDeletedEvt(UserLevel, proto_type.ConnectionDeletedEvt):
     def title(self) -> str:
         return f'Connection "{self.connection_name}" deleted'
 
-    def status(self) -> str:
+    def event_status(self) -> str:
         return "warning"
 
 
@@ -1121,7 +1121,7 @@ class ConnectionDeleteFailedEvt(UserLevel, proto_type.ConnectionDeleteFailed):
     def subtitle(self) -> str:
         return (self.reason[:150] + "…") if len(self.reason) > 150 else self.reason
 
-    def status(self) -> str:
+    def event_status(self) -> str:
         return "error"
 
 
@@ -1148,5 +1148,5 @@ class EnvironmentDeleted(UserLevel, proto_type.EnvironmentDeleted):
     def title(self) -> str:
         return f'Environment "{self.environment_name}" deleted'
 
-    def status(self) -> str:
+    def event_status(self) -> str:
         return "warning"

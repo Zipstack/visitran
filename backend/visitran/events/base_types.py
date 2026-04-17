@@ -108,7 +108,7 @@ class UserLevel(BaseEvent):
         """Contextual metadata shown below the title."""
         return ""
 
-    def status(self) -> str:
+    def event_status(self) -> str:
         """One of: running, success, error, warning, info."""
         return "success"
 

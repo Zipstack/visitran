@@ -131,7 +131,7 @@ class _Logger:
                 ts = datetime.utcnow().strftime("%H:%M:%S")
                 title = getattr(msg.data, "title", lambda: msg.info.msg)()
                 subtitle = getattr(msg.data, "subtitle", lambda: "")()
-                event_status = getattr(msg.data, "status", lambda: "info")()
+                event_status = getattr(msg.data, "event_status", lambda: "info")()
                 event_code = getattr(msg.data, "code", lambda: "")()
                 payload = {
                     "level": msg.info.level,
