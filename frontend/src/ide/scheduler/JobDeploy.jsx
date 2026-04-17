@@ -99,6 +99,8 @@ const JobDeploy = memo(function JobDeploy({
   setOpen,
   selectedJobDeployId,
   setIsJobListModified,
+  prefillModel,
+  prefillProject,
 }) {
   const [form] = Form.useForm();
   const canWrite = checkPermission("JOB_DEPLOYMENT", "can_write");
@@ -204,15 +206,22 @@ const JobDeploy = memo(function JobDeploy({
         const names = extractModelNames(data);
         setModelNames(names);
         // Reset model configs when project changes (unless editing)
+        // Preserve prefillModel if it exists — the prefill effect may
+        // have already set it before this async callback runs.
         if (!isEditMode) {
-          setModelConfigs({});
+          setModelConfigs((prev) => {
+            if (prefillModel && prev[prefillModel]) {
+              return { [prefillModel]: prev[prefillModel] };
+            }
+            return {};
+          });
         }
       })
       .catch((err) => {
         console.error("Failed to load models", err);
       })
       .finally(() => setModelsLoading(false));
-  }, [open, selectedProjectId, isEditMode]);
+  }, [open, selectedProjectId, isEditMode, prefillModel]);
 
   /* ─── auto-open Model Configuration when project is selected ─── */
   useEffect(() => {
@@ -222,6 +231,29 @@ const JobDeploy = memo(function JobDeploy({
       );
     }
   }, [selectedProjectId]);
+
+  /* ─── pre-fill project from Quick Deploy CTA ─── */
+  useEffect(() => {
+    if (!open || !prefillProject || isEditMode) return;
+    form.setFieldsValue({ project: prefillProject });
+    setSelectedProjectId(prefillProject);
+  }, [open, prefillProject, isEditMode, form]);
+
+  /* ─── pre-fill model from Quick Deploy CTA ─── */
+  useEffect(() => {
+    if (!open || !prefillModel || isEditMode) return;
+    setModelConfigs((prev) => ({
+      ...prev,
+      [prefillModel]: {
+        ...prev[prefillModel],
+        enabled: true,
+        materialization: prev[prefillModel]?.materialization || "TABLE",
+      },
+    }));
+    setModelConfigActiveKey((prev) =>
+      prev.includes("model-config") ? prev : ["model-config"]
+    );
+  }, [open, prefillModel, isEditMode]);
 
   /* ─── load existing job when editing ─── */
   useEffect(() => {
@@ -779,6 +811,8 @@ JobDeploy.propTypes = {
     PropTypes.number,
   ]),
   setIsJobListModified: PropTypes.func.isRequired,
+  prefillModel: PropTypes.string,
+  prefillProject: PropTypes.string,
 };
 
 JobDeploy.displayName = "JobDeploy";

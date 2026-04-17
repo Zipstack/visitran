@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import {
   Alert,
   Select,
@@ -73,9 +73,12 @@ const getRunTriggerScope = (row) => {
   const kw = row?.kwargs || {};
   const legacyQuick = kw.source === "quick_deploy";
   const models = kw.models_override || [];
-  const trigger = kw.trigger || (legacyQuick ? "manual" : "scheduled");
+  const trigger =
+    row?.trigger || kw.trigger || (legacyQuick ? "manual" : "scheduled");
   const scope =
-    kw.scope || (models.length > 0 || legacyQuick ? "model" : "job");
+    row?.scope ||
+    kw.scope ||
+    (models.length > 0 || legacyQuick ? "model" : "job");
   return { trigger, scope, models };
 };
 
@@ -114,15 +117,19 @@ const Runhistory = () => {
 
   /* ─── API calls ─── */
   const getRunHistoryList = useCallback(
-    async (Id, page = currentPage, limit = pageSize) => {
+    async (Id, page = currentPage, limit = pageSize, filters = {}) => {
       setLoading(true);
       try {
+        const params = { page, limit };
+        if (filters.status) params.status = filters.status;
+        if (filters.trigger) params.trigger = filters.trigger;
+        if (filters.scope) params.scope = filters.scope;
         const res = await axios({
           method: "GET",
           url: `/api/v1/visitran/${
             selectedOrgId || "default_org"
           }/project/_all/jobs/run-history/${Id}`,
-          params: { page, limit },
+          params,
         });
         const { page_items, total_items, current_page } = res.data.data;
         setTotalCount(total_items);
@@ -137,7 +144,7 @@ const Runhistory = () => {
         setLoading(false);
       }
     },
-    [axios, selectedOrgId, currentPage, pageSize, notify]
+    [axios, selectedOrgId, notify]
   );
 
   const getJobList = async () => {
@@ -171,7 +178,6 @@ const Runhistory = () => {
           : null;
         const initial = matchedFromUrl?.value ?? jobIds[0].value;
         setFilterQuery((prev) => ({ ...prev, job: initial }));
-        getRunHistoryList(initial, 1, pageSize);
       }
     } catch (error) {
       console.error("Failed to load jobs", error);
@@ -184,44 +190,46 @@ const Runhistory = () => {
     getJobList();
   }, []);
 
-  /* ─── client-side status + trigger + scope filters ─── */
+  const deepLinkConsumed = useRef(false);
+
+  /* ─── server-side filtering: refetch when filters change ─── */
   useEffect(() => {
-    let filtered = backUpData;
-    if (filterQueries.status) {
-      filtered = filtered.filter((el) => el.status === filterQueries.status);
-    }
-    if (filterQueries.trigger) {
-      filtered = filtered.filter(
-        (el) => getRunTriggerScope(el).trigger === filterQueries.trigger
-      );
-    }
-    if (filterQueries.scope) {
-      filtered = filtered.filter(
-        (el) => getRunTriggerScope(el).scope === filterQueries.scope
-      );
-    }
-    setJobHistoryData(filtered);
+    if (!filterQueries.job) return;
+    getRunHistoryList(filterQueries.job, 1, pageSize, {
+      status: filterQueries.status,
+      trigger: filterQueries.trigger,
+      scope: filterQueries.scope,
+    });
   }, [
     filterQueries.status,
     filterQueries.trigger,
     filterQueries.scope,
-    backUpData,
+    filterQueries.job,
   ]);
 
-  /* ─── auto-expand failed rows on fresh data load (not on filter changes) ─── */
+  /* ─── auto-expand on fresh data load ─── */
   useEffect(() => {
-    const failedIds = (backUpData || [])
+    const ids = [];
+    if (
+      !deepLinkConsumed.current &&
+      searchParams.has("task") &&
+      backUpData.length > 0
+    ) {
+      ids.push(backUpData[0].id);
+      deepLinkConsumed.current = true;
+    }
+    (backUpData || [])
       .filter((r) => r.status === "FAILURE" && r.error_message)
-      .map((r) => r.id);
-    setExpandedRowKeys(failedIds);
+      .forEach((r) => {
+        if (!ids.includes(r.id)) ids.push(r.id);
+      });
+    setExpandedRowKeys(ids);
   }, [backUpData]);
 
   /* ─── handlers ─── */
   const handleJobChange = useCallback(
     (value) => {
       setFilterQuery({ status: "", job: value, trigger: "", scope: "" });
-      setCurrentPage(1);
-      getRunHistoryList(value, 1, pageSize);
       setSearchParams(
         (prev) => {
           const next = new URLSearchParams(prev);
@@ -232,7 +240,7 @@ const Runhistory = () => {
         { replace: true }
       );
     },
-    [setSearchParams, getRunHistoryList]
+    [setSearchParams]
   );
 
   const handleTriggerChange = useCallback((value) => {
@@ -249,19 +257,27 @@ const Runhistory = () => {
 
   const handleRefresh = useCallback(() => {
     if (filterQueries.job) {
-      getRunHistoryList(filterQueries.job);
+      getRunHistoryList(filterQueries.job, currentPage, pageSize, {
+        status: filterQueries.status,
+        trigger: filterQueries.trigger,
+        scope: filterQueries.scope,
+      });
     }
-  }, [filterQueries.job]);
+  }, [filterQueries, currentPage, pageSize, getRunHistoryList]);
 
   const handlePagination = useCallback(
     (newPage, newPageSize) => {
       if (currentPage !== newPage || pageSize !== newPageSize) {
         setCurrentPage(newPage);
         setPageSize(newPageSize);
-        getRunHistoryList(envInfo.id, newPage, newPageSize);
+        getRunHistoryList(filterQueries.job, newPage, newPageSize, {
+          status: filterQueries.status,
+          trigger: filterQueries.trigger,
+          scope: filterQueries.scope,
+        });
       }
     },
-    [currentPage, pageSize, envInfo.id]
+    [currentPage, pageSize, filterQueries, getRunHistoryList]
   );
 
   const handleExpand = useCallback((expanded, record) => {
@@ -591,6 +607,37 @@ const Runhistory = () => {
                         : "No model configuration recorded for this run."}
                     </Typography.Text>
                   </Space>
+                  {record.result?.total > 0 && (
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 16,
+                        margin: "8px 0",
+                        padding: "8px 12px",
+                        background: token.colorFillQuaternary,
+                        borderRadius: token.borderRadiusLG,
+                        fontSize: 12,
+                      }}
+                    >
+                      <span>
+                        <strong>{record.result.total || 0}</strong> models
+                        attempted
+                      </span>
+                      <span style={{ color: token.colorSuccess }}>
+                        <strong>{record.result.passed || 0}</strong> passed
+                      </span>
+                      <span style={{ color: token.colorError }}>
+                        <strong>{record.result.failed || 0}</strong> failed
+                      </span>
+                      {record.result.models?.length > 0 && (
+                        <span style={{ color: token.colorTextSecondary }}>
+                          {record.result.models
+                            .map((m) => `${m.name} (${m.end_status})`)
+                            .join(", ")}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   {isFailure && record.error_message && (
                     <Alert
                       type="error"

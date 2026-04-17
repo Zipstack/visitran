@@ -259,6 +259,7 @@ function NoCodeModel({ nodeData }) {
     runTaskForModel,
     runTask,
     listRecentRunsForModel,
+    getLatestRunStatus,
   } = useJobService();
 
   const [quickDeployModal, setQuickDeployModal] = useState({
@@ -273,8 +274,10 @@ function NoCodeModel({ nodeData }) {
   const [recentRunsState, setRecentRunsState] = useState({
     loading: false,
     runs: [],
-    fetchedFor: null, // model name the current runs are for
+    fetchedFor: null,
   });
+  const [deployPolling, setDeployPolling] = useState(null);
+  const pollingRef = useRef(null);
 
   const modelName =
     nodeData?.node?.title ||
@@ -1921,16 +1924,29 @@ function NoCodeModel({ nodeData }) {
       );
       const envName = selected?.environment_name || "the selected environment";
       const jobName = selected?.task_name || "";
+      const taskId = encodeURIComponent(quickDeployModal.selectedTaskId);
       notify({
         type: "success",
         message: "Deploy Triggered",
-        description:
-          selectedScope === "job"
-            ? `Job "${jobName}" is running on "${envName}" (all enabled models). Check Run History for progress.`
-            : `"${currentModelName}" is running on "${envName}" via job "${jobName}". Check Run History for progress.`,
+        renderMarkdown: false,
+        description: (
+          <span>
+            {selectedScope === "job"
+              ? `Job "${jobName}" is running on "${envName}" (all enabled models). `
+              : `"${currentModelName}" is running on "${envName}" via job "${jobName}". `}
+            <a
+              href={`/project/job/history?task=${taskId}`}
+              onClick={(e) => {
+                e.preventDefault();
+                navigate(`/project/job/history?task=${taskId}`);
+              }}
+            >
+              View in Run History →
+            </a>
+          </span>
+        ),
       });
-      setRefreshModels(true);
-      setRecentRunsState((prev) => ({ ...prev, fetchedFor: null }));
+      startDeployPolling(quickDeployModal.selectedTaskId);
       setQuickDeployModal((prev) => ({
         ...prev,
         open: false,
@@ -1942,9 +1958,71 @@ function NoCodeModel({ nodeData }) {
     }
   };
 
+  const startDeployPolling = (taskId) => {
+    if (pollingRef.current) clearInterval(pollingRef.current);
+    setDeployPolling({ taskId, status: "STARTED" });
+    pollingRef.current = setInterval(async () => {
+      try {
+        const run = await getLatestRunStatus(projectId, taskId);
+        if (!run) return;
+        const terminal = ["SUCCESS", "FAILURE", "REVOKED"].includes(run.status);
+        if (terminal) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+          setDeployPolling(null);
+          setRefreshModels(true);
+          setRecentRunsState((prev) => ({ ...prev, fetchedFor: null }));
+          notify({
+            type: run.status === "SUCCESS" ? "success" : "error",
+            message:
+              run.status === "SUCCESS" ? "Deploy Completed" : "Deploy Failed",
+            renderMarkdown: false,
+            description: (
+              <span>
+                {run.status === "SUCCESS"
+                  ? "Model deployed successfully."
+                  : run.error_message || "Check Run History for details."}{" "}
+                <a
+                  href={`/project/job/history?task=${encodeURIComponent(
+                    taskId
+                  )}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate(
+                      `/project/job/history?task=${encodeURIComponent(taskId)}`
+                    );
+                  }}
+                >
+                  View in Run History →
+                </a>
+              </span>
+            ),
+          });
+        } else {
+          setDeployPolling((prev) =>
+            prev ? { ...prev, status: run.status } : null
+          );
+        }
+      } catch {
+        // Silently retry on next interval
+      }
+    }, 5000);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
+  }, []);
+
   const goToScheduler = () => {
     setQuickDeployModal((prev) => ({ ...prev, open: false }));
-    navigate("/project/job/list");
+    const params = new URLSearchParams();
+    params.set("create", "1");
+    if (projectId) params.set("project", projectId);
+    const modelTitle = nodeData?.node?.title;
+    if (modelTitle) params.set("model", modelTitle);
+    navigate(`/project/job/list?${params.toString()}`);
   };
 
   const runTransformation = (spec) => {
@@ -2945,9 +3023,10 @@ function NoCodeModel({ nodeData }) {
                       !can_write ||
                       !nodeData?.node?.title
                     }
-                    icon={<PlayCircleOutlined />}
+                    loading={!!deployPolling}
+                    icon={!deployPolling ? <PlayCircleOutlined /> : undefined}
                   >
-                    Quick Deploy
+                    {deployPolling ? "Deploying…" : "Quick Deploy"}
                   </Button>
                   <Dropdown
                     trigger={["click"]}

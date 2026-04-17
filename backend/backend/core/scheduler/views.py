@@ -595,7 +595,19 @@ def task_run_history(request, project_id, user_task_id):
         if _is_valid_project_id(project_id):
             query["project__project_uuid"] = project_id
         task = UserTaskDetails.objects.get(**query)
-        runs = TaskRunHistory.objects.filter(user_task_detail=task).order_by("-start_time")
+        runs = TaskRunHistory.objects.filter(user_task_detail=task)
+
+        trigger_filter = request.GET.get("trigger")
+        scope_filter = request.GET.get("scope")
+        status_filter = request.GET.get("status")
+        if trigger_filter:
+            runs = runs.filter(trigger=trigger_filter)
+        if scope_filter:
+            runs = runs.filter(scope=scope_filter)
+        if status_filter:
+            runs = runs.filter(status=status_filter)
+
+        runs = runs.order_by("-start_time")
         total = runs.count()
 
         offset = (page - 1) * limit
@@ -759,13 +771,13 @@ def list_recent_runs_for_model(request, project_id, model_name):
         env = task.environment
         kwargs = run.kwargs or {}
         models_override = kwargs.get("models_override") or []
-        # Back-compat: rows written before the trigger/scope split only
-        # carried kwargs.source=="quick_deploy" as their manual-model marker.
+        # Prefer first-class DB columns; fall back to kwargs for rows
+        # written before the trigger/scope migration.
         legacy_source = kwargs.get("source")
-        trigger = kwargs.get("trigger") or (
+        trigger = run.trigger or kwargs.get("trigger") or (
             "manual" if legacy_source == "quick_deploy" else "scheduled"
         )
-        scope = kwargs.get("scope") or (
+        scope = run.scope or kwargs.get("scope") or (
             "model" if models_override or legacy_source == "quick_deploy" else "job"
         )
         data.append({
