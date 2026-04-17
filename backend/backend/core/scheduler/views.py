@@ -640,10 +640,6 @@ def _dispatch_task_run(task, user_id, models_override=None):
     wrapper, and it keeps the default ``trigger="scheduled"``.
     """
     scope = models_override[0] if models_override and len(models_override) == 1 else "job"
-    fire_event(JobTriggered(
-        job_name=task.task_name,
-        scope=scope,
-    ))
     run_kwargs = {
         "user_task_id": task.id,
         "user_id": user_id,
@@ -663,6 +659,7 @@ def _dispatch_task_run(task, user_id, models_override=None):
         task.task_run_time = timezone.now()
         task.save(update_fields=["status", "task_run_time"])
 
+        fire_event(JobTriggered(job_name=task.task_name, scope=scope))
         return Response(
             {"success": True, "data": "Job submitted to Celery broker."},
             status=status.HTTP_200_OK,
@@ -675,6 +672,7 @@ def _dispatch_task_run(task, user_id, models_override=None):
 
         trigger_scheduled_run(**run_kwargs)
 
+        fire_event(JobTriggered(job_name=task.task_name, scope=scope))
         return Response(
             {"success": True, "data": "Job executed synchronously (no broker)."},
             status=status.HTTP_200_OK,
