@@ -80,6 +80,7 @@ import dagre from "dagre";
 import { useAxiosPrivate } from "../../../service/axios-service.js";
 import { NoCodeToolbar } from "../no-code-toolbar/no-code-toolbar.jsx";
 import { NoCodeTopbar } from "../no-code-topbar/no-code-topbar.jsx";
+import { applyScopedStyles } from "../lineage-utils.js";
 import { ConfigureSourceDestination } from "../no-code-configuration/configure-source-destination.jsx";
 import { ConfigureJoins } from "../no-code-configuration/configure-joins.jsx";
 import { useProjectStore } from "../../../store/project-store.js";
@@ -308,8 +309,18 @@ function NoCodeModel({ nodeData }) {
     if (lineageData?.nodes && lineageData?.edges) {
       const { nodes: layoutedNodes, edges: layoutedEdges } =
         getLayoutedElements(lineageData.nodes, lineageData.edges, newDirection);
-      setNodes(layoutedNodes);
-      setEdges(layoutedEdges);
+      if (modelName) {
+        const scoped = applyScopedStyles(
+          layoutedNodes,
+          layoutedEdges,
+          modelName
+        );
+        setNodes(scoped.nodes);
+        setEdges(scoped.edges);
+      } else {
+        setNodes(layoutedNodes);
+        setEdges(layoutedEdges);
+      }
     }
   };
 
@@ -1875,6 +1886,8 @@ function NoCodeModel({ nodeData }) {
     axios(requestOptions)
       .then(() => {
         getSampleData(undefined, undefined, spec);
+        // Trigger explorer refresh after run completes so updated references
+        // (from set-model save) reflect in the dependency chain sort
         setRefreshModels(true);
       })
       .catch((error) => {
@@ -2438,6 +2451,7 @@ function NoCodeModel({ nodeData }) {
     );
   };
 
+  // Find all ancestor and descendant node IDs for a given model
   const getLineageData = (callSample = false) => {
     if (!projectId) return;
     setLineageData();
@@ -2453,8 +2467,18 @@ function NoCodeModel({ nodeData }) {
         setLineageData(data);
         const { nodes: layoutedNodes, edges: layoutedEdges } =
           getLayoutedElements(data.nodes, data.edges, lineageLayoutDirection);
-        setNodes(layoutedNodes);
-        setEdges(layoutedEdges);
+        if (modelName) {
+          const scoped = applyScopedStyles(
+            layoutedNodes,
+            layoutedEdges,
+            modelName
+          );
+          setNodes(scoped.nodes);
+          setEdges(scoped.edges);
+        } else {
+          setNodes(layoutedNodes);
+          setEdges(layoutedEdges);
+        }
       })
       .catch((error) => {
         console.error(error);

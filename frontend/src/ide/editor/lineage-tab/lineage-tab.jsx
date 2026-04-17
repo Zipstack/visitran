@@ -40,6 +40,7 @@ import { THEME } from "../../../common/constants.js";
 import { SpinnerLoader } from "../../../widgets/spinner_loader/index.js";
 import { useNotificationService } from "../../../service/notification-service.js";
 import { Tech } from "../../../base/icons/index.js";
+import { applyScopedStyles } from "../lineage-utils.js";
 
 import "reactflow/dist/style.css";
 import "./lineage-tab.css";
@@ -289,7 +290,7 @@ const transformLineageData = (data) => {
   return data;
 };
 
-function LineageTab({ nodeData }) {
+function LineageTab({ nodeData, selectedModelName }) {
   const axios = useAxiosPrivate();
   const { selectedOrgId } = orgStore();
   const { projectId } = useProjectStore();
@@ -486,15 +487,32 @@ function LineageTab({ nodeData }) {
             transformedData.edges,
             layoutDirection
           );
-        setNodes(layoutedNodes);
-        setEdges(layoutedEdges);
+        if (selectedModelName) {
+          const scoped = applyScopedStyles(
+            layoutedNodes,
+            layoutedEdges,
+            selectedModelName
+          );
+          setNodes(scoped.nodes);
+          setEdges(scoped.edges);
+        } else {
+          setNodes(layoutedNodes);
+          setEdges(layoutedEdges);
+        }
       })
       .catch((error) => {
         console.error(error);
         notify({ error });
         setLineageData({});
       });
-  }, [projectId, selectedOrgId, setNodes, setEdges, layoutDirection]);
+  }, [
+    projectId,
+    selectedOrgId,
+    setNodes,
+    setEdges,
+    layoutDirection,
+    selectedModelName,
+  ]);
 
   const handleToggleLayout = useCallback(() => {
     const newDirection = layoutDirection === "TB" ? "LR" : "TB";
@@ -504,10 +522,20 @@ function LineageTab({ nodeData }) {
     if (lineageData && lineageData.nodes && lineageData.edges) {
       const { nodes: layoutedNodes, edges: layoutedEdges } =
         getLayoutedElements(lineageData.nodes, lineageData.edges, newDirection);
-      setNodes(layoutedNodes);
-      setEdges(layoutedEdges);
+      if (selectedModelName) {
+        const scoped = applyScopedStyles(
+          layoutedNodes,
+          layoutedEdges,
+          selectedModelName
+        );
+        setNodes(scoped.nodes);
+        setEdges(scoped.edges);
+      } else {
+        setNodes(layoutedNodes);
+        setEdges(layoutedEdges);
+      }
     }
-  }, [layoutDirection, lineageData, setNodes, setEdges]);
+  }, [layoutDirection, lineageData, setNodes, setEdges, selectedModelName]);
 
   // Fetch sequence data for a model
   const fetchSequenceData = useCallback(
@@ -674,15 +702,25 @@ function LineageTab({ nodeData }) {
             transformedData.edges,
             "TB"
           );
-        setNodes(layoutedNodes);
-        setEdges(layoutedEdges);
+        if (selectedModelName) {
+          const scoped = applyScopedStyles(
+            layoutedNodes,
+            layoutedEdges,
+            selectedModelName
+          );
+          setNodes(scoped.nodes);
+          setEdges(scoped.edges);
+        } else {
+          setNodes(layoutedNodes);
+          setEdges(layoutedEdges);
+        }
       })
       .catch((error) => {
         console.error(error);
         notify({ error });
         setLineageData({});
       });
-  }, [projectId, selectedOrgId, setNodes, setEdges]);
+  }, [projectId, selectedOrgId, setNodes, setEdges, selectedModelName]);
 
   if (!lineageData) {
     return <SpinnerLoader />;
@@ -957,6 +995,7 @@ function LineageTab({ nodeData }) {
 
 LineageTab.propTypes = {
   nodeData: PropTypes.object,
+  selectedModelName: PropTypes.string,
 };
 
 export { LineageTab };

@@ -93,6 +93,9 @@ class FileExplorer:
         # Sort models by execution order (DAG order)
         sorted_model_names = topological_sort_models(models_with_refs)
 
+        # Build lookup for references by model name
+        refs_by_name = {m["model_name"]: m["references"] for m in models_with_refs}
+
         # Build a lookup from model name -> model object for status fields
         model_lookup = {m.model_name: m for m in all_models}
 
@@ -106,6 +109,7 @@ class FileExplorer:
                 "key": f"{self.project_name}/models/no_code/{no_code_model_name}",
                 "is_folder": False,
                 "type": "NO_CODE_MODEL",
+                "references": refs_by_name.get(no_code_model_name, []),
                 "run_status": getattr(model, "run_status", None),
                 "failure_reason": getattr(model, "failure_reason", None),
                 "last_run_at": model.last_run_at.isoformat() if getattr(model, "last_run_at", None) else None,
