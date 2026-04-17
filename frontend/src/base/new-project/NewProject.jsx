@@ -25,14 +25,16 @@ import { useNotificationService } from "../../service/notification-service";
 let RepositorySection;
 try {
   RepositorySection = require("../../plugins/version-control/components/RepositorySection.jsx").RepositorySection;
-} catch {}
+} catch {
+  /* version-control plugin not available */
+}
 
 const DEFAULT_PREFILL_DATA = {
   project_name: "",
   description: "",
   connection: "",
   environment: "",
-  repository_type: "managed",
+  repository_type: "none",
   repository_name: "",
 };
 
@@ -121,15 +123,23 @@ function NewProject({ open, setOpen, getAllProject, id }) {
           environment: envObj,
           connection: connObj,
           db_name,
+          version_control: vc,
         } = data;
+
+        const repoType = vc?.repository_type || "none";
+        const repoName = vc?.repository_name || "";
+        const repoOwner = vc?.repository_owner || "";
+        const gitProviderId = vc?.git_provider_id || undefined;
 
         form.setFieldsValue({
           project_name,
           description,
           connection: connObj.id,
           environment: envObj.id,
-          repository_type: "managed",
-          repository_name: "",
+          repository_type: repoType,
+          repository_name: repoName,
+          repository_owner: repoOwner,
+          git_provider_id: gitProviderId,
         });
 
         setConnection({ id: connObj.id });
@@ -140,8 +150,8 @@ function NewProject({ open, setOpen, getAllProject, id }) {
           description,
           connection: connObj.id,
           environment: envObj.id,
-          repository_type: "managed",
-          repository_name: "",
+          repository_type: repoType,
+          repository_name: repoName,
         });
       } catch (error) {
         console.error(error);
@@ -300,7 +310,7 @@ function NewProject({ open, setOpen, getAllProject, id }) {
             form={form}
             layout="vertical"
             initialValues={{
-              repository_type: "managed",
+              repository_type: "none",
               repository_name: "",
             }}
             onValuesChange={handleValuesChange}

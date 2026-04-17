@@ -6,6 +6,7 @@ import {
   IdcardOutlined,
   KeyOutlined,
   MailOutlined,
+  GithubOutlined,
 } from "@ant-design/icons";
 import { Menu } from "antd";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -26,10 +27,17 @@ let hasResources = false;
 let hasPermissions = false;
 let hasSubscriptionAdmin = false;
 let hasKeyManagement = false;
+let hasGitProviders = false;
 let hasSlackNotification = false;
 try {
   require("../../../../plugins/settings/keyManagement");
   hasKeyManagement = true;
+} catch {
+  /* plugin not available */
+}
+try {
+  require("../../../../plugins/settings/GitProviders");
+  hasGitProviders = true;
 } catch {
   /* plugin not available */
 }
@@ -107,6 +115,11 @@ const MenuTree = () => {
           key: "/project/setting/keymanagement",
           icon: <KeyOutlined />,
           label: "API Tokens",
+        },
+        hasGitProviders && {
+          key: "/project/setting/gitproviders",
+          icon: <GithubOutlined />,
+          label: "Source Control",
         },
       ].filter(Boolean),
     []

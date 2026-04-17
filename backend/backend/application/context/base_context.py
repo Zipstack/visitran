@@ -99,6 +99,18 @@ class BaseContext:
         except Exception:
             pass  # OSS: no sharing module, or table not migrated yet
 
+        # Cloud: setup version control + auto-import models from repo
+        try:
+            from pluggable_apps.version_control.services.project_integration import (
+                setup_project_version_control,
+            )
+            setup_project_version_control(pd, project_details)
+        except ImportError:
+            pass  # OSS: version_control plugin not available
+        except Exception as e:
+            import logging
+            logging.warning(f"Version control setup failed (non-blocking): {e}")
+
         return pd.project_id
 
     def get_project_details(self) -> dict[str, Any]:
@@ -122,6 +134,22 @@ class BaseContext:
                 "id": env_model.environment_id,
                 "name": env_model.environment_name,
             }
+
+        # Include version control config if available
+        try:
+            repo_config = getattr(self.session.project_instance, 'repository_config', None)
+            if repo_config:
+                project_details["version_control"] = {
+                    "repository_type": repo_config.repository_type or "none",
+                    "repository_name": repo_config.repository_name or "",
+                    "repository_owner": repo_config.repository_owner or "",
+                    "default_branch": repo_config.default_branch or "main",
+                    "is_connected": repo_config.is_connected,
+                    "git_provider_id": str(repo_config.git_provider_id) if repo_config.git_provider_id else None,
+                }
+        except Exception:
+            pass
+
         return project_details
 
     def update_a_project(self, project_details: dict[str, Any]):

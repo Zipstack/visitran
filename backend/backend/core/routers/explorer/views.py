@@ -132,5 +132,16 @@ def upload_a_file(request: Request, project_id: str) -> Response:
     file_name: str = request_data["file_name"]
     app = ApplicationContext(project_id=project_id)
     app.upload_a_file(file_name=file_name, file_content=file_content)
+
+    # Auto-commit seed to Git repo if version control is configured
+    if file_name.endswith(".csv"):
+        try:
+            from pluggable_apps.version_control.services.project_integration import auto_commit_seed
+            auto_commit_seed(app.project_instance, file_name, file_content.read().decode("utf-8", errors="replace"))
+        except ImportError:
+            pass
+        except Exception:
+            pass  # Non-blocking
+
     response_json = {"status": "success"}
     return Response(data=response_json)

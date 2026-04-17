@@ -82,6 +82,7 @@ let Resources;
 let Permissions;
 let Subscriptions;
 let KeyManagement;
+let GitProviders;
 try {
   UserManagement = require("../plugins/settings/UserManagement").default;
 } catch {
@@ -109,6 +110,11 @@ try {
 }
 try {
   KeyManagement = require("../plugins/settings/keyManagement").default;
+} catch {
+  /* plugin not available */
+}
+try {
+  GitProviders = require("../plugins/settings/GitProviders").default;
 } catch {
   /* plugin not available */
 }
@@ -229,6 +235,9 @@ function RouteComponent() {
                   )}
                   {KeyManagement && (
                     <Route path="keymanagement" element={<KeyManagement />} />
+                  )}
+                  {GitProviders && (
+                    <Route path="gitproviders" element={<GitProviders />} />
                   )}
                 </Route>
               </Route>
