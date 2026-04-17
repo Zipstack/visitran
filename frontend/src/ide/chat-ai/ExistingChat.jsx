@@ -246,6 +246,13 @@ const ExistingChat = memo(function ExistingChat({
     return -1;
   }, [chatMessages, chatIntents]);
 
+  // Check if response is actively streaming (thought chain done, response started)
+  const isResponseStreaming = useMemo(() => {
+    if (!chatMessages?.length) return false;
+    const lastMessage = chatMessages?.[chatMessages.length - 1];
+    return isPromptRunning && lastMessage?.response?.length > 0;
+  }, [chatMessages, isPromptRunning]);
+
   useEffect(() => {
     if (chatMessages.length) {
       setLastChatMessageId(
@@ -454,6 +461,7 @@ const ExistingChat = memo(function ExistingChat({
         <InputPrompt
           savePrompt={handleSavePrompt}
           isPromptRunning={isPromptRunning}
+          isResponseStreaming={isResponseStreaming}
           chatIntents={chatIntents}
           selectedChatIntent={selectedChatIntent}
           setSelectedChatIntent={setSelectedChatIntent}

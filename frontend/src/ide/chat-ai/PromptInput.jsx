@@ -10,6 +10,7 @@ const PromptInput = memo(function PromptInput({
   value,
   editorHeight,
   isPromptRunning,
+  isResponseStreaming,
   onSenderChange,
   onSubmit,
   onEditorMount,
@@ -34,6 +35,7 @@ const PromptInput = memo(function PromptInput({
       <DefaultPromptInput
         value={value}
         isPromptRunning={isPromptRunning}
+        isResponseStreaming={isResponseStreaming}
         onSenderChange={onSenderChange}
         onSubmit={onSubmit}
         onCancel={onCancel}
@@ -49,6 +51,7 @@ const PromptInput = memo(function PromptInput({
       value={value}
       editorHeight={editorHeight}
       isPromptRunning={isPromptRunning}
+      isResponseStreaming={isResponseStreaming}
       onEditorMount={onEditorMount}
       onMonacoChange={onMonacoChange}
       onSubmit={onSubmit}
@@ -70,6 +73,7 @@ PromptInput.propTypes = {
   value: PropTypes.string.isRequired,
   editorHeight: PropTypes.number.isRequired,
   isPromptRunning: PropTypes.bool.isRequired,
+  isResponseStreaming: PropTypes.bool,
   onSenderChange: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
   onEditorMount: PropTypes.func.isRequired,
