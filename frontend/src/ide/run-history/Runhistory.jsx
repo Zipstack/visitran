@@ -200,7 +200,6 @@ const Runhistory = () => {
       trigger: filterQueries.trigger,
       scope: filterQueries.scope,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     filterQueries.status,
     filterQueries.trigger,
@@ -211,7 +210,11 @@ const Runhistory = () => {
   /* ─── auto-expand on fresh data load ─── */
   useEffect(() => {
     const ids = [];
-    if (!deepLinkConsumed.current && searchParams.has("task") && backUpData.length > 0) {
+    if (
+      !deepLinkConsumed.current &&
+      searchParams.has("task") &&
+      backUpData.length > 0
+    ) {
       ids.push(backUpData[0].id);
       deepLinkConsumed.current = true;
     }
