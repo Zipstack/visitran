@@ -354,15 +354,31 @@ const getRelativeTime = (dateString) => {
   const now = new Date();
   const then = new Date(dateString);
   const diffMs = now - then;
-  const diffMins = Math.floor(diffMs / 60000);
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  const diffHrs = Math.floor(diffMins / 60);
-  if (diffHrs < 24) return `${diffHrs}h ago`;
-  const diffDays = Math.floor(diffHrs / 24);
-  if (diffDays < 30) return `${diffDays}d ago`;
-  const diffMonths = Math.floor(diffDays / 30);
-  return `${diffMonths}mo ago`;
+  const isPast = diffMs >= 0;
+  const absMs = Math.abs(diffMs);
+  const mins = Math.floor(absMs / 60000);
+  const fmt = (n, unit) => (isPast ? `${n}${unit} ago` : `in ${n}${unit}`);
+  if (mins < 1) return isPast ? "just now" : "in a moment";
+  if (mins < 60) return fmt(mins, "m");
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return fmt(hrs, "h");
+  const days = Math.floor(hrs / 24);
+  if (days < 30) return fmt(days, "d");
+  const months = Math.floor(days / 30);
+  return fmt(months, "mo");
+};
+
+const formatDateTime = (dateString) => {
+  if (!dateString) return "";
+  const d = new Date(dateString);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 };
 
 export {
@@ -388,4 +404,5 @@ export {
   extractFormulaExpression,
   validateFormulaExpression,
   getRelativeTime,
+  formatDateTime,
 };

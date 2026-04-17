@@ -180,11 +180,30 @@ def _trigger_chained_job(user_task: UserTaskDetails, user_id: int, organization_
     acks_late=True,
     max_retries=0,  # we handle retries ourselves
 )
-def trigger_scheduled_run(self, *, user_task_id: int, user_id: int, organization_id: str = None):
+def trigger_scheduled_run(
+    self,
+    *,
+    user_task_id: int,
+    user_id: int,
+    organization_id: str = None,
+    models_override: list = None,
+    trigger: str = "scheduled",
+):
     """Execute a scheduled Visitran run.
 
     This is the Celery task wired to ``Task.SCHEDULER_JOB``.
+
+    Args:
+        models_override: If provided, execute only these model names (plus
+            their downstream dependents) instead of every model in
+            ``user_task.model_configs``. Used by the Quick Deploy flow to
+            run a single model against the job's environment.
+        trigger: "scheduled" (default, used by Celery beat) or "manual"
+            (used by ad-hoc dispatch from trigger_task_once*). Stored in
+            TaskRunHistory.kwargs alongside ``scope`` so Run History can
+            distinguish scheduled vs on-demand runs.
     """
+    scope = "model" if models_override else "job"
     from backend.application.context.application import ApplicationContext
     from backend.utils.tenant_context import _get_tenant_context
     from backend.core.models.user_model import User
@@ -228,17 +247,23 @@ def trigger_scheduled_run(self, *, user_task_id: int, user_id: int, organization
 
     # ── Create run-history entry ──────────────────────────────────────
     # Note: organization is automatically set by DefaultOrganizationMixin from tenant context
+    run_kwargs = {
+        "user_task_id": user_task_id,
+        "user_id": user_id,
+        "model_configs": user_task.model_configs,
+        "trigger": trigger,
+        "scope": scope,
+    }
+    if models_override:
+        run_kwargs["models_override"] = list(models_override)
+
     run = TaskRunHistory.objects.create(
         task_id=self.request.id or f"manual-{user_task_id}-{uuid.uuid4().hex[:8]}",
         retry_num=retry_num,
         status="STARTED",
         start_time=timezone.now(),
         user_task_detail=user_task,
-        kwargs={
-            "user_task_id": user_task_id,
-            "user_id": user_id,
-            "model_configs": user_task.model_configs,
-        },
+        kwargs=run_kwargs,
     )
 
     # ── Mark task as running ──────────────────────────────────────────
@@ -288,7 +313,13 @@ def trigger_scheduled_run(self, *, user_task_id: int, user_id: int, organization
         timeout = user_task.run_timeout_seconds or 0
 
         with _timeout_guard(timeout):
-            app_context.execute_visitran_run_command(environment_id=environment_id)
+            if models_override:
+                app_context.execute_visitran_run_command(
+                    environment_id=environment_id,
+                    current_models=list(models_override),
+                )
+            else:
+                app_context.execute_visitran_run_command(environment_id=environment_id)
 
         # ── Mark success ──────────────────────────────────────────────
         success = True
@@ -325,12 +356,16 @@ def trigger_scheduled_run(self, *, user_task_id: int, user_id: int, organization
             retry_num + 1,
             user_task.max_retries,
         )
+        retry_kwargs = {
+            "user_task_id": user_task_id,
+            "user_id": user_id,
+            "organization_id": organization_id,
+            "trigger": trigger,
+        }
+        if models_override:
+            retry_kwargs["models_override"] = list(models_override)
         trigger_scheduled_run.apply_async(
-            kwargs={
-                "user_task_id": user_task_id,
-                "user_id": user_id,
-                "organization_id": organization_id,
-            },
+            kwargs=retry_kwargs,
             countdown=30 * (retry_num + 1),  # progressive backoff
         )
         return

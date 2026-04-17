@@ -86,13 +86,13 @@ def parse_and_fire_reports() -> None:
                 status=iterate_result.status,
             )
         )
-        if iterate_result.end_status == str(ExecStatus.Success):
+        if iterate_result.end_status == ExecStatus.OK.value:
             pass_count += 1
-        if iterate_result.end_status == str(ExecStatus.Warn):
+        elif iterate_result.end_status == ExecStatus.Warn.value:
             warn_count += 1
-        if iterate_result.end_status == str(ExecStatus.Error):
+        elif iterate_result.end_status == ExecStatus.Fail.value:
             error_count += 1
-        if iterate_result.end_status == str(ExecStatus.Skipped):
+        elif iterate_result.end_status == ExecStatus.Skipped.value:
             skip_count += 1
 
     functions.fire_event(

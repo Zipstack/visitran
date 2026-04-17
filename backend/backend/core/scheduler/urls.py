@@ -8,6 +8,9 @@ from backend.core.scheduler.views import (
     update_periodic_task,
     task_run_history,
     trigger_task_once,
+    trigger_task_once_for_model,
+    list_deploy_candidates,
+    list_recent_runs_for_model,
     get_periodic_task,
     get_model_columns,
 )
@@ -31,6 +34,21 @@ urlpatterns = [
         "/trigger-periodic-task/<int:user_task_id>",
         trigger_task_once,
         name="trigger_task_once",
+    ),
+    path(
+        "/trigger-periodic-task/<int:user_task_id>/model/<str:model_name>",
+        trigger_task_once_for_model,
+        name="trigger_task_once_for_model",
+    ),
+    path(
+        "/quick-deploy/candidates/<str:model_name>",
+        list_deploy_candidates,
+        name="list_deploy_candidates",
+    ),
+    path(
+        "/quick-deploy/recent-runs/<str:model_name>",
+        list_recent_runs_for_model,
+        name="list_recent_runs_for_model",
     ),
     # Model columns endpoint for incremental job configuration
     path(

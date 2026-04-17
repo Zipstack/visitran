@@ -1,16 +1,25 @@
 import {
   Button,
+  Card,
+  Checkbox,
+  Divider,
+  Dropdown,
   Empty,
   Input,
   Modal,
   Pagination,
+  Radio,
+  Select,
   Space,
   Table,
   Tabs,
+  Tag,
+  theme,
   Tooltip,
   Typography,
 } from "antd";
-import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Resizable } from "react-resizable";
 import Cookies from "js-cookie";
 import AnsiToHtml from "ansi-to-html";
@@ -39,7 +48,9 @@ import {
   FilterOutlined,
   LineHeightOutlined,
   LinkOutlined,
+  DownOutlined,
   MergeCellsOutlined,
+  PlayCircleOutlined,
   PlusSquareOutlined,
   ProfileOutlined,
   RetweetOutlined,
@@ -80,6 +91,7 @@ import {
   addIdToObjects,
   checkPermission,
   getBaseUrl,
+  getRelativeTime,
   removeIdFromObjects,
   removeUnwantedKeys,
 } from "../../../common/helpers.js";
@@ -97,6 +109,7 @@ import { CopyableCell } from "../../../widgets/copyable-cell/index.js";
 import "./no-code-model.css";
 import "reactflow/dist/style.css";
 import { useNotificationService } from "../../../service/notification-service.js";
+import { useJobService } from "../../scheduler/service.js";
 import { useTransformIdStore } from "../../../store/transform-id-store.js";
 import {
   getCombineColumnsSpec,
@@ -147,7 +160,17 @@ ResizableTitle.propTypes = {
   width: PropTypes.number,
 };
 
+const LOG_LEVEL_RANK = { debug: 0, info: 1, warn: 2, warning: 2, error: 3 };
+const LOG_LEVEL_COLOR = {
+  debug: "#8c8c8c",
+  info: undefined,
+  warn: "#d48806",
+  warning: "#d48806",
+  error: "#cf1322",
+};
+
 function NoCodeModel({ nodeData }) {
+  const { token } = theme.useToken();
   const axios = useAxiosPrivate();
   const csrfToken = Cookies.get("csrftoken");
   const sessionId = Cookies.get("sessionid");
@@ -207,7 +230,9 @@ function NoCodeModel({ nodeData }) {
   const [seqEdges, setSeqEdges, onSeqEdgesChange] = useEdgesState();
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
   const [logsInfo, setLogsInfo] = useState([]);
-  // const logsInfo = [];
+  const [logsLevel, setLogsLevel] = useState(
+    () => localStorage.getItem("visitran.logsLevel") || "info"
+  );
   const [reveal, setReveal] = useState(false);
   const [seqOrder, setSeqOrder] = useState({});
   const [specRevert, setSpecRevert] = useState(false);
@@ -228,6 +253,28 @@ function NoCodeModel({ nodeData }) {
   const { renamedModel, setRenamedModel } = useProjectStore();
   const { setPendingLineageTab } = useLineageTabStore();
   const axiosPrivate = useAxiosPrivate();
+  const navigate = useNavigate();
+  const {
+    listDeployCandidates,
+    runTaskForModel,
+    runTask,
+    listRecentRunsForModel,
+  } = useJobService();
+
+  const [quickDeployModal, setQuickDeployModal] = useState({
+    open: false,
+    step: "loading", // loading | empty | confirm | pick
+    candidates: [],
+    selectedTaskId: null,
+    selectedScope: null, // "model" | "job"
+    confirmed: false,
+    submitting: false,
+  });
+  const [recentRunsState, setRecentRunsState] = useState({
+    loading: false,
+    runs: [],
+    fetchedFor: null, // model name the current runs are for
+  });
 
   const modelName =
     nodeData?.node?.title ||
@@ -376,6 +423,19 @@ function NoCodeModel({ nodeData }) {
       ALLOWED_TAGS: ["span", "br"],
       ALLOWED_ATTR: ["style"],
     });
+
+  const filteredLogs = useMemo(
+    () =>
+      logsInfo.filter(
+        (entry) =>
+          (LOG_LEVEL_RANK[entry.level] ?? 1) >= (LOG_LEVEL_RANK[logsLevel] ?? 1)
+      ),
+    [logsInfo, logsLevel]
+  );
+  const handleLogsLevelChange = (value) => {
+    setLogsLevel(value);
+    localStorage.setItem("visitran.logsLevel", value);
+  };
 
   const hideGenAIAndTimeTravelTabs = true;
   const BOTTOM_TABS = [
@@ -654,21 +714,43 @@ function NoCodeModel({ nodeData }) {
       ),
       key: "logs",
       children: (
-        <div
-          className="logsSection"
-          style={{
-            height: `calc(${bottomSectionRef.current.height} - 70px)`,
-          }}
-        >
-          {logsInfo?.map((el, index) => {
-            return (
+        <>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "flex-end",
+              padding: "4px 8px",
+              borderBottom: `1px solid ${token.colorBorderSecondary}`,
+            }}
+          >
+            <Select
+              size="small"
+              value={logsLevel}
+              onChange={handleLogsLevelChange}
+              style={{ width: 140 }}
+              options={[
+                { value: "debug", label: "All logs" },
+                { value: "info", label: "Info & above" },
+                { value: "warn", label: "Warnings & errors" },
+                { value: "error", label: "Errors only" },
+              ]}
+            />
+          </div>
+          <div
+            className="logsSection"
+            style={{
+              height: `calc(${bottomSectionRef.current.height} - 100px)`,
+            }}
+          >
+            {filteredLogs.map((el, index) => (
               <div
                 key={index}
-                dangerouslySetInnerHTML={{ __html: parseLog(el) }}
-              ></div>
-            );
-          })}
-        </div>
+                style={{ color: LOG_LEVEL_COLOR[el.level] }}
+                dangerouslySetInnerHTML={{ __html: parseLog(el.message) }}
+              />
+            ))}
+          </div>
+        </>
       ),
     },
   ].filter((tab) => {
@@ -1593,6 +1675,197 @@ function NoCodeModel({ nodeData }) {
     setSpecRevert(true);
   };
 
+  const STATUS_COLOR = {
+    SUCCESS: "green",
+    FAILURE: "red",
+    STARTED: "processing",
+    RUNNING: "processing",
+    RETRY: "orange",
+  };
+
+  const fetchRecentRuns = async () => {
+    const name = nodeData?.node?.title;
+    if (!name) return;
+    if (recentRunsState.fetchedFor === name && !recentRunsState.loading) return;
+    setRecentRunsState((prev) => ({ ...prev, loading: true }));
+    try {
+      const runs = await listRecentRunsForModel(projectId, name, 5);
+      setRecentRunsState({ loading: false, runs, fetchedFor: name });
+    } catch (error) {
+      setRecentRunsState((prev) => ({ ...prev, loading: false }));
+      notify({ error });
+    }
+  };
+
+  const renderRecentRunsPanel = () => (
+    <div
+      style={{
+        width: 320,
+        background: token.colorBgElevated,
+        borderRadius: token.borderRadiusLG,
+        boxShadow: token.boxShadowSecondary,
+        padding: "8px 0",
+      }}
+    >
+      <div
+        style={{
+          padding: "4px 12px 8px",
+          fontSize: 12,
+          fontWeight: 600,
+          color: token.colorTextSecondary,
+        }}
+      >
+        Recent runs
+      </div>
+      {recentRunsState.loading ? (
+        <div style={{ padding: "12px 16px", color: token.colorTextSecondary }}>
+          Loading…
+        </div>
+      ) : recentRunsState.runs.length === 0 ? (
+        <div style={{ padding: "12px 16px", color: token.colorTextSecondary }}>
+          No runs for this model yet.
+        </div>
+      ) : (
+        recentRunsState.runs.map((run) => {
+          const statusLabel = run.status === "FAILURE" ? "FAILED" : run.status;
+          return (
+            <div
+              key={run.run_id}
+              style={{
+                padding: "8px 12px",
+                borderTop: `1px solid ${token.colorBorderSecondary}`,
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+              }}
+            >
+              <Space size={8}>
+                <Tag color={STATUS_COLOR[run.status] || "default"}>
+                  {statusLabel}
+                </Tag>
+                <Tag color={run.trigger === "manual" ? "blue" : "default"}>
+                  {run.trigger === "manual" ? "Manual" : "Scheduled"}
+                </Tag>
+                <Tag color={run.scope === "model" ? "purple" : "default"}>
+                  {run.scope === "model" ? "Single model" : "Full job"}
+                </Tag>
+              </Space>
+              <Typography.Text style={{ fontSize: 12 }}>
+                {run.task_name}
+                {run.environment_name ? ` · ${run.environment_name}` : ""}
+              </Typography.Text>
+              <Typography.Text type="secondary" style={{ fontSize: 11 }}>
+                {getRelativeTime(run.start_time)}
+              </Typography.Text>
+            </div>
+          );
+        })
+      )}
+      <Divider style={{ margin: "8px 0" }} />
+      <div style={{ padding: "0 8px 4px" }}>
+        <Button
+          type="link"
+          block
+          onClick={() => navigate("/project/job/history")}
+        >
+          View full Run History →
+        </Button>
+      </div>
+    </div>
+  );
+
+  const openQuickDeploy = async () => {
+    const currentModelName = nodeData?.node?.title;
+    if (!currentModelName) return;
+    setQuickDeployModal({
+      open: true,
+      step: "loading",
+      candidates: [],
+      selectedTaskId: null,
+      selectedScope: null,
+      confirmed: false,
+      submitting: false,
+    });
+    try {
+      const candidates = await listDeployCandidates(
+        projectId,
+        currentModelName
+      );
+      if (!candidates.length) {
+        setQuickDeployModal((prev) => ({
+          ...prev,
+          step: "empty",
+          candidates: [],
+        }));
+      } else if (candidates.length === 1) {
+        setQuickDeployModal((prev) => ({
+          ...prev,
+          step: "confirm",
+          candidates,
+          selectedTaskId: candidates[0].user_task_id,
+        }));
+      } else {
+        setQuickDeployModal((prev) => ({
+          ...prev,
+          step: "pick",
+          candidates,
+          selectedTaskId: candidates[0].user_task_id,
+        }));
+      }
+    } catch (error) {
+      setQuickDeployModal((prev) => ({ ...prev, open: false }));
+      notify({ error });
+    }
+  };
+
+  const closeQuickDeploy = () => {
+    setQuickDeployModal((prev) => ({ ...prev, open: false }));
+  };
+
+  const confirmQuickDeploy = async () => {
+    const currentModelName = nodeData?.node?.title;
+    const { selectedTaskId, selectedScope, confirmed } = quickDeployModal;
+    if (!currentModelName || !selectedTaskId || !selectedScope || !confirmed) {
+      return;
+    }
+    setQuickDeployModal((prev) => ({ ...prev, submitting: true }));
+    try {
+      if (selectedScope === "job") {
+        await runTask(projectId, selectedTaskId);
+      } else {
+        await runTaskForModel(projectId, selectedTaskId, currentModelName);
+      }
+      const selected = quickDeployModal.candidates.find(
+        (c) => c.user_task_id === selectedTaskId
+      );
+      const envName = selected?.environment_name || "the selected environment";
+      const jobName = selected?.task_name || "";
+      notify({
+        type: "success",
+        message: "Deploy Triggered",
+        description:
+          selectedScope === "job"
+            ? `Job "${jobName}" is running on "${envName}" (all enabled models). Check Run History for progress.`
+            : `"${currentModelName}" is running on "${envName}" via job "${jobName}". Check Run History for progress.`,
+      });
+      setRefreshModels(true);
+      setRecentRunsState((prev) => ({ ...prev, fetchedFor: null }));
+      setQuickDeployModal((prev) => ({
+        ...prev,
+        open: false,
+        submitting: false,
+      }));
+    } catch (error) {
+      setQuickDeployModal((prev) => ({ ...prev, submitting: false }));
+      notify({ error });
+    }
+  };
+
+  const goToScheduler = () => {
+    setQuickDeployModal((prev) => ({ ...prev, open: false }));
+    navigate("/project/job/list");
+  };
+
   const runTransformation = (spec) => {
     setIsLoading(true);
     const specYaml = yaml.dump(removeUnwantedKeys(spec));
@@ -1650,6 +1923,7 @@ function NoCodeModel({ nodeData }) {
         });
         setTransformationErrorFlag(true);
         setIsLoading(false);
+        setRefreshModels(true);
       });
   };
 
@@ -1776,28 +2050,32 @@ function NoCodeModel({ nodeData }) {
     };
     const newSocket = io(getBaseUrl(), body);
 
+    let socketSessionId = null;
     newSocket.on("connect", () => {
       // Listen for the session ID sent by the server
       newSocket.on("session_id", (data) => {
-        const sessionId = data.session_id;
+        socketSessionId = data.session_id;
         // Listen for messages in the specific room (session ID)
-        newSocket.on(`logs:${sessionId}`, (data) => {
-          const temp = data?.data?.message;
+        newSocket.on(`logs:${socketSessionId}`, (data) => {
+          const message = data?.data?.message;
+          const level = (data?.data?.level || "info").toLowerCase();
+          if (!message) return;
           const doc = document.getElementsByClassName("logsSection");
           if (doc[0]) {
             setTimeout(() => {
               doc[0].scrollTop = doc[0].scrollHeight;
             }, 800);
           }
-          setLogsInfo((old) => {
-            return [...old, temp];
-          });
+          setLogsInfo((old) => [...old, { level, message }]);
         });
       });
     });
     return () => {
       // unsubscribe to the channel to stop listening the socket messages for the logId
-      newSocket.off(`logs:${sessionId}`);
+      if (socketSessionId) {
+        newSocket.off(`logs:${socketSessionId}`);
+      }
+      newSocket.disconnect();
     };
   }, [sessionId]);
 
@@ -2558,6 +2836,36 @@ function NoCodeModel({ nodeData }) {
             />
             <div className="custom-pagination-container">
               <Space>
+                <Space.Compact>
+                  <Button
+                    type="primary"
+                    onClick={openQuickDeploy}
+                    disabled={
+                      spec?.source?.table_name === null ||
+                      isLoading ||
+                      previewTimeTravel ||
+                      !can_write ||
+                      !nodeData?.node?.title
+                    }
+                    icon={<PlayCircleOutlined />}
+                  >
+                    Quick Deploy
+                  </Button>
+                  <Dropdown
+                    trigger={["click"]}
+                    placement="bottomRight"
+                    onOpenChange={(open) => {
+                      if (open) fetchRecentRuns();
+                    }}
+                    dropdownRender={renderRecentRunsPanel}
+                  >
+                    <Button
+                      type="primary"
+                      icon={<DownOutlined />}
+                      disabled={!nodeData?.node?.title}
+                    />
+                  </Dropdown>
+                </Space.Compact>
                 <Button
                   onClick={() => handleModalOpen("clearTransformsAlert")}
                   disabled={
@@ -2669,6 +2977,227 @@ function NoCodeModel({ nodeData }) {
           </div>
         </EditorBottomSection>
       )}
+      <Modal
+        centered
+        open={quickDeployModal.open}
+        title={
+          quickDeployModal.step === "empty"
+            ? "No Deployment Job Found"
+            : `Quick Deploy "${nodeData?.node?.title || ""}"`
+        }
+        onCancel={closeQuickDeploy}
+        destroyOnClose
+        footer={
+          quickDeployModal.step === "empty" ? (
+            <Space>
+              <Button onClick={closeQuickDeploy}>Close</Button>
+              <Button type="primary" onClick={goToScheduler}>
+                Go to Scheduler
+              </Button>
+            </Space>
+          ) : quickDeployModal.step === "loading" ? null : (
+            <Space>
+              <Button
+                onClick={closeQuickDeploy}
+                disabled={quickDeployModal.submitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="primary"
+                loading={quickDeployModal.submitting}
+                disabled={
+                  !quickDeployModal.selectedTaskId ||
+                  !quickDeployModal.selectedScope ||
+                  !quickDeployModal.confirmed
+                }
+                onClick={confirmQuickDeploy}
+              >
+                {quickDeployModal.selectedScope === "job"
+                  ? "Run full job"
+                  : quickDeployModal.selectedScope === "model"
+                  ? "Run model"
+                  : "Run"}
+              </Button>
+            </Space>
+          )
+        }
+      >
+        {quickDeployModal.step === "loading" && (
+          <div style={{ textAlign: "center", padding: 24 }}>
+            <SpinnerLoader />
+          </div>
+        )}
+        {quickDeployModal.step === "empty" && (
+          <Typography.Paragraph>
+            No job includes model <strong>{nodeData?.node?.title}</strong> yet.
+            Create a scheduled job for this model first; then you can Quick
+            Deploy against its configured environment.
+          </Typography.Paragraph>
+        )}
+        {(quickDeployModal.step === "confirm" ||
+          quickDeployModal.step === "pick") &&
+          (() => {
+            const selected = quickDeployModal.candidates.find(
+              (c) => c.user_task_id === quickDeployModal.selectedTaskId
+            );
+            const multiple = quickDeployModal.candidates.length > 1;
+            const modelCount = selected?.enabled_model_count || 0;
+            return (
+              <div>
+                {multiple && (
+                  <>
+                    <Typography.Text strong>Pick a job</Typography.Text>
+                    <Radio.Group
+                      value={quickDeployModal.selectedTaskId}
+                      onChange={(e) =>
+                        setQuickDeployModal((prev) => ({
+                          ...prev,
+                          selectedTaskId: e.target.value,
+                          selectedScope: null,
+                          confirmed: false,
+                        }))
+                      }
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 8,
+                        margin: "8px 0 16px",
+                      }}
+                    >
+                      {quickDeployModal.candidates.map((c) => (
+                        <Radio key={c.user_task_id} value={c.user_task_id}>
+                          <strong>{c.task_name}</strong>
+                          <Typography.Text
+                            type="secondary"
+                            style={{ marginLeft: 8 }}
+                          >
+                            env: {c.environment_name || "(unnamed)"}
+                          </Typography.Text>
+                        </Radio>
+                      ))}
+                    </Radio.Group>
+                  </>
+                )}
+                {!multiple && selected && (
+                  <Typography.Paragraph style={{ marginBottom: 12 }}>
+                    Job <strong>{selected.task_name}</strong> · environment{" "}
+                    <strong>{selected.environment_name || "(unnamed)"}</strong>
+                  </Typography.Paragraph>
+                )}
+                <Typography.Text strong>Choose scope</Typography.Text>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: 12,
+                    margin: "8px 0 16px",
+                  }}
+                >
+                  {[
+                    {
+                      key: "model",
+                      title: "Run this model only",
+                      body: (
+                        <>
+                          Fast — runs just{" "}
+                          <em>{nodeData?.node?.title || "this model"}</em>.
+                        </>
+                      ),
+                    },
+                    {
+                      key: "job",
+                      title: "Run full job",
+                      body: (
+                        <>
+                          Runs all {modelCount || "enabled"} model
+                          {modelCount === 1 ? "" : "s"} in the job.
+                        </>
+                      ),
+                    },
+                  ].map((opt) => {
+                    const isSelected =
+                      quickDeployModal.selectedScope === opt.key;
+                    return (
+                      <Card
+                        key={opt.key}
+                        hoverable={!quickDeployModal.submitting}
+                        onClick={
+                          quickDeployModal.submitting
+                            ? undefined
+                            : () =>
+                                setQuickDeployModal((prev) => ({
+                                  ...prev,
+                                  selectedScope: opt.key,
+                                  confirmed: false,
+                                }))
+                        }
+                        styles={{ body: { padding: 12 } }}
+                        style={{
+                          cursor: quickDeployModal.submitting
+                            ? "not-allowed"
+                            : "pointer",
+                          borderColor: isSelected
+                            ? token.colorPrimary
+                            : undefined,
+                          boxShadow: isSelected
+                            ? `0 0 0 2px ${token.controlOutline}`
+                            : undefined,
+                        }}
+                      >
+                        <Typography.Text strong>{opt.title}</Typography.Text>
+                        <div>
+                          <Typography.Text
+                            type="secondary"
+                            style={{ fontSize: 12 }}
+                          >
+                            {opt.body}
+                          </Typography.Text>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+                <div
+                  style={{
+                    padding: "10px 12px",
+                    border: `1px solid ${token.colorBorderSecondary}`,
+                    borderRadius: token.borderRadiusLG,
+                    background: token.colorFillQuaternary,
+                  }}
+                >
+                  <Checkbox
+                    checked={quickDeployModal.confirmed}
+                    disabled={
+                      !quickDeployModal.selectedScope ||
+                      quickDeployModal.submitting
+                    }
+                    onChange={(e) =>
+                      setQuickDeployModal((prev) => ({
+                        ...prev,
+                        confirmed: e.target.checked,
+                      }))
+                    }
+                  >
+                    I understand this will{" "}
+                    {quickDeployModal.selectedScope === "job"
+                      ? `run all ${modelCount || "enabled"} model${
+                          modelCount === 1 ? "" : "s"
+                        } in "${selected?.task_name || "this job"}"`
+                      : quickDeployModal.selectedScope === "model"
+                      ? `run "${nodeData?.node?.title || "this model"}" via "${
+                          selected?.task_name || "the selected job"
+                        }"`
+                      : "run the selected scope"}{" "}
+                    against environment{" "}
+                    <strong>{selected?.environment_name || "(unnamed)"}</strong>
+                    .
+                  </Checkbox>
+                </div>
+              </div>
+            );
+          })()}
+      </Modal>
     </div>
   );
 }
