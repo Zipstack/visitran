@@ -54,7 +54,7 @@ services:
     container_name: visitran-celery-worker
     restart: unless-stopped
     entrypoint: .venv/bin/celery
-    command: "-A backend worker --loglevel=info -Q celery --concurrency=2"
+    command: "-A backend worker --loglevel=info -Q celery,celery_log_task_queue --concurrency=2"
     env_file:
       - ../backend/.env
     volumes:

@@ -126,9 +126,11 @@ def set_model_transformation(
         request_data, model_name=file_name
     )
     response_json["status"] = "success"
+    step_config = request_data.get("step_config", {})
+    transformation_type = step_config.get("type", "unknown") if isinstance(step_config, dict) else "unknown"
     fire_event(TransformationApplied(
         model_name=file_name,
-        transformation_type=request_data.get("type", "unknown"),
+        transformation_type=transformation_type,
     ))
     return Response(data=response_json)
 

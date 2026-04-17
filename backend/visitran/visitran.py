@@ -318,7 +318,7 @@ class Visitran:
                     continue
 
                 _model_display = getattr(node, "destination_table_name", "") or str(node_name)
-                _mat = node.materialization.value if hasattr(node.materialization, "value") else str(node.materialization)
+                _mat = node.materialization.name if hasattr(node.materialization, "name") else str(node.materialization)
                 fire_event(
                     ModelRunStarted(
                         model_name=_model_display,
