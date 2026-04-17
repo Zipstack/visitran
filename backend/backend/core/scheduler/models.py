@@ -136,12 +136,16 @@ class TaskRunHistory(DefaultOrganizationMixin, BaseModel):
         max_length=20,
         choices=[("scheduled", "Scheduled"), ("manual", "Manual")],
         default="scheduled",
+        null=True,
+        blank=True,
         help_text="How the run was initiated: cron/interval schedule or manual dispatch.",
     )
     scope = models.CharField(
         max_length=20,
         choices=[("job", "Full job"), ("model", "Single model")],
         default="job",
+        null=True,
+        blank=True,
         help_text="Whether the run executed all job models or a single model.",
     )
 

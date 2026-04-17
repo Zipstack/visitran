@@ -14,6 +14,8 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 choices=[("scheduled", "Scheduled"), ("manual", "Manual")],
                 default="scheduled",
+                null=True,
+                blank=True,
                 help_text="How the run was initiated: cron/interval schedule or manual dispatch.",
                 max_length=20,
             ),
@@ -24,6 +26,8 @@ class Migration(migrations.Migration):
             field=models.CharField(
                 choices=[("job", "Full job"), ("model", "Single model")],
                 default="job",
+                null=True,
+                blank=True,
                 help_text="Whether the run executed all job models or a single model.",
                 max_length=20,
             ),
