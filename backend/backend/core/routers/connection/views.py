@@ -128,13 +128,13 @@ def delete_connection(request: Request, connection_id: str) -> Response:
         conn_data = con_context.get_connection(connection_id=connection_id)
         conn_name = conn_data.get("name", connection_id) if conn_data else connection_id
         con_context.delete_connection(connection_id=connection_id)
-        fire_event(ConnectionDeletedEvt(connection_name=conn_name))
     except Exception as e:
         fire_event(ConnectionDeleteFailedEvt(connection_name=conn_name, reason=str(e)))
         raise ConnectionDeleteFailed(
             connection_name=conn_name,
             reason=str(e),
         )
+    fire_event(ConnectionDeletedEvt(connection_name=conn_name))
     response_data = {
         "status": "success",
         "data": f"{conn_name} is deleted successfully.",
