@@ -74,11 +74,13 @@ const MODEL_SORT_OPTIONS = [
 ];
 
 const MODEL_STATUS_DOT_STYLE = {
-  display: "inline-block",
+  position: "absolute",
+  top: -2,
+  right: -3,
   width: "7px",
   height: "7px",
   borderRadius: "50%",
-  verticalAlign: "middle",
+  border: "1px solid var(--page-bg-2, #fff)",
 };
 
 const getModelRunStatus = (runStatus, failureReason, lastRunAt, token) => {
@@ -659,8 +661,17 @@ const IdeExplorer = ({
             child.last_run_at,
             token
           );
+          const wrappedIcon = statusBadge ? (
+            <span style={{ position: "relative", display: "inline-flex" }}>
+              {child.icon}
+              {statusBadge}
+            </span>
+          ) : (
+            child.icon
+          );
           return {
             ...child,
+            icon: wrappedIcon,
             title: (
               <Typography.Text type="span" disabled={previewTimeTravel}>
                 {modelDeleteModeRef.current && (
@@ -676,17 +687,6 @@ const IdeExplorer = ({
                     onClick={(e) => e.stopPropagation()}
                     style={{ marginRight: 6 }}
                   />
-                )}
-                {statusBadge && (
-                  <span
-                    style={{
-                      position: "relative",
-                      display: "inline-block",
-                      marginRight: 4,
-                    }}
-                  >
-                    {statusBadge}
-                  </span>
                 )}
                 {child.title}
               </Typography.Text>
