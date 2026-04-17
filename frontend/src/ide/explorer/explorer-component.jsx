@@ -73,25 +73,15 @@ const MODEL_SORT_OPTIONS = [
   { label: "Z \u2192 A", key: "alpha_desc" },
 ];
 
-const MODEL_STATUS_DOT_STYLE = {
-  position: "absolute",
-  top: -2,
-  right: -3,
-  width: "7px",
-  height: "7px",
-  borderRadius: "50%",
-  border: "1px solid var(--page-bg-2, #fff)",
-};
+// Only backgroundColor varies per status — layout handled by .model-status-dot CSS class
 
 const getModelRunStatus = (runStatus, failureReason, lastRunAt, token) => {
   if (runStatus === "RUNNING") {
     return (
       <Tooltip title="Running">
         <span
-          style={{
-            ...MODEL_STATUS_DOT_STYLE,
-            backgroundColor: token.colorInfo,
-          }}
+          className="model-status-dot"
+          style={{ backgroundColor: token.colorInfo }}
         />
       </Tooltip>
     );
@@ -132,10 +122,8 @@ const getModelRunStatus = (runStatus, failureReason, lastRunAt, token) => {
         placement="right"
       >
         <span
-          style={{
-            ...MODEL_STATUS_DOT_STYLE,
-            backgroundColor: token.colorError,
-          }}
+          className="model-status-dot"
+          style={{ backgroundColor: token.colorError }}
         />
       </Popover>
     );
@@ -154,10 +142,8 @@ const getModelRunStatus = (runStatus, failureReason, lastRunAt, token) => {
     return (
       <Tooltip title={tooltipTitle}>
         <span
-          style={{
-            ...MODEL_STATUS_DOT_STYLE,
-            backgroundColor: token.colorSuccess,
-          }}
+          className="model-status-dot"
+          style={{ backgroundColor: token.colorSuccess }}
         />
       </Tooltip>
     );
@@ -662,7 +648,7 @@ const IdeExplorer = ({
             token
           );
           const wrappedIcon = statusBadge ? (
-            <span style={{ position: "relative", display: "inline-flex" }}>
+            <span className="model-icon-badge-wrapper">
               {child.icon}
               {statusBadge}
             </span>
