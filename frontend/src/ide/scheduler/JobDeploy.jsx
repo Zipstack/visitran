@@ -206,15 +206,22 @@ const JobDeploy = memo(function JobDeploy({
         const names = extractModelNames(data);
         setModelNames(names);
         // Reset model configs when project changes (unless editing)
+        // Preserve prefillModel if it exists — the prefill effect may
+        // have already set it before this async callback runs.
         if (!isEditMode) {
-          setModelConfigs({});
+          setModelConfigs((prev) => {
+            if (prefillModel && prev[prefillModel]) {
+              return { [prefillModel]: prev[prefillModel] };
+            }
+            return {};
+          });
         }
       })
       .catch((err) => {
         console.error("Failed to load models", err);
       })
       .finally(() => setModelsLoading(false));
-  }, [open, selectedProjectId, isEditMode]);
+  }, [open, selectedProjectId, isEditMode, prefillModel]);
 
   /* ─── auto-open Model Configuration when project is selected ─── */
   useEffect(() => {
