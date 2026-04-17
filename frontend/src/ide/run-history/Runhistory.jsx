@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import {
   Alert,
   Select,
@@ -178,7 +178,6 @@ const Runhistory = () => {
           : null;
         const initial = matchedFromUrl?.value ?? jobIds[0].value;
         setFilterQuery((prev) => ({ ...prev, job: initial }));
-        getRunHistoryList(initial);
       }
     } catch (error) {
       console.error("Failed to load jobs", error);
@@ -191,6 +190,8 @@ const Runhistory = () => {
     getJobList();
   }, []);
 
+  const deepLinkConsumed = useRef(false);
+
   /* ─── server-side filtering: refetch when filters change ─── */
   useEffect(() => {
     if (!filterQueries.job) return;
@@ -199,21 +200,20 @@ const Runhistory = () => {
       trigger: filterQueries.trigger,
       scope: filterQueries.scope,
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     filterQueries.status,
     filterQueries.trigger,
     filterQueries.scope,
     filterQueries.job,
-    getRunHistoryList,
-    pageSize,
   ]);
 
   /* ─── auto-expand on fresh data load ─── */
   useEffect(() => {
     const ids = [];
-    const fromDeepLink = searchParams.has("task");
-    if (fromDeepLink && backUpData.length > 0) {
+    if (!deepLinkConsumed.current && searchParams.has("task") && backUpData.length > 0) {
       ids.push(backUpData[0].id);
+      deepLinkConsumed.current = true;
     }
     (backUpData || [])
       .filter((r) => r.status === "FAILURE" && r.error_message)
@@ -221,13 +221,12 @@ const Runhistory = () => {
         if (!ids.includes(r.id)) ids.push(r.id);
       });
     setExpandedRowKeys(ids);
-  }, [backUpData, searchParams]);
+  }, [backUpData]);
 
   /* ─── handlers ─── */
   const handleJobChange = useCallback(
     (value) => {
       setFilterQuery({ status: "", job: value, trigger: "", scope: "" });
-      getRunHistoryList(value);
       setSearchParams(
         (prev) => {
           const next = new URLSearchParams(prev);
@@ -238,7 +237,7 @@ const Runhistory = () => {
         { replace: true }
       );
     },
-    [setSearchParams, getRunHistoryList]
+    [setSearchParams]
   );
 
   const handleTriggerChange = useCallback((value) => {
