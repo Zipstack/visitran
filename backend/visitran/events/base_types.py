@@ -100,6 +100,18 @@ class UserLevel(BaseEvent):
     def audience(self) -> str:
         return "user"
 
+    def title(self) -> str:
+        """Clean, short title for the activity feed."""
+        return self.message()
+
+    def subtitle(self) -> str:
+        """Contextual metadata shown below the title."""
+        return ""
+
+    def status(self) -> str:
+        """One of: running, success, error, warning, info."""
+        return "success"
+
 
 class NoFile:
     """Prevents an event from going to the file."""

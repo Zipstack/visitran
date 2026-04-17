@@ -739,18 +739,75 @@ function NoCodeModel({ nodeData }) {
                 <div
                   key={index}
                   style={{
-                    padding: "4px 8px",
-                    margin: "2px 0",
-                    borderLeft: `3px solid ${token.colorPrimary}`,
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 8,
+                    padding: "6px 10px",
+                    margin: "3px 0",
+                    borderLeft: `3px solid ${
+                      el.status === "error"
+                        ? token.colorError
+                        : el.status === "running"
+                        ? token.colorPrimary
+                        : el.status === "warning"
+                        ? token.colorWarning
+                        : token.colorSuccess
+                    }`,
                     background: token.colorFillQuaternary,
                     borderRadius: token.borderRadiusSM,
-                    fontWeight: 500,
-                    fontSize: 13,
-                    color:
-                      el.level === "error" ? token.colorError : token.colorText,
                   }}
                 >
-                  {el.message}
+                  <span
+                    style={{ fontSize: 13, lineHeight: "20px", flexShrink: 0 }}
+                  >
+                    {el.status === "error"
+                      ? "✗"
+                      : el.status === "running"
+                      ? "●"
+                      : el.status === "warning"
+                      ? "⚠"
+                      : "✓"}
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 500,
+                        color:
+                          el.status === "error"
+                            ? token.colorError
+                            : token.colorText,
+                        lineHeight: "20px",
+                      }}
+                    >
+                      {el.title || el.message}
+                    </div>
+                    {el.subtitle && (
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: token.colorTextSecondary,
+                          lineHeight: "18px",
+                          marginTop: 1,
+                        }}
+                      >
+                        {el.subtitle}
+                      </div>
+                    )}
+                  </div>
+                  {el.timestamp && (
+                    <span
+                      style={{
+                        fontSize: 11,
+                        color: token.colorTextQuaternary,
+                        flexShrink: 0,
+                        lineHeight: "20px",
+                        fontFamily: "monospace",
+                      }}
+                    >
+                      {el.timestamp}
+                    </span>
+                  )}
                 </div>
               ) : (
                 <div
@@ -2068,17 +2125,33 @@ function NoCodeModel({ nodeData }) {
         socketSessionId = data.session_id;
         // Listen for messages in the specific room (session ID)
         newSocket.on(`logs:${socketSessionId}`, (data) => {
-          const message = data?.data?.message;
-          const level = (data?.data?.level || "info").toLowerCase();
-          const audience = data?.data?.audience || "developer";
-          if (!message) return;
+          const d = data?.data || {};
+          const message = d.message;
+          const level = (d.level || "info").toLowerCase();
+          const audience = d.audience || "developer";
+          if (!message && !d.title) return;
           const doc = document.getElementsByClassName("logsSection");
           if (doc[0]) {
             setTimeout(() => {
               doc[0].scrollTop = doc[0].scrollHeight;
             }, 800);
           }
-          setLogsInfo((old) => [...old, { level, message, audience }]);
+          if (audience === "user") {
+            setLogsInfo((old) => [
+              ...old,
+              {
+                level,
+                audience,
+                title: d.title || message,
+                subtitle: d.subtitle || "",
+                status: d.status || "info",
+                timestamp: d.timestamp || "",
+                message: message || d.title,
+              },
+            ]);
+          } else {
+            setLogsInfo((old) => [...old, { level, message, audience }]);
+          }
         });
       });
     });
