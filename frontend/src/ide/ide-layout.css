@@ -79,6 +79,27 @@
   width: 8px !important;
 }
 
+/* Indent child/reference models to show hierarchy */
+.explorerTree .ant-tree-treenode.explorer-child-model {
+  padding-left: 12px;
+}
+
+/* Model run status badge overlaid on icon */
+.model-icon-badge-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.model-status-dot {
+  position: absolute;
+  top: -2px;
+  right: -3px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid var(--page-bg-2, #fff);
+}
+
 .contextMenu {
   position: fixed;
   z-index: 1000;

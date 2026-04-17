@@ -126,10 +126,26 @@ class _Logger:
     def write_line(self, msg: EventMsg) -> None:
         line = self.create_line(msg)
         if self._python_logger is not None and self.name == "file_log":
-            # send_to_logger(self._python_logger, msg.info.level, line) #send logs to file
-            # Using shared memory to write the logs
-            # LogHelper.publish(LogHelper.log(line, msg.info.level))
-            LogHelper.publish_log(StateStore.get("log_events_id"), LogHelper.log(line, msg.info.level))
+            audience = getattr(msg.data, "audience", lambda: "developer")()
+            if audience == "user":
+                ts = datetime.utcnow().strftime("%H:%M:%S")
+                title = getattr(msg.data, "title", lambda: msg.info.msg)()
+                subtitle = getattr(msg.data, "subtitle", lambda: "")()
+                event_status = getattr(msg.data, "event_status", lambda: "info")()
+                event_code = getattr(msg.data, "code", lambda: "")()
+                payload = {
+                    "level": msg.info.level,
+                    "audience": audience,
+                    "title": title,
+                    "subtitle": subtitle,
+                    "status": event_status,
+                    "code": event_code,
+                    "timestamp": ts,
+                    "message": msg.info.msg,
+                }
+                LogHelper.publish_log(StateStore.get("log_events_id"), payload)
+            else:
+                LogHelper.publish_log(StateStore.get("log_events_id"), LogHelper.log(line, msg.info.level, audience))
 
         if self._stream is not None and self.name == "stdout_log":
             self._stream.write(line + "\n")
@@ -164,7 +180,7 @@ class TextLogger(_Logger):
         color_ts = self._get_color_tag(msg=msg, invoker="ts")
         color_msg = self._get_color_tag(msg=msg, invoker="msg")
         color_level = self._get_color_tag(msg=msg, invoker="level")
-        log_line += f"{color_ts}{ts} {color_level}[{level:<5}]{color_msg}{self._get_thread_name()} {msg.info.msg}"
+        log_line += f"{color_ts}{ts} {color_level}[{level:<5}]{color_msg} {msg.info.msg}"
         return log_line
 
     def _get_color_tag(self, msg: EventMsg, invoker: str) -> Any:

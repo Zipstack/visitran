@@ -10,6 +10,7 @@ const InputPrompt = memo(function InputPrompt({
   savePrompt,
   isNewChat = false,
   isPromptRunning,
+  isResponseStreaming = false,
   chatIntents,
   selectedChatIntent,
   setSelectedChatIntent,
@@ -209,6 +210,7 @@ const InputPrompt = memo(function InputPrompt({
           value={value}
           editorHeight={editorHeight}
           isPromptRunning={isPromptRunning}
+          isResponseStreaming={isResponseStreaming}
           onSenderChange={handleSenderChange}
           onSubmit={handleSubmit}
           onEditorMount={handleEditorMount}
@@ -252,6 +254,7 @@ InputPrompt.propTypes = {
   savePrompt: PropTypes.func.isRequired,
   isNewChat: PropTypes.bool,
   isPromptRunning: PropTypes.bool.isRequired,
+  isResponseStreaming: PropTypes.bool,
   chatIntents: PropTypes.array.isRequired,
   selectedChatIntent: PropTypes.string,
   setSelectedChatIntent: PropTypes.func.isRequired,

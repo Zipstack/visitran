@@ -75,6 +75,10 @@ from visitran.events.types import (
     SortedDAGNodes,
     TestExecutionCompleted,
     TestExecutionFailed,
+    ModelRunStarted,
+    ModelRunSucceeded,
+    ModelRunFailed,
+    SeedCompleted,
 )
 from visitran.materialization import Materialization
 from visitran.singleton import Singleton
@@ -313,6 +317,16 @@ class Visitran:
                 if not is_executable:
                     continue
 
+                _model_display = getattr(node, "destination_table_name", "") or str(node_name)
+                _mat = node.materialization.name if hasattr(node.materialization, "name") else str(node.materialization)
+                fire_event(
+                    ModelRunStarted(
+                        model_name=_model_display,
+                        source_table=f"{node.source_schema_name}.{node.source_table_name}",
+                        destination_table=f"{node.destination_schema_name}.{node.destination_table_name}",
+                        materialization=_mat,
+                    )
+                )
                 fire_event(
                     ExecutingModelNode(
                         database=node.database,
@@ -333,10 +347,17 @@ class Visitran:
                 self.db_adapter.db_connection.create_schema(node.destination_schema_name)  # create if not exists
                 self.db_adapter.run_model(visitran_model=node)
 
+                _elapsed = time.monotonic() - start_time
+                fire_event(
+                    ModelRunSucceeded(
+                        model_name=_model_display,
+                        duration_seconds=round(_elapsed, 2),
+                    )
+                )
                 self._update_model_status(
                     str(node_name),
                     ConfigModels.RunStatus.SUCCESS,
-                    run_duration=time.monotonic() - start_time,
+                    run_duration=_elapsed,
                 )
 
                 base_result = BaseResult(
@@ -351,6 +372,12 @@ class Visitran:
                 sequence_number += 1
                 BASE_RESULT.append(base_result)
             except VisitranBaseExceptions as visitran_err:
+                fire_event(
+                    ModelRunFailed(
+                        model_name=getattr(node, "destination_table_name", "") or str(node_name),
+                        error=str(visitran_err),
+                    )
+                )
                 self._update_model_status(
                     str(node_name),
                     ConfigModels.RunStatus.FAILED,
@@ -362,7 +389,12 @@ class Visitran:
                 dest_table = node.destination_table_name
                 sch_name = node.destination_schema_name
                 err_trace = repr(err)
-
+                fire_event(
+                    ModelRunFailed(
+                        model_name=dest_table or str(node_name),
+                        error=err_trace,
+                    )
+                )
                 self._update_model_status(
                     str(node_name),
                     ConfigModels.RunStatus.FAILED,
@@ -820,6 +852,9 @@ class Visitran:
                 )
                 SEED_RESULT.append(seed_result)
                 parse_and_fire_seed_report()
+                fire_event(SeedCompleted(
+                    seed_name=file_name, schema_name=schema, status="Success",
+                ))
                 return {
                     "file_name": file_name,
                     "status": "Success",
@@ -829,6 +864,11 @@ class Visitran:
         except Exception as err:
             # Catches all kind of errors and raises with custom exceptions for seeds
             fire_event(SeedExecutionError(file_name, str(err)))
+            fire_event(SeedCompleted(
+                seed_name=file_name,
+                schema_name=getattr(self.context, "schema_name", "") or "",
+                status="Failed",
+            ))
             logging.exception(f"validate and run seed failed with exception {err}")
             raise RunSeedFailedException(file_name=file_name, error_message=str(err))
 

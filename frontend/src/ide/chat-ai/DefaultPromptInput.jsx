@@ -6,6 +6,7 @@ import { Sender } from "@ant-design/x";
 function DefaultPromptInput({
   value,
   isPromptRunning,
+  isResponseStreaming = false,
   onSenderChange,
   onSubmit,
   onCancel,
@@ -25,7 +26,7 @@ function DefaultPromptInput({
       actions={(_, info) => {
         const { SendButton, LoadingButton } = info.components;
 
-        if (isPromptRunning) {
+        if (isPromptRunning && !isResponseStreaming) {
           return (
             <Tooltip title="Stop">
               <LoadingButton variant="text" color="secondary" shape="default" />
@@ -51,7 +52,7 @@ function DefaultPromptInput({
                 />
               }
               shape="default"
-              disabled={!value}
+              disabled={!value || isPromptRunning}
               className={shouldHighlightSend ? "onboarding-send-highlight" : ""}
             />
           </Tooltip>
@@ -64,6 +65,7 @@ function DefaultPromptInput({
 DefaultPromptInput.propTypes = {
   value: PropTypes.string.isRequired,
   isPromptRunning: PropTypes.bool.isRequired,
+  isResponseStreaming: PropTypes.bool,
   onSenderChange: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired,

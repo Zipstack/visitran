@@ -1,4 +1,10 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  useMemo,
+} from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import {
@@ -59,23 +65,23 @@ import { SpinnerLoader } from "../../widgets/spinner_loader/index.js";
 import { useRefreshModelsStore } from "../../store/refresh-models-store.js";
 import { LinearScale } from "../../base/icons";
 
-const MODEL_STATUS_DOT_STYLE = {
-  display: "inline-block",
-  width: "7px",
-  height: "7px",
-  borderRadius: "50%",
-  verticalAlign: "middle",
-};
+// Static sort options for model explorer
+const MODEL_SORT_OPTIONS = [
+  { label: "Dependency Chain", key: "dep_chain" },
+  { label: "Execution Order", key: "exec_order" },
+  { label: "A \u2192 Z", key: "alpha_asc" },
+  { label: "Z \u2192 A", key: "alpha_desc" },
+];
+
+// Only backgroundColor varies per status — layout handled by .model-status-dot CSS class
 
 const getModelRunStatus = (runStatus, failureReason, lastRunAt, token) => {
   if (runStatus === "RUNNING") {
     return (
       <Tooltip title="Running">
         <span
-          style={{
-            ...MODEL_STATUS_DOT_STYLE,
-            backgroundColor: token.colorInfo,
-          }}
+          className="model-status-dot"
+          style={{ backgroundColor: token.colorInfo }}
         />
       </Tooltip>
     );
@@ -116,10 +122,8 @@ const getModelRunStatus = (runStatus, failureReason, lastRunAt, token) => {
         placement="right"
       >
         <span
-          style={{
-            ...MODEL_STATUS_DOT_STYLE,
-            backgroundColor: token.colorError,
-          }}
+          className="model-status-dot"
+          style={{ backgroundColor: token.colorError }}
         />
       </Popover>
     );
@@ -138,10 +142,8 @@ const getModelRunStatus = (runStatus, failureReason, lastRunAt, token) => {
     return (
       <Tooltip title={tooltipTitle}>
         <span
-          style={{
-            ...MODEL_STATUS_DOT_STYLE,
-            backgroundColor: token.colorSuccess,
-          }}
+          className="model-status-dot"
+          style={{ backgroundColor: token.colorSuccess }}
         />
       </Tooltip>
     );
@@ -173,6 +175,7 @@ const IdeExplorer = ({
   } = useProjectStore();
   const currentSchema = useProjectStore((state) => state.currentSchema);
   const setCurrentSchema = useProjectStore((state) => state.setCurrentSchema);
+  const setSchemaList = useProjectStore((state) => state.setSchemaList);
 
   // Reset currentSchema on unmount to prevent stale data
   useEffect(() => {
@@ -218,6 +221,8 @@ const IdeExplorer = ({
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [fileList, setFileList] = useState([]);
+  const [modelSortBy, setModelSortBy] = useState("dep_chain");
+  const modelSortByRef = useRef("dep_chain");
   const MAX_FILE_SIZE_MB = 50;
   const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
   const { refreshModels, setRefreshModels } = useRefreshModelsStore();
@@ -278,6 +283,73 @@ const IdeExplorer = ({
       return count + (schema.children?.length || 0);
     }, 0);
   };
+
+  // Sort no_code models based on sort option
+  const sortModels = (models, sortBy) => {
+    if (sortBy === "alpha_asc") {
+      return [...models].sort((a, b) => a.title.localeCompare(b.title));
+    }
+    if (sortBy === "alpha_desc") {
+      return [...models].sort((a, b) => b.title.localeCompare(a.title));
+    }
+    if (sortBy === "dep_chain") {
+      const modelSet = new Set(models.map((m) => m.title));
+      const childrenOf = {};
+      models.forEach((m) => {
+        (m.references || []).forEach((ref) => {
+          if (modelSet.has(ref)) {
+            if (!childrenOf[ref]) childrenOf[ref] = [];
+            childrenOf[ref].push(m.title);
+          }
+        });
+      });
+      const modelByName = {};
+      models.forEach((m) => {
+        modelByName[m.title] = m;
+      });
+      const visited = new Set();
+      const result = [];
+      const addChain = (name) => {
+        if (visited.has(name) || !modelByName[name]) return;
+        visited.add(name);
+        result.push(modelByName[name]);
+        (childrenOf[name] || []).forEach(addChain);
+      };
+      models.forEach((m) => {
+        const refs = (m.references || []).filter((r) => modelSet.has(r));
+        if (refs.length === 0) addChain(m.title);
+      });
+      models.forEach((m) => {
+        if (!visited.has(m.title)) result.push(m);
+      });
+      return result;
+    }
+    // "exec_order" and default: keep original backend order (topological/execution)
+    return [...models];
+  };
+
+  const applyModelDecorations = (models, sortBy) => {
+    // Only apply parent-child indent in Dependency Chain mode
+    if (sortBy !== "dep_chain") {
+      models.forEach((m) => {
+        delete m._isChild;
+      });
+      return;
+    }
+    // Build set of model names to distinguish from external table references
+    const modelNames = new Set(models.map((m) => m.title));
+    models.forEach((m) => {
+      const refs = (m.references || []).filter((r) => modelNames.has(r));
+      if (refs.length > 0) {
+        m._isChild = true;
+      } else {
+        delete m._isChild;
+      }
+    });
+  };
+
+  // handleModelSort and modelSortMenu are defined after setTreeData (line ~816)
+  // to avoid temporal dead zone — see sortMenuRef below for the Dropdown binding
 
   // Function to map string icons from API to actual icon components
   // depth: 0 = root (Database), 1 = schema, 2 = table, 3 = column
@@ -399,6 +471,9 @@ const IdeExplorer = ({
           setCurrentSchema("");
         }
 
+        // Store plain schema list in shared store
+        setSchemaList(allSchemas);
+
         const items = allSchemas.map((el) => ({
           label: el,
           key: el,
@@ -441,6 +516,8 @@ const IdeExplorer = ({
     data.map((item) => {
       if (item.title === "no_code") {
         item.children = item.children || [];
+        // Note: sort and decorations are applied in getExplorer/rebuildTree/handleModelSort
+        // BEFORE transformTree, so _isChild flag is set when className is assigned
         // Clean up stale selected model keys
         const currentModelKeys = item.children.map((c) => c.key);
         const filtered = selectedModelKeysRef.current.filter((k) =>
@@ -546,6 +623,17 @@ const IdeExplorer = ({
                       <DeleteOutlined />
                     </Typography.Text>
                   </Tooltip>
+                  <Dropdown
+                    menu={modelSortMenu}
+                    trigger={["click"]}
+                    placement="bottomRight"
+                  >
+                    <Tooltip placement="top" title="Sort Models">
+                      <Typography.Text className="ml-10 icon-highlight">
+                        <Icons.SortAscendingOutlined />
+                      </Typography.Text>
+                    </Tooltip>
+                  </Dropdown>
                 </>
               )}
             </Typography>
@@ -559,8 +647,17 @@ const IdeExplorer = ({
             child.last_run_at,
             token
           );
+          const wrappedIcon = statusBadge ? (
+            <span className="model-icon-badge-wrapper">
+              {child.icon}
+              {statusBadge}
+            </span>
+          ) : (
+            child.icon
+          );
           return {
             ...child,
+            icon: wrappedIcon,
             title: (
               <Typography.Text type="span" disabled={previewTimeTravel}>
                 {modelDeleteModeRef.current && (
@@ -576,17 +673,6 @@ const IdeExplorer = ({
                     onClick={(e) => e.stopPropagation()}
                     style={{ marginRight: 6 }}
                   />
-                )}
-                {statusBadge && (
-                  <span
-                    style={{
-                      position: "relative",
-                      display: "inline-block",
-                      marginRight: 4,
-                    }}
-                  >
-                    {statusBadge}
-                  </span>
                 )}
                 {child.title}
               </Typography.Text>
@@ -1087,10 +1173,76 @@ const IdeExplorer = ({
   const rebuildTree = () => {
     if (rawTreeDataRef.current.length > 0) {
       const freshData = JSON.parse(JSON.stringify(rawTreeDataRef.current));
+      // Apply sort and decorations BEFORE transformTree so _isChild is set
+      freshData.forEach((node) => {
+        if (node.title === "models" && node.children) {
+          node.children.forEach((child) => {
+            if (child.title === "no_code" && child.children) {
+              child.children = sortModels(
+                child.children,
+                modelSortByRef.current
+              );
+              applyModelDecorations(child.children, modelSortByRef.current);
+            }
+          });
+        }
+      });
       transformTree(freshData);
       setTreeData(freshData, false);
     }
   };
+
+  const handleModelSort = useCallback((sortBy) => {
+    modelSortByRef.current = sortBy;
+    setModelSortBy(sortBy);
+  }, []);
+
+  // Rebuild tree when sort mode changes so the dropdown checkmark updates
+  useEffect(() => {
+    if (rawTreeDataRef.current && rawTreeDataRef.current.length > 0) {
+      const freshData = JSON.parse(JSON.stringify(rawTreeDataRef.current));
+      freshData.forEach((node) => {
+        if (node.title === "models" && node.children) {
+          node.children.forEach((child) => {
+            if (child.title === "no_code" && child.children) {
+              child.children = sortModels(child.children, modelSortBy);
+              applyModelDecorations(child.children, modelSortBy);
+            }
+          });
+        }
+      });
+      transformTree(freshData);
+      setTreeData(freshData, false);
+    }
+    // eslint-disable-next-line
+  }, [modelSortBy]);
+
+  const modelSortMenu = useMemo(
+    () => ({
+      items: MODEL_SORT_OPTIONS.map((opt) => ({
+        key: opt.key,
+        label: (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              minWidth: 160,
+              fontWeight: modelSortBy === opt.key ? 600 : "normal",
+            }}
+          >
+            <span>{opt.label}</span>
+            {modelSortBy === opt.key && (
+              <CheckCircleFilled style={{ color: "#1677ff", fontSize: 12 }} />
+            )}
+          </div>
+        ),
+      })),
+      onClick: ({ key }) => handleModelSort(key),
+    }),
+    [modelSortBy, handleModelSort]
+  );
 
   useEffect(() => {
     if (schemaMenu) {
@@ -1106,6 +1258,21 @@ const IdeExplorer = ({
       .then((res) => {
         const treeData = res.data.children;
         rawTreeDataRef.current = JSON.parse(JSON.stringify(treeData));
+        // Apply sort and decorations to no_code models BEFORE transformTree
+        // so that _isChild flag is set when className is assigned
+        treeData.forEach((node) => {
+          if (node.title === "models" && node.children) {
+            node.children.forEach((child) => {
+              if (child.title === "no_code" && child.children) {
+                child.children = sortModels(
+                  child.children,
+                  modelSortByRef.current
+                );
+                applyModelDecorations(child.children, modelSortByRef.current);
+              }
+            });
+          }
+        });
         transformTree(treeData);
         setTreeData(treeData);
 
@@ -2557,6 +2724,13 @@ function transformTree(tree) {
     node["icon"] = getIconByType(type);
     // change is_folder to isLeaf key and delete is_folder
     delete Object.assign(node, { isLeaf: !node.is_folder }).is_folder;
+
+    // Indent child/reference models (only in Dependency Chain sort)
+    if (node._isChild) {
+      node.className = "explorer-child-model";
+    } else if (node.className === "explorer-child-model") {
+      node.className = "";
+    }
 
     if (node.children) {
       transformTree(node.children);
