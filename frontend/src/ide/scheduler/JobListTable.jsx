@@ -16,11 +16,17 @@ import {
   DeleteOutlined,
   PlayCircleOutlined,
   LoadingOutlined,
+  HistoryOutlined,
 } from "@ant-design/icons";
 import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 
 import { useJobService } from "./service";
-import { getTooltipText } from "../../common/helpers";
+import {
+  getTooltipText,
+  getRelativeTime,
+  formatDateTime,
+} from "../../common/helpers";
 import { useNotificationService } from "../../service/notification-service";
 
 const JobListTable = memo(
@@ -35,6 +41,28 @@ const JobListTable = memo(
     const { updateTask, runTask } = useJobService();
     const [loading, setLoading] = useState({});
     const { notify } = useNotificationService();
+    const navigate = useNavigate();
+
+    const goToRunHistory = (userTaskId) =>
+      navigate(`/project/job/history?task=${userTaskId}`);
+
+    const renderDateCell = (text) => {
+      if (!text) {
+        return (
+          <Typography.Text type="secondary">Not started yet.</Typography.Text>
+        );
+      }
+      return (
+        <Tooltip title={new Date(text).toISOString()}>
+          <Space direction="vertical" size={0}>
+            <Typography.Text>{formatDateTime(text)}</Typography.Text>
+            <Typography.Text type="secondary" style={{ fontSize: 11 }}>
+              {getRelativeTime(text)}
+            </Typography.Text>
+          </Space>
+        </Tooltip>
+      );
+    };
     const handleSwitchSchedular = async (item, checked) => {
       try {
         const {
@@ -97,10 +125,18 @@ const JobListTable = memo(
           title: "Job",
           dataIndex: "task_name",
           key: "task_name",
-          render: (text) => (
-            <Typography.Text className="job-deploy-bold">
-              {text}
-            </Typography.Text>
+          render: (text, record) => (
+            <Tooltip title="Open Run History for this job">
+              <Button
+                type="link"
+                size="small"
+                style={{ padding: 0, height: "auto" }}
+                icon={<HistoryOutlined />}
+                onClick={() => goToRunHistory(record.user_task_id)}
+              >
+                <span className="job-deploy-bold">{text}</span>
+              </Button>
+            </Tooltip>
           ),
         },
         {
@@ -124,53 +160,76 @@ const JobListTable = memo(
           ),
         },
         {
-          title: "Schedule Type",
+          title: "Schedule",
           key: "schedule",
-          render: (_, record) => (
-            <Tooltip
-              title={
-                <>
-                  {getTooltipText(
-                    record.periodic_task_details?.[record.task_type] ?? {},
-                    record.task_type
-                  )}
-                  {record.task_status === "FAILED" && (
-                    <>
-                      <br />
-                      Logs available in Run History
-                    </>
-                  )}
-                </>
-              }
-            >
-              <Tag
-                color={
-                  ["FAILED", "FAILED PERMANENTLY"].includes(record.task_status)
-                    ? "red"
-                    : "green"
+          render: (_, record) => {
+            const scheduleText = getTooltipText(
+              record.periodic_task_details?.[record.task_type] ?? {},
+              record.task_type
+            );
+            return (
+              <Tooltip title={scheduleText}>
+                <Tag color="geekblue" icon={<CalendarOutlined />}>
+                  {record.task_type === "interval" ? "Interval" : "Cron"}
+                </Tag>
+                <Typography.Text
+                  type="secondary"
+                  style={{ fontSize: 12, marginLeft: 4 }}
+                >
+                  {scheduleText}
+                </Typography.Text>
+              </Tooltip>
+            );
+          },
+        },
+        {
+          title: "Last Run Status",
+          key: "last_run_status",
+          render: (_, record) => {
+            if (!record.task_status) {
+              return <Typography.Text type="secondary">—</Typography.Text>;
+            }
+            const isFailed = [
+              "FAILED",
+              "FAILED PERMANENTLY",
+              "FAILURE",
+            ].includes(record.task_status);
+            return (
+              <Tooltip
+                title={
+                  isFailed
+                    ? "Logs available in Run History"
+                    : record.task_status
                 }
-                icon={<CalendarOutlined />}
               >
-                {record.task_status}
-              </Tag>
-            </Tooltip>
-          ),
+                <Tag
+                  color={
+                    isFailed
+                      ? "red"
+                      : record.task_status === "SUCCESS"
+                      ? "green"
+                      : "default"
+                  }
+                >
+                  {record.task_status === "FAILURE"
+                    ? "FAILED"
+                    : record.task_status}
+                </Tag>
+              </Tooltip>
+            );
+          },
         },
         {
           title: "Last Run",
           dataIndex: "task_completion_time",
           key: "last_run",
-          render: (text) => (
-            <Typography.Text>{text || "Not started yet."}</Typography.Text>
-          ),
+          render: renderDateCell,
         },
         {
           title: "Next Run",
-          dataIndex: "task_run_time",
+          dataIndex: "next_run_time",
           key: "next_run",
-          render: (text) => (
-            <Typography.Text>{text || "Not started yet."}</Typography.Text>
-          ),
+          render: renderDateCell,
         },
         {
           title: "Status",
@@ -198,7 +257,7 @@ const JobListTable = memo(
           key: "actions",
           render: (_, record) => (
             <Space>
-              <Tooltip title="run">
+              <Tooltip title="Deploy Job">
                 <Button
                   type="link"
                   icon={

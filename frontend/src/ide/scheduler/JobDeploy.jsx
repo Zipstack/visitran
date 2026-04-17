@@ -21,6 +21,7 @@ import {
   Divider,
   Spin,
   Collapse,
+  Tooltip,
 } from "antd";
 import {
   ClockCircleOutlined,
@@ -32,11 +33,14 @@ import {
   LinkOutlined,
   ExpandAltOutlined,
   ShrinkOutlined,
+  PlusOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 
 import { checkPermission } from "../../common/helpers";
 import { useNotificationService } from "../../service/notification-service";
 import { useProjectStore } from "../../store/project-store";
+import { useSessionStore } from "../../store/session-store";
 import { useJobService } from "./service";
 import { CronFields } from "./CronFields";
 import { IntervalFields } from "./IntervalFields";
@@ -50,6 +54,8 @@ const TASK_TYPES = {
 };
 
 const DEFAULT_CRON = "30 * * * *";
+
+const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
 /* ─── cron values reducer (matches CronFields interface) ─── */
 const cronReducer = (state, action) => {
@@ -98,6 +104,8 @@ const JobDeploy = memo(function JobDeploy({
   const canWrite = checkPermission("JOB_DEPLOYMENT", "can_write");
   const { notify } = useNotificationService();
   const { projectId } = useProjectStore();
+  const { sessionDetails } = useSessionStore();
+  const userEmail = sessionDetails?.email || "";
   const {
     createTask,
     updateTask,
@@ -410,7 +418,7 @@ const JobDeploy = memo(function JobDeploy({
             max_retries: 0,
             notify_on_failure: false,
             notify_on_success: false,
-            notification_emails: [],
+            notification_emails: userEmail ? [userEmail] : [],
             trigger_on_complete: null,
           }}
         >
@@ -454,7 +462,35 @@ const JobDeploy = memo(function JobDeploy({
           </Form.Item>
 
           <Form.Item
-            label="Environment"
+            label={
+              <Space size={8}>
+                <span>Environment</span>
+                <Button
+                  type="link"
+                  size="small"
+                  style={{ padding: 0, height: "auto" }}
+                  icon={<PlusOutlined />}
+                  onClick={() =>
+                    window.open("/project/env/list", "_blank", "noopener")
+                  }
+                >
+                  Create new
+                </Button>
+                <Tooltip title="Refresh environment list (after creating one in the other tab)">
+                  <Button
+                    type="link"
+                    size="small"
+                    style={{ padding: 0, height: "auto" }}
+                    icon={<ReloadOutlined />}
+                    onClick={() =>
+                      getEnvironments()
+                        .then(setEnvironments)
+                        .catch((err) => notify({ error: err }))
+                    }
+                  />
+                </Tooltip>
+              </Space>
+            }
             name="environment"
             rules={[
               { required: true, message: "Please select an environment" },
@@ -669,7 +705,26 @@ const JobDeploy = memo(function JobDeploy({
                       <Form.Item
                         label="Notification Emails"
                         name="notification_emails"
-                        tooltip="Comma-separated email addresses"
+                        tooltip="Enter email addresses"
+                        rules={[
+                          {
+                            validator: (_, value) => {
+                              if (!value || value.length === 0)
+                                return Promise.resolve();
+                              const invalid = value.filter(
+                                (e) => !EMAIL_REGEX.test(e)
+                              );
+                              if (invalid.length > 0) {
+                                return Promise.reject(
+                                  new Error(
+                                    `Invalid email(s): ${invalid.join(", ")}`
+                                  )
+                                );
+                              }
+                              return Promise.resolve();
+                            },
+                          },
+                        ]}
                       >
                         <Select
                           mode="tags"

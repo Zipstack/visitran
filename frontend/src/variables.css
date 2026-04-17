@@ -81,6 +81,9 @@
   --node-color-blue: #b0e3f9;
   --node-color-yellow: #ffdd8a;
   --node-color-pink: #ffc8d2;
+
+  /* Lineage scoping */
+  --lineage-selected-border: #1677ff;
 }
 
 .dark {
@@ -156,4 +159,7 @@
   --node-color-blue: #1a5a6e;
   --node-color-yellow: #6e5a1a;
   --node-color-pink: #6e3a4a;
+
+  /* Lineage scoping */
+  --lineage-selected-border: #69b1ff;
 }

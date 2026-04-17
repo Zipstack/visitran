@@ -9,6 +9,7 @@ const STORE_VARIABLES = {
   projectId: "",
   renamedModel: {},
   currentSchema: "",
+  schemaList: [],
 };
 
 const useProjectStore = create(
@@ -69,6 +70,11 @@ const useProjectStore = create(
       setCurrentSchema: (schema) => {
         setState(() => {
           return { currentSchema: schema };
+        });
+      },
+      setSchemaList: (list) => {
+        setState(() => {
+          return { schemaList: list };
         });
       },
     }),

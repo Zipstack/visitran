@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Typography, Input, Select, Form } from "antd";
 
@@ -13,49 +13,49 @@ const ConnectionDetailsSection = memo(
   ({
     connectionId,
     dbSelectionInfo,
-    handleConnectionNameDesc,
+    connectionDetailsForm,
     handleCardClick,
     mappedDataSources,
     dbUsage,
   }) => {
+    // Populate form values when connection data is loaded
+    // Apply collapseSpaces since setFieldsValue bypasses the normalize prop
+    useEffect(() => {
+      connectionDetailsForm.setFieldsValue({
+        name: collapseSpaces(dbSelectionInfo.name || ""),
+        description: dbSelectionInfo.description,
+      });
+    }, [
+      connectionDetailsForm,
+      connectionId,
+      dbSelectionInfo.name,
+      dbSelectionInfo.description,
+    ]);
+
     return (
       <div className="createConnectionSection flex-1 createConnectionSectionDivider overflow-y-auto">
         <Typography className="sectionTitle">Connection Details</Typography>
         <div className="formFieldsWrapper">
-          <Form layout="vertical">
+          <Form form={connectionDetailsForm} layout="vertical">
             <Form.Item
               label="Name"
-              getValueFromEvent={({ target: { value } }) =>
-                // collapse any run of 2+ spaces only when followed by non-space
-                collapseSpaces(value)
-              }
+              name="name"
+              normalize={collapseSpaces}
               rules={[
                 { required: true, message: "Please enter the connection name" },
                 { validator: validateFormFieldName },
               ]}
               required
             >
-              <Input
-                className="field"
-                value={dbSelectionInfo.name}
-                onChange={(e) =>
-                  handleConnectionNameDesc("name", e.target.value)
-                }
-              />
+              <Input className="field" />
             </Form.Item>
 
             <Form.Item
               label="Description"
+              name="description"
               rules={[{ validator: validateFormFieldDescription }]}
             >
-              <Input.TextArea
-                className="field"
-                rows={2}
-                value={dbSelectionInfo.description}
-                onChange={(e) =>
-                  handleConnectionNameDesc("description", e.target.value)
-                }
-              />
+              <Input.TextArea className="field" rows={2} />
             </Form.Item>
 
             <Form.Item label="Database" required>
@@ -90,7 +90,7 @@ ConnectionDetailsSection.propTypes = {
     description: PropTypes.string,
     icon: PropTypes.string,
   }).isRequired,
-  handleConnectionNameDesc: PropTypes.func.isRequired,
+  connectionDetailsForm: PropTypes.object.isRequired,
   handleCardClick: PropTypes.func.isRequired,
   mappedDataSources: PropTypes.array.isRequired,
   dbUsage: PropTypes.shape({

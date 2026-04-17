@@ -9,9 +9,16 @@
   flex: 1;
   overflow: hidden;
   scroll-behavior: smooth;
-  padding: 12px 0px 8px;
+  padding: 6px 12px;
+  margin-bottom: 6px;
   display: flex;
   align-items: center;
+  background-color: var(--menu-items-bg);
+  border-radius: 6px;
+}
+
+.no-code-toolbar-content > .ant-space {
+  padding-top: 11px;
 }
 
 /* Hidden toolbar items (overflow) */

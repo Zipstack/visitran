@@ -7,8 +7,8 @@
 </p>
 
 <p align="center">
-  <strong>Modern, Pythonic Data Transforms</strong><br />
-  Build data transformation pipelines using Python — with a visual IDE and AI assistant.
+  <strong>Agentic &amp; No-Code Data Transformations</strong><br />
+  Vibe coded pipelines: say hello to accuracy and maintainability.
 </p>
 
 <p align="center">
@@ -33,7 +33,12 @@
 
 ## What is Visitran?
 
-Visitran is an **open-source** data transformation tool that supports **no-code** (visual drag-and-drop) and **AI-assisted** (natural language) approaches to data modeling. It connects to your data warehouse, lets you build transformation pipelines visually or by describing what you need in plain English — and materializes results back to your database.
+Visitran is the modern, agent-native data transformation platform that lets you create sophisticated, yet highly standardized transformation metrics and highly maintainable transformation projects with AI. It is built on a strong foundation of Python (powered by Ibis) and SQL, while affording you a simple, conversational interface.
+
+### I just vibe code my pipelines. Why do I need Visitran?
+
+First off, congratulations. You are using modern tools to quickly solve pains you have. The trouble starts when everyone in your organization is vibe coding pipelines and seeing different numbers for critical metrics. Pandemonium ensues. As it is, it's tough for even humans to come to an agreement on how core metrics are defined. With Visitran, you get the best of both worlds. You "vibe code" your pipelines with Visitran AI, but you can collaborate with your team members and build transformations that are agreed upon, verifiable and maintainable. Speed: say hi to accuracy. Accuracy: say hi to maintainability.
+
 
 **Supported Databases**
 
@@ -48,14 +53,14 @@ Visitran is an **open-source** data transformation tool that supports **no-code*
 ## Key Features
 
 **For Data Engineers**
-- Full Python-based transformation models with Ibis SQL generation
+- No-code backed by Python-based transformation models with Ibis SQL generation
 - 6 database adapters with table, view, and incremental materialization
 - DAG execution engine with dependency resolution
 - Job scheduling with cron/interval triggers, retry, and chaining
 
 **For Analysts & No-Code Users**
-- Visual IDE with Monaco editor, file explorer, and DAG visualization
 - No-code model builder — joins, filters, aggregates, window functions, pivots, unions
+- Formula Columns support: Create complex transformations with Excel-like formulas
 - AI assistant for natural language to data transformations
 - Built-in testing framework for model validation
 

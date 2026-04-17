@@ -32,6 +32,15 @@ const Conversation = memo(function Conversation({
     setDetectedAction(actionType);
   }, []);
 
+  // Handle troubleshoot button click from error messages
+  const handleTroubleshoot = useCallback(
+    (errorMessage) => {
+      const prompt = `There was an error encountered. We have the detailed error message below. Please see how we can fix this:\n\n${errorMessage}`;
+      savePrompt(prompt, selectedChatIntent);
+    },
+    [savePrompt, selectedChatIntent]
+  );
+
   // Create UI action object based on detected action
   const uiAction = useMemo(() => {
     if (!detectedAction) return null;
@@ -168,7 +177,7 @@ const Conversation = memo(function Conversation({
           socketError={message?.error_msg}
           promptError={message?.prompt_error_message}
           transformError={message?.transformation_error_message}
-          errorState={message?.error_state}
+          onTroubleshoot={handleTroubleshoot}
         />
       </Space>
       {isLastConversation ? <div className="pad-12" /> : <Divider />}

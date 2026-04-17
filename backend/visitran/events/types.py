@@ -469,7 +469,7 @@ class SnapshotExecutionCompleted(InfoLevel, proto_type.SnapshotExecutionComplete
 
 
 @dataclass
-class UsingCachedObject(InfoLevel, proto_type.UsingCachedObject):
+class UsingCachedObject(DebugLevel, proto_type.UsingCachedObject):
     def code(self) -> str:
         return "Z009"
 
