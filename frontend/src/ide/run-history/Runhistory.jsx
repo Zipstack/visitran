@@ -268,14 +268,14 @@ const Runhistory = () => {
       if (currentPage !== newPage || pageSize !== newPageSize) {
         setCurrentPage(newPage);
         setPageSize(newPageSize);
-        getRunHistoryList(envInfo.id, newPage, newPageSize, {
+        getRunHistoryList(filterQueries.job, newPage, newPageSize, {
           status: filterQueries.status,
           trigger: filterQueries.trigger,
           scope: filterQueries.scope,
         });
       }
     },
-    [currentPage, pageSize, envInfo.id, filterQueries, getRunHistoryList]
+    [currentPage, pageSize, filterQueries, getRunHistoryList]
   );
 
   const handleExpand = useCallback((expanded, record) => {
