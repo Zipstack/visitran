@@ -122,7 +122,7 @@
 .ideEditor {
   display: grid;
   grid-auto-flow: row;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: 1fr auto;
   margin: 4px;
   overflow: hidden;
   height: 100%;
