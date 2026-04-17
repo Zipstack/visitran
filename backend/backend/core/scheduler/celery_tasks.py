@@ -386,14 +386,14 @@ def trigger_scheduled_run(
     except (_RunTimeout, SoftTimeLimitExceeded) as exc:
         error_msg = str(exc) if str(exc) else f"Job exceeded timeout of {timeout}s"
         logger.warning("Job %s timed out: %s", user_task.task_name, error_msg)
-        _clear_base_result()
         _mark_failure(run, user_task, error_msg)
+        _clear_base_result()
 
     except Exception as exc:
         error_msg = str(exc)
         logger.exception("Job %s failed: %s", user_task.task_name, error_msg)
-        _clear_base_result()
         _mark_failure(run, user_task, error_msg)
+        _clear_base_result()
 
     # ── Retry logic ───────────────────────────────────────────────────
     if not success and user_task.max_retries > 0 and retry_num < user_task.max_retries:

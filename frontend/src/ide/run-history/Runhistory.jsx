@@ -144,7 +144,7 @@ const Runhistory = () => {
         setLoading(false);
       }
     },
-    [axios, selectedOrgId, currentPage, pageSize, notify]
+    [axios, selectedOrgId, notify]
   );
 
   const getJobList = async () => {
