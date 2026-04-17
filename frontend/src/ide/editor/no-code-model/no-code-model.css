@@ -121,8 +121,17 @@
 
 .configure-tables .ant-space,
 .configure-tables .ant-select,
+.configure-tables .ant-select-auto-complete,
 .width-100-percent {
   width: 100% !important;
+}
+
+.configure-section-card {
+  margin-bottom: 12px;
+}
+
+.configure-section-card h4:first-child {
+  margin-top: 0;
 }
 
 .search-icon {
@@ -681,7 +690,8 @@
   justify-content: space-between;
   align-items: center;
   padding-block: 8px;
-  overflow-x: auto;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .custom-pagination-container .custom-pagination .ant-pagination-options {

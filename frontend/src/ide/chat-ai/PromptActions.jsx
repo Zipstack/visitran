@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo } from "react";
+import { memo, useCallback, useEffect, useMemo } from "react";
 import { Space, Typography, Select, Switch, Segmented, Tooltip } from "antd";
 import {
   ConsoleSqlOutlined,
@@ -15,6 +15,8 @@ import InfoChip from "./InfoChip";
 import { useTokenStore } from "../../store/token-store";
 import { useSessionStore } from "../../store/session-store";
 import { useProjectStore } from "../../store/project-store";
+import { explorerService } from "../explorer/explorer-service";
+import { useNotificationService } from "../../service/notification-service";
 
 // Define hidden intents and a fixed order array
 const HIDDEN_CHAT_INTENTS = ["AUTO", "NOTA", "INFO"];
@@ -53,6 +55,32 @@ const PromptActions = memo(function PromptActions({
   const { tokenBalance, isLoading: isTokenLoading } = useTokenStore();
   const isCloud = useSessionStore((state) => state.sessionDetails?.is_cloud);
   const currentSchema = useProjectStore((state) => state.currentSchema);
+  const setCurrentSchema = useProjectStore((state) => state.setCurrentSchema);
+  const schemaList = useProjectStore((state) => state.schemaList);
+  const projectId = useProjectStore((state) => state.projectId);
+  const expService = explorerService();
+  const { notify } = useNotificationService();
+
+  const schemaOptions = useMemo(
+    () => schemaList.map((s) => ({ label: s, value: s })),
+    [schemaList]
+  );
+
+  const handleSchemaChange = useCallback(
+    (value) => {
+      expService
+        .setProjectSchema(projectId, value)
+        .then(() => {
+          setCurrentSchema(value);
+          notify({ type: "success", message: "Schema updated successfully" });
+        })
+        .catch((error) => {
+          console.error(error);
+          notify({ error });
+        });
+    },
+    [expService, projectId, setCurrentSchema, notify]
+  );
 
   const llmOptions = useMemo(
     () =>
@@ -169,12 +197,28 @@ const PromptActions = memo(function PromptActions({
           </a>
         )}
 
-        {/* Schema indicator */}
-        {currentSchema && (
+        {/* Schema selector */}
+        {schemaList.length > 0 ? (
+          <div className="chat-ai-info-chip chat-ai-info-chip-clickable">
+            <DatabaseOutlined className="chat-ai-info-chip-icon" />
+            <Select
+              size="small"
+              variant="borderless"
+              showSearch
+              placeholder="Schema"
+              value={currentSchema || undefined}
+              onChange={handleSchemaChange}
+              options={schemaOptions}
+              popupMatchSelectWidth={false}
+              className="chat-ai-schema-select"
+            />
+          </div>
+        ) : (
           <InfoChip
             icon={<DatabaseOutlined className="chat-ai-info-chip-icon" />}
-            text={currentSchema}
-            tooltipTitle="All new models generated will be created inside this schema. To modify it, click the settings icon from the left explorer."
+            text="No schema"
+            tooltipTitle="No schemas available. Please configure a database connection and select a schema from the explorer."
+            className="chat-ai-info-chip-error"
           />
         )}
       </Space>

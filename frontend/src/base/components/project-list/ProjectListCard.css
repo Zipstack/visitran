@@ -9,6 +9,7 @@
   background-color: var(--project-detail-bg);
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .project-list-card-wrapper:hover {
@@ -170,10 +171,6 @@
 }
 
 /* ---------- body ---------- */
-.project-list-card-clickable-content {
-  cursor: pointer;
-}
-
 .project-list-card-detail-section {
   padding: 12px 14px;
 }
