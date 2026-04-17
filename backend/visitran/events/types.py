@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import visitran.events.proto_types as proto_type
-from visitran.events.base_types import DebugLevel, ErrorLevel, InfoLevel, WarnLevel
+from visitran.events.base_types import DebugLevel, ErrorLevel, EventLevel, InfoLevel, UserLevel, WarnLevel
 
 #
 # | Code |     Description     |
@@ -820,3 +820,333 @@ class UpdateFailedCronJob(ErrorLevel, proto_type.UpdateFailedCronJob):
 
     def message(self) -> str:
         return f"{self.task_type} Task update failed, task_ID: {self.task_id}. task details: {self.cron_data}"
+
+
+# ─── User-facing activity events ─────────────────────────────────────
+# These inherit from UserLevel so they carry audience="user" and are
+# shown in the frontend's "User activity" log view by default.
+
+@dataclass
+class ModelRunStarted(UserLevel, proto_type.ModelRunStarted):
+    def code(self) -> str:
+        return "U001"
+
+    def message(self) -> str:
+        mat = f" as {self.materialization}" if self.materialization else ""
+        return f'Building model "{self.model_name}" → {self.destination_table}{mat} from "{self.source_table}"'
+
+    def title(self) -> str:
+        return f'Building model "{self.model_name}"'
+
+    def subtitle(self) -> str:
+        mat = self.materialization.upper() if self.materialization else ""
+        parts = []
+        if mat:
+            parts.append(mat)
+        parts.append(f"{self.source_table} → {self.destination_table}")
+        return " · ".join(parts)
+
+    def event_status(self) -> str:
+        return "running"
+
+
+@dataclass
+class ModelRunSucceeded(UserLevel, proto_type.ModelRunSucceeded):
+    def code(self) -> str:
+        return "U002"
+
+    def message(self) -> str:
+        dur = f" in {self.duration_seconds:.1f}s" if self.duration_seconds else ""
+        return f'Model "{self.model_name}" built successfully{dur}'
+
+    def title(self) -> str:
+        return f'Model "{self.model_name}" built successfully'
+
+    def subtitle(self) -> str:
+        return f"{self.duration_seconds:.1f}s elapsed" if self.duration_seconds else ""
+
+
+@dataclass
+class ModelRunFailed(UserLevel, proto_type.ModelRunFailed):
+    def code(self) -> str:
+        return "U003"
+
+    def message(self) -> str:
+        short_err = (self.error[:120] + "…") if len(self.error) > 120 else self.error
+        return f'Model "{self.model_name}" failed: {short_err}'
+
+    def title(self) -> str:
+        return f'Model "{self.model_name}" failed'
+
+    def subtitle(self) -> str:
+        return (self.error[:150] + "…") if len(self.error) > 150 else self.error
+
+    def event_status(self) -> str:
+        return "error"
+
+    def level_tag(self) -> EventLevel:
+        return EventLevel.ERROR
+
+
+@dataclass
+class TransformationApplied(UserLevel, proto_type.TransformationApplied):
+    def code(self) -> str:
+        return "U004"
+
+    def message(self) -> str:
+        return f'Applied {self.transformation_type} transformation on "{self.model_name}"'
+
+    def title(self) -> str:
+        return f'Applied {self.transformation_type} transformation on "{self.model_name}"'
+
+
+@dataclass
+class TransformationDeleted(UserLevel, proto_type.TransformationDeleted):
+    def code(self) -> str:
+        return "U005"
+
+    def message(self) -> str:
+        return f'Removed {self.transformation_type} transformation from "{self.model_name}"'
+
+    def title(self) -> str:
+        return f'Removed {self.transformation_type} transformation from "{self.model_name}"'
+
+
+@dataclass
+class ModelConfigured(UserLevel, proto_type.ModelConfigured):
+    def code(self) -> str:
+        return "U006"
+
+    def message(self) -> str:
+        return f'Configured "{self.model_name}" — source: {self.source}, destination: {self.destination}'
+
+    def title(self) -> str:
+        return f'Configured model "{self.model_name}"'
+
+    def subtitle(self) -> str:
+        return f"{self.source} → {self.destination}"
+
+
+@dataclass
+class SeedCompleted(UserLevel, proto_type.SeedCompleted):
+    def code(self) -> str:
+        return "U007"
+
+    def message(self) -> str:
+        if self.status == "Success":
+            return f'Seed "{self.seed_name}" loaded into "{self.schema_name}"'
+        return f'Seed "{self.seed_name}" failed in "{self.schema_name}"'
+
+    def title(self) -> str:
+        if self.status == "Success":
+            return f'Seed "{self.seed_name}" loaded successfully'
+        return f'Seed "{self.seed_name}" failed'
+
+    def subtitle(self) -> str:
+        return f"Schema: {self.schema_name}"
+
+    def event_status(self) -> str:
+        return "success" if self.status == "Success" else "error"
+
+
+@dataclass
+class JobCreated(UserLevel, proto_type.JobCreated):
+    def code(self) -> str:
+        return "U008"
+
+    def message(self) -> str:
+        return f'Job "{self.job_name}" created for environment "{self.environment_name}"'
+
+    def title(self) -> str:
+        return f'Job "{self.job_name}" created'
+
+    def subtitle(self) -> str:
+        return f"Environment: {self.environment_name}"
+
+
+@dataclass
+class JobUpdated(UserLevel, proto_type.JobUpdated):
+    def code(self) -> str:
+        return "U009"
+
+    def message(self) -> str:
+        return f'Job "{self.job_name}" updated'
+
+    def title(self) -> str:
+        return f'Job "{self.job_name}" updated'
+
+
+@dataclass
+class JobDeleted(UserLevel, proto_type.JobDeleted):
+    def code(self) -> str:
+        return "U010"
+
+    def message(self) -> str:
+        return f'Job "{self.job_name}" deleted'
+
+    def title(self) -> str:
+        return f'Job "{self.job_name}" deleted'
+
+    def event_status(self) -> str:
+        return "warning"
+
+
+@dataclass
+class JobTriggered(UserLevel, proto_type.JobTriggered):
+    def code(self) -> str:
+        return "U011"
+
+    def message(self) -> str:
+        scope_desc = "all models" if self.scope == "job" else f"model {self.scope}"
+        return f'Job "{self.job_name}" triggered manually — running {scope_desc}'
+
+    def title(self) -> str:
+        return f'Job "{self.job_name}" triggered'
+
+    def subtitle(self) -> str:
+        scope_desc = "All models" if self.scope == "job" else f"Model: {self.scope}"
+        return f"{scope_desc} · Manual trigger"
+
+    def event_status(self) -> str:
+        return "running"
+
+
+# ─── P3: Model/project CRUD ──────────────────────────────────────────
+
+@dataclass
+class ModelCreated(UserLevel, proto_type.ModelCreated):
+    def code(self) -> str:
+        return "U012"
+
+    def message(self) -> str:
+        return f'Model "{self.model_name}" created'
+
+    def title(self) -> str:
+        return f'Model "{self.model_name}" created'
+
+
+@dataclass
+class FileDeleted(UserLevel, proto_type.FileDeleted):
+    def code(self) -> str:
+        return "U013"
+
+    def message(self) -> str:
+        return f'Deleted: {self.file_names}'
+
+    def title(self) -> str:
+        return f'Deleted: {self.file_names}'
+
+    def event_status(self) -> str:
+        return "warning"
+
+
+@dataclass
+class FileRenamed(UserLevel, proto_type.FileRenamed):
+    def code(self) -> str:
+        return "U014"
+
+    def message(self) -> str:
+        return f'Renamed "{self.old_name}" → "{self.new_name}"'
+
+    def title(self) -> str:
+        return f'File renamed'
+
+    def subtitle(self) -> str:
+        return f'"{self.old_name}" → "{self.new_name}"'
+
+
+# ─── P4: Connection & environment ────────────────────────────────────
+
+@dataclass
+class ConnectionCreated(UserLevel, proto_type.ConnectionCreated):
+    def code(self) -> str:
+        return "U015"
+
+    def message(self) -> str:
+        return f'Connection created ({self.datasource})'
+
+    def title(self) -> str:
+        return "Connection created"
+
+    def subtitle(self) -> str:
+        return f"Datasource: {self.datasource}"
+
+
+@dataclass
+class ConnectionTested(UserLevel, proto_type.ConnectionTested):
+    def code(self) -> str:
+        return "U016"
+
+    def message(self) -> str:
+        return f'Connection test: {self.result} ({self.datasource})'
+
+    def title(self) -> str:
+        status = "passed" if self.result == "success" else self.result
+        return f"Connection test {status}"
+
+    def subtitle(self) -> str:
+        return f"Datasource: {self.datasource}"
+
+
+@dataclass
+class ConnectionDeletedEvt(UserLevel, proto_type.ConnectionDeletedEvt):
+    def code(self) -> str:
+        return "U017"
+
+    def message(self) -> str:
+        return f'Connection "{self.connection_name}" deleted'
+
+    def title(self) -> str:
+        return f'Connection "{self.connection_name}" deleted'
+
+    def event_status(self) -> str:
+        return "warning"
+
+
+@dataclass
+class ConnectionDeleteFailedEvt(UserLevel, proto_type.ConnectionDeleteFailed):
+    def code(self) -> str:
+        return "U020"
+
+    def level_tag(self) -> EventLevel:
+        return EventLevel.ERROR
+
+    def message(self) -> str:
+        short = (self.reason[:120] + "…") if len(self.reason) > 120 else self.reason
+        return f'Failed to delete connection "{self.connection_name}": {short}'
+
+    def title(self) -> str:
+        return f'Failed to delete connection "{self.connection_name}"'
+
+    def subtitle(self) -> str:
+        return (self.reason[:150] + "…") if len(self.reason) > 150 else self.reason
+
+    def event_status(self) -> str:
+        return "error"
+
+
+@dataclass
+class EnvironmentCreated(UserLevel, proto_type.EnvironmentCreated):
+    def code(self) -> str:
+        return "U018"
+
+    def message(self) -> str:
+        return f'Environment "{self.environment_name}" created'
+
+    def title(self) -> str:
+        return f'Environment "{self.environment_name}" created'
+
+
+@dataclass
+class EnvironmentDeleted(UserLevel, proto_type.EnvironmentDeleted):
+    def code(self) -> str:
+        return "U019"
+
+    def message(self) -> str:
+        return f'Environment "{self.environment_name}" deleted'
+
+    def title(self) -> str:
+        return f'Environment "{self.environment_name}" deleted'
+
+    def event_status(self) -> str:
+        return "warning"

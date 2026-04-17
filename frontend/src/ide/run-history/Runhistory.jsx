@@ -171,7 +171,7 @@ const Runhistory = () => {
           : null;
         const initial = matchedFromUrl?.value ?? jobIds[0].value;
         setFilterQuery((prev) => ({ ...prev, job: initial }));
-        getRunHistoryList(initial);
+        getRunHistoryList(initial, 1, pageSize);
       }
     } catch (error) {
       console.error("Failed to load jobs", error);
@@ -220,7 +220,8 @@ const Runhistory = () => {
   const handleJobChange = useCallback(
     (value) => {
       setFilterQuery({ status: "", job: value, trigger: "", scope: "" });
-      getRunHistoryList(value);
+      setCurrentPage(1);
+      getRunHistoryList(value, 1, pageSize);
       setSearchParams(
         (prev) => {
           const next = new URLSearchParams(prev);

@@ -11,6 +11,8 @@ from backend.application.utils import test_connection_data
 from backend.core.utils import handle_http_request
 from backend.utils.constants import HTTPMethods
 from rbac.factory import handle_permission
+from visitran.events.functions import fire_event
+from visitran.events.types import EnvironmentCreated, EnvironmentDeleted
 
 RESOURCE_NAME = "environmentmodels"
 
@@ -50,6 +52,9 @@ def create_environment(request) -> Response:
     env_data: dict[str, Any] = env_context.create_environment(
         environment_details=request_payload
     )
+    fire_event(EnvironmentCreated(
+        environment_name=request_payload.get("name", ""),
+    ))
     response_data = {"status": "success", "data": env_data}
     return Response(data=response_data, status=status.HTTP_201_CREATED)
 
@@ -71,34 +76,33 @@ def update_environment(request, environment_id: str) -> Response:
 @handle_http_request
 @handle_permission
 def delete_environment(request: Request, environment_id: str):
+    from backend.core.models.environment_models import EnvironmentModels
+    from backend.errors.validation_exceptions import EnvironmentInUse
+
     env_context = EnvironmentContext()
+    env_name = environment_id
+    try:
+        env_obj = EnvironmentModels.objects.get(environment_id=environment_id)
+        env_name = env_obj.environment_name or environment_id
+    except EnvironmentModels.DoesNotExist:
+        pass
+
     try:
         env_context.delete_environment(environment_id=environment_id)
-        response_data = {"status": "success"}
-        return Response(data=response_data, status=status.HTTP_200_OK)
     except ProtectedError as e:
-        protected_objects = e.protected_objects
-        blocked_apps = set()
-        blocked_data = {}
-        for obj in protected_objects:
-            app_name = obj._meta.label.split(".")[
-                0
-            ]  # Extracts "appname. model_name can also be extracted like _meta.model_name"
-            if app_name == "job_scheduler":
-                key = "Deploy"
-                if key not in blocked_data:
-                    blocked_data[key] = []
-                blocked_data[key] = obj.task_name
-            blocked_apps.add(app_name)
-        error_details = []
-        for model, ids in blocked_data.items():
-            error_details.append(f"{ids} from '{model}'")
-        error_message = f"Cannot delete this environment record because it is referenced by: {', '.join(error_details)}."
-        data = {
-            "message": error_message,
-            "status": "failed",
-        }
-        return Response(data=data, status=status.HTTP_400_BAD_REQUEST)
+        job_names = [
+            obj.task_name
+            for obj in e.protected_objects
+            if obj._meta.label.split(".")[0] == "job_scheduler"
+        ]
+        raise EnvironmentInUse(
+            environment_name=env_name,
+            job_names=", ".join(job_names) if job_names else "unknown",
+        )
+
+    fire_event(EnvironmentDeleted(environment_name=env_name))
+    response_data = {"status": "success"}
+    return Response(data=response_data, status=status.HTTP_200_OK)
 
 
 @api_view([HTTPMethods.GET])
