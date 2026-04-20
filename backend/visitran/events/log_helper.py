@@ -41,10 +41,12 @@ class LogHelper:
     def log(
         message: str,
         level: str = "INFO",
+        audience: str = "developer",
     ) -> dict[str, str]:
         return {
             "level": level,
             "message": message,
+            "audience": audience,
         }
 
     @staticmethod

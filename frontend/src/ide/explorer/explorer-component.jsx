@@ -73,23 +73,15 @@ const MODEL_SORT_OPTIONS = [
   { label: "Z \u2192 A", key: "alpha_desc" },
 ];
 
-const MODEL_STATUS_DOT_STYLE = {
-  display: "inline-block",
-  width: "7px",
-  height: "7px",
-  borderRadius: "50%",
-  verticalAlign: "middle",
-};
+// Only backgroundColor varies per status — layout handled by .model-status-dot CSS class
 
 const getModelRunStatus = (runStatus, failureReason, lastRunAt, token) => {
   if (runStatus === "RUNNING") {
     return (
       <Tooltip title="Running">
         <span
-          style={{
-            ...MODEL_STATUS_DOT_STYLE,
-            backgroundColor: token.colorInfo,
-          }}
+          className="model-status-dot"
+          style={{ backgroundColor: token.colorInfo }}
         />
       </Tooltip>
     );
@@ -130,10 +122,8 @@ const getModelRunStatus = (runStatus, failureReason, lastRunAt, token) => {
         placement="right"
       >
         <span
-          style={{
-            ...MODEL_STATUS_DOT_STYLE,
-            backgroundColor: token.colorError,
-          }}
+          className="model-status-dot"
+          style={{ backgroundColor: token.colorError }}
         />
       </Popover>
     );
@@ -152,10 +142,8 @@ const getModelRunStatus = (runStatus, failureReason, lastRunAt, token) => {
     return (
       <Tooltip title={tooltipTitle}>
         <span
-          style={{
-            ...MODEL_STATUS_DOT_STYLE,
-            backgroundColor: token.colorSuccess,
-          }}
+          className="model-status-dot"
+          style={{ backgroundColor: token.colorSuccess }}
         />
       </Tooltip>
     );
@@ -659,8 +647,17 @@ const IdeExplorer = ({
             child.last_run_at,
             token
           );
+          const wrappedIcon = statusBadge ? (
+            <span className="model-icon-badge-wrapper">
+              {child.icon}
+              {statusBadge}
+            </span>
+          ) : (
+            child.icon
+          );
           return {
             ...child,
+            icon: wrappedIcon,
             title: (
               <Typography.Text type="span" disabled={previewTimeTravel}>
                 {modelDeleteModeRef.current && (
@@ -676,17 +673,6 @@ const IdeExplorer = ({
                     onClick={(e) => e.stopPropagation()}
                     style={{ marginRight: 6 }}
                   />
-                )}
-                {statusBadge && (
-                  <span
-                    style={{
-                      position: "relative",
-                      display: "inline-block",
-                      marginRight: 4,
-                    }}
-                  >
-                    {statusBadge}
-                  </span>
                 )}
                 {child.title}
               </Typography.Text>

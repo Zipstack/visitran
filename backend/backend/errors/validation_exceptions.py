@@ -138,3 +138,39 @@ class ProhibitedSqlQuery(VisitranBackendBaseException):
             prohibited_action=prohibited_action,
             prohibited_actions=prohibited_actions,
         )
+
+
+class EnvironmentInUse(VisitranBackendBaseException):
+    """
+    Raised when trying to delete an environment that is referenced by scheduled jobs.
+    """
+
+    def __init__(self, environment_name: str, job_names: str) -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.ENVIRONMENT_IN_USE,
+            http_status_code=status.HTTP_400_BAD_REQUEST,
+            environment_name=environment_name,
+            job_names=job_names,
+        )
+
+    @property
+    def severity(self) -> str:
+        return "Warning"
+
+
+class ConnectionDeleteFailed(VisitranBackendBaseException):
+    """
+    Raised when a connection cannot be deleted.
+    """
+
+    def __init__(self, connection_name: str, reason: str) -> None:
+        super().__init__(
+            error_code=BackendErrorMessages.CONNECTION_DELETE_FAILED,
+            http_status_code=status.HTTP_400_BAD_REQUEST,
+            connection_name=connection_name,
+            reason=reason,
+        )
+
+    @property
+    def severity(self) -> str:
+        return "Warning"

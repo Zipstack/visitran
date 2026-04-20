@@ -148,6 +148,19 @@ def _send_notification(user_task: UserTaskDetails, run: TaskRunHistory, success:
 
 
 # ---------------------------------------------------------------------------
+# BASE_RESULT cleanup helper
+# ---------------------------------------------------------------------------
+
+def _clear_base_result():
+    """Clear the module-level BASE_RESULT global to prevent stale data across worker reuse."""
+    try:
+        from visitran.events.printer import BASE_RESULT
+        BASE_RESULT.clear()
+    except Exception:
+        pass
+
+
+# ---------------------------------------------------------------------------
 # Job chaining helper
 # ---------------------------------------------------------------------------
 
@@ -264,6 +277,8 @@ def trigger_scheduled_run(
         start_time=timezone.now(),
         user_task_detail=user_task,
         kwargs=run_kwargs,
+        trigger=trigger,
+        scope=scope,
     )
 
     # ── Mark task as running ──────────────────────────────────────────
@@ -321,11 +336,47 @@ def trigger_scheduled_run(
             else:
                 app_context.execute_visitran_run_command(environment_id=environment_id)
 
+        # ── Capture execution metrics from BASE_RESULT ──────────────
+        try:
+            from visitran.events.printer import BASE_RESULT
+
+            # Snapshot and immediately clear the global to prevent stale
+            # data leaking into a subsequent run on the same worker process.
+            results_snapshot = list(BASE_RESULT)
+            BASE_RESULT.clear()
+
+            def _clean_name(raw):
+                if "'" in raw:
+                    return raw.split("'")[1].split(".")[-1]
+                return raw
+
+            user_results = [
+                r for r in results_snapshot
+                if not _clean_name(r.node_name).startswith("Source")
+            ]
+            run.result = {
+                "models": [
+                    {
+                        "name": _clean_name(r.node_name),
+                        "status": r.status,
+                        "end_status": r.end_status,
+                        "sequence": r.sequence_num,
+                    }
+                    for r in user_results
+                ],
+                "total": len(user_results),
+                "passed": sum(1 for r in user_results if r.end_status == "OK"),
+                "failed": sum(1 for r in user_results if r.end_status == "FAIL"),
+            }
+        except Exception:
+            _clear_base_result()
+            logger.debug("Could not capture BASE_RESULT metrics", exc_info=True)
+
         # ── Mark success ──────────────────────────────────────────────
         success = True
         run.status = "SUCCESS"
         run.end_time = timezone.now()
-        run.save(update_fields=["status", "end_time"])
+        run.save(update_fields=["status", "end_time", "result"])
 
         user_task.status = TaskStatus.SUCCESS
         user_task.task_completion_time = run.end_time
@@ -336,11 +387,13 @@ def trigger_scheduled_run(
         error_msg = str(exc) if str(exc) else f"Job exceeded timeout of {timeout}s"
         logger.warning("Job %s timed out: %s", user_task.task_name, error_msg)
         _mark_failure(run, user_task, error_msg)
+        _clear_base_result()
 
     except Exception as exc:
         error_msg = str(exc)
         logger.exception("Job %s failed: %s", user_task.task_name, error_msg)
         _mark_failure(run, user_task, error_msg)
+        _clear_base_result()
 
     # ── Retry logic ───────────────────────────────────────────────────
     if not success and user_task.max_retries > 0 and retry_num < user_task.max_retries:
@@ -380,10 +433,35 @@ def trigger_scheduled_run(
 
 def _mark_failure(run: TaskRunHistory, user_task: UserTaskDetails, error_msg: str):
     """Helper to mark a run and its parent task as failed."""
+    try:
+        from visitran.events.printer import BASE_RESULT
+
+        def _clean(raw):
+            return raw.split("'")[1].split(".")[-1] if "'" in raw else raw
+
+        user_results = [
+            r for r in BASE_RESULT if not _clean(r.node_name).startswith("Source")
+        ]
+        run.result = {
+            "models": [
+                {
+                    "name": _clean(r.node_name),
+                    "status": r.status,
+                    "end_status": r.end_status,
+                    "sequence": r.sequence_num,
+                }
+                for r in user_results
+            ],
+            "total": len(user_results),
+            "passed": sum(1 for r in user_results if r.end_status == "OK"),
+            "failed": sum(1 for r in user_results if r.end_status == "FAIL"),
+        }
+    except Exception:
+        pass
     run.status = "FAILURE"
     run.end_time = timezone.now()
     run.error_message = error_msg
-    run.save(update_fields=["status", "end_time", "error_message"])
+    run.save(update_fields=["status", "end_time", "error_message", "result"])
 
     user_task.status = TaskStatus.FAILED
     user_task.task_completion_time = run.end_time

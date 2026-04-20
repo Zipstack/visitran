@@ -16,6 +16,8 @@ from backend.core.scheduler.models import TaskRunHistory, UserTaskDetails
 from backend.core.scheduler.serializer import TaskRunHistorySerializer
 from backend.core.scheduler.task_constant import Task, TaskStatus, TaskType
 from backend.utils.tenant_context import get_organization
+from visitran.events.functions import fire_event
+from visitran.events.types import JobCreated, JobUpdated, JobDeleted, JobTriggered
 
 logger = logging.getLogger(__name__)
 
@@ -343,6 +345,10 @@ def create_periodic_task(request, project_id):
         )
         periodic_task.save()
 
+        fire_event(JobCreated(
+            job_name=task_name,
+            environment_name=getattr(environment, "environment_name", ""),
+        ))
         return Response(
             {"status": "Task created successfully"},
             status=status.HTTP_201_CREATED,
@@ -530,6 +536,7 @@ def update_periodic_task(request, project_id, user_task_id):
         )
         periodic_task.save(update_fields=["kwargs"])
 
+        fire_event(JobUpdated(job_name=user_task.task_name))
         return Response(
             {"status": "Task updated successfully"},
             status=status.HTTP_200_OK,
@@ -554,11 +561,13 @@ def delete_periodic_task(request, project_id, task_id):
         user_task = UserTaskDetails.objects.select_related(
             "periodic_task"
         ).get(periodic_task_id=task_id, project__project_uuid=project_id)
+        task_name = user_task.task_name
         periodic_task = user_task.periodic_task
         user_task.delete()
         if periodic_task:
             periodic_task.delete()
 
+        fire_event(JobDeleted(job_name=task_name))
         return Response(
             {"status": "Task deleted successfully"},
             status=status.HTTP_200_OK,
@@ -586,7 +595,19 @@ def task_run_history(request, project_id, user_task_id):
         if _is_valid_project_id(project_id):
             query["project__project_uuid"] = project_id
         task = UserTaskDetails.objects.get(**query)
-        runs = TaskRunHistory.objects.filter(user_task_detail=task).order_by("-start_time")
+        runs = TaskRunHistory.objects.filter(user_task_detail=task)
+
+        trigger_filter = request.GET.get("trigger")
+        scope_filter = request.GET.get("scope")
+        status_filter = request.GET.get("status")
+        if trigger_filter:
+            runs = runs.filter(trigger=trigger_filter)
+        if scope_filter:
+            runs = runs.filter(scope=scope_filter)
+        if status_filter:
+            runs = runs.filter(status=status_filter)
+
+        runs = runs.order_by("-start_time")
         total = runs.count()
 
         offset = (page - 1) * limit
@@ -630,6 +651,7 @@ def _dispatch_task_run(task, user_id, models_override=None):
     scheduler path hits ``trigger_scheduled_run`` without this dispatch
     wrapper, and it keeps the default ``trigger="scheduled"``.
     """
+    scope = models_override[0] if models_override and len(models_override) == 1 else "job"
     run_kwargs = {
         "user_task_id": task.id,
         "user_id": user_id,
@@ -649,6 +671,7 @@ def _dispatch_task_run(task, user_id, models_override=None):
         task.task_run_time = timezone.now()
         task.save(update_fields=["status", "task_run_time"])
 
+        fire_event(JobTriggered(job_name=task.task_name, scope=scope))
         return Response(
             {"success": True, "data": "Job submitted to Celery broker."},
             status=status.HTTP_200_OK,
@@ -661,6 +684,7 @@ def _dispatch_task_run(task, user_id, models_override=None):
 
         trigger_scheduled_run(**run_kwargs)
 
+        fire_event(JobTriggered(job_name=task.task_name, scope=scope))
         return Response(
             {"success": True, "data": "Job executed synchronously (no broker)."},
             status=status.HTTP_200_OK,
@@ -747,13 +771,13 @@ def list_recent_runs_for_model(request, project_id, model_name):
         env = task.environment
         kwargs = run.kwargs or {}
         models_override = kwargs.get("models_override") or []
-        # Back-compat: rows written before the trigger/scope split only
-        # carried kwargs.source=="quick_deploy" as their manual-model marker.
+        # Prefer first-class DB columns; fall back to kwargs for rows
+        # written before the trigger/scope migration.
         legacy_source = kwargs.get("source")
-        trigger = kwargs.get("trigger") or (
+        trigger = run.trigger or kwargs.get("trigger") or (
             "manual" if legacy_source == "quick_deploy" else "scheduled"
         )
-        scope = kwargs.get("scope") or (
+        scope = run.scope or kwargs.get("scope") or (
             "model" if models_override or legacy_source == "quick_deploy" else "job"
         )
         data.append({

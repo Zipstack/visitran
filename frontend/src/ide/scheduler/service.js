@@ -79,6 +79,15 @@ export function useJobService() {
     return response.data?.data || [];
   };
 
+  const getLatestRunStatus = async (projId, taskId) => {
+    const url = `${jobsUrl(projId)}/run-history/${taskId}`;
+    const response = await axiosPrivate.get(url, {
+      params: { page: 1, limit: 1 },
+    });
+    const runs = response.data?.data?.page_items?.run_history || [];
+    return runs.length > 0 ? runs[0] : null;
+  };
+
   const listRecentRunsForModel = async (projId, modelName, limit = 5) => {
     const url = `${jobsUrl(
       projId
@@ -144,6 +153,7 @@ export function useJobService() {
     runTaskForModel,
     listDeployCandidates,
     listRecentRunsForModel,
+    getLatestRunStatus,
     getProjects,
     getEnvironments,
     getProjectModels,

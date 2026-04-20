@@ -10,6 +10,8 @@ from backend.application.context.application import ApplicationContext
 from backend.core.utils import handle_http_request
 from backend.utils.cache_service.decorators.cache_decorator import clear_cache
 from backend.utils.constants import HTTPMethods
+from visitran.events.functions import fire_event
+from visitran.events.types import ModelCreated, FileDeleted, FileRenamed
 
 
 @api_view([HTTPMethods.GET])
@@ -52,6 +54,7 @@ def create_model_explorer(request: Request, project_id: str) -> Response:
         model_name = request_data.get("model_name", "").replace(" ", "_").strip()
         app = ApplicationContext(project_id=project_id)
         app.create_a_model(model_name=model_name, is_generate_ai_request=False)
+        fire_event(ModelCreated(model_name=model_name))
         return Response(data={"status": "success"}, status=status.HTTP_200_OK)
     except FileExistsError:
         return Response(
@@ -76,6 +79,7 @@ def delete_a_file_or_folder(request: Request, project_id: str) -> Response:
     app = ApplicationContext(project_id=project_id)
     if wipe_all_enabled:
         app.cleanup_no_code_model(table_delete_enabled=table_delete_enabled)
+        fire_event(FileDeleted(file_names="all models"))
         response_json = {"status": "success", "message": f"successfully deleted all model files"}
     else:
         # Build set of model names being deleted in this batch so that
@@ -95,6 +99,7 @@ def delete_a_file_or_folder(request: Request, project_id: str) -> Response:
             )
             deleted_files.append(file_name)
 
+        fire_event(FileDeleted(file_names=", ".join(deleted_files)))
         response_json = {"status": "success", "message": f"successfully deleted files {deleted_files}"}
     return Response(data=response_json)
 
@@ -109,6 +114,7 @@ def rename_a_file_or_folder(request: Request, project_id: str) -> Response:
     rename: str = request_data["rename"]
     app = ApplicationContext(project_id=project_id)
     refactored_models = app.rename_a_file_or_folder(file_path=file_name, rename=rename)
+    fire_event(FileRenamed(old_name=file_name, new_name=rename))
     response_json = {"status": "success", "refactored_models": refactored_models}
     return Response(data=response_json)
 

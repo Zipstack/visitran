@@ -10,6 +10,8 @@ from backend.core.utils import handle_http_request
 from backend.utils.cache_service.decorators.cache_decorator import clear_cache
 from backend.utils.constants import HTTPMethods
 from rbac.factory import handle_permission
+from visitran.events.functions import fire_event
+from visitran.events.types import TransformationApplied, TransformationDeleted, ModelConfigured
 
 RESOURCE_NAME = "configmodels"
 
@@ -98,6 +100,14 @@ def set_model_config_and_reference(
         request_data, model_name=file_name
     )
     response_json["status"] = "success"
+    model_config = request_data.get("model_config", {})
+    src = model_config.get("source", {})
+    dest = model_config.get("model", {})
+    fire_event(ModelConfigured(
+        model_name=file_name,
+        source=f"{src.get('schema_name', '')}.{src.get('table_name', '')}",
+        destination=f"{dest.get('schema_name', '')}.{dest.get('table_name', '')}",
+    ))
     return Response(data=response_json)
 
 
@@ -116,6 +126,12 @@ def set_model_transformation(
         request_data, model_name=file_name
     )
     response_json["status"] = "success"
+    step_config = request_data.get("step_config", {})
+    transformation_type = step_config.get("type", "unknown") if isinstance(step_config, dict) else "unknown"
+    fire_event(TransformationApplied(
+        model_name=file_name,
+        transformation_type=transformation_type,
+    ))
     return Response(data=response_json)
 
 
@@ -138,6 +154,10 @@ def delete_model_transformation(
         is_clear_all=is_clear_all,
     )
     response_json["status"] = "success"
+    fire_event(TransformationDeleted(
+        model_name=file_name,
+        transformation_type="all" if is_clear_all else (transformation_id or "unknown"),
+    ))
     return Response(data=response_json)
 
 
