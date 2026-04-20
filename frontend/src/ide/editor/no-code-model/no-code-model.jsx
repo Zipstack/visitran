@@ -56,6 +56,7 @@ import {
   RetweetOutlined,
   SwapOutlined,
   UndoOutlined,
+  BranchesOutlined,
 } from "@ant-design/icons";
 import { debounce, isEmpty, isEqual } from "lodash";
 import { useImmer } from "use-immer";
@@ -848,7 +849,7 @@ function NoCodeModel({ nodeData }) {
           {
             label: (
               <div className="flex-align-center">
-                <Tech />
+                <BranchesOutlined style={{ fontSize: 17 }} />
                 <Text className="ml-5">Version</Text>
               </div>
             ),
