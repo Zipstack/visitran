@@ -675,6 +675,20 @@ const IdeExplorer = ({
                   />
                 )}
                 {child.title}
+                {child.change_status && (
+                  <span
+                    className={`vc-change-badge vc-change-badge-${child.change_status}`}
+                    title={
+                      child.change_status === "M"
+                        ? "Modified — unsaved changes"
+                        : child.change_status === "A"
+                        ? "Added — not yet committed"
+                        : "Deleted"
+                    }
+                  >
+                    {child.change_status}
+                  </span>
+                )}
               </Typography.Text>
             ),
           };

@@ -84,6 +84,34 @@
   padding-left: 12px;
 }
 
+/* Version control file change indicators (M/A/D) */
+.vc-change-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+  width: 14px;
+  text-align: center;
+  border-radius: 2px;
+  margin-left: 6px;
+  flex-shrink: 0;
+}
+
+.vc-change-badge-M {
+  color: #d48806;
+  background: rgba(212, 136, 6, 0.12);
+}
+
+.vc-change-badge-A {
+  color: #389e0d;
+  background: rgba(56, 158, 13, 0.12);
+}
+
+.vc-change-badge-D {
+  color: #cf1322;
+  background: rgba(207, 19, 34, 0.12);
+}
+
 /* Model run status badge overlaid on icon */
 .model-icon-badge-wrapper {
   position: relative;
