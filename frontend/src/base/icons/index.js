@@ -66,7 +66,6 @@ import { ReactComponent as Resources } from "./resources.svg";
 import { ReactComponent as OpenTab } from "./open-tab.svg";
 import { ReactComponent as LinearScale } from "./linear-scale.svg";
 import { ReactComponent as SchemaIcon } from "./schema.svg";
-import { ReactComponent as CommitIcon } from "./commit.svg";
 
 export {
   SunIcon,
@@ -137,5 +136,4 @@ export {
   OpenTab,
   LinearScale,
   SchemaIcon,
-  CommitIcon,
 };
