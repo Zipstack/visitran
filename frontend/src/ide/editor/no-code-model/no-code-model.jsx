@@ -871,7 +871,7 @@ function NoCodeModel({ nodeData }) {
                       const parsed = jsYaml.load(versionData.yaml_content);
                       if (parsed && typeof parsed === "object") {
                         await axiosPrivate.put(
-                          `/api/v1/visitran/${selectedOrgId || "default_org"}/project/${projectId}/no_code_model/${nodeData?.node?.title}/update-model-data`,
+                          `/api/v1/visitran/${selectedOrgId || "default_org"}/project/${projectId}/version/models/${nodeData?.node?.title}/update-model-data/`,
                           { model_data: parsed },
                           { headers: { "X-CSRFToken": Cookies.get("csrftoken") } }
                         );

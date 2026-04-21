@@ -84,7 +84,7 @@
   padding-left: 12px;
 }
 
-/* Version control file change indicators (M/A/D) */
+/* Version control file change indicators (M/A/D) — used by explorer */
 .vc-change-badge {
   display: inline-block;
   font-size: 10px;
@@ -172,15 +172,6 @@
   height: 100%;
 }
 
-.version-control-bar {
-  display: flex;
-  align-items: center;
-  padding: 4px 12px;
-  border-bottom: 1px solid var(--border-color-1, #e2e8f0);
-  background: var(--page-bg-2, #f1f5f9);
-  min-height: 32px;
-  flex-shrink: 0;
-}
 
 .ideEditor .ant-tabs-nav {
   margin: 0px !important;

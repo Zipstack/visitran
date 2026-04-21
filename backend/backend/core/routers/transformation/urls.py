@@ -9,7 +9,6 @@ from backend.core.routers.transformation.views import (
     set_model_config_and_reference,
     set_model_presentation,
     set_model_transformation,
-    update_model_data,
     validate_model_file,
 )
 
@@ -23,6 +22,5 @@ urlpatterns = [
     path("<str:file_name>/columns", get_transformation_columns, name="get-transformation-columns"),
     path("<str:file_name>/supported_references", get_supported_models, name="get-supported-reference-models"),
     path("<str:model_name>/generate_formula", generate_formula, name="generate-formula"),
-    path("<str:file_name>/update-model-data", update_model_data, name="update-model-data"),
     path("<str:file_name>", save_model_file, name="save-no-code-model-file"),
 ]
