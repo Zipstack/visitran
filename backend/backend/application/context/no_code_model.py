@@ -3,12 +3,28 @@ import uuid
 from typing import Any
 
 from backend.application.context.application import ApplicationContext
+from backend.core.models.config_models import ConfigModels
 from backend.errors import InvalidModelConfigError
 
 
 class NoCodeModel(ApplicationContext):
     def __init__(self, project_id: str, environment_id: str = "") -> None:
         super().__init__(project_id, environment_id)
+
+    def _reset_model_run_status(self, model_name: str) -> None:
+        """Reset run status when the model spec changes so the explorer
+        doesn't keep showing a stale failure indicator."""
+        try:
+            model_instance = ConfigModels.objects.get(
+                project_instance__project_uuid=self.session.project_id,
+                model_name=model_name,
+            )
+            if model_instance.run_status == ConfigModels.RunStatus.FAILED:
+                model_instance.run_status = ConfigModels.RunStatus.NOT_STARTED
+                model_instance.failure_reason = None
+                model_instance.save(update_fields=["run_status", "failure_reason"])
+        except ConfigModels.DoesNotExist:
+            pass
 
     def _validate_and_update_model(
             self,
@@ -49,7 +65,10 @@ class NoCodeModel(ApplicationContext):
             config_type=config_type
         )
         # Converting the current model to python.
-        return self.update_model(model_name=model_name, model_data=model_data)
+        result = self.update_model(model_name=model_name, model_data=model_data)
+        # Reset stale run status so the explorer doesn't show the previous error
+        self._reset_model_run_status(model_name)
+        return result
 
     def set_model_config_and_reference(self, no_code_data: dict[str, Any], model_name: str):
         """

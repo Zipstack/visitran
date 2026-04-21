@@ -37,10 +37,13 @@ class VisitranBaseExceptions(Exception):
         return self._error_msg
 
     def error_response(self) -> dict[str, Any]:
-        return {
+        response = {
             "status": "failed",
             "error_message": self.error_message,
             "message_args": self._msg_args,
             "severity": self.severity,
             "is_markdown": self._is_markdown,
         }
+        if "is_rollback" in self._msg_args:
+            response["is_rollback"] = self._msg_args["is_rollback"]
+        return response
