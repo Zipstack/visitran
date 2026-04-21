@@ -28,6 +28,11 @@ class NoCodeModel(ApplicationContext):
                 model_instance.save(update_fields=["run_status", "failure_reason"])
         except ConfigModels.DoesNotExist:
             pass
+        except Exception:
+            logging.warning(
+                f"[_reset_model_run_status] Failed to reset run status for model={model_name}",
+                exc_info=True,
+            )
 
     def _validate_and_update_model(
             self,
