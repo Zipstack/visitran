@@ -66,8 +66,9 @@ class NoCodeModel(ApplicationContext):
         )
         # Converting the current model to python.
         result = self.update_model(model_name=model_name, model_data=model_data)
-        # Reset stale run status so the explorer doesn't show the previous error
-        self._reset_model_run_status(model_name)
+        # Only reset stale run status for changes that affect model execution
+        if config_type not in ("presentation",):
+            self._reset_model_run_status(model_name)
         return result
 
     def set_model_config_and_reference(self, no_code_data: dict[str, Any], model_name: str):
