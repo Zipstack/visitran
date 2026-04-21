@@ -228,7 +228,6 @@ def get_supported_models(request: Request, project_id: str, file_name: str) -> R
     return Response(data=response_data, status=status.HTTP_200_OK)
 
 
-
 @api_view([HTTPMethods.POST])
 @handle_http_request
 @handle_permission
