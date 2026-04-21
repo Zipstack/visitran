@@ -67,6 +67,8 @@ def execute_run_command(request: Request, project_id: str) -> Response:
         return Response(data=_data)
     except (VisitranBaseExceptions, VisitranBackendBaseException) as err:
         logger.exception(f"[execute_run_command] DAG execution failed for file_name={file_name}")
+        if hasattr(err, 'to_response'):
+            return err.to_response()
         return Response(data=err.error_response(), status=status.HTTP_400_BAD_REQUEST)
     except Exception:
         logger.exception(f"[execute_run_command] Unexpected error during DAG execution for file_name={file_name}")
