@@ -59,19 +59,6 @@ function NotificationProvider({ children }) {
           return;
         }
 
-        // Skip notification for JS runtime errors (not API failures)
-        // These have no useful info for the user — log them for debugging instead
-        if (
-          error &&
-          !error.response &&
-          !error.request &&
-          !message &&
-          !description
-        ) {
-          console.error("[Runtime Error]", error);
-          return;
-        }
-
         const errorStatus = error?.response?.status;
         const errorData = error?.response?.data;
         if (errorData && typeof errorData.error_message === "string") {
