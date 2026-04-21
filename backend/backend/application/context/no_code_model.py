@@ -7,6 +7,9 @@ from backend.core.models.config_models import ConfigModels
 from backend.errors import InvalidModelConfigError
 
 
+NON_EXECUTION_CONFIG_TYPES = {"presentation"}
+
+
 class NoCodeModel(ApplicationContext):
     def __init__(self, project_id: str, environment_id: str = "") -> None:
         super().__init__(project_id, environment_id)
@@ -67,7 +70,7 @@ class NoCodeModel(ApplicationContext):
         # Converting the current model to python.
         result = self.update_model(model_name=model_name, model_data=model_data)
         # Only reset stale run status for changes that affect model execution
-        if config_type not in ("presentation",):
+        if config_type not in NON_EXECUTION_CONFIG_TYPES:
             self._reset_model_run_status(model_name)
         return result
 
