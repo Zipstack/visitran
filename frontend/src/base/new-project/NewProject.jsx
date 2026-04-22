@@ -60,6 +60,7 @@ function NewProject({ open, setOpen, getAllProject, id }) {
   const [initialPrefillData, setInitialPrefillData] =
     useState(DEFAULT_PREFILL_DATA);
   const [isModified, setIsModified] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { notify } = useNotificationService();
 
   const [form] = Form.useForm();
@@ -70,6 +71,7 @@ function NewProject({ open, setOpen, getAllProject, id }) {
     form.resetFields();
     setInitialPrefillData(DEFAULT_PREFILL_DATA);
     setIsModified(false);
+    setIsSubmitting(false);
     setOpen(false);
   }, [form, setOpen]);
 
@@ -226,6 +228,8 @@ function NewProject({ open, setOpen, getAllProject, id }) {
 
   const handleCreateOrUpdateProject = useCallback(
     async (formValues, isUpdate) => {
+      if (isSubmitting) return;
+      setIsSubmitting(true);
       try {
         if (isUpdate) {
           await handleUpdate(formValues);
@@ -237,6 +241,8 @@ function NewProject({ open, setOpen, getAllProject, id }) {
       } catch (error) {
         console.error(error);
         notify({ error });
+      } finally {
+        setIsSubmitting(false);
       }
     },
     [getAllProject, id, selectedOrgId, setOpen, updateProjectNameInTabs]
@@ -273,6 +279,7 @@ function NewProject({ open, setOpen, getAllProject, id }) {
 
   const onFinish = useCallback(
     (values) => {
+      if (isSubmitting) return;
       if (id) {
         updateProject(values);
       } else {
@@ -344,7 +351,8 @@ function NewProject({ open, setOpen, getAllProject, id }) {
                 className="primary_button_style"
                 type="primary"
                 htmlType="submit"
-                disabled={id ? !isModified : false}
+                loading={isSubmitting}
+                disabled={isSubmitting || (id ? !isModified : false)}
               >
                 {id ? "Update" : "Create"} Project
               </Button>

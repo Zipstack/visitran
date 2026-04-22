@@ -55,3 +55,12 @@ try:
     ]
 except ImportError:
     pass  # OSS — no internal endpoints needed
+
+# OAuth callback — public, no auth (GitHub redirects here)
+try:
+    from pluggable_apps.version_control.urls import oauth_callback_urlpatterns
+    urlpatterns += [
+        path(f"{settings.PATH_PREFIX}/", include(oauth_callback_urlpatterns)),
+    ]
+except ImportError:
+    pass
