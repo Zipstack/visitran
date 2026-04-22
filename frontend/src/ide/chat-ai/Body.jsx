@@ -6,6 +6,7 @@ import { ExistingChat } from "./ExistingChat";
 import { NewChat } from "./NewChat";
 import { useChatAIService } from "./services";
 import { useProjectStore } from "../../store/project-store";
+import { useExplorerStore } from "../../store/explorer-store";
 import { useNotificationService } from "../../service/notification-service";
 import { explorerService } from "../explorer/explorer-service";
 
@@ -73,6 +74,7 @@ const Body = function Body({
   });
   const explorerSvc = useRef(explorerService()).current;
   const { projectId } = useProjectStore();
+  const explorerData = useExplorerStore((state) => state.explorerData);
 
   const { postChatPrompt, getChatIntents, getChatLlmModels } =
     useChatAIService();
@@ -217,22 +219,18 @@ const Body = function Body({
       .catch(() => {
         console.error("Failed to fetch database schemas");
       });
-
-    // fetch models & seeds -> update as soon as ready
-    explorerSvc
-      .getExplorer(projectId)
-      .then((res) => {
-        const children = res?.data?.children || [];
-        setPromptAutoComplete((prev) => ({
-          ...prev,
-          modelsData: children[0] || {},
-          seedsData: children[1] || {},
-        }));
-      })
-      .catch(() => {
-        console.error("Failed to fetch models and seeds");
-      });
   }, [projectId, isChatDrawerOpen, explorerSvc]);
+
+  // Mirror shared explorer data (fetched by explorer-component) into the
+  // prompt autocomplete shape consumed by NewChat / InputPrompt.
+  useEffect(() => {
+    const children = explorerData || [];
+    setPromptAutoComplete((prev) => ({
+      ...prev,
+      modelsData: children[0] || {},
+      seedsData: children[1] || {},
+    }));
+  }, [explorerData]);
 
   const triggerGetChatMessagesApi = useCallback(() => {
     setIsGetChatMessages(true);

@@ -63,6 +63,7 @@ import "../ide-layout.css";
 import { useNotificationService } from "../../service/notification-service.js";
 import { SpinnerLoader } from "../../widgets/spinner_loader/index.js";
 import { useRefreshModelsStore } from "../../store/refresh-models-store.js";
+import { useExplorerStore } from "../../store/explorer-store.js";
 import { LinearScale } from "../../base/icons";
 
 // Static sort options for model explorer
@@ -176,6 +177,10 @@ const IdeExplorer = ({
   const currentSchema = useProjectStore((state) => state.currentSchema);
   const setCurrentSchema = useProjectStore((state) => state.setCurrentSchema);
   const setSchemaList = useProjectStore((state) => state.setSchemaList);
+  const setExplorerData = useExplorerStore((state) => state.setExplorerData);
+  const clearExplorerData = useExplorerStore(
+    (state) => state.clearExplorerData
+  );
 
   // Reset currentSchema on unmount to prevent stale data
   useEffect(() => {
@@ -1245,10 +1250,16 @@ const IdeExplorer = ({
   );
 
   useEffect(() => {
-    if (schemaMenu) {
+    if (schemaMenu?.length) {
       getExplorer(projectId);
     }
   }, [schemaMenu, currentSchema]);
+
+  // Clear shared explorer data on project switch so other consumers
+  // (e.g. chat autocomplete) don't momentarily read the previous project's tree.
+  useEffect(() => {
+    clearExplorerData();
+  }, [projectId]);
 
   function getExplorer(projectId) {
     if (!projectId) return;
@@ -1275,6 +1286,7 @@ const IdeExplorer = ({
         });
         transformTree(treeData);
         setTreeData(treeData);
+        setExplorerData(treeData);
 
         setCachedLists((prev) => ({
           ...prev,
