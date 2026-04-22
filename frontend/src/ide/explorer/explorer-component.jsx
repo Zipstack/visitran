@@ -202,7 +202,7 @@ const IdeExplorer = ({
   const [openNameModal, setOpenNameModal] = useState(false);
   const [newSchemaName, setNewSchemaName] = useState("");
   const [isSchemaModalOpen, setIsSchemaModalOpen] = useState(false);
-  const [schemaMenu, setSchemaMenu] = useState([]);
+  const [schemaMenu, setSchemaMenu] = useState(null);
   const [dbExplorer, setDBExplorer] = useState([]);
   const [activeMenu, setActiveMenu] = useState("");
   const [dbLoading, setDbLoading] = useState(false);
@@ -984,7 +984,7 @@ const IdeExplorer = ({
                 <>
                   <Dropdown
                     menu={{
-                      items: schemaMenu.map((el) => ({
+                      items: (schemaMenu || []).map((el) => ({
                         ...el,
                         label:
                           el.key === "add-new-schema" ? (
@@ -1022,7 +1022,7 @@ const IdeExplorer = ({
                         ? "Run Seed Disabled - Please select a schema"
                         : previewTimeTravel
                         ? "Run Seed Disabled - Time travel mode active"
-                        : schemaMenu.length <= 1
+                        : (schemaMenu || []).length <= 1
                         ? "Run Seed Disabled - No schemas available"
                         : "Run Seed"
                     }
@@ -1043,7 +1043,7 @@ const IdeExplorer = ({
                       disabled={
                         previewTimeTravel ||
                         !currentSchema ||
-                        schemaMenu.length <= 1
+                        (schemaMenu || []).length <= 1
                       }
                     >
                       <PlayCircleOutlined />
@@ -1126,7 +1126,7 @@ const IdeExplorer = ({
                           if (
                             !previewTimeTravel &&
                             currentSchema &&
-                            schemaMenu.length > 1
+                            (schemaMenu || []).length > 1
                           ) {
                             handleSeedIconClick(event, child.title);
                           }
@@ -1135,7 +1135,7 @@ const IdeExplorer = ({
                           previewTimeTravel ||
                           seedRunningRef.current ||
                           !currentSchema ||
-                          schemaMenu.length <= 1
+                          (schemaMenu || []).length <= 1
                             ? "seed-icon-disabled"
                             : ""
                         }`}
@@ -1252,8 +1252,12 @@ const IdeExplorer = ({
     [modelSortBy, handleModelSort]
   );
 
+  // schemaMenu starts as null; becomes an array (possibly empty) after
+  // getSchemas resolves. Gating on truthiness skips the redundant mount-time
+  // fetch while still firing for projects whose schema list is legitimately
+  // empty.
   useEffect(() => {
-    if (schemaMenu?.length) {
+    if (schemaMenu) {
       getExplorer(projectId);
     }
   }, [schemaMenu, currentSchema]);
