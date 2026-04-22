@@ -178,6 +178,9 @@ const IdeExplorer = ({
   const setCurrentSchema = useProjectStore((state) => state.setCurrentSchema);
   const setSchemaList = useProjectStore((state) => state.setSchemaList);
   const setExplorerData = useExplorerStore((state) => state.setExplorerData);
+  const setDbExplorerData = useExplorerStore(
+    (state) => state.setDbExplorerData
+  );
   const clearExplorerData = useExplorerStore(
     (state) => state.clearExplorerData
   );
@@ -1311,6 +1314,7 @@ const IdeExplorer = ({
         const treeData = res.data;
         const mappedData = mapIconsToTreeData([treeData]);
         setDBExplorer(mappedData);
+        setDbExplorerData(treeData);
         setCachedLists((prev) => ({
           ...prev,
           2: generateList([treeData]), // Correct key

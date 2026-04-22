@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import PropTypes from "prop-types";
 
 import { useSocketService } from "../../service/socket-service";
@@ -8,7 +8,6 @@ import { useChatAIService } from "./services";
 import { useProjectStore } from "../../store/project-store";
 import { useExplorerStore } from "../../store/explorer-store";
 import { useNotificationService } from "../../service/notification-service";
-import { explorerService } from "../explorer/explorer-service";
 
 // Cloud-only: fetch token balance (unavailable in OSS — import fails gracefully)
 let getTokenBalance = null;
@@ -72,9 +71,9 @@ const Body = function Body({
     seedsData: {},
     dbData: {},
   });
-  const explorerSvc = useRef(explorerService()).current;
   const { projectId } = useProjectStore();
   const explorerData = useExplorerStore((state) => state.explorerData);
+  const dbExplorerData = useExplorerStore((state) => state.dbExplorerData);
 
   const { postChatPrompt, getChatIntents, getChatLlmModels } =
     useChatAIService();
@@ -204,23 +203,6 @@ const Body = function Body({
       });
   }, [selectedChatId, chatMessages.length, realTokenBalance, notify]);
 
-  useEffect(() => {
-    if (!projectId || !isChatDrawerOpen) return;
-
-    // fetch database schemas -> update immediately when ready
-    explorerSvc
-      .getDbExplorer(projectId)
-      .then((res) => {
-        setPromptAutoComplete((prev) => ({
-          ...prev,
-          dbData: res?.data || {},
-        }));
-      })
-      .catch(() => {
-        console.error("Failed to fetch database schemas");
-      });
-  }, [projectId, isChatDrawerOpen, explorerSvc]);
-
   // Mirror shared explorer data (fetched by explorer-component) into the
   // prompt autocomplete shape consumed by NewChat / InputPrompt.
   useEffect(() => {
@@ -231,6 +213,13 @@ const Body = function Body({
       seedsData: children[1] || {},
     }));
   }, [explorerData]);
+
+  useEffect(() => {
+    setPromptAutoComplete((prev) => ({
+      ...prev,
+      dbData: dbExplorerData || {},
+    }));
+  }, [dbExplorerData]);
 
   const triggerGetChatMessagesApi = useCallback(() => {
     setIsGetChatMessages(true);
