@@ -203,8 +203,13 @@ const Body = function Body({
       });
   }, [selectedChatId, chatMessages.length, realTokenBalance, notify]);
 
-  // Mirror shared explorer data (fetched by explorer-component) into the
-  // prompt autocomplete shape consumed by NewChat / InputPrompt.
+  // Autocomplete data is mirrored passively from useExplorerStore, which is
+  // populated exclusively by explorer-component.jsx. This component deliberately
+  // does NOT fetch on its own — the IDE layout mounts the explorer before the
+  // chat drawer opens, so the store is populated by the time autocomplete is
+  // triggered. If that invariant ever breaks (lazy-loaded explorer, standalone
+  // chat route, explorer fetch failure), add a fetch fallback here or a
+  // loading/unavailable state in the InputPrompt autocomplete UI.
   useEffect(() => {
     const children = explorerData || [];
     setPromptAutoComplete((prev) => ({

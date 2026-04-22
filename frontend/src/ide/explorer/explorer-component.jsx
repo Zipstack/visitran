@@ -1262,7 +1262,7 @@ const IdeExplorer = ({
   // (e.g. chat autocomplete) don't momentarily read the previous project's tree.
   useEffect(() => {
     clearExplorerData();
-  }, [projectId]);
+  }, [projectId, clearExplorerData]);
 
   function getExplorer(projectId) {
     if (!projectId) return;
@@ -1272,6 +1272,9 @@ const IdeExplorer = ({
       .then((res) => {
         const treeData = res.data.children;
         rawTreeDataRef.current = JSON.parse(JSON.stringify(treeData));
+        // Publish the raw (pre-mutation) shape to the shared store so
+        // consumers like chat-ai/Body.jsx get the untransformed children.
+        setExplorerData(rawTreeDataRef.current);
         // Apply sort and decorations to no_code models BEFORE transformTree
         // so that _isChild flag is set when className is assigned
         treeData.forEach((node) => {
@@ -1289,7 +1292,6 @@ const IdeExplorer = ({
         });
         transformTree(treeData);
         setTreeData(treeData);
-        setExplorerData(treeData);
 
         setCachedLists((prev) => ({
           ...prev,
