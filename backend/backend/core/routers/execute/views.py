@@ -7,9 +7,11 @@ from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.response import Response
 from visitran.singleton import Singleton
+from visitran.errors.base_exceptions import VisitranBaseExceptions
 import logging
 
 from backend.application.context.application import ApplicationContext
+from backend.errors.visitran_backend_base_exceptions import VisitranBackendBaseException
 from backend.core.utils import handle_http_request, sanitize_data
 from backend.utils.cache_service.decorators.cache_decorator import clear_cache
 from backend.utils.constants import HTTPMethods
@@ -63,10 +65,15 @@ def execute_run_command(request: Request, project_id: str) -> Response:
         logger.info(f"[execute_run_command] Completed successfully for file_name={file_name}")
         _data = {"status": "success"}
         return Response(data=_data)
-    except Exception:
+    except (VisitranBaseExceptions, VisitranBackendBaseException) as err:
         logger.exception(f"[execute_run_command] DAG execution failed for file_name={file_name}")
-        _data = {"status": "failed", "error_message": "Model execution failed. Check server logs for details."}
-        return Response(data=_data, status=status.HTTP_400_BAD_REQUEST)
+        if hasattr(err, 'to_response'):
+            return err.to_response()
+        return Response(data=err.error_response(), status=status.HTTP_400_BAD_REQUEST)
+    except Exception:
+        logger.exception(f"[execute_run_command] Unexpected error during DAG execution for file_name={file_name}")
+        _data = {"status": "failed", "error_message": "An unexpected error occurred while executing the model. Please try again or contact support if the issue persists."}
+        return Response(data=_data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     finally:
         app.visitran_context.close_db_connection()
 
