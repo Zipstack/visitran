@@ -2,6 +2,25 @@
   font-weight: bold;
 }
 
+/* ── Job List Table ── */
+.jl-job-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jl-job-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--bg-color-3, rgba(0, 0, 0, 0.04));
+  color: var(--primary-color, #1677ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .job-deploy-header-field {
   width: 200px;
 }
