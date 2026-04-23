@@ -12,6 +12,7 @@ import {
   Input,
   Card,
   Badge,
+  Avatar,
   Row,
   Col,
   Timeline,
@@ -95,7 +96,7 @@ const Sparkline = ({ color = "#3b82f6", data = [] }) => {
 /* ── StatCard ── */
 const StatCard = ({ label, icon, value, valueColor, subtext, spark }) => {
   return (
-    <Card size="small" styles={{ body: { padding: 14 } }}>
+    <Card size="small" style={{ height: "100%" }} styles={{ body: { padding: 14, height: "100%" } }}>
       <Space size={4} direction="vertical" style={{ width: "100%" }}>
         <Text type="secondary" style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.4, textTransform: "uppercase" }}>
           {icon}{icon ? " " : ""}{label}
@@ -235,10 +236,11 @@ const Runhistory = () => {
       render: (_, r) => {
         const trigger = r.trigger || r.kwargs?.trigger || "scheduled";
         const user = r.triggered_by;
+        const initials = user?.username ? user.username.slice(0, 2).toUpperCase() : trigger === "manual" ? "M" : "S";
         return (
           <Space size={6}>
-            <span className="rh-trigger-icon"><UserOutlined style={{ fontSize: 11 }} /></span>
-            <Text style={{ fontSize: 13 }}>{trigger === "manual" ? "Manual" : "Scheduled"}{user ? ` · ${user.username}` : ""}</Text>
+            <Avatar size={22} style={{ fontSize: 10, backgroundColor: token.colorPrimary }}>{initials}</Avatar>
+            <Text style={{ fontSize: 13 }}>{trigger === "manual" ? "Manual" : "Schedule"}{user ? ` · ${user.username}` : ""}</Text>
           </Space>
         );
       },
@@ -247,7 +249,7 @@ const Runhistory = () => {
       title: "Scope", key: "scope", width: 150,
       render: (_, r) => {
         const scope = r.scope || "job";
-        const count = r.model_count || r.result?.total || 0;
+        const count = (r.result?.models || []).filter((m) => m.type !== "ephemeral").length || r.model_count || 0;
         const models = r.kwargs?.models_override || [];
         return (
           <Space direction="vertical" size={0}>
@@ -261,9 +263,10 @@ const Runhistory = () => {
       title: "Changes", key: "changes", width: 200,
       render: (_, r) => {
         if (r.status !== "SUCCESS" || !r.result) return <Text type="secondary">—</Text>;
-        const added = r.result?.rows_added ?? null;
-        const modified = r.result?.rows_modified ?? null;
-        const deleted = r.result?.rows_deleted ?? null;
+        const nonEph = (r.result?.models || []).filter((m) => m.type !== "ephemeral");
+        const added = nonEph.reduce((s, m) => s + (m.rows_inserted || 0), 0) || null;
+        const modified = nonEph.reduce((s, m) => s + (m.rows_updated || 0), 0) || null;
+        const deleted = nonEph.reduce((s, m) => s + (m.rows_deleted || 0), 0) || null;
         if (added === null && modified === null && deleted === null) return <Text type="secondary">—</Text>;
         return (
           <Space size={8}>
@@ -312,21 +315,25 @@ const Runhistory = () => {
   const RunDetail = ({ run }) => {
     const isFailure = run.status === "FAILURE";
     const isSuccess = run.status === "SUCCESS";
-    const passed = run.result?.passed || 0;
-    const failed = run.result?.failed || 0;
-    const total = run.result?.total || 0;
-    const skipped = run.skipped_count || Math.max(0, total - passed - failed);
-    const failedModels = run.failed_models || [];
+    const allModels = run.result?.models || [];
+    const models = allModels.filter((m) => m.type !== "ephemeral");
+    const passed = models.filter((m) => m.end_status === "OK" || m.status === "success").length;
+    const failed = models.filter((m) => m.end_status === "FAIL" || m.status === "failure").length;
+    const total = models.length;
+    const skipped = Math.max(0, total - passed - failed);
+    const failedModels = run.failed_models?.filter((n) => {
+      const m = allModels.find((x) => x.name === n);
+      return !m || m.type !== "ephemeral";
+    }) || [];
     const dur = run.duration || formatDurationMs(run.duration_ms);
     const expected = stats?.expected_duration_ms ? `~${formatDurationMs(stats.expected_duration_ms)}` : null;
     const errorModelName = failedModels.length > 0 ? failedModels[0] : null;
-    const models = run.result?.models || [];
 
-    // Aggregate row-level changes (from result when available, otherwise —)
-    const totalRowsProcessed = run.result?.rows_processed ?? null;
-    const totalAdded = run.result?.rows_added ?? null;
-    const totalModified = run.result?.rows_modified ?? null;
-    const totalDeleted = run.result?.rows_deleted ?? null;
+    // Aggregate row-level changes — exclude ephemeral
+    const totalRowsProcessed = models.reduce((sum, m) => sum + (m.rows_affected || 0), 0) || null;
+    const totalAdded = models.reduce((sum, m) => sum + (m.rows_inserted || 0), 0) || null;
+    const totalModified = models.reduce((sum, m) => sum + (m.rows_updated || 0), 0) || null;
+    const totalDeleted = models.reduce((sum, m) => sum + (m.rows_deleted || 0), 0) || null;
 
     // Parse error into message + stack
     const errorLines = (run.error_message || "").split("\n");
@@ -436,7 +443,7 @@ const Runhistory = () => {
                 <Text strong style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.4, display: "block", marginBottom: 8 }}>Per-model changes</Text>
                 <Table
                   size="small"
-                  dataSource={models.map((m, i) => ({ ...m, key: i }))}
+                  dataSource={models.filter((m) => m.type !== "ephemeral").map((m, i) => ({ ...m, key: i }))}
                   columns={modelColumns}
                   pagination={false}
                   showHeader
@@ -492,7 +499,7 @@ const Runhistory = () => {
             <Text strong style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.4 }}>Execution timeline</Text>
             <Timeline style={{ marginTop: 12 }} items={[
               { dot: <CheckCircleFilled style={{ color: token.colorSuccess, fontSize: 14 }} />, children: (<Row justify="space-between"><Col><Text>Setup</Text></Col><Col><Text type="secondary" style={{ fontFamily: token.fontFamilyCode || "monospace" }}>—</Text></Col></Row>) },
-              ...models.map((m, i) => {
+              ...models.filter((m) => m.type !== "ephemeral").map((m, i) => {
                 const isOk = m.end_status === "OK" || m.status === "success";
                 const isFail = m.end_status === "FAIL" || m.status === "failure";
                 return {
@@ -527,7 +534,7 @@ const Runhistory = () => {
           <Col span={6}>
             <StatCard label="Success rate (7d)" icon={<CheckCircleFilled style={{ color: token.colorSuccess }} />}
               value={statsLoading ? "..." : stats?.success_rate_7d != null ? `${stats.success_rate_7d}%` : "— %"}
-              subtext={!statsLoading && <Text style={{ color: token.colorError, fontSize: 11 }}>{stats?.success_count_7d || 0} of {stats?.total_count_7d || 0} succeeded</Text>}
+              subtext={!statsLoading && <Text style={{ color: stats?.success_rate_7d === 100 ? token.colorSuccess : stats?.success_rate_7d > 0 ? token.colorWarning : token.colorError, fontSize: 11 }}>{stats?.success_count_7d || 0} of {stats?.total_count_7d || 0} succeeded</Text>}
             />
           </Col>
           <Col span={6}>
@@ -540,8 +547,8 @@ const Runhistory = () => {
             <StatCard label="Failures (24h)"
               value={statsLoading ? "..." : stats?.failures_24h ?? 0}
               valueColor={stats?.failures_24h > 0 ? token.colorError : undefined}
-              subtext={!statsLoading && <Text style={{ color: token.colorError, fontSize: 11 }}>
-                {stats?.failures_change > 0 ? `↑ from ${stats.failures_24h - stats.failures_change} yesterday` : "↑ from 0 yesterday"}
+              subtext={!statsLoading && <Text style={{ color: stats?.failures_24h > 0 ? token.colorError : token.colorSuccess, fontSize: 11 }}>
+                {stats?.failures_change > 0 ? `↑ from ${stats.failures_24h - stats.failures_change} yesterday` : stats?.failures_24h === 0 ? "No failures" : `↑ from 0 yesterday`}
               </Text>}
             />
           </Col>
