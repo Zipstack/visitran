@@ -28,6 +28,9 @@ class BaseResult:
     sequence_num: int
     end_status: str
     rows_affected: int | None = None
+    rows_inserted: int | None = None
+    rows_updated: int | None = None
+    rows_deleted: int | None = None
     materialization: str = ""
     duration_ms: int | None = None
 

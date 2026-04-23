@@ -14,6 +14,9 @@ from visitran.templates.model import VisitranModel
 class ExecutionMetrics:
     """Metrics returned from model execution."""
     rows_affected: Optional[int] = None
+    rows_inserted: Optional[int] = None
+    rows_updated: Optional[int] = None
+    rows_deleted: Optional[int] = None
     materialization: str = ""
 
 
@@ -25,6 +28,7 @@ class BaseModel(ABC):
         self._model: VisitranModel = model
 
         self._statements: list[Any] = []
+        self._upsert_metrics: Optional[dict] = None  # Populated by adapter's execute_incremental
 
     @property
     def model(self) -> VisitranModel:
@@ -45,9 +49,15 @@ class BaseModel(ABC):
 
         if self.materialization == Materialization.TABLE:
             self.execute_table()
-            # Get row count after table creation
+            # Get row count after table creation — all rows are "inserted" (DROP + CREATE)
             rows = self._get_row_count_safe()
-            return ExecutionMetrics(rows_affected=rows, materialization="table")
+            return ExecutionMetrics(
+                rows_affected=rows,
+                rows_inserted=rows,
+                rows_updated=0,
+                rows_deleted=0,
+                materialization="table",
+            )
 
         elif self.materialization == Materialization.VIEW:
             self.execute_view()
@@ -56,7 +66,15 @@ class BaseModel(ABC):
         elif self.materialization == Materialization.INCREMENTAL:
             self.execute_incremental()
             rows = self._get_row_count_safe()
-            return ExecutionMetrics(rows_affected=rows, materialization="incremental")
+            # Use upsert metrics if available (adapter captured cursor.rowcount)
+            upsert = self._upsert_metrics or {}
+            return ExecutionMetrics(
+                rows_affected=rows,
+                rows_inserted=upsert.get("rows_inserted"),
+                rows_updated=upsert.get("rows_updated"),
+                rows_deleted=upsert.get("rows_deleted"),
+                materialization="incremental",
+            )
 
         return ExecutionMetrics(materialization=mat_name)
 

@@ -269,16 +269,9 @@ class BigQueryConnection(BaseConnection):
         target_table_name: str,
         select_statement: Table,
         primary_key: Union[str, list[str]] = None,
-    ) -> None:
+    ) -> dict:
         """Efficient upsert using DELETE + INSERT for BigQuery.
-
-        This approach is more efficient than MERGE for BigQuery because:
-        1. BigQuery is optimized for bulk operations
-        2. DELETE + INSERT performs better than UPDATE operations
-        3. Works better with BigQuery's partitioning strategy
-
-        Args:
-            primary_key: Can be a single column name (str) or list of column names for composite keys
+        Returns dict with rows_affected.
         """
         try:
             fire_event(
@@ -378,6 +371,7 @@ class BigQueryConnection(BaseConnection):
             raise Exception(
                 f"BigQuery incremental upsert failed for {schema_name}.{target_table_name}: {str(e)}"
             ) from e
+        return {"rows_affected": None}  # BigQuery: fallback to get_table_row_count in BaseModel
 
 
 

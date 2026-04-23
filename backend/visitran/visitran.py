@@ -362,10 +362,13 @@ class Visitran:
                 )
 
                 # Extract row count from execution metrics
-                _rows = None
+                _rows = _rows_ins = _rows_upd = _rows_del = None
                 _mat = ""
                 if exec_metrics is not None:
                     _rows = getattr(exec_metrics, "rows_affected", None)
+                    _rows_ins = getattr(exec_metrics, "rows_inserted", None)
+                    _rows_upd = getattr(exec_metrics, "rows_updated", None)
+                    _rows_del = getattr(exec_metrics, "rows_deleted", None)
                     _mat = getattr(exec_metrics, "materialization", "")
 
                 base_result = BaseResult(
@@ -377,6 +380,9 @@ class Visitran:
                     status=ExecStatus.Success.value,
                     end_status=ExecStatus.OK.value,
                     rows_affected=_rows,
+                    rows_inserted=_rows_ins,
+                    rows_updated=_rows_upd,
+                    rows_deleted=_rows_del,
                     materialization=_mat,
                     duration_ms=_elapsed_ms,
                 )

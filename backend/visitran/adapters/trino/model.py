@@ -84,12 +84,14 @@ class TrinoModel(BaseModel):
                 if primary_key:
                     # MERGE mode: Upsert with primary key (updates existing, inserts new)
                     logging.info(f"Incremental MERGE mode: upserting with primary_key={primary_key}")
-                    self.db_connection.upsert_into_table(
+                    result = self.db_connection.upsert_into_table(
                         schema_name=self.model.destination_schema_name,
                         table_name=self.model.destination_table_name,
                         select_statement=self.model.select_statement,
                         primary_key=primary_key,
                     )
+                    if result and isinstance(result, dict):
+                        self._upsert_metrics = result
                 else:
                     # APPEND mode: Insert-only, no deduplication (for event logs, time-series)
                     logging.info("Incremental APPEND mode: inserting without deduplication")
