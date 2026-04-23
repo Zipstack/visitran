@@ -2,11 +2,19 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any
+from dataclasses import dataclass, field
+from typing import Any, Optional
 
 from visitran.adapters.connection import BaseConnection
 from visitran.materialization import Materialization
 from visitran.templates.model import VisitranModel
+
+
+@dataclass
+class ExecutionMetrics:
+    """Metrics returned from model execution."""
+    rows_affected: Optional[int] = None
+    materialization: str = ""
 
 
 class BaseModel(ABC):
@@ -26,20 +34,42 @@ class BaseModel(ABC):
     def materialization(self) -> Materialization:
         return self.model.materialization
 
-    def execute(self) -> None:
+    def execute(self) -> ExecutionMetrics:
+        mat_name = self.materialization.value if hasattr(self.materialization, "value") else str(self.materialization)
+
         if self.materialization == Materialization.EPHEMERAL:
             self.execute_ephemeral()
+            return ExecutionMetrics(rows_affected=None, materialization="ephemeral")
 
         self.model.select_statement = self.model.select()
 
         if self.materialization == Materialization.TABLE:
             self.execute_table()
+            # Get row count after table creation
+            rows = self._get_row_count_safe()
+            return ExecutionMetrics(rows_affected=rows, materialization="table")
 
         elif self.materialization == Materialization.VIEW:
             self.execute_view()
+            return ExecutionMetrics(rows_affected=None, materialization="view")
 
         elif self.materialization == Materialization.INCREMENTAL:
             self.execute_incremental()
+            rows = self._get_row_count_safe()
+            return ExecutionMetrics(rows_affected=rows, materialization="incremental")
+
+        return ExecutionMetrics(materialization=mat_name)
+
+    def _get_row_count_safe(self) -> Optional[int]:
+        """Get row count after execution, return None on failure."""
+        try:
+            return self._db_connection.get_table_row_count(
+                schema_name=self.model.destination_schema_name,
+                table_name=self.model.destination_table_name,
+            )
+        except Exception as e:
+            logging.debug(f"Could not get row count for {self.model.destination_table_name}: {e}")
+            return None
 
     @abstractmethod
     def execute_ephemeral(self) -> None:

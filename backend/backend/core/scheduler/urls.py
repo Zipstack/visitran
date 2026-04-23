@@ -7,6 +7,7 @@ from backend.core.scheduler.views import (
     delete_periodic_task,
     update_periodic_task,
     task_run_history,
+    run_stats,
     trigger_task_once,
     trigger_task_once_for_model,
     list_deploy_candidates,
@@ -30,6 +31,7 @@ urlpatterns = [
         name="get_periodic_task",
     ),
     path("/run-history/<int:user_task_id>", task_run_history, name="task_run_history"),
+    path("/run-stats/<int:user_task_id>", run_stats, name="run_stats"),
     path(
         "/trigger-periodic-task/<int:user_task_id>",
         trigger_task_once,

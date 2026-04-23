@@ -345,9 +345,10 @@ class Visitran:
                     )
                 )
                 self.db_adapter.db_connection.create_schema(node.destination_schema_name)  # create if not exists
-                self.db_adapter.run_model(visitran_model=node)
+                exec_metrics = self.db_adapter.run_model(visitran_model=node)
 
                 _elapsed = time.monotonic() - start_time
+                _elapsed_ms = int(_elapsed * 1000)
                 fire_event(
                     ModelRunSucceeded(
                         model_name=_model_display,
@@ -360,6 +361,13 @@ class Visitran:
                     run_duration=_elapsed,
                 )
 
+                # Extract row count from execution metrics
+                _rows = None
+                _mat = ""
+                if exec_metrics is not None:
+                    _rows = getattr(exec_metrics, "rows_affected", None)
+                    _mat = getattr(exec_metrics, "materialization", "")
+
                 base_result = BaseResult(
                     node_name=str(node_name),
                     sequence_num=sequence_number,
@@ -368,6 +376,9 @@ class Visitran:
                     info_message=f"Running {node_name}",
                     status=ExecStatus.Success.value,
                     end_status=ExecStatus.OK.value,
+                    rows_affected=_rows,
+                    materialization=_mat,
+                    duration_ms=_elapsed_ms,
                 )
                 sequence_number += 1
                 BASE_RESULT.append(base_result)

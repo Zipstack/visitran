@@ -27,6 +27,9 @@ class BaseResult:
     ending_time: datetime.datetime
     sequence_num: int
     end_status: str
+    rows_affected: int | None = None
+    materialization: str = ""
+    duration_ms: int | None = None
 
 
 @dataclass

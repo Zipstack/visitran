@@ -67,10 +67,10 @@ class BaseAdapter(ABC):
     def db_reader(self) -> BaseDBReader:
         return self._db_reader
 
-    def run_model(self, visitran_model: VisitranModel) -> None:
+    def run_model(self, visitran_model: VisitranModel):
         self.load_model(model=visitran_model)
         fire_event(MaterializationType(materialization=str(visitran_model.materialization)))
-        self.db_model.execute()
+        return self.db_model.execute()
 
     def run_seeds(self, schema: str, abs_path: str) -> None:
         seed_obj = self.load_seed(schema, abs_path)
