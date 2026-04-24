@@ -1,4 +1,6 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Window, F
+from django.db.models.functions import RowNumber
 from rest_framework import serializers
 
 from backend.core.scheduler.models import TaskRunHistory
@@ -18,6 +20,21 @@ class TaskRunHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = TaskRunHistory
         fields = "__all__"
+
+    def _get_user_cache(self):
+        """Batch-load users for all runs in one query, cached per serializer instance."""
+        if not hasattr(self, "_user_cache"):
+            user_ids = set()
+            for obj in self.instance if hasattr(self.instance, '__iter__') else [self.instance]:
+                if obj and obj.kwargs and obj.kwargs.get("user_id"):
+                    user_ids.add(obj.kwargs["user_id"])
+            if user_ids:
+                self._user_cache = {
+                    str(u.id): u for u in User.objects.filter(id__in=user_ids)
+                }
+            else:
+                self._user_cache = {}
+        return self._user_cache
 
     def get_duration(self, obj):
         """Human-readable duration string."""
@@ -46,32 +63,34 @@ class TaskRunHistorySerializer(serializers.ModelSerializer):
             self._run_number_cache = {}
         task_detail_id = obj.user_task_detail_id
         if task_detail_id not in self._run_number_cache:
-            # Get all run IDs for this job ordered by start_time ASC
-            run_ids = list(
+            annotated = (
                 TaskRunHistory.objects.filter(user_task_detail_id=task_detail_id)
-                .order_by("start_time")
-                .values_list("id", flat=True)
+                .annotate(
+                    row_num=Window(
+                        expression=RowNumber(),
+                        order_by=F("start_time").asc(),
+                    )
+                )
+                .values_list("id", "row_num")
             )
-            self._run_number_cache[task_detail_id] = {
-                rid: idx + 1 for idx, rid in enumerate(run_ids)
-            }
+            self._run_number_cache[task_detail_id] = dict(annotated)
         return self._run_number_cache[task_detail_id].get(obj.id, 0)
 
     def get_triggered_by(self, obj):
-        """Resolve user_id from kwargs to username."""
+        """Resolve user_id from kwargs to username using batch-loaded cache."""
         if not obj.kwargs:
             return None
         user_id = obj.kwargs.get("user_id")
         if not user_id:
             return None
-        try:
-            user = User.objects.get(id=user_id)
+        cache = self._get_user_cache()
+        user = cache.get(str(user_id))
+        if user:
             return {
                 "id": str(user.id),
                 "username": user.get_full_name() or user.username or user.email,
             }
-        except (User.DoesNotExist, ValueError):
-            return {"id": str(user_id), "username": str(user_id)}
+        return {"id": str(user_id), "username": str(user_id)}
 
     def get_model_count(self, obj):
         """Total model count from result."""

@@ -4,6 +4,7 @@ import uuid
 from datetime import timedelta
 
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django_celery_beat.models import CrontabSchedule, IntervalSchedule, PeriodicTask
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -632,9 +633,10 @@ def run_stats(request, project_id, user_task_id):
             expected_duration_ms = int(sum(durations) / len(durations))
 
         # Duration trend (last 10 completed runs for sparkline)
-        recent_runs = runs.filter(
+        recent_runs = list(runs.filter(
             start_time__isnull=False, end_time__isnull=False
-        ).order_by("end_time")[:10]
+        ).order_by("-end_time")[:10])
+        recent_runs.reverse()  # chronological order for sparkline
         duration_trend = [
             int((r.end_time - r.start_time).total_seconds() * 1000) for r in recent_runs
         ]
@@ -642,6 +644,7 @@ def run_stats(request, project_id, user_task_id):
         # Schedule info
         schedule_type = None
         schedule_label = None
+        periodic = None
         try:
             periodic = task.periodic_task
             if periodic:
@@ -653,7 +656,7 @@ def run_stats(request, project_id, user_task_id):
                     schedule_type = "interval"
                     schedule_label = f"Every {periodic.interval.every} {periodic.interval.period}"
         except Exception:
-            pass
+            periodic = None
 
         return Response({
             "success": True,
@@ -676,7 +679,7 @@ def run_stats(request, project_id, user_task_id):
                 },
                 "schedule_type": schedule_type,
                 "schedule_label": schedule_label,
-                "schedule_enabled": task.periodic_task.enabled if task.periodic_task else False,
+                "schedule_enabled": periodic.enabled if periodic else False,
             },
         }, status=status.HTTP_200_OK)
     except UserTaskDetails.DoesNotExist:
@@ -714,13 +717,11 @@ def task_run_history(request, project_id, user_task_id):
         if status_filter:
             runs = runs.filter(status=status_filter)
         if date_from:
-            from django.utils.dateparse import parse_datetime
             dt = parse_datetime(date_from)
             if dt:
                 runs = runs.filter(start_time__gte=dt)
         if date_to:
-            from django.utils.dateparse import parse_datetime as parse_dt
-            dt = parse_dt(date_to)
+            dt = parse_datetime(date_to)
             if dt:
                 runs = runs.filter(start_time__lte=dt)
         if search:
