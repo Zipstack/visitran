@@ -588,9 +588,6 @@ def delete_periodic_task(request, project_id, task_id):
 def run_stats(request, project_id, user_task_id):
     """Get aggregated run statistics for a job — stats cards data."""
     try:
-        from django.db.models import Avg, Count, Q, F
-        from django.db.models.functions import ExtractDay
-
         query = {"id": user_task_id}
         if _is_valid_project_id(project_id):
             query["project__project_uuid"] = project_id
@@ -727,11 +724,7 @@ def task_run_history(request, project_id, user_task_id):
             if dt:
                 runs = runs.filter(start_time__lte=dt)
         if search:
-            from django.db.models import Q
-            runs = runs.filter(
-                Q(error_message__icontains=search) |
-                Q(result__icontains=search)
-            )
+            runs = runs.filter(error_message__icontains=search)
 
         runs = runs.order_by("-start_time")
         total = runs.count()
