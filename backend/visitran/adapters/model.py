@@ -65,9 +65,10 @@ class BaseModel(ABC):
 
         elif self.materialization == Materialization.INCREMENTAL:
             self.execute_incremental()
-            rows = self._get_row_count_safe()
             # Use upsert metrics if available (adapter captured cursor.rowcount)
             upsert = self._upsert_metrics or {}
+            upsert_rows = upsert.get("rows_affected")
+            rows = upsert_rows if upsert_rows is not None else self._get_row_count_safe()
             return ExecutionMetrics(
                 rows_affected=rows,
                 rows_inserted=upsert.get("rows_inserted"),
