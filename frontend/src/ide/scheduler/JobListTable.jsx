@@ -164,7 +164,7 @@ const JobListTable = memo(
           else if (isFailed) { statusIcon = <CloseCircleFilled />; statusClass = "failed"; tooltipText = "Last run failed — needs attention"; }
           else if (isSuccess) { statusIcon = <CheckCircleFilled />; statusClass = "success"; tooltipText = "Healthy — last run succeeded"; }
           else if (isRunning) { statusIcon = <SyncOutlined spin />; statusClass = "running"; tooltipText = "Running"; }
-          else { statusIcon = <ClockCircleOutlined />; statusClass = "running"; tooltipText = "Scheduled — has not run yet"; }
+          else { statusIcon = <ClockCircleOutlined />; statusClass = "paused"; tooltipText = "Scheduled — has not run yet"; }
           return (
             <div className="jl-job-name">
               <Tooltip title={tooltipText} placement="right">
@@ -326,7 +326,7 @@ const JobListTable = memo(
           </Space>
         ),
       },
-    ], [token, loading]);
+    ], [token, loading, onRowClick]);
 
     return (
       <Table

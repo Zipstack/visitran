@@ -17,7 +17,6 @@ import {
   ThunderboltOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
-import debounce from "lodash/debounce";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { checkPermission } from "../../common/helpers";
@@ -39,16 +38,6 @@ try {
 } catch {
   useSubscriptionDetailsStoreSafe = null;
 }
-
-/* ── Duration formatter ── */
-const formatDurationMs = (ms) => {
-  if (!ms && ms !== 0) return "—";
-  if (ms < 1000) return `${ms}ms`;
-  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
-  const m = Math.floor(ms / 60000);
-  const s = ((ms % 60000) / 1000).toFixed(0);
-  return `${m}m ${s}s`;
-};
 
 /* ── StatCard ── */
 const StatCard = ({ label, icon, value, valueColor, subtext }) => (
@@ -119,20 +108,12 @@ const JobList = () => {
   useEffect(() => { fetchJobs({ showLoader: true }); fetchProjects(); }, []);
   useEffect(() => { if (!isJobListModified) return; fetchJobs(); setIsJobListModified(false); }, [isJobListModified]);
 
-  const runSearch = useMemo(() => debounce((text) => {
-    const term = text.toLowerCase();
-    setJobList(backup.filter(({ task_name, project }) =>
-      task_name?.toLowerCase().includes(term) || project?.name?.toLowerCase().includes(term)
-    ));
-  }, 300), [backup]);
-
-  useEffect(() => () => runSearch.cancel(), [runSearch]);
-  const onSearchChange = (e) => { const v = e.target.value; setSearchQuery(v); runSearch(v); };
+  const onSearchChange = (e) => setSearchQuery(e.target.value);
 
   // Client-side filtering
   useEffect(() => {
     let filtered = backup;
-    const { env, proj, status, schedule } = filters;
+    const { env, proj, status, schedule, lastRun } = filters;
     if (proj !== "all") filtered = filtered.filter((el) => el.project?.name === proj);
     if (env !== "all") filtered = filtered.filter((el) => el.environment?.type === env);
     if (status) {
@@ -143,6 +124,13 @@ const JobList = () => {
       });
     }
     if (schedule) filtered = filtered.filter((el) => el.task_type === schedule);
+    if (lastRun) {
+      const windowMs = { "24h": 86400000, "7d": 604800000, "30d": 2592000000 }[lastRun];
+      if (windowMs) {
+        const cutoff = Date.now() - windowMs;
+        filtered = filtered.filter((el) => el.task_completion_time && new Date(el.task_completion_time) >= cutoff);
+      }
+    }
     if (searchQuery) {
       const term = searchQuery.toLowerCase();
       filtered = filtered.filter(({ task_name, project }) =>
@@ -186,9 +174,13 @@ const JobList = () => {
   const stats = useMemo(() => {
     const activeJobs = backup.filter((j) => j.periodic_task_details?.enabled).length;
     const pausedJobs = backup.length - activeJobs;
-    const failedJobs = backup.filter((j) => ["FAILED", "FAILURE", "FAILED PERMANENTLY"].includes(j.task_status)).length;
-    const successJobs = backup.filter((j) => j.task_status === "SUCCESS").length;
-    const successRate = backup.length > 0 ? Math.round((successJobs / backup.length) * 100) : null;
+
+    // Filter to jobs that ran in the last 24 hours for rate/failure stats
+    const cutoff24h = Date.now() - 86400000;
+    const recentJobs = backup.filter((j) => j.task_completion_time && new Date(j.task_completion_time) >= cutoff24h);
+    const failedJobs = recentJobs.filter((j) => ["FAILED", "FAILURE", "FAILED PERMANENTLY"].includes(j.task_status)).length;
+    const successJobs = recentJobs.filter((j) => j.task_status === "SUCCESS").length;
+    const successRate = recentJobs.length > 0 ? Math.round((successJobs / recentJobs.length) * 100) : null;
 
     // Next upcoming run
     const upcomingRuns = backup
