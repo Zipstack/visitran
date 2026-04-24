@@ -1264,8 +1264,14 @@ const IdeExplorer = ({
 
   // Clear shared explorer data on project switch so other consumers
   // (e.g. chat autocomplete) don't momentarily read the previous project's tree.
+  // Ref-gated so the clear does NOT fire on initial mount / remount within the
+  // same project — only when projectId actually changes.
+  const prevProjectIdRef = useRef(projectId);
   useEffect(() => {
-    clearExplorerData();
+    if (prevProjectIdRef.current !== projectId) {
+      clearExplorerData();
+      prevProjectIdRef.current = projectId;
+    }
   }, [projectId, clearExplorerData]);
 
   function getExplorer(projectId) {
