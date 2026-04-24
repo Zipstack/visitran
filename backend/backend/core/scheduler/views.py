@@ -685,8 +685,8 @@ def run_stats(request, project_id, user_task_id):
     except UserTaskDetails.DoesNotExist:
         return Response({"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        logger.error(f"Error getting run stats: {e}")
-        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        logger.error(f"Error getting run stats: {e}", exc_info=True)
+        return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 @api_view(["GET"])
