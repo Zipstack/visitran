@@ -228,6 +228,8 @@ class DatabricksConnection(BaseConnection):
         """Efficient upsert using Databricks Delta Lake's MERGE INTO statement.
         Returns dict with rows_affected from cursor.rowcount.
         """
+        rowcount = None
+
         # Handle both single column and composite keys
         if isinstance(primary_key, str):
             key_columns = [primary_key]
@@ -292,4 +294,4 @@ class DatabricksConnection(BaseConnection):
                 cursor.close()
             except Exception:
                 pass
-        return {"rows_affected": rowcount if 'rowcount' in dir() else None}
+        return {"rows_affected": rowcount}

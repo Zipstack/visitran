@@ -281,9 +281,10 @@ class SnowflakeConnection(BaseConnection):
         primary_key: Union[str, list[str]],
     ) -> dict:
         """Efficient upsert using Snowflake's MERGE INTO statement.
-
         Returns dict with rows_affected from cursor.rowcount.
         """
+        rowcount = None
+
         # Handle both single column and composite keys
         if isinstance(primary_key, str):
             key_columns = [primary_key]
@@ -342,4 +343,4 @@ class SnowflakeConnection(BaseConnection):
                 self.connection.raw_sql(f"DROP TABLE IF EXISTS {qi(schema_name)}.{qi(temp_table_name)}")
             except Exception:
                 pass  # Ignore cleanup errors
-        return {"rows_affected": rowcount if 'rowcount' in dir() else None}
+        return {"rows_affected": rowcount}

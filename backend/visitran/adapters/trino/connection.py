@@ -151,6 +151,9 @@ class TrinoQEConnection(BaseConnection):
         """Efficient upsert using DELETE + INSERT strategy for Trino.
         Returns dict with rows_deleted and rows_inserted from cursors.
         """
+        inserted = None
+        deleted = None
+
         # Normalize primary key(s)
         if isinstance(primary_key, str):
             key_columns = [primary_key]
@@ -214,7 +217,7 @@ class TrinoQEConnection(BaseConnection):
             except Exception:
                 pass
         return {
-            "rows_affected": (inserted or 0) + (deleted or 0) if 'inserted' in dir() else None,
-            "rows_inserted": inserted if 'inserted' in dir() else None,
-            "rows_deleted": deleted if 'deleted' in dir() else None,
+            "rows_affected": (inserted or 0) + (deleted or 0) if inserted is not None else None,
+            "rows_inserted": inserted,
+            "rows_deleted": deleted,
         }
