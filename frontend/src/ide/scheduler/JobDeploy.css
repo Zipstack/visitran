@@ -10,15 +10,40 @@
 }
 
 .jl-job-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  background: var(--bg-color-3, rgba(0, 0, 0, 0.04));
-  color: var(--primary-color, #1677ff);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  font-size: 16px;
+}
+
+.jl-job-icon.success {
+  background: rgba(82, 196, 26, 0.12);
+  color: var(--success-color, #52c41a);
+}
+
+.jl-job-icon.failed {
+  background: rgba(255, 77, 79, 0.12);
+  color: var(--error-color, #ff4d4f);
+}
+
+.jl-job-icon.running {
+  background: rgba(22, 119, 255, 0.12);
+  color: var(--primary-color, #1677ff);
+  animation: jl-pulse 2s infinite;
+}
+
+.jl-job-icon.paused {
+  background: rgba(140, 140, 140, 0.12);
+  color: var(--font-color-3, #8c8c8c);
+}
+
+@keyframes jl-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(22, 119, 255, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(22, 119, 255, 0); }
 }
 
 .job-deploy-header-field {

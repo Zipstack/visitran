@@ -154,22 +154,36 @@ const JobListTable = memo(
         dataIndex: "task_name",
         key: "task_name",
         sorter: (a, b) => (a.task_name || "").localeCompare(b.task_name || ""),
-        render: (text, record) => (
-          <div className="jl-job-name">
-            <div className="jl-job-icon">
-              <SyncOutlined style={{ fontSize: 14 }} />
+        render: (text, record) => {
+          const isFailed = ["FAILED", "FAILED PERMANENTLY", "FAILURE"].includes(record.task_status);
+          const isSuccess = record.task_status === "SUCCESS";
+          const isRunning = ["RUNNING", "STARTED", "PENDING"].includes(record.task_status);
+          const isPaused = !record.periodic_task_details?.enabled;
+          let statusIcon, statusClass, tooltipText;
+          if (isPaused) { statusIcon = <PauseCircleOutlined />; statusClass = "paused"; tooltipText = "Paused — will not run"; }
+          else if (isFailed) { statusIcon = <CloseCircleFilled />; statusClass = "failed"; tooltipText = "Last run failed — needs attention"; }
+          else if (isSuccess) { statusIcon = <CheckCircleFilled />; statusClass = "success"; tooltipText = "Healthy — last run succeeded"; }
+          else if (isRunning) { statusIcon = <SyncOutlined spin />; statusClass = "running"; tooltipText = "Running"; }
+          else { statusIcon = <ClockCircleOutlined />; statusClass = "running"; tooltipText = "Scheduled — has not run yet"; }
+          return (
+            <div className="jl-job-name">
+              <Tooltip title={tooltipText} placement="right">
+                <div className={`jl-job-icon ${statusClass}`}>
+                  {statusIcon}
+                </div>
+              </Tooltip>
+              <div>
+                <Button type="link" size="small" style={{ padding: 0, height: "auto", fontWeight: 600 }}
+                  onClick={() => goToRunHistory(record.user_task_id)}>
+                  {text}
+                </Button>
+                {record.description && (
+                  <div><Text type="secondary" style={{ fontSize: 11 }}>{record.description}</Text></div>
+                )}
+              </div>
             </div>
-            <div>
-              <Button type="link" size="small" style={{ padding: 0, height: "auto", fontWeight: 600 }}
-                onClick={() => goToRunHistory(record.user_task_id)}>
-                {text}
-              </Button>
-              {record.description && (
-                <div><Text type="secondary" style={{ fontSize: 11 }}>{record.description}</Text></div>
-              )}
-            </div>
-          </div>
-        ),
+          );
+        },
       },
       {
         title: "Project",
