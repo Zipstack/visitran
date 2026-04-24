@@ -536,7 +536,7 @@ const Runhistory = () => {
                 value={filters.job || undefined}
                 onChange={(v) => handleFilterChange("job", v)}
                 style={{ width: "100%", maxWidth: 480 }}
-                size="large"
+                size="middle"
                 optionFilterProp="label"
                 placeholder="Search for a job..."
                 popupMatchSelectWidth={false}
@@ -564,7 +564,7 @@ const Runhistory = () => {
             <Col flex="none">
               <Space size={4}>
                 <Tooltip title="Previous job">
-                  <Button icon={<LeftOutlined />} size="large"
+                  <Button icon={<LeftOutlined />} size="middle"
                     disabled={!filters.job || jobListItems.findIndex((j) => j.value === filters.job) <= 0}
                     onClick={() => { const idx = jobListItems.findIndex((j) => j.value === filters.job); if (idx > 0) handleFilterChange("job", jobListItems[idx - 1].value); }}
                   />
@@ -573,7 +573,7 @@ const Runhistory = () => {
                   {filters.job ? `${jobListItems.findIndex((j) => j.value === filters.job) + 1} / ${jobListItems.length}` : "—"}
                 </Text>
                 <Tooltip title="Next job">
-                  <Button icon={<RightOutlined />} size="large"
+                  <Button icon={<RightOutlined />} size="middle"
                     disabled={!filters.job || jobListItems.findIndex((j) => j.value === filters.job) >= jobListItems.length - 1}
                     onClick={() => { const idx = jobListItems.findIndex((j) => j.value === filters.job); if (idx < jobListItems.length - 1) handleFilterChange("job", jobListItems[idx + 1].value); }}
                   />
