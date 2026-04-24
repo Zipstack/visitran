@@ -7,6 +7,35 @@
   overflow: auto;
 }
 
+/* ── Job Switcher ── */
+.rh-job-switcher {
+  padding: 12px 14px;
+  background: var(--bg-color-3, rgba(59, 130, 246, 0.04));
+  border: 1px solid var(--border-color-1, rgba(59, 130, 246, 0.15));
+  border-radius: 10px;
+}
+
+.rh-job-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 0;
+}
+
+.rh-job-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.rh-job-dot.success { background: var(--success-color, #52c41a); }
+.rh-job-dot.failed { background: var(--error-color, #ff4d4f); }
+.rh-job-dot.paused { background: var(--font-color-3, #8c8c8c); }
+
+.rh-job-option-name { font-weight: 500; }
+.rh-job-option-meta { font-size: 11px; color: var(--font-color-3, #8c8c8c); }
+
 /* ── Header ── */
 .runhistory-header {
   padding: 20px 24px 8px;

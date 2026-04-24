@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   Select,
   Table,
@@ -29,22 +29,20 @@ import {
   CopyOutlined,
   EyeOutlined,
   RedoOutlined,
-  ArrowUpOutlined,
-  ArrowDownOutlined,
-  UserOutlined,
-  EditOutlined,
   UpOutlined,
   DownOutlined,
   MinusOutlined,
+  LeftOutlined,
+  RightOutlined,
+  SwapOutlined,
 } from "@ant-design/icons";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
 import { useAxiosPrivate } from "../../service/axios-service";
 import { orgStore } from "../../store/org-store";
 import { useNotificationService } from "../../service/notification-service";
-import { runHistoryTagColor } from "../../common/constants";
 import { usePagination } from "../../widgets/hooks/usePagination";
-import { getTooltipText, getRelativeTime, formatDateTime } from "../../common/helpers";
+import { getRelativeTime, formatDateTime } from "../../common/helpers";
 import "./RunHistory.css";
 
 const { Text, Title } = Typography;
@@ -129,8 +127,8 @@ const Runhistory = () => {
   const { currentPage, pageSize, totalCount, setTotalCount, setCurrentPage, setPageSize } = usePagination();
 
   const [jobListItems, setJobListItems] = useState([]);
+  const [jobListFull, setJobListFull] = useState([]);
   const [jobHistoryData, setJobHistoryData] = useState([]);
-  const [jobSchedule, setJobSchedule] = useState({});
   const [expandedRowKeys, setExpandedRowKeys] = useState([]);
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState(null);
@@ -140,7 +138,6 @@ const Runhistory = () => {
   const [customDateRange, setCustomDateRange] = useState(null);
   const [showCustomDate, setShowCustomDate] = useState(false);
   const [envInfo, setEnvInfo] = useState({ env_type: "", job_name: "", id: "", project_id: "" });
-  const deepLinkConsumed = useRef(false);
   const orgId = selectedOrgId || "default_org";
 
   /* ── APIs ── */
@@ -181,14 +178,12 @@ const Runhistory = () => {
     try {
       const res = await axios.get(`/api/v1/visitran/${orgId}/project/_all/jobs/list-periodic-tasks`);
       const { page_items } = res.data.data;
-      const schedObj = {};
-      const jobs = page_items.map((el) => {
-        const td = el.periodic_task_details?.[el.task_type];
-        if (td) schedObj[el.user_task_id] = getTooltipText(td, el.task_type);
-        return { label: el.task_name, value: el.user_task_id };
-      });
-      setJobSchedule(schedObj);
+      const jobs = page_items.map((el) => ({
+        label: el.task_name,
+        value: el.user_task_id,
+      }));
       setJobListItems(jobs);
+      setJobListFull(page_items);
       if (jobs.length) {
         const fromUrl = searchParams.get("task");
         const matched = fromUrl ? jobs.find((j) => j.value === Number(fromUrl)) : null;
@@ -523,9 +518,77 @@ const Runhistory = () => {
       {/* Header */}
       <div className="runhistory-header">
         <Title level={3} style={{ margin: 0 }}>Run History</Title>
-        {filters.job && envInfo.job_name && (
-          <Text type="secondary">All runs for job <strong>{envInfo.job_name}</strong>. Sorted by most recent.</Text>
-        )}
+        <Text type="secondary">Pick any job below to see its runs.</Text>
+      </div>
+
+      {/* Job Switcher */}
+      <div style={{ padding: "0 24px 12px" }}>
+        <div className="rh-job-switcher">
+          <Row gutter={10} align="middle" wrap={false}>
+            <Col flex="none">
+              <Text type="secondary" style={{ fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>
+                <SwapOutlined /> Viewing runs for
+              </Text>
+            </Col>
+            <Col flex="auto">
+              <Select
+                showSearch
+                value={filters.job || undefined}
+                onChange={(v) => handleFilterChange("job", v)}
+                style={{ width: "100%", maxWidth: 480 }}
+                size="large"
+                optionFilterProp="label"
+                placeholder="Search for a job..."
+                popupMatchSelectWidth={false}
+                options={jobListItems.map((j) => {
+                  const job = jobListFull.find((f) => f.user_task_id === j.value) || {};
+                  const envType = job.environment?.type || "";
+                  const project = job.project?.name || "";
+                  const lastRun = job.task_completion_time ? getRelativeTime(job.task_completion_time) : "never";
+                  const isFailed = ["FAILED", "FAILURE"].includes(job.task_status);
+                  const isSuccess = job.task_status === "SUCCESS";
+                  return {
+                    value: j.value,
+                    label: (
+                      <div className="rh-job-option">
+                        <span className={`rh-job-dot ${isFailed ? "failed" : isSuccess ? "success" : "paused"}`} />
+                        <span className="rh-job-option-name">{j.label}</span>
+                        {envType && <Tag color={envType === "PROD" ? "error" : envType === "STG" ? "warning" : "blue"} style={{ margin: 0, fontSize: 10, fontWeight: 700 }}>{envType}</Tag>}
+                        <span className="rh-job-option-meta">· {project} · last run {lastRun}</span>
+                      </div>
+                    ),
+                  };
+                })}
+              />
+            </Col>
+            <Col flex="none">
+              <Space size={4}>
+                <Tooltip title="Previous job">
+                  <Button icon={<LeftOutlined />} size="large"
+                    disabled={!filters.job || jobListItems.findIndex((j) => j.value === filters.job) <= 0}
+                    onClick={() => { const idx = jobListItems.findIndex((j) => j.value === filters.job); if (idx > 0) handleFilterChange("job", jobListItems[idx - 1].value); }}
+                  />
+                </Tooltip>
+                <Text type="secondary" style={{ fontSize: 12, padding: "0 6px" }}>
+                  {filters.job ? `${jobListItems.findIndex((j) => j.value === filters.job) + 1} / ${jobListItems.length}` : "—"}
+                </Text>
+                <Tooltip title="Next job">
+                  <Button icon={<RightOutlined />} size="large"
+                    disabled={!filters.job || jobListItems.findIndex((j) => j.value === filters.job) >= jobListItems.length - 1}
+                    onClick={() => { const idx = jobListItems.findIndex((j) => j.value === filters.job); if (idx < jobListItems.length - 1) handleFilterChange("job", jobListItems[idx + 1].value); }}
+                  />
+                </Tooltip>
+              </Space>
+            </Col>
+            <Col flex="none">
+              <Space size={6} style={{ paddingLeft: 12, borderLeft: "1px solid var(--border-color-1, rgba(0,0,0,0.1))" }}>
+                {envInfo.env_type && <Tag color={envInfo.env_type?.toLowerCase() === "production" || envInfo.env_type === "PROD" ? "error" : envInfo.env_type === "STG" ? "warning" : "blue"} style={{ margin: 0, fontWeight: 700 }}>{envInfo.env_type}</Tag>}
+                {stats?.schedule_enabled && <Tag color="purple" icon={<ClockCircleOutlined />} style={{ margin: 0 }}>{stats.schedule_label || "Scheduled"}</Tag>}
+                <Button type="link" size="small" onClick={() => navigate(`/project/job/list?task=${envInfo.id}`)}>View job config →</Button>
+              </Space>
+            </Col>
+          </Row>
+        </div>
       </div>
 
       {/* Stats Cards */}
@@ -602,20 +665,6 @@ const Runhistory = () => {
           </Row>
         </Card>
       </div>
-
-      {/* Job header bar */}
-      {filters.job && envInfo.job_name && (
-        <Row justify="space-between" align="middle" style={{ padding: "4px 24px 12px" }}>
-          <Col><Space><Text strong style={{ fontSize: 14 }}>{envInfo.job_name}</Text><Text type="secondary" style={{ fontSize: 13 }}>· {totalCount} runs</Text></Space></Col>
-          <Col>
-            <Space>
-              {envInfo.env_type && <Tag color="red" style={{ fontWeight: 600 }}>● {envInfo.env_type?.toUpperCase()}</Tag>}
-              {stats?.schedule_enabled && <Tag color="purple" icon={<ClockCircleOutlined />} style={{ fontWeight: 600 }}>SCHEDULED {stats.schedule_label?.toUpperCase() || "DAILY"}</Tag>}
-              <Button type="link" size="small" onClick={() => navigate(`/project/job/list?task=${envInfo.id}`)}>View job →</Button>
-            </Space>
-          </Col>
-        </Row>
-      )}
 
       {/* Table */}
       <div className="runhistory-table-container">
