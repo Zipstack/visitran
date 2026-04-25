@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import PropTypes from "prop-types";
 
 import { useSocketService } from "../../service/socket-service";
@@ -6,8 +6,8 @@ import { ExistingChat } from "./ExistingChat";
 import { NewChat } from "./NewChat";
 import { useChatAIService } from "./services";
 import { useProjectStore } from "../../store/project-store";
+import { useExplorerStore } from "../../store/explorer-store";
 import { useNotificationService } from "../../service/notification-service";
-import { explorerService } from "../explorer/explorer-service";
 
 // Cloud-only: fetch token balance (unavailable in OSS — import fails gracefully)
 let getTokenBalance = null;
@@ -71,8 +71,9 @@ const Body = function Body({
     seedsData: {},
     dbData: {},
   });
-  const explorerSvc = useRef(explorerService()).current;
   const { projectId } = useProjectStore();
+  const explorerData = useExplorerStore((state) => state.explorerData);
+  const dbExplorerData = useExplorerStore((state) => state.dbExplorerData);
 
   const { postChatPrompt, getChatIntents, getChatLlmModels } =
     useChatAIService();
@@ -202,37 +203,28 @@ const Body = function Body({
       });
   }, [selectedChatId, chatMessages.length, realTokenBalance, notify]);
 
+  // Autocomplete data is mirrored passively from useExplorerStore, which is
+  // populated exclusively by explorer-component.jsx. This component deliberately
+  // does NOT fetch on its own — the IDE layout mounts the explorer before the
+  // chat drawer opens, so the store is populated by the time autocomplete is
+  // triggered. If that invariant ever breaks (lazy-loaded explorer, standalone
+  // chat route, explorer fetch failure), add a fetch fallback here or a
+  // loading/unavailable state in the InputPrompt autocomplete UI.
   useEffect(() => {
-    if (!projectId || !isChatDrawerOpen) return;
+    const children = explorerData || [];
+    setPromptAutoComplete((prev) => ({
+      ...prev,
+      modelsData: children[0] || {},
+      seedsData: children[1] || {},
+    }));
+  }, [explorerData]);
 
-    // fetch database schemas -> update immediately when ready
-    explorerSvc
-      .getDbExplorer(projectId)
-      .then((res) => {
-        setPromptAutoComplete((prev) => ({
-          ...prev,
-          dbData: res?.data || {},
-        }));
-      })
-      .catch(() => {
-        console.error("Failed to fetch database schemas");
-      });
-
-    // fetch models & seeds -> update as soon as ready
-    explorerSvc
-      .getExplorer(projectId)
-      .then((res) => {
-        const children = res?.data?.children || [];
-        setPromptAutoComplete((prev) => ({
-          ...prev,
-          modelsData: children[0] || {},
-          seedsData: children[1] || {},
-        }));
-      })
-      .catch(() => {
-        console.error("Failed to fetch models and seeds");
-      });
-  }, [projectId, isChatDrawerOpen, explorerSvc]);
+  useEffect(() => {
+    setPromptAutoComplete((prev) => ({
+      ...prev,
+      dbData: dbExplorerData || {},
+    }));
+  }, [dbExplorerData]);
 
   const triggerGetChatMessagesApi = useCallback(() => {
     setIsGetChatMessages(true);

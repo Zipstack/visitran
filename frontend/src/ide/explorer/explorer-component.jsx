@@ -63,6 +63,7 @@ import "../ide-layout.css";
 import { useNotificationService } from "../../service/notification-service.js";
 import { SpinnerLoader } from "../../widgets/spinner_loader/index.js";
 import { useRefreshModelsStore } from "../../store/refresh-models-store.js";
+import { useExplorerStore } from "../../store/explorer-store.js";
 import { LinearScale } from "../../base/icons";
 
 // Static sort options for model explorer
@@ -176,6 +177,13 @@ const IdeExplorer = ({
   const currentSchema = useProjectStore((state) => state.currentSchema);
   const setCurrentSchema = useProjectStore((state) => state.setCurrentSchema);
   const setSchemaList = useProjectStore((state) => state.setSchemaList);
+  const setExplorerData = useExplorerStore((state) => state.setExplorerData);
+  const setDbExplorerData = useExplorerStore(
+    (state) => state.setDbExplorerData
+  );
+  const clearExplorerData = useExplorerStore(
+    (state) => state.clearExplorerData
+  );
 
   // Reset currentSchema on unmount to prevent stale data
   useEffect(() => {
@@ -194,7 +202,7 @@ const IdeExplorer = ({
   const [openNameModal, setOpenNameModal] = useState(false);
   const [newSchemaName, setNewSchemaName] = useState("");
   const [isSchemaModalOpen, setIsSchemaModalOpen] = useState(false);
-  const [schemaMenu, setSchemaMenu] = useState([]);
+  const [schemaMenu, setSchemaMenu] = useState(null);
   const [dbExplorer, setDBExplorer] = useState([]);
   const [activeMenu, setActiveMenu] = useState("");
   const [dbLoading, setDbLoading] = useState(false);
@@ -976,7 +984,7 @@ const IdeExplorer = ({
                 <>
                   <Dropdown
                     menu={{
-                      items: schemaMenu.map((el) => ({
+                      items: (schemaMenu || []).map((el) => ({
                         ...el,
                         label:
                           el.key === "add-new-schema" ? (
@@ -1014,7 +1022,7 @@ const IdeExplorer = ({
                         ? "Run Seed Disabled - Please select a schema"
                         : previewTimeTravel
                         ? "Run Seed Disabled - Time travel mode active"
-                        : schemaMenu.length <= 1
+                        : (schemaMenu || []).length <= 1
                         ? "Run Seed Disabled - No schemas available"
                         : "Run Seed"
                     }
@@ -1035,7 +1043,7 @@ const IdeExplorer = ({
                       disabled={
                         previewTimeTravel ||
                         !currentSchema ||
-                        schemaMenu.length <= 1
+                        (schemaMenu || []).length <= 1
                       }
                     >
                       <PlayCircleOutlined />
@@ -1118,7 +1126,7 @@ const IdeExplorer = ({
                           if (
                             !previewTimeTravel &&
                             currentSchema &&
-                            schemaMenu.length > 1
+                            (schemaMenu || []).length > 1
                           ) {
                             handleSeedIconClick(event, child.title);
                           }
@@ -1127,7 +1135,7 @@ const IdeExplorer = ({
                           previewTimeTravel ||
                           seedRunningRef.current ||
                           !currentSchema ||
-                          schemaMenu.length <= 1
+                          (schemaMenu || []).length <= 1
                             ? "seed-icon-disabled"
                             : ""
                         }`}
@@ -1244,11 +1252,27 @@ const IdeExplorer = ({
     [modelSortBy, handleModelSort]
   );
 
+  // schemaMenu starts as null; becomes an array (possibly empty) after
+  // getSchemas resolves. Gating on truthiness skips the redundant mount-time
+  // fetch while still firing for projects whose schema list is legitimately
+  // empty.
   useEffect(() => {
     if (schemaMenu) {
       getExplorer(projectId);
     }
   }, [schemaMenu, currentSchema]);
+
+  // Clear shared explorer data on project switch so other consumers
+  // (e.g. chat autocomplete) don't momentarily read the previous project's tree.
+  // Ref-gated so the clear does NOT fire on initial mount / remount within the
+  // same project — only when projectId actually changes.
+  const prevProjectIdRef = useRef(projectId);
+  useEffect(() => {
+    if (prevProjectIdRef.current !== projectId) {
+      clearExplorerData();
+      prevProjectIdRef.current = projectId;
+    }
+  }, [projectId, clearExplorerData]);
 
   function getExplorer(projectId) {
     if (!projectId) return;
@@ -1258,6 +1282,9 @@ const IdeExplorer = ({
       .then((res) => {
         const treeData = res.data.children;
         rawTreeDataRef.current = JSON.parse(JSON.stringify(treeData));
+        // Publish the raw (pre-mutation) shape to the shared store so
+        // consumers like chat-ai/Body.jsx get the untransformed children.
+        setExplorerData(rawTreeDataRef.current);
         // Apply sort and decorations to no_code models BEFORE transformTree
         // so that _isChild flag is set when className is assigned
         treeData.forEach((node) => {
@@ -1299,6 +1326,7 @@ const IdeExplorer = ({
         const treeData = res.data;
         const mappedData = mapIconsToTreeData([treeData]);
         setDBExplorer(mappedData);
+        setDbExplorerData(treeData);
         setCachedLists((prev) => ({
           ...prev,
           2: generateList([treeData]), // Correct key
