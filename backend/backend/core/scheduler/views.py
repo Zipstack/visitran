@@ -23,17 +23,17 @@ logger = logging.getLogger(__name__)
 
 
 
-def _compute_next_run_time(periodic, last_run_at):
+def _compute_next_run_time(periodic):
     """Derive the next run time from a PeriodicTask's schedule."""
     if not periodic or not periodic.enabled:
         return None
     try:
         schedule = periodic.schedule
-        reference = last_run_at or periodic.last_run_at or timezone.now()
-        remaining = schedule.remaining_estimate(reference)
-        return timezone.now() + remaining
+        now = timezone.now()
+        remaining = schedule.remaining_estimate(now)
+        return now + remaining
     except Exception:
-        logger.debug("Failed to compute next_run_time for %s", periodic, exc_info=True)
+        logger.warning("Failed to compute next_run_time for %s", periodic, exc_info=True)
         return None
 
 
@@ -181,9 +181,7 @@ def _serialize_task(task):
         "task_status": task.status,
         "task_run_time": task.task_run_time,
         "task_completion_time": task.task_completion_time,
-        "next_run_time": task.next_run_time or _compute_next_run_time(
-            periodic, task.task_run_time
-        ),
+        "next_run_time": _compute_next_run_time(periodic) or task.next_run_time,
         "task_type": task_type,
         "description": task.description,
         "environment": {
