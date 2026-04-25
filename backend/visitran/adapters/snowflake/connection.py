@@ -328,7 +328,8 @@ class SnowflakeConnection(BaseConnection):
             """
 
             cursor = self.connection.raw_sql(merge_query)
-            rowcount = cursor.rowcount if hasattr(cursor, "rowcount") else None
+            _rc = cursor.rowcount if hasattr(cursor, "rowcount") else None
+            rowcount = _rc if (_rc is not None and _rc >= 0) else None
             try:
                 cursor.close()
             except Exception:

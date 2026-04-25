@@ -185,7 +185,8 @@ class TrinoQEConnection(BaseConnection):
                     )
                 """
                 del_cursor = self.connection.raw_sql(delete_sql)
-                deleted = del_cursor.rowcount if hasattr(del_cursor, "rowcount") else None
+                _rc = del_cursor.rowcount if hasattr(del_cursor, "rowcount") else None
+                deleted = _rc if (_rc is not None and _rc >= 0) else None
                 try:
                     del_cursor.close()
                 except Exception:
@@ -199,7 +200,8 @@ class TrinoQEConnection(BaseConnection):
                 FROM {qi(schema_name)}.{qi(temp_table_name)}
             """
             ins_cursor = self.connection.raw_sql(insert_sql)
-            inserted = ins_cursor.rowcount if hasattr(ins_cursor, "rowcount") else None
+            _rc = ins_cursor.rowcount if hasattr(ins_cursor, "rowcount") else None
+            inserted = _rc if (_rc is not None and _rc >= 0) else None
             try:
                 ins_cursor.close()
             except Exception:
