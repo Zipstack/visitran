@@ -279,15 +279,12 @@ class SnowflakeConnection(BaseConnection):
         table_name: str,
         select_statement: "Table",
         primary_key: Union[str, list[str]],
-    ) -> None:
+    ) -> dict:
         """Efficient upsert using Snowflake's MERGE INTO statement.
-
-        This approach is optimal for Snowflake because:
-        1. MERGE INTO is natively supported and optimized
-        2. Atomic operation with ACID properties
-        3. Handles both single and composite keys efficiently
-        4. Better performance than separate DELETE + INSERT
+        Returns dict with rows_affected from cursor.rowcount.
         """
+        rowcount = None
+
         # Handle both single column and composite keys
         if isinstance(primary_key, str):
             key_columns = [primary_key]
@@ -330,7 +327,13 @@ class SnowflakeConnection(BaseConnection):
                     VALUES ({insert_values})
             """
 
-            self.connection.raw_sql(merge_query)
+            cursor = self.connection.raw_sql(merge_query)
+            _rc = cursor.rowcount if hasattr(cursor, "rowcount") else None
+            rowcount = _rc if (_rc is not None and _rc >= 0) else None
+            try:
+                cursor.close()
+            except Exception:
+                pass
 
         except Exception as e:
             logging.error(f"Snowflake upsert failed for {schema_name}.{table_name}: {str(e)}")
@@ -341,3 +344,4 @@ class SnowflakeConnection(BaseConnection):
                 self.connection.raw_sql(f"DROP TABLE IF EXISTS {qi(schema_name)}.{qi(temp_table_name)}")
             except Exception:
                 pass  # Ignore cleanup errors
+        return {"rows_affected": rowcount}

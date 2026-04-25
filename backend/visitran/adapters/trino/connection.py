@@ -147,16 +147,13 @@ class TrinoQEConnection(BaseConnection):
         table_name: str,
         select_statement: "Table",
         primary_key: Union[str, list[str]],
-    ) -> None:
+    ) -> dict:
         """Efficient upsert using DELETE + INSERT strategy for Trino.
-
-        Notes:
-        - MERGE can be expensive in Trino due to full joins. We avoid it.
-        - When a primary_key is provided (single or composite), we perform:
-          1) DELETE matching rows in target
-          2) INSERT all rows from the temp incremental table
-        - Without a primary_key we fall back to simple INSERT (may create duplicates).
+        Returns dict with rows_deleted and rows_inserted from cursors.
         """
+        inserted = None
+        deleted = None
+
         # Normalize primary key(s)
         if isinstance(primary_key, str):
             key_columns = [primary_key]
@@ -187,7 +184,13 @@ class TrinoQEConnection(BaseConnection):
                         WHERE {where_clause}
                     )
                 """
-                self.connection.raw_sql(delete_sql)
+                del_cursor = self.connection.raw_sql(delete_sql)
+                _rc = del_cursor.rowcount if hasattr(del_cursor, "rowcount") else None
+                deleted = _rc if (_rc is not None and _rc >= 0) else None
+                try:
+                    del_cursor.close()
+                except Exception:
+                    pass
 
             # 2b. INSERT all rows from temp (includes new/updated)
             insert_cols = ", ".join([qi(c) for c in target_columns])
@@ -196,7 +199,13 @@ class TrinoQEConnection(BaseConnection):
                 SELECT {insert_cols}
                 FROM {qi(schema_name)}.{qi(temp_table_name)}
             """
-            self.connection.raw_sql(insert_sql)
+            ins_cursor = self.connection.raw_sql(insert_sql)
+            _rc = ins_cursor.rowcount if hasattr(ins_cursor, "rowcount") else None
+            inserted = _rc if (_rc is not None and _rc >= 0) else None
+            try:
+                ins_cursor.close()
+            except Exception:
+                pass
 
         except Exception as e:
             logging.error(f"Trino upsert (DELETE+INSERT) failed for {schema_name}.{table_name}: {str(e)}")
@@ -209,3 +218,8 @@ class TrinoQEConnection(BaseConnection):
                 self.connection.raw_sql(f"DROP TABLE IF EXISTS {qi(schema_name)}.{qi(temp_table_name)}")
             except Exception:
                 pass
+        return {
+            "rows_affected": inserted,
+            "rows_inserted": inserted,
+            "rows_deleted": deleted,
+        }

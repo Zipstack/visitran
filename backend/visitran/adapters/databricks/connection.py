@@ -224,21 +224,12 @@ class DatabricksConnection(BaseConnection):
         table_name: str,
         select_statement: "Table",
         primary_key: Union[str, list[str]],
-    ) -> None:
+    ) -> dict:
         """Efficient upsert using Databricks Delta Lake's MERGE INTO statement.
-
-        This approach is optimal for Databricks because:
-        1. Delta Lake natively supports MERGE INTO with ACID guarantees
-        2. Atomic operation with automatic conflict resolution
-        3. Handles both single and composite keys efficiently
-        4. Leverages Delta Lake's optimized merge implementation
-
-        Args:
-            schema_name: Target schema/database name
-            table_name: Target table name
-            select_statement: Ibis table expression with incremental data
-            primary_key: Column(s) to match for upsert (single string or list)
+        Returns dict with rows_affected from cursor.rowcount.
         """
+        rowcount = None
+
         # Handle both single column and composite keys
         if isinstance(primary_key, str):
             key_columns = [primary_key]
@@ -287,6 +278,8 @@ class DatabricksConnection(BaseConnection):
             """
 
             cursor = self.connection.raw_sql(merge_query)
+            _rc = cursor.rowcount if hasattr(cursor, "rowcount") else None
+            rowcount = _rc if (_rc is not None and _rc >= 0) else None
             cursor.close()
             logging.info("Databricks MERGE completed for %s.%s", schema_name, table_name)
 
@@ -302,3 +295,4 @@ class DatabricksConnection(BaseConnection):
                 cursor.close()
             except Exception:
                 pass
+        return {"rows_affected": rowcount}

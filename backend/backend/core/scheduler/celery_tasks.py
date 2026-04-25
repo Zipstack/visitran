@@ -361,12 +361,30 @@ def trigger_scheduled_run(
                         "status": r.status,
                         "end_status": r.end_status,
                         "sequence": r.sequence_num,
+                        "rows_affected": getattr(r, "rows_affected", None),
+                        "rows_inserted": getattr(r, "rows_inserted", None),
+                        "rows_updated": getattr(r, "rows_updated", None),
+                        "rows_deleted": getattr(r, "rows_deleted", None),
+                        "type": getattr(r, "materialization", "") or "",
+                        "duration_ms": getattr(r, "duration_ms", None),
                     }
                     for r in user_results
                 ],
                 "total": len(user_results),
                 "passed": sum(1 for r in user_results if r.end_status == "OK"),
                 "failed": sum(1 for r in user_results if r.end_status == "FAIL"),
+                "rows_processed": sum(
+                    getattr(r, "rows_affected", 0) or 0 for r in user_results
+                ) or None,
+                "rows_added": sum(
+                    getattr(r, "rows_inserted", 0) or 0 for r in user_results
+                ) or None,
+                "rows_modified": sum(
+                    getattr(r, "rows_updated", 0) or 0 for r in user_results
+                ) or None,
+                "rows_deleted": sum(
+                    getattr(r, "rows_deleted", 0) or 0 for r in user_results
+                ) or None,
             }
         except Exception:
             _clear_base_result()

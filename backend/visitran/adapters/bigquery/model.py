@@ -92,12 +92,14 @@ class BigQueryModel(BaseModel):
                 # Get primary key from model if available
                 primary_key = getattr(self.model, 'primary_key', None)
 
-                self.db_connection.merge_into_table(
+                result = self.db_connection.merge_into_table(
                     schema_name=self.model.destination_schema_name,
                     target_table_name=self.model.destination_table_name,
                     select_statement=self.model.select_statement,
                     primary_key=primary_key,
                 )
+                if result and isinstance(result, dict):
+                    self._upsert_metrics = result
         else:
             fire_event(
                 ExecuteIncrementalCreate(
