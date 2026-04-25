@@ -29,12 +29,23 @@
   flex-shrink: 0;
 }
 
-.rh-job-dot.success { background: var(--success-color, #52c41a); }
-.rh-job-dot.failed { background: var(--error-color, #ff4d4f); }
-.rh-job-dot.paused { background: var(--font-color-3, #8c8c8c); }
+.rh-job-dot.success {
+  background: var(--success-color, #52c41a);
+}
+.rh-job-dot.failed {
+  background: var(--error-color, #ff4d4f);
+}
+.rh-job-dot.paused {
+  background: var(--font-color-3, #8c8c8c);
+}
 
-.rh-job-option-name { font-weight: 500; }
-.rh-job-option-meta { font-size: 11px; color: var(--font-color-3, #8c8c8c); }
+.rh-job-option-name {
+  font-weight: 500;
+}
+.rh-job-option-meta {
+  font-size: 11px;
+  color: var(--font-color-3, #8c8c8c);
+}
 
 /* ── Header ── */
 .runhistory-header {
