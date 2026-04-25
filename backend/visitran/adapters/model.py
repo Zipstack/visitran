@@ -87,7 +87,7 @@ class BaseModel(ABC):
                 table_name=self.model.destination_table_name,
             )
         except Exception as e:
-            logging.warning(f"Could not get row count for {self.model.destination_table_name}: {e}")
+            logging.info(f"Could not get row count for {self.model.destination_table_name}: {e}")
             return None
 
     @abstractmethod

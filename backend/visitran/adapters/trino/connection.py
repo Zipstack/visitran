@@ -219,7 +219,7 @@ class TrinoQEConnection(BaseConnection):
             except Exception:
                 pass
         return {
-            "rows_affected": (inserted or 0) + (deleted or 0) if inserted is not None else None,
+            "rows_affected": inserted,
             "rows_inserted": inserted,
             "rows_deleted": deleted,
         }

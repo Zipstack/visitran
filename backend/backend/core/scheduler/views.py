@@ -600,10 +600,11 @@ def run_stats(request, project_id, user_task_id):
         last_24h = now - timedelta(hours=24)
         prev_24h_start = now - timedelta(hours=48)
 
-        # Success rate (7 days)
+        # Success rate (7 days) — only count completed runs in denominator
         runs_7d = runs.filter(start_time__gte=last_7d)
-        total_7d = runs_7d.count()
-        success_7d = runs_7d.filter(status="SUCCESS").count()
+        completed_7d = runs_7d.filter(status__in=["SUCCESS", "FAILURE"])
+        total_7d = completed_7d.count()
+        success_7d = completed_7d.filter(status="SUCCESS").count()
         success_rate = round((success_7d / total_7d * 100), 1) if total_7d > 0 else None
 
         # Average duration (successful runs, 7 days)
@@ -731,7 +732,15 @@ def task_run_history(request, project_id, user_task_id):
         total = runs.count()
 
         offset = (page - 1) * limit
-        serializer = TaskRunHistorySerializer(runs[offset : offset + limit], many=True)
+        page_qs = runs[offset : offset + limit]
+        # Compute run numbers from total and offset — no extra query needed
+        run_numbers = {
+            run.id: total - offset - idx
+            for idx, run in enumerate(page_qs)
+        }
+        serializer = TaskRunHistorySerializer(
+            page_qs, many=True, context={"run_numbers": run_numbers}
+        )
 
         return Response(
             {
