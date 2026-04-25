@@ -1,5 +1,5 @@
-import { Input, Select, Button, Space, Badge, Card, Row, Col } from "antd";
-import { PlusOutlined, ReloadOutlined, SearchOutlined } from "@ant-design/icons";
+import { Input, Select, Button, Space, Card, Row, Col } from "antd";
+import { ReloadOutlined, SearchOutlined } from "@ant-design/icons";
 import { memo } from "react";
 import PropTypes from "prop-types";
 
@@ -27,12 +27,22 @@ const JobListFilters = memo(
     ].filter(Boolean).length;
 
     const handleClearFilters = () => {
-      setFilters({ env: "all", proj: "all", status: "", lastRun: "", schedule: "" });
+      setFilters({
+        env: "all",
+        proj: "all",
+        status: "",
+        lastRun: "",
+        schedule: "",
+      });
       if (onSearchChange) onSearchChange({ target: { value: "" } });
     };
 
     return (
-      <Card size="small" styles={{ body: { padding: 10 } }} style={{ marginBottom: 12 }}>
+      <Card
+        size="small"
+        styles={{ body: { padding: 10 } }}
+        style={{ marginBottom: 12 }}
+      >
         <Row gutter={[8, 8]} align="middle" wrap>
           <Col flex="220px">
             <Input
@@ -105,7 +115,9 @@ const JobListFilters = memo(
           </Col>
           <Col flex="auto" style={{ textAlign: "right" }}>
             <Space size={8}>
-              <span style={{ fontSize: 12, color: "var(--font-color-3, #8c8c8c)" }}>
+              <span
+                style={{ fontSize: 12, color: "var(--font-color-3, #8c8c8c)" }}
+              >
                 {totalJobs} job{totalJobs !== 1 ? "s" : ""}
               </span>
               {activeFilterCount > 0 && (

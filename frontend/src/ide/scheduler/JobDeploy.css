@@ -42,8 +42,13 @@
 }
 
 @keyframes jl-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(22, 119, 255, 0.4); }
-  50% { box-shadow: 0 0 0 6px rgba(22, 119, 255, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(22, 119, 255, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(22, 119, 255, 0);
+  }
 }
 
 .job-deploy-header-field {
