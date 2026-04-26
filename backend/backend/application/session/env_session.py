@@ -2,10 +2,11 @@ from typing import Any
 
 from visitran.utils import import_file
 
-from backend.application.session.connection_session import ConnectionSession
+from backend.application.session.connection_session import ConnectionSession, _get_host_display
 from backend.application.utils import get_filter
 from backend.core.models.environment_models import EnvironmentModels
 from backend.core.models.project_details import ProjectDetails
+from backend.core.scheduler.models import UserTaskDetails
 from backend.errors.exceptions import EnvironmentAlreadyExist, EnvironmentNotExists
 from backend.utils.pagination import CustomPaginator
 
@@ -89,6 +90,12 @@ class EnvironmentSession:
 
         env_data = []
         for env_model in env_models.get("page_items"):
+            job_count = UserTaskDetails.objects.filter(
+                environment=env_model
+            ).count()
+            project_count = ProjectDetails.objects.filter(
+                environment_model=env_model
+            ).count()
             env_data.append(
                 {
                     "id": env_model.environment_id,
@@ -100,8 +107,12 @@ class EnvironmentSession:
                         "name": env_model.connection_model.connection_name,
                         "datasource_name": env_model.connection_model.datasource_name,
                         "db_icon": import_file(f"visitran.adapters.{env_model.connection_model.datasource_name}").ICON,
+                        "host": _get_host_display(env_model.connection_model),
+                        "connection_flag": env_model.connection_model.connection_flag,
                     },
                     "is_tested": env_model.is_tested,
+                    "job_count": job_count,
+                    "project_count": project_count,
                 }
             )
         env_models["page_items"] = env_data
@@ -118,6 +129,9 @@ class EnvironmentSession:
                 "id": env_model.connection_model.connection_id,
                 "name": env_model.connection_model.connection_name,
                 "datasource_name": env_model.connection_model.datasource_name,
+                "db_icon": import_file(f"visitran.adapters.{env_model.connection_model.datasource_name}").ICON,
+                "host": _get_host_display(env_model.connection_model),
+                "connection_flag": env_model.connection_model.connection_flag,
             },
             "connection_details": env_model.masked_connection_data,
             "custom_data": env_model.env_custom_data,
