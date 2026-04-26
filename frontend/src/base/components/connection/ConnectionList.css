@@ -1,0 +1,157 @@
+/* ── Connection List Page ── */
+.conn-page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--white);
+  position: relative;
+}
+
+.conn-page-inner {
+  flex: 1;
+  padding: 20px 24px;
+  overflow: auto;
+}
+
+/* Force Drawer to stay within .conn-page (below topbar) */
+.conn-page > .ant-drawer {
+  position: absolute;
+}
+
+.conn-page > .ant-drawer .ant-drawer-mask {
+  position: absolute;
+}
+
+.conn-page > .ant-drawer .ant-drawer-content-wrapper {
+  position: absolute;
+}
+
+/* ── Connection name cell ── */
+.conn-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.conn-db-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--page-bg-1, #f5f5f5);
+  border: 1px solid var(--border-color-4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.conn-db-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.conn-name-text {
+  font-weight: 600;
+}
+
+/* ── Filter bar ── */
+.conn-filter-bar {
+  margin-bottom: 12px;
+}
+
+/* ── DB Tile Grid (Drawer) ── */
+.conn-db-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.conn-db-tile {
+  padding: 12px 8px;
+  border: 1px solid var(--border-color-4, #e2e8f0);
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  background: var(--white, #fff);
+  transition: all 0.15s;
+}
+
+.conn-db-tile:hover {
+  border-color: #93c5fd;
+  transform: translateY(-1px);
+}
+
+.conn-db-tile.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.dark .conn-db-tile {
+  border-color: #2a3648;
+  background: var(--white, #111827);
+}
+
+.dark .conn-db-tile.active {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.12);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.conn-db-tile-logo-wrap {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.conn-db-tile-logo-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
+.conn-db-tile-name {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--black, #1a2332);
+}
+
+.conn-db-tile.active .conn-db-tile-name {
+  font-weight: 600;
+}
+
+/* ── Credential fields grid layout ── */
+.conn-cred-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+}
+
+.conn-cred-field-half {
+  grid-column: span 1;
+}
+
+.conn-cred-field-full {
+  grid-column: span 2;
+}
+
+/* ── Section headings (Drawer) ── */
+.conn-section-heading {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  margin-bottom: 10px;
+  margin-top: 4px;
+}
+
+.dark .conn-section-heading {
+  color: #94a3b8;
+}
