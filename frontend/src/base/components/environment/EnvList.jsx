@@ -381,26 +381,17 @@ const EnvList = () => {
             </Text>
           </Col>
           <Col>
-            <Space>
-              <Tooltip title="Refresh">
-                <Button
-                  icon={<ReloadOutlined spin={loading} />}
-                  onClick={() => getEnvData(currentPage, pageSize)}
-                  disabled={loading}
-                />
-              </Tooltip>
-              <Button
-                type="primary"
-                icon={<PlusOutlined />}
-                onClick={() => {
-                  setEnvId("");
-                  setIsDrawerOpen(true);
-                }}
-                disabled={!canWrite}
-              >
-                New Environment
-              </Button>
-            </Space>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setEnvId("");
+                setIsDrawerOpen(true);
+              }}
+              disabled={!canWrite}
+            >
+              New Environment
+            </Button>
           </Col>
         </Row>
 
@@ -451,10 +442,21 @@ const EnvList = () => {
               </Col>
             )}
             <Col flex="auto" style={{ textAlign: "right" }}>
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                {filteredData.length} environment
-                {filteredData.length !== 1 ? "s" : ""}
-              </Text>
+              <Space size={8}>
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  {filteredData.length} environment
+                  {filteredData.length !== 1 ? "s" : ""}
+                </Text>
+                <Tooltip title="Refresh">
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={<ReloadOutlined spin={loading} />}
+                    onClick={() => getEnvData(currentPage, pageSize)}
+                    disabled={loading}
+                  />
+                </Tooltip>
+              </Space>
             </Col>
           </Row>
         </Card>
