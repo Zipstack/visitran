@@ -55,6 +55,7 @@ import {
   collapseSpaces,
 } from "./helper";
 import { SpinnerLoader } from "../../../widgets/spinner_loader";
+import { ConnectionDrawer } from "../connection/ConnectionDrawer";
 
 const { Text } = Typography;
 const { TextArea } = Input;
@@ -151,6 +152,7 @@ const EnvironmentDrawer = ({ open, onClose, envId, onSaved, getContainer }) => {
   const [connListLoading, setConnListLoading] = useState(false);
   const [selectedConnId, setSelectedConnId] = useState(null);
   const [selectedConnInfo, setSelectedConnInfo] = useState(null);
+  const [connDrawerOpen, setConnDrawerOpen] = useState(false);
 
   // Credentials
   const [connectionDataSource, setConnectionDataSource] = useState(null);
@@ -194,21 +196,35 @@ const EnvironmentDrawer = ({ open, onClose, envId, onSaved, getContainer }) => {
   }, [open, selectedOrgId]);
 
   /* ── Fetch connection list ── */
+  const loadConnections = useCallback(async () => {
+    setConnListLoading(true);
+    try {
+      const data = await fetchAllConnections(axiosRef, selectedOrgId);
+      return data?.filter((el) => !el?.is_sample_project) || [];
+    } catch (error) {
+      notify({ error });
+      return [];
+    } finally {
+      setConnListLoading(false);
+    }
+  }, [selectedOrgId]);
+
   useEffect(() => {
     if (!open) return;
-    const load = async () => {
-      setConnListLoading(true);
-      try {
-        const data = await fetchAllConnections(axiosRef, selectedOrgId);
-        setConnectionList(data?.filter((el) => !el?.is_sample_project) || []);
-      } catch (error) {
-        notify({ error });
-      } finally {
-        setConnListLoading(false);
-      }
-    };
-    load();
+    loadConnections().then(setConnectionList);
   }, [open, selectedOrgId]);
+
+  /* ── Handle new connection created from nested drawer ── */
+  const handleConnectionCreated = useCallback(async () => {
+    const updated = await loadConnections();
+    setConnectionList(updated);
+    // Auto-select the newest connection (first in list, sorted by modified_at desc)
+    if (updated.length > 0) {
+      const newest = updated[0];
+      setSelectedConnId(newest.id);
+      handleConnectionChange(newest.id);
+    }
+  }, [loadConnections]);
 
   /* ── Fetch field schema when datasource changes ── */
   useEffect(() => {
@@ -320,7 +336,7 @@ const EnvironmentDrawer = ({ open, onClose, envId, onSaved, getContainer }) => {
   const handleConnectionChange = useCallback(
     async (connId) => {
       if (connId === "__create__") {
-        // TODO: open nested connection drawer
+        setConnDrawerOpen(true);
         return;
       }
       setSelectedConnId(connId);
@@ -755,7 +771,24 @@ const EnvironmentDrawer = ({ open, onClose, envId, onSaved, getContainer }) => {
         <Divider />
 
         {/* ── Connection ── */}
-        <div className="conn-section-heading">Connection *</div>
+        <Row justify="space-between" align="middle" style={{ marginBottom: 4 }}>
+          <Col>
+            <div className="conn-section-heading" style={{ marginBottom: 0 }}>
+              Connection *
+            </div>
+          </Col>
+          <Col>
+            <Button
+              type="link"
+              size="small"
+              icon={<PlusOutlined />}
+              onClick={() => setConnDrawerOpen(true)}
+              style={{ padding: 0, fontSize: 12 }}
+            >
+              New connection
+            </Button>
+          </Col>
+        </Row>
         <Select
           value={selectedConnId}
           onChange={handleConnectionChange}
@@ -1052,6 +1085,15 @@ const EnvironmentDrawer = ({ open, onClose, envId, onSaved, getContainer }) => {
           </>
         )}
       </Form>
+
+      {/* Nested Connection Drawer */}
+      <ConnectionDrawer
+        open={connDrawerOpen}
+        onClose={() => setConnDrawerOpen(false)}
+        connectionId=""
+        onSaved={handleConnectionCreated}
+        getContainer={getContainer}
+      />
     </Drawer>
   );
 };
