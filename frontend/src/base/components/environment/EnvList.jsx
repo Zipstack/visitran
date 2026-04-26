@@ -304,11 +304,28 @@ const EnvList = () => {
         title: "Used by",
         key: "usedBy",
         width: 140,
-        render: () => (
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            —
-          </Text>
-        ),
+        render: (_, record) => {
+          const jobs = record.job_count || 0;
+          const projects = record.project_count || 0;
+          if (jobs === 0 && projects === 0) {
+            return (
+              <Text
+                type="secondary"
+                style={{ fontSize: 12, fontStyle: "italic" }}
+              >
+                Not used
+              </Text>
+            );
+          }
+          return (
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {jobs > 0 && `${jobs} job${jobs !== 1 ? "s" : ""}`}
+              {jobs > 0 && projects > 0 && " · "}
+              {projects > 0 &&
+                `${projects} project${projects !== 1 ? "s" : ""}`}
+            </Text>
+          );
+        },
       },
       {
         title: "Actions",
