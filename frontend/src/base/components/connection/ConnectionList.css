@@ -155,3 +155,67 @@
 .dark .conn-section-heading {
   color: #94a3b8;
 }
+
+/* ── Deployment type tile grid (Environment Drawer) ── */
+.env-type-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.env-type-tile {
+  padding: 14px 12px;
+  border: 1px solid var(--border-color-4, #e2e8f0);
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--white, #fff);
+  transition: all 0.15s;
+}
+
+.env-type-tile:hover {
+  border-color: #93c5fd;
+}
+
+.env-type-tile.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+}
+
+.dark .env-type-tile {
+  border-color: #2a3648;
+  background: var(--white, #111827);
+}
+
+.dark .env-type-tile.active {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.12);
+}
+
+.env-type-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.env-type-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.env-type-title {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.env-type-desc {
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.dark .env-type-desc {
+  color: #94a3b8;
+}

@@ -2,7 +2,7 @@ from typing import Any
 
 from visitran.utils import import_file
 
-from backend.application.session.connection_session import ConnectionSession
+from backend.application.session.connection_session import ConnectionSession, _get_host_display
 from backend.application.utils import get_filter
 from backend.core.models.environment_models import EnvironmentModels
 from backend.core.models.project_details import ProjectDetails
@@ -100,6 +100,8 @@ class EnvironmentSession:
                         "name": env_model.connection_model.connection_name,
                         "datasource_name": env_model.connection_model.datasource_name,
                         "db_icon": import_file(f"visitran.adapters.{env_model.connection_model.datasource_name}").ICON,
+                        "host": _get_host_display(env_model.connection_model),
+                        "connection_flag": env_model.connection_model.connection_flag,
                     },
                     "is_tested": env_model.is_tested,
                 }

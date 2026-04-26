@@ -14,6 +14,28 @@ from backend.errors.exceptions import (
 from backend.utils.pagination import CustomPaginator
 
 
+def _get_host_display(con_model):
+    """Extract a human-readable host string from decrypted connection details."""
+    try:
+        details = con_model.decrypted_connection_details
+        ds = con_model.datasource_name
+        if ds in ("postgres", "mysql", "trino"):
+            host = details.get("host", "")
+            port = details.get("port", "")
+            return f"{host}:{port}" if host and port else host or None
+        if ds == "snowflake":
+            return details.get("account") or None
+        if ds == "bigquery":
+            return details.get("project_id") or None
+        if ds == "databricks":
+            return details.get("host") or None
+        if ds == "duckdb":
+            return details.get("file_path") or None
+    except Exception:
+        pass
+    return None
+
+
 class ConnectionSession:
 
     @staticmethod
@@ -58,12 +80,19 @@ class ConnectionSession:
                 is_sample_project = project_con.is_sample
             else:
                 is_sample_project = False
+            env_count = EnvironmentModels.objects.filter(
+                connection_model_id=con_model.connection_id, is_deleted=False
+            ).count()
+            project_count = ProjectDetails.objects.filter(
+                connection_model_id=con_model.connection_id
+            ).count()
             connection_list.append(
                 {
                     "id": con_model.connection_id,
                     "name": con_model.connection_name,
                     "description": con_model.connection_description,
                     "datasource_name": con_model.datasource_name,
+                    "host": _get_host_display(con_model),
                     "created_by": con_model.created_by,
                     "last_modified_by": con_model.last_modified_by,
                     "db_icon": import_file(f"visitran.adapters.{con_model.datasource_name}").ICON,
@@ -71,7 +100,8 @@ class ConnectionSession:
                     "is_connection_valid": con_model.is_connection_valid,
                     "connection_flag": con_model.connection_flag,
                     "is_sample_project": is_sample_project,
-                    # "connection_details": con_model.connection_details, # skipping connection_details
+                    "env_count": env_count,
+                    "project_count": project_count,
                 }
             )
 

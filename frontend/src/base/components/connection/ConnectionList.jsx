@@ -38,10 +38,7 @@ import { orgStore } from "../../../store/org-store";
 import { useAxiosPrivate } from "../../../service/axios-service";
 import { ConnectionDrawer } from "./ConnectionDrawer";
 import { checkPermission } from "../../../common/helpers";
-import {
-  deleteConnection,
-  fetchConnectionUsage,
-} from "../environment/environment-api-service";
+import { deleteConnection } from "../environment/environment-api-service";
 import { useNotificationService } from "../../../service/notification-service";
 import { usePagination } from "../../../widgets/hooks/usePagination";
 import "./ConnectionList.css";
@@ -91,7 +88,6 @@ const ConnectionList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterDb, setFilterDb] = useState(null);
   const [filterStatus, setFilterStatus] = useState(null);
-  const [usageCache, setUsageCache] = useState({});
   const [testingIds, setTestingIds] = useState({});
 
   const {
@@ -118,17 +114,6 @@ const ConnectionList = () => {
         setTotalCount(total_items);
         setCurrentPage(current_page);
         setPageSize(limit);
-
-        // Fetch usage for each connection (background)
-        page_items.forEach((conn) => {
-          if (!usageCache[conn.id]) {
-            fetchConnectionUsage(axios, selectedOrgId, conn.id)
-              .then((usage) => {
-                setUsageCache((prev) => ({ ...prev, [conn.id]: usage }));
-              })
-              .catch(() => {});
-          }
-        });
       } catch (error) {
         notify({ error });
       } finally {
@@ -289,6 +274,14 @@ const ConnectionList = () => {
                   {record.description}
                 </Text>
               )}
+              {record.host && (
+                <Text
+                  type="secondary"
+                  style={{ fontSize: 11, fontFamily: "monospace" }}
+                >
+                  {record.host}
+                </Text>
+              )}
             </Space>
           </div>
         ),
@@ -305,16 +298,8 @@ const ConnectionList = () => {
         key: "usedBy",
         width: 180,
         render: (_, record) => {
-          const usage = usageCache[record.id];
-          if (!usage) {
-            return (
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                ...
-              </Text>
-            );
-          }
-          const envCount = usage.environment?.length || 0;
-          const projCount = usage.projects?.length || 0;
+          const envCount = record.env_count || 0;
+          const projCount = record.project_count || 0;
           if (envCount === 0 && projCount === 0) {
             return (
               <Text
@@ -326,48 +311,24 @@ const ConnectionList = () => {
             );
           }
           return (
-            <Tooltip
-              placement="left"
-              title={
-                <div style={{ fontSize: 11 }}>
-                  {envCount > 0 && (
-                    <div style={{ marginBottom: 4 }}>
-                      <strong>Environments ({envCount})</strong>
-                      <div>
-                        {usage.environment.map((e) => e.name).join(", ")}
-                      </div>
-                    </div>
-                  )}
-                  {projCount > 0 && (
-                    <div>
-                      <strong>Projects ({projCount})</strong>
-                      <div>{usage.projects.map((p) => p.name).join(", ")}</div>
-                    </div>
-                  )}
-                </div>
-              }
-            >
-              <Space direction="vertical" size={1} style={{ cursor: "help" }}>
-                <Space size={4}>
-                  <DatabaseOutlined
-                    style={{ color: token.colorPrimary, fontSize: 12 }}
-                  />
-                  <Text style={{ fontSize: 12 }}>
-                    <strong>{envCount}</strong> environment
-                    {envCount !== 1 ? "s" : ""}
-                  </Text>
-                </Space>
-                <Space size={4}>
-                  <AppstoreOutlined
-                    style={{ color: "#8b5cf6", fontSize: 12 }}
-                  />
-                  <Text style={{ fontSize: 12 }}>
-                    <strong>{projCount}</strong> project
-                    {projCount !== 1 ? "s" : ""}
-                  </Text>
-                </Space>
+            <Space direction="vertical" size={1}>
+              <Space size={4}>
+                <DatabaseOutlined
+                  style={{ color: token.colorPrimary, fontSize: 12 }}
+                />
+                <Text style={{ fontSize: 12 }}>
+                  <strong>{envCount}</strong> environment
+                  {envCount !== 1 ? "s" : ""}
+                </Text>
               </Space>
-            </Tooltip>
+              <Space size={4}>
+                <AppstoreOutlined style={{ color: "#8b5cf6", fontSize: 12 }} />
+                <Text style={{ fontSize: 12 }}>
+                  <strong>{projCount}</strong> project
+                  {projCount !== 1 ? "s" : ""}
+                </Text>
+              </Space>
+            </Space>
           );
         },
       },
@@ -433,7 +394,7 @@ const ConnectionList = () => {
         ),
       },
     ],
-    [token, usageCache, testingIds, canWrite, canDelete]
+    [token, testingIds, canWrite, canDelete]
   );
 
   const hasActiveFilters = searchQuery || filterDb || filterStatus;
@@ -592,10 +553,7 @@ const ConnectionList = () => {
         onClose={handleDrawerClose}
         connectionId={connectionId}
         getContainer={() => pageRef.current || document.body}
-        onSaved={() => {
-          getConnectionData(currentPage, pageSize);
-          setUsageCache({});
-        }}
+        onSaved={() => getConnectionData(currentPage, pageSize)}
       />
 
       {/* Delete confirmation */}
