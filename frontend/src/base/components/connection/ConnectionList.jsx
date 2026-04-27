@@ -7,7 +7,6 @@ import {
   Space,
   Tooltip,
   Typography,
-  Modal,
   Pagination,
   Tag,
   Input,
@@ -84,7 +83,6 @@ const ConnectionList = () => {
   const [loading, setLoading] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [connectionId, setConnectionId] = useState("");
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterDb, setFilterDb] = useState(null);
   const [filterStatus, setFilterStatus] = useState(null);
@@ -183,7 +181,6 @@ const ConnectionList = () => {
       notify({ error });
     } finally {
       setLoading(false);
-      setIsDeleteModalOpen(false);
     }
   };
 
@@ -555,23 +552,6 @@ const ConnectionList = () => {
         getContainer={() => pageRef.current || document.body}
         onSaved={() => getConnectionData(currentPage, pageSize)}
       />
-
-      {/* Delete confirmation */}
-      <Modal
-        title="Delete Connection"
-        open={isDeleteModalOpen}
-        onOk={() => deleteConn(isDeleteModalOpen)}
-        onCancel={() => setIsDeleteModalOpen(false)}
-        okText="Delete"
-        centered
-        okButtonProps={{ danger: true, loading }}
-        maskClosable={false}
-      >
-        <Text>
-          Are you sure you want to delete this connection? This action cannot be
-          undone.
-        </Text>
-      </Modal>
     </div>
   );
 };

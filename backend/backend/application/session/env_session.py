@@ -6,7 +6,6 @@ from backend.application.session.connection_session import ConnectionSession, _g
 from backend.application.utils import get_filter
 from backend.core.models.environment_models import EnvironmentModels
 from backend.core.models.project_details import ProjectDetails
-from backend.core.scheduler.models import UserTaskDetails
 from backend.errors.exceptions import EnvironmentAlreadyExist, EnvironmentNotExists
 from backend.utils.pagination import CustomPaginator
 
@@ -83,19 +82,24 @@ class EnvironmentSession:
         return env_models
 
     def get_all_environments(self, page: int, limit: int, filter_condition: dict[str, Any]) -> Any:
-        env_models = self.get_all_environment_models(filter_condition=filter_condition).order_by("-modified_at")
+        from django.db.models import Count
 
-        custom_paginator = CustomPaginator(queryset=env_models, limit=limit, page=page)
+        env_qs = (
+            self.get_all_environment_models(filter_condition=filter_condition)
+            .select_related("connection_model")
+            .annotate(
+                job_count=Count("usertaskdetails"),
+                project_count=Count("projectdetails"),
+            )
+            .order_by("-modified_at")
+        )
+
+        custom_paginator = CustomPaginator(queryset=env_qs, limit=limit, page=page)
         env_models = custom_paginator.paginate()
 
         env_data = []
         for env_model in env_models.get("page_items"):
-            job_count = UserTaskDetails.objects.filter(
-                environment=env_model
-            ).count()
-            project_count = ProjectDetails.objects.filter(
-                environment_model=env_model
-            ).count()
+            conn = env_model.connection_model
             env_data.append(
                 {
                     "id": env_model.environment_id,
@@ -103,16 +107,16 @@ class EnvironmentSession:
                     "description": env_model.environment_description,
                     "deployment_type": env_model.deployment_type,
                     "connection": {
-                        "id": env_model.connection_model.connection_id,
-                        "name": env_model.connection_model.connection_name,
-                        "datasource_name": env_model.connection_model.datasource_name,
-                        "db_icon": import_file(f"visitran.adapters.{env_model.connection_model.datasource_name}").ICON,
-                        "host": _get_host_display(env_model.connection_model),
-                        "connection_flag": env_model.connection_model.connection_flag,
+                        "id": conn.connection_id,
+                        "name": conn.connection_name,
+                        "datasource_name": conn.datasource_name,
+                        "db_icon": import_file(f"visitran.adapters.{conn.datasource_name}").ICON,
+                        "host": _get_host_display(conn),
+                        "connection_flag": conn.connection_flag,
                     },
                     "is_tested": env_model.is_tested,
-                    "job_count": job_count,
-                    "project_count": project_count,
+                    "job_count": env_model.job_count,
+                    "project_count": env_model.project_count,
                 }
             )
         env_models["page_items"] = env_data

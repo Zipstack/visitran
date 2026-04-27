@@ -15,9 +15,13 @@ from backend.utils.pagination import CustomPaginator
 
 
 def _get_host_display(con_model):
-    """Extract a human-readable host string from decrypted connection details."""
+    """Extract a human-readable host string from connection details.
+
+    Only reads non-sensitive plaintext fields (host, port, account, etc.)
+    so no Fernet decryption is needed.
+    """
     try:
-        details = con_model.decrypted_connection_details
+        details = con_model.connection_details or {}
         ds = con_model.datasource_name
         if ds in ("postgres", "mysql", "trino"):
             host = details.get("host", "")
@@ -65,27 +69,36 @@ class ConnectionSession:
 
     @staticmethod
     def get_all_connections(page: int, limit: int, filter_condition: dict[str, Any]) -> Any:
+        from django.db.models import Count, Q, Exists, OuterRef
+
         filter_condition.update(get_filter())
         if "is_deleted" not in filter_condition:
             filter_condition["is_deleted"] = False
-        con_models = ConnectionDetails.objects.filter(**filter_condition).order_by("-modified_at")
 
-        custom_paginator = CustomPaginator(queryset=con_models, limit=limit, page=page)
+        # Annotate counts + sample flag in a single query (no N+1)
+        con_qs = (
+            ConnectionDetails.objects.filter(**filter_condition)
+            .annotate(
+                env_count=Count(
+                    "environmentmodels",
+                    filter=Q(environmentmodels__is_deleted=False),
+                ),
+                project_count=Count("projectdetails"),
+                is_sample=Exists(
+                    ProjectDetails.objects.filter(
+                        connection_model_id=OuterRef("connection_id"),
+                        is_sample=True,
+                    )
+                ),
+            )
+            .order_by("-modified_at")
+        )
+
+        custom_paginator = CustomPaginator(queryset=con_qs, limit=limit, page=page)
         con_models = custom_paginator.paginate()
 
         connection_list = []
         for con_model in con_models.get("page_items"):
-            project_con = ProjectDetails.objects.filter(connection_model_id=con_model.connection_id).first()
-            if project_con:
-                is_sample_project = project_con.is_sample
-            else:
-                is_sample_project = False
-            env_count = EnvironmentModels.objects.filter(
-                connection_model_id=con_model.connection_id, is_deleted=False
-            ).count()
-            project_count = ProjectDetails.objects.filter(
-                connection_model_id=con_model.connection_id
-            ).count()
             connection_list.append(
                 {
                     "id": con_model.connection_id,
@@ -99,9 +112,9 @@ class ConnectionSession:
                     "is_connection_exist": con_model.is_connection_exist,
                     "is_connection_valid": con_model.is_connection_valid,
                     "connection_flag": con_model.connection_flag,
-                    "is_sample_project": is_sample_project,
-                    "env_count": env_count,
-                    "project_count": project_count,
+                    "is_sample_project": con_model.is_sample,
+                    "env_count": con_model.env_count,
+                    "project_count": con_model.project_count,
                 }
             )
 

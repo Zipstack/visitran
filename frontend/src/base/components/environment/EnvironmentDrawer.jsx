@@ -224,7 +224,7 @@ const EnvironmentDrawer = ({ open, onClose, envId, onSaved, getContainer }) => {
       setSelectedConnId(newest.id);
       handleConnectionChange(newest.id);
     }
-  }, [loadConnections]);
+  }, [loadConnections, handleConnectionChange]);
 
   /* ── Fetch field schema when datasource changes ── */
   useEffect(() => {

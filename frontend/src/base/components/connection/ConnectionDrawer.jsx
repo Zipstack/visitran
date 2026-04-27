@@ -114,6 +114,8 @@ const ConnectionDrawer = ({
   const csrfToken = Cookies.get("csrftoken");
   const { notify } = useNotificationService();
   const [form] = Form.useForm();
+  const watchedName = Form.useWatch("name", form);
+  const watchedDesc = Form.useWatch("description", form);
 
   // Data sources
   const [dataSources, setDataSources] = useState([]);
@@ -328,12 +330,11 @@ const ConnectionDrawer = ({
 
   const hasDetailsChanged = useMemo(() => {
     if (!connectionId || !originalInfo) return false;
-    const formVals = form.getFieldsValue();
     return (
-      formVals.name !== originalInfo.name ||
-      formVals.description !== originalInfo.description
+      watchedName !== originalInfo.name ||
+      watchedDesc !== originalInfo.description
     );
-  }, [connectionId, originalInfo, form]);
+  }, [connectionId, originalInfo, watchedName, watchedDesc]);
 
   const hasValidData = useMemo(() => {
     return Object.values(inputFields).some(
