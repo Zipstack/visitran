@@ -62,12 +62,25 @@ const formatDurationMs = (ms) => {
 const parseDurationMs = (d) => {
   if (!d) return 0;
   if (typeof d === "number") return d;
-  const p = d.split(":");
-  if (p.length !== 3) return 0;
-  return (
-    (parseInt(p[0], 10) * 3600 + parseInt(p[1], 10) * 60 + parseFloat(p[2])) *
-    1000
-  );
+  // Handle serializer format: "1m 30s", "45.0s", "800ms"
+  const str = String(d);
+  let ms = 0;
+  const minMatch = str.match(/([\d.]+)\s*m(?!s)/);
+  const secMatch = str.match(/([\d.]+)\s*s/);
+  const msMatch = str.match(/([\d.]+)\s*ms/);
+  if (msMatch) ms += parseFloat(msMatch[1]);
+  if (secMatch) ms += parseFloat(secMatch[1]) * 1000;
+  if (minMatch) ms += parseFloat(minMatch[1]) * 60000;
+  if (ms > 0) return ms;
+  // Fallback: HH:MM:SS format
+  const p = str.split(":");
+  if (p.length === 3) {
+    return (
+      (parseInt(p[0], 10) * 3600 + parseInt(p[1], 10) * 60 + parseFloat(p[2])) *
+      1000
+    );
+  }
+  return 0;
 };
 
 /* ── Sparkline SVG — plots real duration data points ── */
@@ -701,8 +714,8 @@ const Runhistory = () => {
       },
       {
         title: "Added",
-        dataIndex: "rows_added",
-        key: "rows_added",
+        dataIndex: "rows_inserted",
+        key: "rows_inserted",
         width: 90,
         align: "right",
         render: (v) =>
@@ -722,8 +735,8 @@ const Runhistory = () => {
       },
       {
         title: "Modified",
-        dataIndex: "rows_modified",
-        key: "rows_modified",
+        dataIndex: "rows_updated",
+        key: "rows_updated",
         width: 90,
         align: "right",
         render: (v) =>

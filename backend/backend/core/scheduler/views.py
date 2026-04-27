@@ -652,7 +652,7 @@ def run_stats(request, project_id, user_task_id):
                 if periodic.crontab:
                     schedule_type = "cron"
                     c = periodic.crontab
-                    schedule_label = f"{c.minute} {c.hour} {c.day_of_week}"
+                    schedule_label = f"{c.minute} {c.hour} {c.day_of_month} {c.month_of_year} {c.day_of_week}"
                 elif periodic.interval:
                     schedule_type = "interval"
                     schedule_label = f"Every {periodic.interval.every} {periodic.interval.period}"
