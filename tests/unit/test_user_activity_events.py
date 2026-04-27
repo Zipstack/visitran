@@ -479,6 +479,14 @@ class TestConnectionTested:
         event = ConnectionTested(datasource="snowflake", result="success")
         assert event.subtitle() == "Datasource: snowflake"
 
+    def test_event_status_success(self):
+        event = ConnectionTested(datasource="postgres", result="success")
+        assert event.event_status() == "success"
+
+    def test_event_status_failure(self):
+        event = ConnectionTested(datasource="postgres", result="failed")
+        assert event.event_status() == "success"  # inherits default, no override
+
 
 @pytest.mark.unit
 @pytest.mark.minimal_core

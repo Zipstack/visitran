@@ -13,7 +13,7 @@ Accepted — implemented in PR #66
 The bottom Logs panel showed raw developer-internal messages like
 `Executing Model Node: Database: globe_testing Database Type: postgres ...`.
 Users had no way to tell what happened after triggering an action. We needed
-plain-language activity messages ("Model mdoela built successfully in 0.42s")
+plain-language activity messages ("Model orders built successfully in 0.42s")
 without breaking the existing developer log pipeline.
 
 ### Constraints
@@ -35,10 +35,10 @@ Reuse existing event classes. Add `audience="user"` to a subset of them.
 
 ### B. Separate `UserLevel` base class (chosen)
 
-New `UserLevel(BaseEvent)` dataclass that overrides `audience()` to return `"user"`. 19 new event classes (U001-U019) in 5 priority tiers. Socket payload gains an `audience` field. Frontend filters by audience in the log-level dropdown.
+New `UserLevel(BaseEvent)` dataclass that overrides `audience()` to return `"user"`. 20 event classes (U001-U020) in 5 priority tiers. Socket payload gains an `audience` field. Frontend filters by audience in the log-level dropdown.
 
 - **Pro:** Clean separation. Existing events untouched. Adding a new user event = one class + one `fire_event()` call. Rich UI metadata (`title()`, `subtitle()`, `event_status()`) lives on the event class, not in the transport layer.
-- **Con:** 19 new classes. More code than option A.
+- **Con:** 20 new classes. More code than option A.
 
 **Accepted** — separation of concerns outweighs class count.
 
