@@ -96,3 +96,16 @@ class ErrorCodeConstants(BaseConstant):
         'The given connection is missing mandatory field(s): - "{missing_fields}"'
         "Please make sure all mandatory fields are filled"
     )
+
+    # Direct execution errors
+    IBIS_BUILD_ERROR = (
+        "**Ibis Build Error**\n"
+        "{message}\n"
+        "Review the transformation SQL or column references."
+    )
+
+    DAG_EXECUTION_ERROR = (
+        "**DAG Execution Error**\n"
+        'Error executing model "{model_name}": {message}\n'
+        "Check the model definition and its dependencies."
+    )
