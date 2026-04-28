@@ -782,17 +782,23 @@ class ApplicationContext(ModelGraph):
             dag_builder = DAGBuilder(registry=registry, configs=configs)
             dag = dag_builder.build(strict=False)
 
+            # Wrap the Ibis connection for DAGExecutor
+            db_conn = self.visitran_context.db_adapter.db_connection
             executor = DAGExecutor(
                 dag=dag,
                 registry=registry,
+                connection=db_conn,
             )
             result = executor.execute()
 
             if not result.success:
                 failed = [m for m in result.model_results if m.status.value == "failed"]
                 if failed:
+                    from visitran.errors.error_codes import ErrorCodeConstants
                     raise VisitranBackendBaseException(
-                        error_message=f"Model execution failed: {failed[0].error}"
+                        error_code=ErrorCodeConstants.DAG_EXECUTION_ERROR,
+                        model_name=failed[0].model,
+                        message=failed[0].error or "Unknown error",
                     )
 
             logger.info(
