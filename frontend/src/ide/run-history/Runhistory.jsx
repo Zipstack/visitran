@@ -487,12 +487,15 @@ const Runhistory = () => {
           const nonEph = (r.result?.models || []).filter(
             (m) => m.type !== "ephemeral"
           );
-          const added =
-            nonEph.reduce((s, m) => s + (m.rows_inserted || 0), 0) || null;
-          const modified =
-            nonEph.reduce((s, m) => s + (m.rows_updated || 0), 0) || null;
-          const deleted =
-            nonEph.reduce((s, m) => s + (m.rows_deleted || 0), 0) || null;
+          const added = nonEph.some((m) => m.rows_inserted != null)
+            ? nonEph.reduce((s, m) => s + (m.rows_inserted || 0), 0)
+            : null;
+          const modified = nonEph.some((m) => m.rows_updated != null)
+            ? nonEph.reduce((s, m) => s + (m.rows_updated || 0), 0)
+            : null;
+          const deleted = nonEph.some((m) => m.rows_deleted != null)
+            ? nonEph.reduce((s, m) => s + (m.rows_deleted || 0), 0)
+            : null;
           if (added === null && modified === null && deleted === null)
             return <Text type="secondary">—</Text>;
           return (
@@ -636,14 +639,18 @@ const Runhistory = () => {
     const errorModelName = failedModels.length > 0 ? failedModels[0] : null;
 
     // Aggregate row-level changes — exclude ephemeral
-    const totalRowsProcessed =
-      models.reduce((sum, m) => sum + (m.rows_affected || 0), 0) || null;
-    const totalAdded =
-      models.reduce((sum, m) => sum + (m.rows_inserted || 0), 0) || null;
-    const totalModified =
-      models.reduce((sum, m) => sum + (m.rows_updated || 0), 0) || null;
-    const totalDeleted =
-      models.reduce((sum, m) => sum + (m.rows_deleted || 0), 0) || null;
+    const totalRowsProcessed = models.some((m) => m.rows_affected != null)
+      ? models.reduce((sum, m) => sum + (m.rows_affected || 0), 0)
+      : null;
+    const totalAdded = models.some((m) => m.rows_inserted != null)
+      ? models.reduce((sum, m) => sum + (m.rows_inserted || 0), 0)
+      : null;
+    const totalModified = models.some((m) => m.rows_updated != null)
+      ? models.reduce((sum, m) => sum + (m.rows_updated || 0), 0)
+      : null;
+    const totalDeleted = models.some((m) => m.rows_deleted != null)
+      ? models.reduce((sum, m) => sum + (m.rows_deleted || 0), 0)
+      : null;
 
     // Parse error into message + stack
     const errorLines = (run.error_message || "").split("\n");
