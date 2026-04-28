@@ -2,7 +2,7 @@
 name: ship
 description: Create a branch, atomic commits, push, and open a draft PR using the project template
 disable-model-invocation: true
-allowed-tools: Bash, Read, Edit
+allowed-tools: Bash, Read, Edit, AskUserQuestion
 ---
 
 # /ship
@@ -133,10 +133,12 @@ Use `TODO` as a marker for any section that can't be filled confidently.
 1. Write the rendered body to `/tmp/pr-body-<branch>.md`
 2. Run:
    ```bash
+   # Title prefix: "FEAT: <summary>" for features, "FIX: <summary>" otherwise
+   BASE=$(gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name')
    gh pr create --draft \
-     --title "FEAT: <summary>"   # or "FIX: <summary>"
+     --title "FEAT: <summary>" \
      --body-file /tmp/pr-body-<branch>.md \
-     --base main
+     --base "$BASE"
    ```
 3. If `gh` is not authenticated (`gh auth status` fails), instruct the user to run
    `gh auth login` and stop. Do not retry silently
