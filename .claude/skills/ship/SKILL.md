@@ -2,7 +2,7 @@
 name: ship
 description: Create a branch, atomic commits, push, and open a draft PR using the project template
 disable-model-invocation: true
-allowed-tools: Bash, Read, Edit, AskUserQuestion
+allowed-tools: Bash, Read, AskUserQuestion
 ---
 
 # /ship
@@ -28,6 +28,12 @@ just the files touched. E.g., `feat/google-oauth-signin`, not `feat/update-auth-
 **Commit format:** Conventional Commits — `<type>(<scope>): <subject>`.
 Types used: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`.
 
+**Commit trailer:** Every commit message ends with the trailer
+`Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>`,
+separated from the body by a blank line, per the global protocol. Pass the
+full message — subject, blank line, body, blank line, trailer — through a
+HEREDOC.
+
 **Commit grouping rules:**
 - One logical concern per commit
 - Refactors separate from new behavior
@@ -47,7 +53,18 @@ Types used: `feat`, `fix`, `refactor`, `chore`, `docs`, `test`.
 
 ### Phase 1 — Discover and classify
 
-Run `git status` and `git diff` to inventory uncommitted changes.
+Inventory **all** pending changes — both staged and unstaged — so nothing
+sneaks past the scan or the plan:
+- `git status` for the file list
+- `git diff HEAD` for the full content diff (covers staged + unstaged)
+- `git diff --cached --name-only` to identify files that were already in the
+  index before `/ship` was invoked
+
+Any files already staged before invocation must be either explicitly included
+in the commit plan or unstaged before Phase 4 — otherwise they will be silently
+swept into the first `git commit`. If pre-staged files exist that don't fit
+the plan, surface the list and ask the user whether to include or unstage them
+before proceeding.
 
 Classify the work as **feature** or **non-feature**:
 - *Feature signals:* new files (routes, components, endpoints), new exports, additions
@@ -66,13 +83,23 @@ Classify the work as **feature** or **non-feature**:
 - On `main`/`master`/`develop` with **no changes at all** → stop with a clear message
 - Diff spans clearly unrelated areas → stop and ask whether to split
 
-**Secrets scan (hard stop):** grep the diff for high-entropy strings and known key
-prefixes — `sk-`, `AKIA`, `ghp_`, `gho_`, `xoxb-`, `xoxp-`, `-----BEGIN ` (private
-keys), AWS-style `aws_secret_access_key`, etc. On hit:
+**Secrets scan (hard stop):** run the grep against `git diff HEAD` (so both
+staged and unstaged content are inspected) for high-entropy strings and known
+key prefixes — `sk-`, `AKIA`, `ghp_`, `gho_`, `xoxb-`, `xoxp-`, `-----BEGIN `
+(private keys), and an AWS secret-key assignment regex
+`aws_secret_access_key\s*[=:]\s*['"]?[A-Za-z0-9/+=]{40}['"]?` (case-insensitive
+— anchors on assignment + a 40-char value so bare references in `.env.example`
+don't trip the gate). On hit:
 1. Print the matched line and the file it came from
-2. Use AskUserQuestion to offer:
-   - **Unstage the file** from this ship (`git restore --staged <path>`)
-   - **Skip the file from this PR** (leave staged but exclude from commits)
+2. Use AskUserQuestion to offer (both options must call
+   `git restore --staged <path>` first — leaving the file staged means it
+   *will* be included in the next commit, regardless of which paths you
+   `git add` afterwards):
+   - **Drop from this PR, keep in working tree** —
+     `git restore --staged <path>` (file remains on disk for a future ship)
+   - **Drop from this PR and remove from working tree** —
+     `git restore --staged <path>` then `rm <path>` (or `git rm <path>` if
+     it was tracked) so the secret is no longer present anywhere
    - **Cancel ship entirely**
 3. Do not proceed past Phase 1 until the user picks one
 
@@ -106,7 +133,8 @@ After confirmation:
 2. For each planned commit:
    - Stage the relevant files: `git add <path>...` (use `-p` only when a single file
      legitimately needs to be split across commits)
-   - Commit with a Conventional Commits message via HEREDOC
+   - Commit with a Conventional Commits message via HEREDOC. The HEREDOC
+     body must include the `Co-Authored-By` trailer documented in Section 1.
 3. `git push -u origin <branch-name>` (skip if already pushed and up to date)
 
 Hard rules:
@@ -126,30 +154,47 @@ Fill each section per the source-of-truth mapping in Section 3.
 Use **descriptive, full-sentence prose** — telegraph bullets are not acceptable.
 Use `TODO` as a marker for any section that can't be filled confidently.
 
+Every `-` placeholder from the template must be replaced — either with a
+filled, prose answer or with a literal `TODO`. A bare `-` is never an
+acceptable final value in the rendered body.
+
 **Render the full PR body and show it to the user. Wait for confirmation** before raising. Phrase the prompt as a natural question (e.g., "Ready to open the draft PR?"), not as "Confirmation Gate."
 
 ### Phase 6 — Raise the PR
 
-1. Sanitize the branch name (the `feat/`/`fix/` prefix contains a `/`, which
+1. Check `gh auth status`. If it fails, instruct the user to run
+   `gh auth login` and stop. Do not retry silently — and do not proceed to
+   any of the steps below, so no temp file is left behind.
+2. Check whether a PR for this branch already exists:
+   ```bash
+   EXISTING_PR=$(gh pr view --json url --jq '.url' 2>/dev/null || true)
+   ```
+   If `EXISTING_PR` is non-empty, stop with a clear message: print the
+   existing PR URL and tell the user that `/ship` does not currently update
+   existing PRs (see Section 9). Suggest they push further commits manually
+   with `git push` and edit the PR description in the GitHub UI. Do not
+   write the temp file. Do not invoke `gh pr create`.
+3. Sanitize the branch name (the `feat/`/`fix/` prefix contains a `/`, which
    would create a non-existent subdirectory under `/tmp`):
    ```bash
    BRANCH_SAFE=$(echo "<branch-name>" | tr '/' '-')
    # e.g. feat/google-oauth-signin → feat-google-oauth-signin
    ```
-2. Write the rendered body to `/tmp/pr-body-$BRANCH_SAFE.md`
-3. Run:
+4. Write the rendered body to `/tmp/pr-body-$BRANCH_SAFE.md`
+5. Run:
    ```bash
-   # Title prefix: "FEAT: <summary>" for features, "FIX: <summary>" otherwise
+   # Pick the prefix from the Phase 1 classification:
+   #   feature     → TITLE_PREFIX="FEAT"
+   #   non-feature → TITLE_PREFIX="FIX"
+   TITLE_PREFIX=<FEAT|FIX>     # set per classification
    BASE=$(gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name')
    gh pr create --draft \
-     --title "FEAT: <summary>" \
+     --title "${TITLE_PREFIX}: <imperative summary>" \
      --body-file "/tmp/pr-body-$BRANCH_SAFE.md" \
      --base "$BASE"
    ```
-4. If `gh` is not authenticated (`gh auth status` fails), instruct the user to run
-   `gh auth login` and stop. Do not retry silently
-5. Capture stdout, extract and print the PR URL
-6. Clean up the temp file (`rm "/tmp/pr-body-$BRANCH_SAFE.md"`)
+6. Capture stdout, extract and print the PR URL
+7. Clean up the temp file (`rm -f "/tmp/pr-body-$BRANCH_SAFE.md"`)
 
 ---
 
@@ -289,7 +334,9 @@ prompts at each gate, and the final summary after the PR is opened.
 ## 9. Out of scope (v1)
 
 Explicitly not handled — keep the skill focused:
-- Updating an existing PR (force-push to same branch + edit body)
+- Updating an existing PR. If `/ship` detects a PR already exists for the
+  current branch, it stops and surfaces the URL — pushing further commits
+  and editing the description must be done manually.
 - Pre-push lint/test enforcement
 - Auto-merging or marking ready-for-review
 - Cross-repo or fork-based PR flows
