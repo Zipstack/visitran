@@ -319,6 +319,9 @@ const Runhistory = () => {
     filters.status,
     filters.trigger,
     filters.search,
+    pageSize,
+    fetchHistory,
+    fetchStats,
     datePreset,
     customDateRange,
   ]);
