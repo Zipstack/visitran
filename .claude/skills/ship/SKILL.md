@@ -130,20 +130,26 @@ Use `TODO` as a marker for any section that can't be filled confidently.
 
 ### Phase 6 — Raise the PR
 
-1. Write the rendered body to `/tmp/pr-body-<branch>.md`
-2. Run:
+1. Sanitize the branch name (the `feat/`/`fix/` prefix contains a `/`, which
+   would create a non-existent subdirectory under `/tmp`):
+   ```bash
+   BRANCH_SAFE=$(echo "<branch-name>" | tr '/' '-')
+   # e.g. feat/google-oauth-signin → feat-google-oauth-signin
+   ```
+2. Write the rendered body to `/tmp/pr-body-$BRANCH_SAFE.md`
+3. Run:
    ```bash
    # Title prefix: "FEAT: <summary>" for features, "FIX: <summary>" otherwise
    BASE=$(gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name')
    gh pr create --draft \
      --title "FEAT: <summary>" \
-     --body-file /tmp/pr-body-<branch>.md \
+     --body-file "/tmp/pr-body-$BRANCH_SAFE.md" \
      --base "$BASE"
    ```
-3. If `gh` is not authenticated (`gh auth status` fails), instruct the user to run
+4. If `gh` is not authenticated (`gh auth status` fails), instruct the user to run
    `gh auth login` and stop. Do not retry silently
-4. Capture stdout, extract and print the PR URL
-5. Clean up the temp file (`rm /tmp/pr-body-<branch>.md`)
+5. Capture stdout, extract and print the PR URL
+6. Clean up the temp file (`rm "/tmp/pr-body-$BRANCH_SAFE.md"`)
 
 ---
 
