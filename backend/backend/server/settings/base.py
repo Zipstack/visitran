@@ -202,6 +202,13 @@ CSRF_COOKIE_SECURE = os.environ.get("CSRF_COOKIE_SECURE", True)
 
 VISITRAN_ENCRYPTION_KEY = os.environ.get("VISITRAN_ENCRYPTION_KEY")
 
+# Execution mode: controls whether to use legacy Python path or direct SQL path
+# Values: "legacy" (default), "direct", "parallel"
+# - legacy: YAML → Python codegen → Ibis → SQL (current behavior)
+# - direct: YAML → SQL Builder → SQL (no Python layer)
+# - parallel: run both paths and compare SQL output for validation
+VISITRAN_EXECUTION_MODE = os.environ.get("VISITRAN_EXECUTION_MODE", "legacy")
+
 # RSA Encryption Keys for Network Communication
 # Note: The actual key resolution (with .env fallback) happens in rsa_encryption.py
 # These settings are the primary source, but rsa_encryption._resolve_pem() will

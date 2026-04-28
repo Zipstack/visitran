@@ -7,6 +7,9 @@ from visitran.errors import VisitranPostgresMissingError, VisitranBaseExceptions
 from visitran.visitran import Visitran
 
 from backend.application.config_parser.config_parser import ConfigParser
+from backend.application.config_parser.dag_builder import DAGBuilder
+from backend.application.config_parser.dag_executor import DAGExecutor
+from backend.application.config_parser.feature_flags import ExecutionRouter, FeatureFlags
 from backend.application.session.env_session import EnvironmentSession
 from backend.application.context.model_graph import ModelGraph
 from backend.application.interpreter.interpreter import Interpreter
@@ -709,6 +712,9 @@ class ApplicationContext(ModelGraph):
         """
         Execute the visitran run command.
 
+        Routes between legacy (Python) and direct (SQL) execution paths
+        based on the VISITRAN_EXECUTION_MODE feature flag.
+
         Args:
             environment_id: Optional environment ID for connection details
             model_name: Single model name for selective execution (legacy support)
@@ -718,6 +724,18 @@ class ApplicationContext(ModelGraph):
             env_model = EnvironmentSession.get_environment_model(environment_id)
             env_payload = env_model.decrypted_connection_data
             self._reload_context(env_data=env_payload)
+
+        # Route based on feature flag
+        if ExecutionRouter.should_execute_direct():
+            logger.info("[execute_run] Using DIRECT execution path (YAML → SQL)")
+            return self._execute_direct()
+
+        # Legacy path (default)
+        logger.info("[execute_run] Using LEGACY execution path (YAML → Python → Ibis → SQL)")
+        return self._execute_legacy(model_name=model_name, model_names=model_names)
+
+    def _execute_legacy(self, model_name: str = None, model_names: list = None):
+        """Legacy execution path: YAML → Python code → Ibis → SQL → Database."""
         visitran_obj = Visitran(context=self.visitran_context)
         try:
             self.session.sync_file_models()
@@ -730,12 +748,59 @@ class ApplicationContext(ModelGraph):
             return visitran_obj
         except ModuleNotFoundError as err:
             if "psycopg2" in str(err):
-                # TODO - Need to raise this exception inside core
                 raise VisitranPostgresMissingError()
             raise err
         finally:
             self.visitran_context.clear_database_cache()
             self.session.remove_sys_path()
+
+    def _execute_direct(self):
+        """Direct execution path: YAML → SQL Builder → SQL → Database.
+
+        Bypasses Python code generation entirely. Uses DAGBuilder to construct
+        the dependency graph from ConfigParser instances, then DAGExecutor to
+        execute models in topological order via Ibis/SQL.
+        """
+        from backend.application.config_parser.model_registry import ModelRegistry
+
+        try:
+            self.session.sync_file_models()
+
+            # Register all models in the ModelRegistry
+            registry = ModelRegistry()
+            registry.clear()
+            for model in self.session.fetch_all_models(fetch_all=True):
+                if model_data := model.model_data:
+                    schema = self.visitran_context.get_profile_schema()
+                    config = ConfigParser(model_data, model.model_name)
+                    config._dialect = self.visitran_context.db_type
+                    registry.register(schema, model.model_name, config)
+
+            # Build DAG and execute
+            dag_builder = DAGBuilder(registry)
+            dag = dag_builder.build()
+
+            executor = DAGExecutor(
+                dag=dag,
+                registry=registry,
+                context=self.visitran_context,
+            )
+            result = executor.execute()
+
+            if not result.success:
+                failed = [m for m in result.model_results if m.status.value == "failed"]
+                if failed:
+                    raise VisitranBackendBaseException(
+                        error_message=f"Model execution failed: {failed[0].error_message}"
+                    )
+
+            logger.info(
+                f"[_execute_direct] Completed: {result.models_executed} models, "
+                f"{result.models_failed} failed"
+            )
+            return result
+        finally:
+            self.visitran_context.clear_database_cache()
 
     def execute_visitran_run_command(self, current_model: str = "", current_models: list = None, environment_id=None) -> None:
         """

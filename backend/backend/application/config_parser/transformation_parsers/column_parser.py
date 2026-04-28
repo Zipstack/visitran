@@ -32,10 +32,18 @@ class ColumnParser(BaseParser):
     @property
     def formula(self) -> Any:
         """
-        Return formula from 'operation.formula'.
+        Return formula from 'operation.formula' or top-level 'formula'.
+        Supports both YAML formats:
+        - Legacy: columns: [{column_name: x, operation: {formula: "..."}}]
+        - Direct: columns: [{column_name: x, formula: "..."}]
         Always return a string (default "") to avoid NoneType errors.
         """
-        return (self.get("operation", {}) or {}).get("formula", "")
+        # Try operation.formula first (legacy format)
+        operation_formula = (self.get("operation", {}) or {}).get("formula", "")
+        if operation_formula:
+            return operation_formula
+        # Fallback to top-level formula (direct format)
+        return self.get("formula", "") or ""
 
     @property
     def function(self) -> str:

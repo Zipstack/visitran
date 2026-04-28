@@ -27,7 +27,7 @@ class ModelGraph(BaseContext):
         edge_list = []
         model_to_path_dict = self.build_model_path_dict()
         is_visited = {}
-        no_code_models = self.session.fetch_all_models()
+        no_code_models = self.session.fetch_all_models(fetch_all=True)
         node_list = []
         id_to_node = {}
         self.get_no_code_nodes(id_to_node, no_code_models, node_list)
@@ -96,7 +96,7 @@ class ModelGraph(BaseContext):
 
     def build_model_path_dict(self):
         model_to_path_dict = {}
-        no_code_models = self.session.fetch_all_models()
+        no_code_models = self.session.fetch_all_models(fetch_all=True)
         for model in no_code_models:
             model_name = model.model_name
             model_to_path_dict[model_name] = model

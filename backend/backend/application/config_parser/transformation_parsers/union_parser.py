@@ -163,6 +163,11 @@ class UnionParser(BaseParser):
         return self.get("merge_table")
 
     @property
+    def merge_schema(self) -> str:
+        """Return merge table schema, default empty string."""
+        return self.get("merge_schema", "") or ""
+
+    @property
     def merge_column(self) -> str:
         return self.get("merge_column")
 
@@ -258,7 +263,8 @@ class UnionParsers(BaseParser):
 
     def is_branch_based(self) -> bool:
         """Check if this is the new branch-based union format."""
-        return "branches" in self._config_data and "output_columns" in self._config_data
+        # New format has 'branches' key (output_columns is optional)
+        return "branches" in self._config_data
 
     def get_union_parsers(self) -> list[UnionParser]:
         """Returns table-based union parsers (legacy format)."""
