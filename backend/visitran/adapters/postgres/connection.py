@@ -234,7 +234,7 @@ class PostgresConnection(BaseConnection):
                 pass
             else:
                 self._fallback_upsert(schema_name, table_name, select_statement, key_columns)
-                return
+                return {"rows_affected": None}
 
         qi = self.quote_identifier
 

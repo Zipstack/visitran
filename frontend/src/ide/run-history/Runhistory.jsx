@@ -205,6 +205,7 @@ const Runhistory = () => {
     trigger: "",
     search: "",
   });
+  const [searchText, setSearchText] = useState("");
   const [datePreset, setDatePreset] = useState("24h");
   const [customDateRange, setCustomDateRange] = useState(null);
   const [showCustomDate, setShowCustomDate] = useState(false);
@@ -327,7 +328,19 @@ const Runhistory = () => {
     setExpandedRowKeys([]);
   }, [jobHistoryData]);
 
+  // Debounce search input — wait 400ms before updating filters
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setFilters((p) => ({ ...p, search: searchText }));
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
   const handleFilterChange = (key, value) => {
+    if (key === "search") {
+      setSearchText(value || "");
+      return;
+    }
     setFilters((p) => ({ ...p, [key]: value || "" }));
     if (key === "job")
       setSearchParams(
@@ -1627,8 +1640,8 @@ const Runhistory = () => {
                 size="small"
                 placeholder="Search runs..."
                 prefix={<SearchOutlined />}
-                value={filters.search}
-                onChange={(e) => handleFilterChange("search", e.target.value)}
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value || "")}
                 allowClear
               />
             </Col>

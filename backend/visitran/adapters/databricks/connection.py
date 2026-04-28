@@ -277,10 +277,13 @@ class DatabricksConnection(BaseConnection):
                     VALUES ({insert_values})
             """
 
-            cursor = self.connection.raw_sql(merge_query)
-            _rc = cursor.rowcount if hasattr(cursor, "rowcount") else None
+            merge_cursor = self.connection.raw_sql(merge_query)
+            _rc = merge_cursor.rowcount if hasattr(merge_cursor, "rowcount") else None
             rowcount = _rc if (_rc is not None and _rc >= 0) else None
-            cursor.close()
+            try:
+                merge_cursor.close()
+            except Exception:
+                pass
             logging.info("Databricks MERGE completed for %s.%s", schema_name, table_name)
 
         except Exception as e:
@@ -291,8 +294,8 @@ class DatabricksConnection(BaseConnection):
             ) from e
         finally:
             try:
-                cursor = self.connection.raw_sql(f"DROP TABLE IF EXISTS {temp_table_fq}")
-                cursor.close()
+                cleanup_cursor = self.connection.raw_sql(f"DROP TABLE IF EXISTS {temp_table_fq}")
+                cleanup_cursor.close()
             except Exception:
                 pass
         return {"rows_affected": rowcount}
