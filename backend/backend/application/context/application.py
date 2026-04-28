@@ -769,21 +769,22 @@ class ApplicationContext(ModelGraph):
             # Register all models in the ModelRegistry
             registry = ModelRegistry()
             registry.clear()
+            configs = []
             for model in self.session.fetch_all_models(fetch_all=True):
                 if model_data := model.model_data:
                     schema = self.visitran_context.get_profile_schema()
                     config = ConfigParser(model_data, model.model_name)
                     config._dialect = self.visitran_context.database_type
                     registry.register(schema, model.model_name, config)
+                    configs.append(config)
 
             # Build DAG and execute
-            dag_builder = DAGBuilder(registry)
+            dag_builder = DAGBuilder(registry=registry, configs=configs)
             dag = dag_builder.build()
 
             executor = DAGExecutor(
                 dag=dag,
                 registry=registry,
-                context=self.visitran_context,
             )
             result = executor.execute()
 
