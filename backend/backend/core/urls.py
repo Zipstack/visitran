@@ -83,9 +83,9 @@ def get_feature_flags(request):
     """Return current feature flags, reading fresh from environment."""
     import os
     return Response({
-        "enable_direct_execution": os.getenv("VISITRAN_ENABLE_DIRECT_EXECUTION", "false").lower() == "true",
-        "execution_mode": os.getenv("VISITRAN_EXECUTION_MODE", "legacy"),
-        "suppress_python_files": os.getenv("VISITRAN_SUPPRESS_PYTHON_FILES", "false").lower() == "true",
+        "enable_direct_execution": os.getenv("VISITRAN_ENABLE_DIRECT_EXECUTION", "false").strip().lower() == "true",
+        "execution_mode": os.getenv("VISITRAN_EXECUTION_MODE", "legacy").strip().lower(),
+        "suppress_python_files": os.getenv("VISITRAN_SUPPRESS_PYTHON_FILES", "false").strip().lower() == "true",
     })
 
 

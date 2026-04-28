@@ -727,7 +727,7 @@ class ApplicationContext(ModelGraph):
 
         # Route based on feature flag (read fresh from env to avoid singleton cache)
         import os
-        exec_mode = os.getenv("VISITRAN_EXECUTION_MODE", "legacy").lower()
+        exec_mode = os.getenv("VISITRAN_EXECUTION_MODE", "legacy").strip().lower()
         if exec_mode == "direct":
             logger.info("[execute_run] Using DIRECT execution path (YAML → SQL)")
             return self._execute_direct()
