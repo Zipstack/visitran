@@ -725,8 +725,10 @@ class ApplicationContext(ModelGraph):
             env_payload = env_model.decrypted_connection_data
             self._reload_context(env_data=env_payload)
 
-        # Route based on feature flag
-        if ExecutionRouter.should_execute_direct():
+        # Route based on feature flag (read fresh from env to avoid singleton cache)
+        import os
+        exec_mode = os.getenv("VISITRAN_EXECUTION_MODE", "legacy").lower()
+        if exec_mode == "direct":
             logger.info("[execute_run] Using DIRECT execution path (YAML → SQL)")
             return self._execute_direct()
 
