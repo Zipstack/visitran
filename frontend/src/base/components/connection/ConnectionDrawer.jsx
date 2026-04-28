@@ -48,45 +48,12 @@ import {
   validateFormFieldDescription,
   collapseSpaces,
 } from "../environment/helper";
+import isEqual from "lodash/isEqual.js";
 import { SpinnerLoader } from "../../../widgets/spinner_loader";
+import { GridObjectFieldTemplate } from "./shared";
 
 const { Text } = Typography;
 const { TextArea } = Input;
-
-/* ── Fields that should render half-width (side-by-side) ── */
-const HALF_WIDTH_FIELDS = new Set([
-  "host",
-  "port",
-  "user",
-  "passw",
-  "account",
-  "warehouse",
-  "catalog",
-  "schema",
-  "dbname",
-  "database",
-  "project_id",
-  "dataset_id",
-  "token",
-]);
-
-/* ── Custom ObjectFieldTemplate for grid layout ── */
-const GridObjectFieldTemplate = (props) => (
-  <div className="conn-cred-grid">
-    {props.properties.map((prop) => {
-      const fieldName = prop.name;
-      const isHalf = HALF_WIDTH_FIELDS.has(fieldName);
-      return (
-        <div
-          key={prop.name}
-          className={isHalf ? "conn-cred-field-half" : "conn-cred-field-full"}
-        >
-          {prop.content}
-        </div>
-      );
-    })}
-  </div>
-);
 
 /* ── DB Tile component — uses real logo from API ── */
 const DBTile = ({ db, isActive, isDisabled, onClick }) => (
@@ -287,7 +254,7 @@ const ConnectionDrawer = ({
       Object.keys(inputFields).length > 0 &&
       !hasCapturedOriginalRef.current
     ) {
-      setOriginalConnectionData(JSON.parse(JSON.stringify(inputFields)));
+      setOriginalConnectionData(structuredClone(inputFields));
       hasCapturedOriginalRef.current = true;
     } else if (!connectionId) {
       setOriginalConnectionData({});
@@ -325,7 +292,7 @@ const ConnectionDrawer = ({
     const orig = { ...originalConnectionData };
     delete curr.connection_type;
     delete orig.connection_type;
-    return JSON.stringify(curr) !== JSON.stringify(orig);
+    return !isEqual(curr, orig);
   }, [connectionId, inputFields, originalConnectionData]);
 
   const hasDetailsChanged = useMemo(() => {

@@ -82,62 +82,8 @@ const DEPLOY_TYPES = [
   },
 ];
 
-/* ── Fields that render side-by-side ── */
-const HALF_WIDTH_FIELDS = new Set([
-  "host",
-  "port",
-  "user",
-  "passw",
-  "account",
-  "warehouse",
-  "catalog",
-  "schema",
-  "dbname",
-  "database",
-  "project_id",
-  "dataset_id",
-  "token",
-]);
-
-const GridObjectFieldTemplate = (props) => (
-  <div className="conn-cred-grid">
-    {props.properties.map((prop) => (
-      <div
-        key={prop.name}
-        className={
-          HALF_WIDTH_FIELDS.has(prop.name)
-            ? "conn-cred-field-half"
-            : "conn-cred-field-full"
-        }
-      >
-        {prop.content}
-      </div>
-    ))}
-  </div>
-);
-
-/* ── Status tag ── */
-const StatusTag = ({ flag }) => {
-  if (flag === "GREEN")
-    return (
-      <Tag icon={<CheckCircleFilled />} color="success">
-        Healthy
-      </Tag>
-    );
-  if (flag === "YELLOW")
-    return (
-      <Tag icon={<ExclamationCircleFilled />} color="warning">
-        Stale
-      </Tag>
-    );
-  if (flag === "RED")
-    return (
-      <Tag icon={<CloseCircleFilled />} color="error">
-        Error
-      </Tag>
-    );
-  return null;
-};
+// Shared components from connection module
+import { GridObjectFieldTemplate, StatusTag } from "../connection/shared";
 
 const EnvironmentDrawer = ({ open, onClose, envId, onSaved, getContainer }) => {
   const axiosRef = useAxiosPrivate();
@@ -145,6 +91,8 @@ const EnvironmentDrawer = ({ open, onClose, envId, onSaved, getContainer }) => {
   const csrfToken = Cookies.get("csrftoken");
   const { notify } = useNotificationService();
   const [form] = Form.useForm();
+  const watchedName = Form.useWatch("name", form);
+  const watchedDesc = Form.useWatch("description", form);
 
   // General
   const [deployType, setDeployType] = useState("PROD");
@@ -213,18 +161,6 @@ const EnvironmentDrawer = ({ open, onClose, envId, onSaved, getContainer }) => {
     if (!open) return;
     loadConnections().then(setConnectionList);
   }, [open, selectedOrgId]);
-
-  /* ── Handle new connection created from nested drawer ── */
-  const handleConnectionCreated = useCallback(async () => {
-    const updated = await loadConnections();
-    setConnectionList(updated);
-    // Auto-select the newest connection (first in list, sorted by modified_at desc)
-    if (updated.length > 0) {
-      const newest = updated[0];
-      setSelectedConnId(newest.id);
-      handleConnectionChange(newest.id);
-    }
-  }, [loadConnections, handleConnectionChange]);
 
   /* ── Fetch field schema when datasource changes ── */
   useEffect(() => {
@@ -380,6 +316,17 @@ const EnvironmentDrawer = ({ open, onClose, envId, onSaved, getContainer }) => {
     [selectedOrgId]
   );
 
+  /* ── Handle new connection created from nested drawer ── */
+  const handleConnectionCreated = useCallback(async () => {
+    const updated = await loadConnections();
+    setConnectionList(updated);
+    if (updated.length > 0) {
+      const newest = updated[0];
+      setSelectedConnId(newest.id);
+      handleConnectionChange(newest.id);
+    }
+  }, [loadConnections, handleConnectionChange]);
+
   /* ── Reveal credentials ── */
   const handleReveal = useCallback(async () => {
     if (isCredentialsRevealed) {
@@ -472,13 +419,12 @@ const EnvironmentDrawer = ({ open, onClose, envId, onSaved, getContainer }) => {
   /* ── Change detection ── */
   const hasGeneralChanges = useMemo(() => {
     if (!envId || !initialData) return false;
-    const formVals = form.getFieldsValue();
     return (
-      formVals.name !== initialData.name ||
-      formVals.description !== initialData.description ||
+      watchedName !== initialData.name ||
+      watchedDesc !== initialData.description ||
       deployType !== initialData.deployment_type
     );
-  }, [envId, initialData, deployType, form]);
+  }, [envId, initialData, deployType, watchedName, watchedDesc]);
 
   const hasCredChanges = useMemo(() => {
     return !isEqual(connectDetailBackup, { connection_details: inputFields });

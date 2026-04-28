@@ -1,8 +1,11 @@
+import logging
 from typing import Any
 
 from visitran.utils import import_file
 
 from backend.application.utils import get_filter
+
+logger = logging.getLogger(__name__)
 from backend.core.models.connection_models import ConnectionDetails
 from backend.core.models.environment_models import EnvironmentModels
 from backend.core.models.project_details import ProjectDetails
@@ -36,7 +39,7 @@ def _get_host_display(con_model):
         if ds == "duckdb":
             return details.get("file_path") or None
     except Exception:
-        pass
+        logger.warning("Failed to derive host display for connection %s", con_model.connection_id, exc_info=True)
     return None
 
 
@@ -80,10 +83,10 @@ class ConnectionSession:
             ConnectionDetails.objects.filter(**filter_condition)
             .annotate(
                 env_count=Count(
-                    "environmentmodels",
-                    filter=Q(environmentmodels__is_deleted=False),
+                    "environment_model",
+                    filter=Q(environment_model__is_deleted=False),
                 ),
-                project_count=Count("projectdetails"),
+                project_count=Count("project"),
                 is_sample=Exists(
                     ProjectDetails.objects.filter(
                         connection_model_id=OuterRef("connection_id"),
