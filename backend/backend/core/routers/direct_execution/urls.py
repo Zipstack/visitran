@@ -28,8 +28,6 @@ from backend.core.routers.direct_execution.views import (
     list_registry_models,
     get_registry_dag,
     get_registry_model_detail,
-    # Feature Flags
-    get_feature_flags,
 )
 
 # =============================================================================
@@ -105,14 +103,6 @@ GET_REGISTRY_MODEL_DETAIL = path(
 # =============================================================================
 # Feature Flags Endpoint
 # =============================================================================
-
-GET_FEATURE_FLAGS = path(
-    "feature-flags",
-    get_feature_flags,
-    name="get-feature-flags",
-)
-
-# =============================================================================
 # URL Patterns Export
 # =============================================================================
 
@@ -124,8 +114,6 @@ urlpatterns = [
     EXECUTE_DAG,
     GET_DAG_STATUS,
     GET_DAG_RESULTS,
-    # Feature Flags
-    GET_FEATURE_FLAGS,
     # VTR-061: Validation Results
     LIST_VALIDATION_RESULTS,
     GET_MODEL_VALIDATION_RESULTS,

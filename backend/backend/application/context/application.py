@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import Any, Union, AnyStr, Dict
 
 import yaml
@@ -726,7 +727,6 @@ class ApplicationContext(ModelGraph):
             self._reload_context(env_data=env_payload)
 
         # Route based on feature flag (read fresh from env to avoid singleton cache)
-        import os
         exec_mode = os.getenv("VISITRAN_EXECUTION_MODE", "legacy").strip().lower()
         if exec_mode == "direct":
             logger.info("[execute_run] Using DIRECT execution path (YAML → SQL)")

@@ -1,6 +1,10 @@
+import os
+
 from django.conf import settings
 from django.conf.urls import include
 from django.urls import path
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from backend.core.health_check import health_check
 from backend.core.views import (
@@ -11,7 +15,17 @@ from backend.core.views import (
     get_user_profile,
     update_user_profile,
 )
-from backend.application.config_parser.feature_flags import FeatureFlags
+
+
+@api_view(["GET"])
+def _get_feature_flags(request):
+    """Return current feature flags, reading fresh from environment."""
+    return Response({
+        "enable_direct_execution": os.getenv("VISITRAN_ENABLE_DIRECT_EXECUTION", "false").strip().lower() == "true",
+        "execution_mode": os.getenv("VISITRAN_EXECUTION_MODE", "legacy").strip().lower(),
+        "suppress_python_files": os.getenv("VISITRAN_SUPPRESS_PYTHON_FILES", "false").strip().lower() == "true",
+    })
+
 
 urlpatterns = [
     # server maintenance API
@@ -70,26 +84,9 @@ urlpatterns = [
     ),
     path("aggregations", get_aggregations_list, name="get-available-aggregations"),
     path("formulas", get_formula_list, name="get-available-formulas"),
+    # Feature flags endpoint (FE checks execution mode on mount)
+    path("feature-flags", _get_feature_flags, name="feature-flags"),
 ]
-
-
-# Feature flags view (simple endpoint for FE to check execution mode)
-from rest_framework.decorators import api_view  # noqa: E402
-from rest_framework.response import Response  # noqa: E402
-
-
-@api_view(["GET"])
-def get_feature_flags(request):
-    """Return current feature flags, reading fresh from environment."""
-    import os
-    return Response({
-        "enable_direct_execution": os.getenv("VISITRAN_ENABLE_DIRECT_EXECUTION", "false").strip().lower() == "true",
-        "execution_mode": os.getenv("VISITRAN_EXECUTION_MODE", "legacy").strip().lower(),
-        "suppress_python_files": os.getenv("VISITRAN_SUPPRESS_PYTHON_FILES", "false").strip().lower() == "true",
-    })
-
-
-urlpatterns.append(path("feature-flags", get_feature_flags, name="feature-flags"))
 
 try:
     SLACK_INTEGRATION = path("slack", include("pluggable_apps.slack_integration.urls"))
