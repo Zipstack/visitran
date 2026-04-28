@@ -80,8 +80,7 @@ from rest_framework.response import Response  # noqa: E402
 
 @api_view(["GET"])
 def get_feature_flags(request):
-    flags = FeatureFlags.get_instance()
-    state = flags.get_state()
+    state = FeatureFlags.get_state()
     return Response(state.to_dict())
 
 

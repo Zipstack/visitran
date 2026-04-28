@@ -778,9 +778,9 @@ class ApplicationContext(ModelGraph):
                     registry.register(schema, model.model_name, config)
                     configs.append(config)
 
-            # Build DAG and execute
+            # Build DAG and execute (non-strict to handle missing cross-schema refs)
             dag_builder = DAGBuilder(registry=registry, configs=configs)
-            dag = dag_builder.build()
+            dag = dag_builder.build(strict=False)
 
             executor = DAGExecutor(
                 dag=dag,
