@@ -116,8 +116,14 @@ GET_FEATURE_FLAGS = path(
 # URL Patterns Export
 # =============================================================================
 
-# Root-level endpoints (no project context required)
+# URL patterns (included at /project/{project_id}/execute/direct/)
 urlpatterns = [
+    # VTR-060: Model Execution
+    EXECUTE_MODEL,
+    # VTR-062: DAG Execution
+    EXECUTE_DAG,
+    GET_DAG_STATUS,
+    GET_DAG_RESULTS,
     # Feature Flags
     GET_FEATURE_FLAGS,
     # VTR-061: Validation Results
