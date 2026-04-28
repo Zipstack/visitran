@@ -111,7 +111,7 @@ mock_use_standalone_module = true
 log_cli_level = "INFO"
 log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s (%(filename)s:%(lineno)s)"
 log_cli_date_format = "%Y-%m-%d %H:%M:%S"
-pythonpath = "tests/unit/data/models/models"
+pythonpath = [".", "..", "tests/unit/data/models/models"]
 testpaths = ["tests/unit"]
 addopts = "--ignore=tasks.py --ignore=backend/"
 markers = [
