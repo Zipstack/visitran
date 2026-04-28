@@ -768,7 +768,8 @@ class ApplicationContext(ModelGraph):
         try:
             self.session.sync_file_models()
 
-            # Register all models in the ModelRegistry
+            # Clear caches to prevent cross-request contamination
+            ConfigParser._instances.clear()
             registry = ModelRegistry()
             registry.clear()
             configs = []

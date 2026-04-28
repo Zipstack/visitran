@@ -17,9 +17,6 @@ from django.urls import path
 from backend.core.routers.direct_execution.views import (
     # VTR-060: Model Execution
     execute_model,
-    # VTR-061: Validation Results
-    list_validation_results,
-    get_model_validation_results,
     # VTR-062: DAG Execution
     execute_dag,
     get_dag_status,
@@ -44,36 +41,24 @@ EXECUTE_MODEL = path(
 # VTR-061: SQL Validation Results API
 # =============================================================================
 
-LIST_VALIDATION_RESULTS = path(
-    "validation/results",
-    list_validation_results,
-    name="list-validation-results",
-)
-
-GET_MODEL_VALIDATION_RESULTS = path(
-    "validation/results/<str:model_name>",
-    get_model_validation_results,
-    name="get-model-validation-results",
-)
-
 # =============================================================================
 # VTR-062: DAG Execution API (Project-scoped)
 # =============================================================================
 
 EXECUTE_DAG = path(
-    "dag",  # Will be at /project/{project_id}/execute/dag
+    "dag",
     execute_dag,
     name="execute-dag",
 )
 
 GET_DAG_STATUS = path(
-    "dag/status/<str:execution_id>",  # Will be at /project/{project_id}/execute/dag/status/{id}
+    "dag/status/<str:execution_id>",
     get_dag_status,
     name="get-dag-status",
 )
 
 GET_DAG_RESULTS = path(
-    "dag/results/<str:execution_id>",  # Will be at /project/{project_id}/execute/dag/results/{id}
+    "dag/results/<str:execution_id>",
     get_dag_results,
     name="get-dag-results",
 )
@@ -101,12 +86,9 @@ GET_REGISTRY_MODEL_DETAIL = path(
 )
 
 # =============================================================================
-# Feature Flags Endpoint
-# =============================================================================
 # URL Patterns Export
 # =============================================================================
 
-# URL patterns (included at /project/{project_id}/execute/direct/)
 urlpatterns = [
     # VTR-060: Model Execution
     EXECUTE_MODEL,
@@ -114,22 +96,8 @@ urlpatterns = [
     EXECUTE_DAG,
     GET_DAG_STATUS,
     GET_DAG_RESULTS,
-    # VTR-061: Validation Results
-    LIST_VALIDATION_RESULTS,
-    GET_MODEL_VALIDATION_RESULTS,
     # VTR-063: Registry Inspection
     LIST_REGISTRY_MODELS,
     GET_REGISTRY_DAG,
     GET_REGISTRY_MODEL_DETAIL,
-]
-
-# Project-scoped endpoints (require project_id in path)
-# Used at: /project/{project_id}/execute/...
-project_urlpatterns = [
-    # VTR-060: Model Execution
-    EXECUTE_MODEL,
-    # VTR-062: DAG Execution
-    EXECUTE_DAG,
-    GET_DAG_STATUS,
-    GET_DAG_RESULTS,
 ]
