@@ -792,7 +792,7 @@ class ApplicationContext(ModelGraph):
                 failed = [m for m in result.model_results if m.status.value == "failed"]
                 if failed:
                     raise VisitranBackendBaseException(
-                        error_message=f"Model execution failed: {failed[0].error_message}"
+                        error_message=f"Model execution failed: {failed[0].error}"
                     )
 
             logger.info(
