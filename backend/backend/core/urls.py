@@ -11,6 +11,7 @@ from backend.core.views import (
     get_user_profile,
     update_user_profile,
 )
+from backend.application.config_parser.feature_flags import FeatureFlags
 
 urlpatterns = [
     # server maintenance API
@@ -70,6 +71,21 @@ urlpatterns = [
     path("aggregations", get_aggregations_list, name="get-available-aggregations"),
     path("formulas", get_formula_list, name="get-available-formulas"),
 ]
+
+
+# Feature flags view (simple endpoint for FE to check execution mode)
+from rest_framework.decorators import api_view  # noqa: E402
+from rest_framework.response import Response  # noqa: E402
+
+
+@api_view(["GET"])
+def get_feature_flags(request):
+    flags = FeatureFlags.get_instance()
+    state = flags.get_state()
+    return Response(state.to_dict())
+
+
+urlpatterns.append(path("feature-flags", get_feature_flags, name="feature-flags"))
 
 try:
     SLACK_INTEGRATION = path("slack", include("pluggable_apps.slack_integration.urls"))

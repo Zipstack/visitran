@@ -773,7 +773,7 @@ class ApplicationContext(ModelGraph):
                 if model_data := model.model_data:
                     schema = self.visitran_context.get_profile_schema()
                     config = ConfigParser(model_data, model.model_name)
-                    config._dialect = self.visitran_context.db_type
+                    config._dialect = self.visitran_context.database_type
                     registry.register(schema, model.model_name, config)
 
             # Build DAG and execute
