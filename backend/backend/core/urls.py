@@ -35,11 +35,11 @@ urlpatterns = [
         include("backend.core.routers.explorer.urls"),
     ),
     path(
-        "project/<str:project_id>/execute", include("backend.core.routers.execute.urls")
-    ),
-    path(
         "project/<str:project_id>/execute/direct/",
         include("backend.core.routers.direct_execution.urls"),
+    ),
+    path(
+        "project/<str:project_id>/execute", include("backend.core.routers.execute.urls")
     ),
     # Chat
     path("project/<str:project_id>/chat", include("backend.core.routers.chat.urls")),
