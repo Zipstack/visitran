@@ -19,6 +19,7 @@ from visitran.errors.transformation_exceptions import (
     SynthesisColumnNotExist,
     ColumnNotExist,
     TransformationFailed,
+    TransformationError,
 )
 from visitran.errors.validation_exceptions import (
     InvalidSnapshotFields,
@@ -54,6 +55,7 @@ __all__ = [
     "ColumnNotExist",
     "SynthesisColumnNotExist",
     "TransformationFailed",
+    "TransformationError",
     # RUN models errors
     "SeedFailureException",
     "ModelImportError",

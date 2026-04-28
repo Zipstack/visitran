@@ -34,10 +34,14 @@ from backend.application.config_parser.feature_flags import (
     FeatureFlags,
     get_feature_flags,
 )
-from backend.application.config_parser.validation_storage_service import (
-    ValidationStorageService,
-    get_validation_storage_service,
-)
+try:
+    from backend.application.config_parser.validation_storage_service import (
+        ValidationStorageService,
+        get_validation_storage_service,
+    )
+except ImportError:
+    ValidationStorageService = None  # type: ignore
+    get_validation_storage_service = None  # type: ignore
 
 logger = logging.getLogger(__name__)
 

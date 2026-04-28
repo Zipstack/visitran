@@ -39,10 +39,14 @@ from backend.application.config_parser.sql_validator import (
     ValidationResult,
     validate_sql_equivalence,
 )
-from backend.application.config_parser.validation_storage_service import (
-    ValidationStorageService,
-    get_validation_storage_service,
-)
+try:
+    from backend.application.config_parser.validation_storage_service import (
+        ValidationStorageService,
+        get_validation_storage_service,
+    )
+except ImportError:
+    ValidationStorageService = None  # type: ignore
+    get_validation_storage_service = None  # type: ignore
 from backend.core.utils import handle_http_request
 from backend.utils.constants import HTTPMethods
 from visitran.errors import TransformationError
