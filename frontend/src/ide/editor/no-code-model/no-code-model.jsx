@@ -123,6 +123,7 @@ import {
 } from "./helper.js";
 import { useRefreshModelsStore } from "../../../store/refresh-models-store.js";
 import { useLineageTabStore } from "../../../store/lineage-tab-store.js";
+import { useFeatureFlagsStore } from "../../../store/feature-flags-store.js";
 
 import initialSpec from "../../../skeleton/initialSpec.json";
 
@@ -176,6 +177,7 @@ function NoCodeModel({ nodeData }) {
   const sessionId = Cookies.get("sessionid");
   const userDetails = useUserStore((state) => state.userDetails);
   const { selectedOrgId } = orgStore();
+  const { fetchFeatureFlags, isDirectExecutionEnabled, isLoaded: featureFlagsLoaded } = useFeatureFlagsStore();
   const {
     projectName,
     dbConfigDetails,
@@ -303,6 +305,13 @@ function NoCodeModel({ nodeData }) {
       </>
     ),
   };
+
+  // Fetch feature flags on mount (for direct execution routing)
+  useEffect(() => {
+    if (!featureFlagsLoaded) {
+      fetchFeatureFlags(selectedOrgId);
+    }
+  }, [selectedOrgId, featureFlagsLoaded, fetchFeatureFlags]);
 
   const handleToggleLineageLayout = () => {
     const newDirection = lineageLayoutDirection === "LR" ? "TB" : "LR";
@@ -2028,20 +2037,48 @@ function NoCodeModel({ nodeData }) {
   const runTransformation = (spec) => {
     setIsLoading(true);
     const specYaml = yaml.dump(removeUnwantedKeys(spec));
-    const requestOptions = {
-      method: "POST",
-      url: `/api/v1/visitran/${
-        selectedOrgId || "default_org"
-      }/project/${projectId}/execute/run`,
-      data: {
-        name: projectName,
-        file_name: nodeData.node.title,
-        file: specYaml,
-      },
-      headers: {
-        "X-CSRFToken": csrfToken,
-      },
-    };
+
+    // Check if direct execution is enabled via feature flags
+    const useDirectExecution = isDirectExecutionEnabled();
+
+    let requestOptions;
+    if (useDirectExecution) {
+      // New direct execution API path (YAML → SQL, no Python layer)
+      const schemaName = spec?.model?.schema_name || spec?.source?.schema_name || "";
+      requestOptions = {
+        method: "POST",
+        url: `/api/v1/visitran/${
+          selectedOrgId || "default_org"
+        }/project/${projectId}/execute/direct/`,
+        data: {
+          file_name: nodeData.node.title,
+          yaml_content: specYaml,
+          schema: schemaName,
+          incremental: false,
+          dry_run: false,
+        },
+        headers: {
+          "X-CSRFToken": csrfToken,
+        },
+      };
+    } else {
+      // Legacy API path (YAML → Python → Ibis → SQL)
+      requestOptions = {
+        method: "POST",
+        url: `/api/v1/visitran/${
+          selectedOrgId || "default_org"
+        }/project/${projectId}/execute/run`,
+        data: {
+          name: projectName,
+          file_name: nodeData.node.title,
+          file: specYaml,
+        },
+        headers: {
+          "X-CSRFToken": csrfToken,
+        },
+      };
+    }
+
     axios(requestOptions)
       .then(() => {
         getSampleData(undefined, undefined, spec);
