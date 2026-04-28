@@ -1,0 +1,680 @@
+openapi: 3.0.3
+info:
+  title: Visitran Direct Execution API
+  description: |
+    REST API for YAML-to-Ibis Direct Execution Architecture.
+
+    This API provides endpoints for:
+    - Model execution with error handling (VTR-060)
+    - SQL validation results (VTR-061)
+    - DAG execution (VTR-062)
+    - Model registry inspection (VTR-063)
+  version: 1.0.0
+  contact:
+    name: Visitran Team
+
+servers:
+  - url: /api/v1
+    description: API v1
+
+tags:
+  - name: Model Execution
+    description: Execute individual models via direct Ibis path
+  - name: Validation
+    description: SQL validation results from parallel execution
+  - name: DAG
+    description: DAG execution and status
+  - name: Registry
+    description: Model registry inspection
+
+paths:
+  /models/{schema}/{model}/execute:
+    post:
+      summary: Execute a single model
+      description: |
+        Execute a single model via the direct Ibis execution path.
+        Returns the generated SQL, validation status, and execution metrics.
+      tags:
+        - Model Execution
+      parameters:
+        - name: schema
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Schema name for the model
+        - name: model
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Model name
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecuteModelRequest'
+            example:
+              incremental: false
+              override_feature_flag: false
+      responses:
+        '200':
+          description: Execution successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecuteModelResponse'
+        '400':
+          description: Invalid model reference or build error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Direct execution disabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /validation/results:
+    get:
+      summary: List validation results
+      description: Get paginated list of SQL validation results from parallel execution mode
+      tags:
+        - Validation
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+          description: Results per page
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter results after this date (ISO 8601)
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Filter results before this date (ISO 8601)
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [match, mismatch]
+          description: Filter by validation status
+      responses:
+        '200':
+          description: Paginated validation results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResultsList'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /validation/results/{model_name}:
+    get:
+      summary: Get model validation results
+      description: Get validation results for a specific model
+      tags:
+        - Validation
+      parameters:
+        - name: model_name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Model name to filter by
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Validation results for the model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResultsList'
+        '404':
+          description: No validation results found for model
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /dag/execute:
+    post:
+      summary: Execute DAG
+      description: |
+        Execute a complete DAG of model transformations in topological order.
+        Supports schema filtering and multiple execution modes.
+      tags:
+        - DAG
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExecuteDAGRequest'
+            example:
+              schema: public
+              execution_mode: direct
+      responses:
+        '200':
+          description: DAG execution completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecuteDAGResponse'
+        '202':
+          description: Async execution started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncExecutionStarted'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Execution failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /dag/status/{execution_id}:
+    get:
+      summary: Get DAG execution status
+      description: Get the current status of an asynchronous DAG execution
+      tags:
+        - DAG
+      parameters:
+        - name: execution_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Execution status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DAGStatusResponse'
+        '404':
+          description: Execution not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /dag/results/{execution_id}:
+    get:
+      summary: Get DAG execution results
+      description: Get the full results of a completed DAG execution
+      tags:
+        - DAG
+      parameters:
+        - name: execution_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Full execution results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecuteDAGResponse'
+        '404':
+          description: Execution not found
+        '409':
+          description: Execution not yet complete
+
+  /registry/models:
+    get:
+      summary: List registered models
+      description: Get all models registered in the ModelRegistry
+      tags:
+        - Registry
+      responses:
+        '200':
+          description: List of registered models
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistryModelsList'
+
+  /registry/dag/{schema}:
+    get:
+      summary: Get DAG for schema
+      description: Get the dependency DAG visualization for a schema
+      tags:
+        - Registry
+      parameters:
+        - name: schema
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: DAG as JSON
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistryDAG'
+        '404':
+          description: Schema not found
+
+  /registry/models/{schema}/{model}:
+    get:
+      summary: Get model details
+      description: Get detailed information about a specific model
+      tags:
+        - Registry
+      parameters:
+        - name: schema
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: model
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Model details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegistryModelDetail'
+        '404':
+          description: Model not found
+
+components:
+  schemas:
+    ExecuteModelRequest:
+      type: object
+      properties:
+        incremental:
+          type: boolean
+          default: false
+          description: Trigger incremental execution mode
+        override_feature_flag:
+          type: boolean
+          default: false
+          description: Bypass ENABLE_DIRECT_EXECUTION flag for testing
+
+    ExecuteModelResponse:
+      type: object
+      required:
+        - execution_id
+        - schema
+        - model
+        - generated_sql
+        - validation_status
+        - execution_time_ms
+      properties:
+        execution_id:
+          type: string
+          format: uuid
+        schema:
+          type: string
+        model:
+          type: string
+        generated_sql:
+          type: string
+        validation_status:
+          type: string
+          enum: [passed, failed, skipped]
+        validation_details:
+          $ref: '#/components/schemas/ValidationDetails'
+        execution_time_ms:
+          type: number
+        rows_affected:
+          type: integer
+          nullable: true
+
+    ValidationDetails:
+      type: object
+      properties:
+        dbt_sql:
+          type: string
+        ibis_sql:
+          type: string
+        match_status:
+          type: boolean
+        discrepancy_details:
+          type: string
+          nullable: true
+
+    ValidationResultsList:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationResult'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    ValidationResult:
+      type: object
+      properties:
+        model_name:
+          type: string
+        legacy_sql:
+          type: string
+        direct_sql:
+          type: string
+        match_status:
+          type: boolean
+        diff:
+          type: string
+          nullable: true
+        timestamp:
+          type: string
+          format: date-time
+        execution_id:
+          type: string
+
+    Pagination:
+      type: object
+      properties:
+        total_count:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+        has_next:
+          type: boolean
+        has_previous:
+          type: boolean
+
+    ExecuteDAGRequest:
+      type: object
+      properties:
+        schema:
+          type: string
+          nullable: true
+          description: Optional schema filter
+        execution_mode:
+          type: string
+          enum: [legacy, direct, parallel]
+          default: direct
+
+    ExecuteDAGResponse:
+      type: object
+      properties:
+        execution_id:
+          type: string
+          format: uuid
+        execution_mode:
+          type: string
+        schema_filter:
+          type: string
+          nullable: true
+        total_models:
+          type: integer
+        successful_count:
+          type: integer
+        failed_count:
+          type: integer
+        skipped_count:
+          type: integer
+        total_time_ms:
+          type: number
+        validation_summary:
+          type: object
+          nullable: true
+        per_model_results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModelExecutionResult'
+
+    ModelExecutionResult:
+      type: object
+      properties:
+        model_name:
+          type: string
+        execution_order:
+          type: integer
+        sql_output:
+          type: string
+          nullable: true
+        validation_status:
+          type: string
+          enum: [passed, failed, skipped]
+        validation_message:
+          type: string
+          nullable: true
+        execution_time_ms:
+          type: number
+        status:
+          type: string
+        error:
+          type: string
+          nullable: true
+
+    AsyncExecutionStarted:
+      type: object
+      properties:
+        execution_id:
+          type: string
+          format: uuid
+        status_url:
+          type: string
+        polling_interval_ms:
+          type: integer
+
+    DAGStatusResponse:
+      type: object
+      properties:
+        execution_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [queued, running, completed, failed]
+        models_completed:
+          type: integer
+        models_total:
+          type: integer
+        current_model:
+          type: string
+          nullable: true
+        started_at:
+          type: string
+          format: date-time
+
+    RegistryModelsList:
+      type: object
+      properties:
+        models:
+          type: array
+          items:
+            $ref: '#/components/schemas/RegistryModel'
+        total_count:
+          type: integer
+        cache_status:
+          type: object
+          properties:
+            cached_tables:
+              type: integer
+            is_locked:
+              type: boolean
+        last_modified:
+          type: string
+          format: date-time
+
+    RegistryModel:
+      type: object
+      properties:
+        key:
+          type: string
+        schema:
+          type: string
+        model:
+          type: string
+        table_name:
+          type: string
+        materialization_type:
+          type: string
+        execution_status:
+          type: string
+        config_loaded:
+          type: boolean
+
+    RegistryDAG:
+      type: object
+      properties:
+        schema:
+          type: string
+        nodes:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+              schema:
+                type: string
+              model:
+                type: string
+        edges:
+          type: array
+          items:
+            type: object
+            properties:
+              source:
+                type: string
+              target:
+                type: string
+        node_count:
+          type: integer
+        edge_count:
+          type: integer
+        cache_status:
+          type: string
+        last_modified:
+          type: string
+          format: date-time
+
+    RegistryModelDetail:
+      type: object
+      properties:
+        schema:
+          type: string
+        model:
+          type: string
+        qualified_name:
+          type: string
+        metadata:
+          type: object
+        config:
+          type: object
+        yaml_location:
+          type: object
+          nullable: true
+          properties:
+            file:
+              type: string
+            line:
+              type: integer
+            column:
+              type: integer
+        cache_status:
+          type: string
+        last_modified:
+          type: string
+          format: date-time
+
+    ErrorResponse:
+      type: object
+      required:
+        - error_code
+        - message
+      properties:
+        error:
+          type: string
+          description: Error type
+        error_code:
+          type: string
+          description: Unique error identifier
+        message:
+          type: string
+          description: Human-readable error description
+        model:
+          type: string
+          description: Model name (if applicable)
+        yaml_location:
+          oneOf:
+            - type: string
+              description: file:line:column format
+            - type: object
+              properties:
+                file:
+                  type: string
+                line:
+                  type: integer
+                column:
+                  type: integer
+        yaml_snippet:
+          type: string
+          description: 3-line YAML context with error marker
+        suggested_fix:
+          type: string
+          description: Actionable remediation guidance
+        timestamp:
+          type: string
+          format: date-time
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: JWT authentication (TBD)
+
+security: []  # Authentication TBD
