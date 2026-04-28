@@ -105,6 +105,20 @@ class ConfigParser(BaseParser):
         return self.get("source", {}).get("materialization", "TABLE")
 
     @property
+    def incremental_config(self) -> dict[str, Any]:
+        if self.materialization == "TABLE":
+            return {}
+        return self.get("source", {}).get("incremental_config", {})
+
+    @property
+    def unique_keys(self) -> list[str]:
+        return self.incremental_config.get('primary_key', [])
+
+    @property
+    def delta_strategy(self) -> dict[str, Any]:
+        return self.incremental_config.get("delta_strategy", {})
+
+    @property
     def reference(self) -> list[str]:
         if not self._reference:
             self._reference = self.get("reference") or []
