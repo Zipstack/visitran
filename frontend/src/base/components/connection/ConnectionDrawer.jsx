@@ -532,7 +532,7 @@ const ConnectionDrawer = ({
                 loading={isSaveLoading || isEncryptionLoading}
                 disabled={!canSave || isEncryptionLoading}
               >
-                Save connection
+                {isEditing ? "Update connection" : "Create connection"}
               </Button>
             </Space>
           </Col>

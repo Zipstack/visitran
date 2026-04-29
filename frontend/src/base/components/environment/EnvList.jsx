@@ -358,7 +358,15 @@ const EnvList = () => {
             </Tooltip>
             <Popconfirm
               title="Delete environment?"
-              description={`"${record.name}" will be removed.`}
+              description={
+                (record.job_count || 0) > 0
+                  ? `"${record.name}" is used by ${record.job_count} job(s)${
+                      record.project_count
+                        ? ` and ${record.project_count} project(s)`
+                        : ""
+                    }. Deleting may break scheduled runs.`
+                  : `"${record.name}" will be permanently removed.`
+              }
               okText="Delete"
               okButtonProps={{ danger: true }}
               onConfirm={() => deleteEnv(record.id)}

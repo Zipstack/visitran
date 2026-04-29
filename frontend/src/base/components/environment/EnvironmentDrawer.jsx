@@ -645,7 +645,7 @@ const EnvironmentDrawer = ({ open, onClose, envId, onSaved, getContainer }) => {
               loading={isSaveLoading || isEncryptionLoading}
               disabled={!canSave || isEncryptionLoading}
             >
-              {isEditing ? "Save changes" : "Create environment"}
+              {isEditing ? "Update environment" : "Create environment"}
             </Button>
           </Col>
         </Row>
