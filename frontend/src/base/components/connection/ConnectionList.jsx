@@ -195,10 +195,10 @@ const ConnectionList = () => {
         }/connection/${connId}/test`,
       });
       notify({ type: "success", message: "Connection test passed" });
-      getConnectionData(currentPage, pageSize);
+      getConnectionData();
     } catch (error) {
       notify({ error });
-      getConnectionData(currentPage, pageSize);
+      getConnectionData();
     } finally {
       setTestingIds((prev) => {
         // eslint-disable-next-line no-unused-vars

@@ -122,7 +122,7 @@ const EnvList = () => {
         }/connection/${connId}/test`,
       });
       notify({ type: "success", message: "Connection test passed" });
-      getEnvData(currentPage, pageSize);
+      getEnvData();
     } catch (error) {
       notify({ error });
     } finally {
