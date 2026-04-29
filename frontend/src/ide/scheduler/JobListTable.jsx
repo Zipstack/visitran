@@ -81,7 +81,8 @@ const ScheduleBadge = ({ type, details }) => {
   let description = "";
   try {
     if (isCron && expression) {
-      description = getTooltipText({ cron_expression: expression }, type);
+      description =
+        getTooltipText({ cron_expression: expression }, type) + " (UTC)";
     } else if (!isCron && details?.interval) {
       description = getTooltipText(details.interval, type);
     }
