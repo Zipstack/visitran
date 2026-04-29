@@ -246,6 +246,7 @@ const JobList = () => {
           (el) => el.periodic_task_details.id !== delTaskDetail.taskId
         )
       );
+      setTotalCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
       notify({ error });
     }
