@@ -237,8 +237,12 @@ const JobList = () => {
       await deleteTask(delTaskDetail.projectId, delTaskDetail.taskId);
       setIsDeleteModalOpen(false);
       notify({ type: "success", message: "Job deleted successfully" });
-      setJobList(
-        jobList.filter(
+      const remaining = jobList.filter(
+        (el) => el.periodic_task_details.id !== delTaskDetail.taskId
+      );
+      setJobList(remaining);
+      setBackup((prev) =>
+        prev.filter(
           (el) => el.periodic_task_details.id !== delTaskDetail.taskId
         )
       );
