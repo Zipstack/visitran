@@ -85,8 +85,9 @@ class ConnectionSession:
                 env_count=Count(
                     "environment_model",
                     filter=Q(environment_model__is_deleted=False),
+                    distinct=True,
                 ),
-                project_count=Count("project"),
+                project_count=Count("project", distinct=True),
                 is_sample=Exists(
                     ProjectDetails.objects.filter(
                         connection_model_id=OuterRef("connection_id"),

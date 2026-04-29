@@ -378,7 +378,7 @@ const EnvList = () => {
         ),
       },
     ],
-    [canWrite, canDelete, token]
+    [canWrite, canDelete, token, testingIds]
   );
 
   const hasActiveFilters = searchQuery || filterType;

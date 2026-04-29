@@ -88,8 +88,8 @@ class EnvironmentSession:
             self.get_all_environment_models(filter_condition=filter_condition)
             .select_related("connection_model")
             .annotate(
-                job_count=Count("usertaskdetails"),
-                project_count=Count("project"),
+                job_count=Count("usertaskdetails", distinct=True),
+                project_count=Count("project", distinct=True),
             )
             .order_by("-modified_at")
         )
