@@ -59,6 +59,7 @@ class EnvironmentSession:
                 env_connection_data=env_connection_data,
                 env_custom_data=environment_details.get("custom_data", {}),
                 connection_model=connection_model,
+                is_tested=True,
             )
             env_model.save()
             return env_model
@@ -154,6 +155,7 @@ class EnvironmentSession:
             )
             env_model.env_connection_data = env_connection_data
             env_model.env_custom_data = environment_details.get("custom_data", {})
+            env_model.is_tested = True
             env_model.save()
             return env_model
         except KeyError as e:

@@ -70,7 +70,7 @@ const StatusTag = ({ tested }) => {
   if (tested) {
     return (
       <Tag icon={<CheckCircleFilled />} color="success">
-        Healthy
+        Tested
       </Tag>
     );
   }
