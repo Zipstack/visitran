@@ -30,6 +30,7 @@ import {
   CopyOutlined,
   EyeOutlined,
   RedoOutlined,
+  LoadingOutlined,
   UpOutlined,
   DownOutlined,
   MinusOutlined,
@@ -216,6 +217,7 @@ const Runhistory = () => {
     project_id: "",
   });
   const orgId = selectedOrgId || "default_org";
+  const [retryLoading, setRetryLoading] = useState(false);
 
   /* ── APIs ── */
   const fetchStats = useCallback(
@@ -363,6 +365,8 @@ const Runhistory = () => {
     }
   };
   const handleRetry = async (taskId) => {
+    if (retryLoading) return;
+    setRetryLoading(true);
     try {
       await axios.post(
         `/api/v1/visitran/${orgId}/project/_all/jobs/trigger-periodic-task/${taskId}`,
@@ -373,10 +377,12 @@ const Runhistory = () => {
           },
         }
       );
-      notify({ type: "success", message: "Job submitted" });
+      notify({ type: "success", message: "Job triggered successfully" });
       setTimeout(handleRefresh, 2000);
     } catch (error) {
       notify({ error });
+    } finally {
+      setRetryLoading(false);
     }
   };
   const handleCopyError = (text) => {
@@ -612,11 +618,12 @@ const Runhistory = () => {
         key: "actions",
         width: 50,
         render: () => (
-          <Tooltip title="Retry run">
+          <Tooltip title={retryLoading ? "Submitting..." : "Retry run"}>
             <Button
               type="text"
               size="small"
-              icon={<RedoOutlined />}
+              icon={retryLoading ? <LoadingOutlined spin /> : <RedoOutlined />}
+              disabled={retryLoading}
               onClick={(e) => {
                 e.stopPropagation();
                 handleRetry(envInfo.id);
@@ -626,7 +633,7 @@ const Runhistory = () => {
         ),
       },
     ],
-    [stats, envInfo.id]
+    [stats, envInfo.id, retryLoading]
   );
 
   /* ── RunDetail (expanded row) ── */
@@ -851,6 +858,8 @@ const Runhistory = () => {
                 type="primary"
                 icon={<RedoOutlined />}
                 size="small"
+                loading={retryLoading}
+                disabled={retryLoading}
                 onClick={() => handleRetry(envInfo.id)}
               >
                 Re-run
