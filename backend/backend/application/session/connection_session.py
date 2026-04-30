@@ -1,8 +1,11 @@
+import logging
 from typing import Any
 
 from visitran.utils import import_file
 
 from backend.application.utils import get_filter
+
+logger = logging.getLogger(__name__)
 from backend.core.models.connection_models import ConnectionDetails
 from backend.core.models.environment_models import EnvironmentModels
 from backend.core.models.project_details import ProjectDetails
@@ -12,6 +15,32 @@ from backend.errors.exceptions import (
     ConnectionNotExists,
 )
 from backend.utils.pagination import CustomPaginator
+
+
+def _get_host_display(con_model):
+    """Extract a human-readable host string from connection details.
+
+    Only reads non-sensitive plaintext fields (host, port, account, etc.)
+    so no Fernet decryption is needed.
+    """
+    try:
+        details = con_model.connection_details or {}
+        ds = con_model.datasource_name
+        if ds in ("postgres", "mysql", "trino"):
+            host = details.get("host", "")
+            port = details.get("port", "")
+            return f"{host}:{port}" if host and port else host or None
+        if ds == "snowflake":
+            return details.get("account") or None
+        if ds == "bigquery":
+            return details.get("project_id") or None
+        if ds == "databricks":
+            return details.get("host") or None
+        if ds == "duckdb":
+            return details.get("file_path") or None
+    except Exception:
+        logger.warning("Failed to derive host display for connection %s", con_model.connection_id, exc_info=True)
+    return None
 
 
 class ConnectionSession:
@@ -43,35 +72,53 @@ class ConnectionSession:
 
     @staticmethod
     def get_all_connections(page: int, limit: int, filter_condition: dict[str, Any]) -> Any:
+        from django.db.models import Count, Q, Exists, OuterRef
+
         filter_condition.update(get_filter())
         if "is_deleted" not in filter_condition:
             filter_condition["is_deleted"] = False
-        con_models = ConnectionDetails.objects.filter(**filter_condition).order_by("-modified_at")
 
-        custom_paginator = CustomPaginator(queryset=con_models, limit=limit, page=page)
+        # Annotate counts + sample flag in a single query (no N+1)
+        con_qs = (
+            ConnectionDetails.objects.filter(**filter_condition)
+            .annotate(
+                env_count=Count(
+                    "environment_model",
+                    filter=Q(environment_model__is_deleted=False),
+                    distinct=True,
+                ),
+                project_count=Count("project", distinct=True),
+                is_sample=Exists(
+                    ProjectDetails.objects.filter(
+                        connection_model_id=OuterRef("connection_id"),
+                        is_sample=True,
+                    )
+                ),
+            )
+            .order_by("-modified_at")
+        )
+
+        custom_paginator = CustomPaginator(queryset=con_qs, limit=limit, page=page)
         con_models = custom_paginator.paginate()
 
         connection_list = []
         for con_model in con_models.get("page_items"):
-            project_con = ProjectDetails.objects.filter(connection_model_id=con_model.connection_id).first()
-            if project_con:
-                is_sample_project = project_con.is_sample
-            else:
-                is_sample_project = False
             connection_list.append(
                 {
                     "id": con_model.connection_id,
                     "name": con_model.connection_name,
                     "description": con_model.connection_description,
                     "datasource_name": con_model.datasource_name,
+                    "host": _get_host_display(con_model),
                     "created_by": con_model.created_by,
                     "last_modified_by": con_model.last_modified_by,
                     "db_icon": import_file(f"visitran.adapters.{con_model.datasource_name}").ICON,
                     "is_connection_exist": con_model.is_connection_exist,
                     "is_connection_valid": con_model.is_connection_valid,
                     "connection_flag": con_model.connection_flag,
-                    "is_sample_project": is_sample_project,
-                    # "connection_details": con_model.connection_details, # skipping connection_details
+                    "is_sample_project": con_model.is_sample,
+                    "env_count": con_model.env_count,
+                    "project_count": con_model.project_count,
                 }
             )
 
