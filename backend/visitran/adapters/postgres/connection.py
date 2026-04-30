@@ -204,7 +204,7 @@ class PostgresConnection(BaseConnection):
         table_name: str,
         select_statement: "Table",
         primary_key: Union[str, list[str]],
-    ) -> None:
+    ) -> dict:
         """Efficient upsert using PostgreSQL's INSERT ... ON CONFLICT.
 
         This approach is optimal for PostgreSQL because:
@@ -212,6 +212,8 @@ class PostgresConnection(BaseConnection):
         2. No temporary tables needed
         3. Atomic operation
         4. Better performance than MERGE for PostgreSQL
+
+        Returns dict with rows_affected from cursor.rowcount.
         """
 
         # Handle both single column and composite keys
@@ -232,7 +234,7 @@ class PostgresConnection(BaseConnection):
                 pass
             else:
                 self._fallback_upsert(schema_name, table_name, select_statement, key_columns)
-                return
+                return {"rows_affected": None}
 
         qi = self.quote_identifier
 
@@ -255,8 +257,15 @@ class PostgresConnection(BaseConnection):
             DO UPDATE SET {update_set_clause}
         """
 
-        # Execute the upsert
-        self.connection.raw_sql(upsert_query)
+        # Execute the upsert and capture rowcount
+        cursor = self.connection.raw_sql(upsert_query)
+        _rc = cursor.rowcount if hasattr(cursor, "rowcount") else None
+        rowcount = _rc if (_rc is not None and _rc >= 0) else None
+        try:
+            cursor.close()
+        except Exception:
+            pass
+        return {"rows_affected": rowcount}
 
 
 

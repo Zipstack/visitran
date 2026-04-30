@@ -170,6 +170,13 @@ const JobList = () => {
       setPrefillProject(searchParams.get("project") || null);
       setOpenJobDeploy(true);
       setSearchParams({}, { replace: true });
+    } else if (searchParams.get("task")) {
+      const taskId = Number(searchParams.get("task"));
+      if (!Number.isNaN(taskId)) {
+        setSelectedJobId(taskId);
+        setOpenJobDeploy(true);
+        setSearchParams({}, { replace: true });
+      }
     }
   }, [searchParams, setSearchParams]);
 

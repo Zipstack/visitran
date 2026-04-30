@@ -2,11 +2,22 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any
+from dataclasses import dataclass
+from typing import Any, Optional
 
 from visitran.adapters.connection import BaseConnection
 from visitran.materialization import Materialization
 from visitran.templates.model import VisitranModel
+
+
+@dataclass
+class ExecutionMetrics:
+    """Metrics returned from model execution."""
+    rows_affected: Optional[int] = None
+    rows_inserted: Optional[int] = None
+    rows_updated: Optional[int] = None
+    rows_deleted: Optional[int] = None
+    materialization: str = ""
 
 
 class BaseModel(ABC):
@@ -17,6 +28,7 @@ class BaseModel(ABC):
         self._model: VisitranModel = model
 
         self._statements: list[Any] = []
+        self._upsert_metrics: Optional[dict] = None  # Populated by adapter's execute_incremental
 
     @property
     def model(self) -> VisitranModel:
@@ -26,20 +38,57 @@ class BaseModel(ABC):
     def materialization(self) -> Materialization:
         return self.model.materialization
 
-    def execute(self) -> None:
+    def execute(self) -> ExecutionMetrics:
+        mat_name = self.materialization.value if hasattr(self.materialization, "value") else str(self.materialization)
+
         if self.materialization == Materialization.EPHEMERAL:
             self.execute_ephemeral()
+            return ExecutionMetrics(rows_affected=None, materialization="ephemeral")
 
         self.model.select_statement = self.model.select()
 
         if self.materialization == Materialization.TABLE:
             self.execute_table()
+            # Get row count after table creation — all rows are "inserted" (DROP + CREATE)
+            rows = self._get_row_count_safe()
+            return ExecutionMetrics(
+                rows_affected=rows,
+                rows_inserted=rows,
+                rows_updated=0,
+                rows_deleted=0,
+                materialization="table",
+            )
 
         elif self.materialization == Materialization.VIEW:
             self.execute_view()
+            return ExecutionMetrics(rows_affected=None, materialization="view")
 
         elif self.materialization == Materialization.INCREMENTAL:
             self.execute_incremental()
+            # Use upsert metrics if available (adapter captured cursor.rowcount)
+            upsert = self._upsert_metrics or {}
+            upsert_rows = upsert.get("rows_affected")
+            rows = upsert_rows if upsert_rows is not None else self._get_row_count_safe()
+            return ExecutionMetrics(
+                rows_affected=rows,
+                rows_inserted=upsert.get("rows_inserted"),
+                rows_updated=upsert.get("rows_updated"),
+                rows_deleted=upsert.get("rows_deleted"),
+                materialization="incremental",
+            )
+
+        return ExecutionMetrics(materialization=mat_name)
+
+    def _get_row_count_safe(self) -> Optional[int]:
+        """Get row count after execution, return None on failure."""
+        try:
+            return self._db_connection.get_table_row_count(
+                schema_name=self.model.destination_schema_name,
+                table_name=self.model.destination_table_name,
+            )
+        except Exception as e:
+            logging.info(f"Could not get row count for {self.model.destination_table_name}: {e}")
+            return None
 
     @abstractmethod
     def execute_ephemeral(self) -> None:

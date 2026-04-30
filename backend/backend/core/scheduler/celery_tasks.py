@@ -30,6 +30,15 @@ except (ImportError, RuntimeError):
 
 logger = logging.getLogger(__name__)
 
+
+def _sum_or_none(results, attr):
+    """Sum an attribute across results. Return None only if ALL values are None,
+    return 0 if the sum is legitimately zero (not all missing)."""
+    values = [getattr(r, attr, None) for r in results]
+    if all(v is None for v in values):
+        return None
+    return sum(v or 0 for v in values)
+
 # Default max duration before a job is considered stuck (1 hour)
 DEFAULT_STUCK_JOB_THRESHOLD_SECONDS = 3600
 
@@ -361,12 +370,22 @@ def trigger_scheduled_run(
                         "status": r.status,
                         "end_status": r.end_status,
                         "sequence": r.sequence_num,
+                        "rows_affected": getattr(r, "rows_affected", None),
+                        "rows_inserted": getattr(r, "rows_inserted", None),
+                        "rows_updated": getattr(r, "rows_updated", None),
+                        "rows_deleted": getattr(r, "rows_deleted", None),
+                        "type": getattr(r, "materialization", "") or "",
+                        "duration_ms": getattr(r, "duration_ms", None),
                     }
                     for r in user_results
                 ],
                 "total": len(user_results),
                 "passed": sum(1 for r in user_results if r.end_status == "OK"),
                 "failed": sum(1 for r in user_results if r.end_status == "FAIL"),
+                "rows_processed": _sum_or_none(user_results, "rows_affected"),
+                "rows_added": _sum_or_none(user_results, "rows_inserted"),
+                "rows_modified": _sum_or_none(user_results, "rows_updated"),
+                "rows_deleted": _sum_or_none(user_results, "rows_deleted"),
             }
         except Exception:
             _clear_base_result()

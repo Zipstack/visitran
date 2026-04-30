@@ -4,6 +4,7 @@ import uuid
 from datetime import timedelta
 
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from django_celery_beat.models import CrontabSchedule, IntervalSchedule, PeriodicTask
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -585,6 +586,112 @@ def delete_periodic_task(request, project_id, task_id):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
+def run_stats(request, project_id, user_task_id):
+    """Get aggregated run statistics for a job — stats cards data."""
+    try:
+        query = {"id": user_task_id}
+        if _is_valid_project_id(project_id):
+            query["project__project_uuid"] = project_id
+        task = UserTaskDetails.objects.get(**query)
+        runs = TaskRunHistory.objects.filter(user_task_detail=task)
+
+        now = timezone.now()
+        last_7d = now - timedelta(days=7)
+        last_24h = now - timedelta(hours=24)
+        prev_24h_start = now - timedelta(hours=48)
+
+        # Success rate (7 days) — only count completed runs in denominator
+        runs_7d = runs.filter(start_time__gte=last_7d)
+        completed_7d = runs_7d.filter(status__in=["SUCCESS", "FAILURE"])
+        total_7d = completed_7d.count()
+        success_7d = completed_7d.filter(status="SUCCESS").count()
+        success_rate = round((success_7d / total_7d * 100), 1) if total_7d > 0 else None
+
+        # Average duration (successful runs, 7 days)
+        successful_runs_7d = runs_7d.filter(status="SUCCESS", start_time__isnull=False, end_time__isnull=False)
+        avg_duration_ms = None
+        if successful_runs_7d.exists():
+            durations = [(r.end_time - r.start_time).total_seconds() * 1000 for r in successful_runs_7d]
+            avg_duration_ms = int(sum(durations) / len(durations))
+
+        # Failures (24h) + comparison with previous 24h
+        failures_24h = runs.filter(start_time__gte=last_24h, status="FAILURE").count()
+        failures_prev_24h = runs.filter(
+            start_time__gte=prev_24h_start, start_time__lt=last_24h, status="FAILURE"
+        ).count()
+
+        # Last successful run
+        last_success = runs.filter(status="SUCCESS").order_by("-end_time").first()
+        last_success_time = last_success.end_time if last_success else None
+
+        # Expected duration (avg of last 5 successful runs)
+        recent_successes = runs.filter(
+            status="SUCCESS", start_time__isnull=False, end_time__isnull=False
+        ).order_by("-end_time")[:5]
+        expected_duration_ms = None
+        if recent_successes.exists():
+            durations = [(r.end_time - r.start_time).total_seconds() * 1000 for r in recent_successes]
+            expected_duration_ms = int(sum(durations) / len(durations))
+
+        # Duration trend (last 10 completed runs for sparkline)
+        recent_runs = list(runs.filter(
+            start_time__isnull=False, end_time__isnull=False
+        ).order_by("-end_time")[:10])
+        recent_runs.reverse()  # chronological order for sparkline
+        duration_trend = [
+            int((r.end_time - r.start_time).total_seconds() * 1000) for r in recent_runs
+        ]
+
+        # Schedule info
+        schedule_type = None
+        schedule_label = None
+        periodic = None
+        try:
+            periodic = task.periodic_task
+            if periodic:
+                if periodic.crontab:
+                    schedule_type = "cron"
+                    c = periodic.crontab
+                    schedule_label = f"{c.minute} {c.hour} {c.day_of_month} {c.month_of_year} {c.day_of_week}"
+                elif periodic.interval:
+                    schedule_type = "interval"
+                    schedule_label = f"Every {periodic.interval.every} {periodic.interval.period}"
+        except Exception:
+            periodic = None
+
+        return Response({
+            "success": True,
+            "data": {
+                "success_rate_7d": success_rate,
+                "success_count_7d": success_7d,
+                "total_count_7d": total_7d,
+                "avg_duration_ms": avg_duration_ms,
+                "failures_24h": failures_24h,
+                "failures_prev_24h": failures_prev_24h,
+                "failures_change": failures_24h - failures_prev_24h,
+                "last_successful_run": last_success_time,
+                "expected_duration_ms": expected_duration_ms,
+                "duration_trend": duration_trend,
+                "total_runs": runs.count(),
+                "job_name": task.task_name,
+                "environment": {
+                    "name": task.environment.environment_name if task.environment else None,
+                    "type": task.environment.deployment_type if task.environment else None,
+                },
+                "schedule_type": schedule_type,
+                "schedule_label": schedule_label,
+                "schedule_enabled": periodic.enabled if periodic else False,
+            },
+        }, status=status.HTTP_200_OK)
+    except UserTaskDetails.DoesNotExist:
+        return Response({"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error getting run stats: {e}", exc_info=True)
+        return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def task_run_history(request, project_id, user_task_id):
     """Get run history for a task."""
     try:
@@ -600,18 +707,40 @@ def task_run_history(request, project_id, user_task_id):
         trigger_filter = request.GET.get("trigger")
         scope_filter = request.GET.get("scope")
         status_filter = request.GET.get("status")
+        date_from = request.GET.get("date_from")
+        date_to = request.GET.get("date_to")
+        search = request.GET.get("search")
+
         if trigger_filter:
             runs = runs.filter(trigger=trigger_filter)
         if scope_filter:
             runs = runs.filter(scope=scope_filter)
         if status_filter:
             runs = runs.filter(status=status_filter)
+        if date_from:
+            dt = parse_datetime(date_from)
+            if dt:
+                runs = runs.filter(start_time__gte=dt)
+        if date_to:
+            dt = parse_datetime(date_to)
+            if dt:
+                runs = runs.filter(start_time__lte=dt)
+        if search:
+            runs = runs.filter(error_message__icontains=search)
 
         runs = runs.order_by("-start_time")
         total = runs.count()
 
         offset = (page - 1) * limit
-        serializer = TaskRunHistorySerializer(runs[offset : offset + limit], many=True)
+        page_qs = runs[offset : offset + limit]
+        # Compute run numbers from total and offset — no extra query needed
+        run_numbers = {
+            run.id: total - offset - idx
+            for idx, run in enumerate(page_qs)
+        }
+        serializer = TaskRunHistorySerializer(
+            page_qs, many=True, context={"run_numbers": run_numbers}
+        )
 
         return Response(
             {
@@ -620,6 +749,7 @@ def task_run_history(request, project_id, user_task_id):
                     "page_items": {
                         "id": task.id,
                         "job_name": task.task_name,
+                        "project_id": str(task.project.project_uuid) if task.project else None,
                         "env_type": task.environment.deployment_type
                         if task.environment
                         else None,
@@ -705,9 +835,10 @@ def trigger_task_once(request, project_id, user_task_id):
     synchronous (in-process) execution so local dev works without Redis.
     """
     try:
-        task = UserTaskDetails.objects.get(
-            id=user_task_id, project__project_uuid=project_id
-        )
+        query = {"id": user_task_id}
+        if _is_valid_project_id(project_id):
+            query["project__project_uuid"] = project_id
+        task = UserTaskDetails.objects.get(**query)
     except UserTaskDetails.DoesNotExist:
         return Response(
             {"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND
