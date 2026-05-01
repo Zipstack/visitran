@@ -223,15 +223,33 @@ function ProjectListCard({
                   Jobs
                 </Typography>
                 <div className="project-list-card-progress-section">
-                  <Typography.Text>
+                  <Typography.Text
+                    className="project-list-card-job-link"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate("/project/job/list");
+                    }}
+                  >
                     <ExclamationCircleFilled className="project-list-card-status-icon warning" />
                     {details?.total_scheduled_jobs} Scheduled
                   </Typography.Text>
-                  <Typography.Text>
+                  <Typography.Text
+                    className="project-list-card-job-link"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate("/project/job/history");
+                    }}
+                  >
                     <InfoCircleFilled className="project-list-card-status-icon info" />
                     {details?.total_active_jobs} In&nbsp;Progress
                   </Typography.Text>
-                  <Typography.Text>
+                  <Typography.Text
+                    className="project-list-card-job-link"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate("/project/job/history");
+                    }}
+                  >
                     <CheckCircleFilled className="project-list-card-status-icon failed" />
                     {details?.total_failed_job} Failed
                   </Typography.Text>

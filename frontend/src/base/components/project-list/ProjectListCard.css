@@ -222,6 +222,18 @@
   font-size: 12px;
   color: var(--circle-color);
   opacity: 0.6;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+}
+
+.project-list-card-job-link {
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.project-list-card-job-link:hover {
+  opacity: 0.7;
 }
 
 .project-list-card-status-icon.warning {
