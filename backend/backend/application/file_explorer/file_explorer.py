@@ -99,50 +99,17 @@ class FileExplorer:
         # Build a lookup from model name -> model object for status fields
         model_lookup = {m.model_name: m for m in all_models}
 
-        # Build version control change status (M/A/D) per model
+        # Cloud: compute version-control change status per model. Empty in OSS.
         vc_change_map = {}
         try:
-            from pluggable_apps.version_control.models import ModelVersion, RepositoryConfig
-            # Only compute change status if version control is configured
-            repo_config = RepositoryConfig.objects.filter(
-                project=self._project_instance
-            ).first()
-            if not repo_config or not repo_config.is_connected:
-                raise ImportError("VC not configured")
-
-            # Get latest committed YAML per model (works on both Postgres and SQLite)
-            committed_models = {}
-            for mv in (
-                ModelVersion.objects.filter(project=self._project_instance)
-                .order_by("model_name", "-version_number")
-            ):
-                if mv.model_name not in committed_models:
-                    committed_models[mv.model_name] = mv.yaml_content
-
-            import yaml as yaml_lib
-            import json as json_lib
-            for model in all_models:
-                if model.model_name in committed_models:
-                    # Compare current vs last committed
-                    try:
-                        current = yaml_lib.dump(
-                            json_lib.loads(json_lib.dumps(model.model_data, default=str)),
-                            default_flow_style=False, sort_keys=True,
-                        ).strip()
-                        committed = committed_models[model.model_name].strip()
-                        # Normalize: parse both as YAML and compare dicts
-                        current_dict = yaml_lib.safe_load(current)
-                        committed_dict = yaml_lib.safe_load(committed)
-                        if current_dict != committed_dict:
-                            vc_change_map[model.model_name] = "M"  # Modified
-                    except Exception:
-                        pass
-                else:
-                    vc_change_map[model.model_name] = "A"  # Added (never committed)
-        except ImportError:
-            pass  # version_control plugin not available
+            from pluggable_apps.version_control.services.explorer_integration import (
+                compute_change_status_map,
+            )
+            vc_change_map = compute_change_status_map(
+                self._project_instance, all_models
+            )
         except Exception:
-            pass  # Non-blocking — VC status is optional
+            pass
 
         # Build the model structure in sorted order
         no_code_model_structure = []
