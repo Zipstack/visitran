@@ -182,7 +182,12 @@ class BaseContext:
             )
         # Only annotate user_tasks if scheduler app is installed
         from django.apps import apps
-        if apps.is_installed("job_scheduler") and hasattr(ProjectDetails, "user_tasks"):
+        try:
+            apps.get_app_config("job_scheduler")
+            _scheduler_installed = True
+        except LookupError:
+            _scheduler_installed = False
+        if _scheduler_installed and hasattr(ProjectDetails, "user_tasks"):
             annotations["_total_scheduled_jobs"] = Count("user_tasks", distinct=True)
             annotations["_total_active_jobs"] = Count(
                 "user_tasks__periodic_task",
