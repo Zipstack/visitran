@@ -76,9 +76,12 @@ Classify the work as **feature** or **non-feature**:
 **Edge cases:**
 - Already on a feature branch (not `main`/`master`/`develop`) → ask whether to continue
   committing on it or branch off
-- **No uncommitted changes (everything already committed locally)** → skip Phases 1–4;
-  derive the branch name and PR description from existing commit messages and
-  `git diff <base>...HEAD`; push existing commits in Phase 4; proceed to Phase 5
+- **No uncommitted changes (everything already committed locally)** → run the
+  secrets scan below against `git diff <base>...HEAD` first (same hard-stop
+  rules apply — local commits can leak secrets just as easily as uncommitted
+  diffs). If clean, skip commit-planning (Phases 2–3); derive the branch name
+  and PR description from existing commit messages and `git diff <base>...HEAD`;
+  push existing commits in Phase 4; proceed to Phase 5.
 - Branch already pushed → skip the Phase 4 push step
 - On `main`/`master`/`develop` with **no changes at all** → stop with a clear message
 - Diff spans clearly unrelated areas → stop and ask whether to split
