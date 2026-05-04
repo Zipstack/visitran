@@ -53,12 +53,17 @@ HEREDOC.
 
 ### Phase 1 — Discover and classify
 
-Inventory **all** pending changes — both staged and unstaged — so nothing
-sneaks past the scan or the plan:
+Inventory **all** pending changes — staged, unstaged, **and untracked** — so
+nothing sneaks past the scan or the plan:
 - `git status` for the file list
-- `git diff HEAD` for the full content diff (covers staged + unstaged)
+- `git diff HEAD` for the full content diff of *tracked* files (staged +
+  unstaged). Note: this does **not** include untracked files — they have no
+  index or HEAD entry to diff against.
 - `git diff --cached --name-only` to identify files that were already in the
   index before `/ship` was invoked
+- `git ls-files --others --exclude-standard` to list untracked files that
+  the user may want to add in the commit plan. These do not appear in
+  `git diff HEAD` and must be scanned separately (see secrets scan below).
 
 Any files already staged before invocation must be either explicitly included
 in the commit plan or unstaged before Phase 4 — otherwise they will be silently
@@ -86,25 +91,41 @@ Classify the work as **feature** or **non-feature**:
 - On `main`/`master`/`develop` with **no changes at all** → stop with a clear message
 - Diff spans clearly unrelated areas → stop and ask whether to split
 
-**Secrets scan (hard stop):** run the grep against `git diff HEAD` (so both
-staged and unstaged content are inspected) for high-entropy strings and known
-key prefixes — `sk-`, `AKIA`, `ghp_`, `gho_`, `xoxb-`, `xoxp-`, `-----BEGIN `
-(private keys), and an AWS secret-key assignment regex
+**Secrets scan (hard stop):** scan **two surfaces** for high-entropy strings
+and known key prefixes — `sk-`, `AKIA`, `ghp_`, `gho_`, `xoxb-`, `xoxp-`,
+`-----BEGIN ` (private keys), and an AWS secret-key assignment regex
 `aws_secret_access_key\s*[=:]\s*['"]?[A-Za-z0-9/+=]{40}['"]?` (case-insensitive
 — anchors on assignment + a 40-char value so bare references in `.env.example`
-don't trip the gate). On hit:
-1. Print the matched line and the file it came from
-2. Use AskUserQuestion to offer (both options must call
-   `git restore --staged <path>` first — leaving the file staged means it
-   *will* be included in the next commit, regardless of which paths you
-   `git add` afterwards):
-   - **Drop from this PR, keep in working tree** —
-     `git restore --staged <path>` (file remains on disk for a future ship)
-   - **Drop from this PR and remove from working tree** —
-     `git restore --staged <path>` then `rm <path>` (or `git rm <path>` if
-     it was tracked) so the secret is no longer present anywhere
-   - **Cancel ship entirely**
-3. Do not proceed past Phase 1 until the user picks one
+don't trip the gate):
+
+1. **Tracked content** — `git diff HEAD` (staged + unstaged changes to
+   tracked files).
+2. **Untracked content** — every file from
+   `git ls-files --others --exclude-standard`, scanned in full. These are
+   net-new files that Phase 4 will `git add` and commit; without this
+   pass, a brand-new `secrets.py` containing `sk-…` would slip past.
+
+A combined invocation:
+```bash
+git diff HEAD | grep -E '<patterns>'
+git ls-files --others --exclude-standard -z \
+  | xargs -0 -r grep -EIn '<patterns>' 2>/dev/null
+```
+
+On hit (in either surface):
+1. Print the matched line and the file it came from.
+2. Use AskUserQuestion to offer:
+   - **Drop from this PR, keep in working tree** — for tracked files,
+     `git restore --staged <path>`; for untracked files, simply do not
+     `git add` them in Phase 4. (Leaving a tracked file staged means it
+     *will* be included in the next commit regardless of which paths you
+     `git add` afterwards.)
+   - **Drop from this PR and remove from working tree** — for tracked
+     files, `git restore --staged <path>` then `rm <path>` (or
+     `git rm <path>`); for untracked files, just `rm <path>`. Either way
+     the secret is no longer present anywhere.
+   - **Cancel ship entirely**.
+3. Do not proceed past Phase 1 until the user picks one.
 
 ### Phase 2 — Plan the branch name
 
