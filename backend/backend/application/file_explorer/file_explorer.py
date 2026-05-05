@@ -84,7 +84,12 @@ class FileExplorer:
         # Build list with model names and their references
         models_with_refs: List[Dict[str, Any]] = []
         for model in all_models:
-            references = model.model_data.get("reference", []) or []
+            # Defensive: model_data is a JSONField and could in theory hold
+            # any JSON shape. If it's not a dict (corrupted by a bad write
+            # path elsewhere), don't crash the whole explorer — treat as
+            # an empty model with no references.
+            md = model.model_data if isinstance(model.model_data, dict) else {}
+            references = md.get("reference", []) or []
             models_with_refs.append({
                 "model_name": model.model_name,
                 "references": references
