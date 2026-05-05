@@ -15,9 +15,6 @@ const NewChat = memo(function NewChat({
   savePrompt,
   triggerGetChatMessagesApi,
   isPromptRunning,
-  chatIntents,
-  selectedChatIntent,
-  setSelectedChatIntent,
   llmModels = [],
   selectedLlmModel,
   setSelectedLlmModel,
@@ -41,7 +38,6 @@ const NewChat = memo(function NewChat({
   onSendButtonClick,
 }) {
   useEffect(() => {
-    setSelectedChatIntent(null);
     setSelectedLlmModel(null);
     setSelectedCoderLlmModel(null);
   }, []);
@@ -80,9 +76,6 @@ const NewChat = memo(function NewChat({
           savePrompt={savePrompt}
           isNewChat
           isPromptRunning={isPromptRunning}
-          chatIntents={chatIntents}
-          selectedChatIntent={selectedChatIntent}
-          setSelectedChatIntent={setSelectedChatIntent}
           llmModels={llmModels}
           selectedLlmModel={selectedLlmModel}
           setSelectedLlmModel={setSelectedLlmModel}
@@ -103,9 +96,7 @@ const NewChat = memo(function NewChat({
           isChatDrawerOpen={isChatDrawerOpen}
           setSelectedChatId={setSelectedChatId}
           setChatName={setChatName}
-          chatIntents={chatIntents}
           triggerGetChatMessagesApi={triggerGetChatMessagesApi}
-          setSelectedChatIntent={setSelectedChatIntent}
           setSelectedLlmModel={setSelectedLlmModel}
           setSelectedCoderLlmModel={setSelectedCoderLlmModel}
         />
@@ -121,9 +112,6 @@ NewChat.propTypes = {
   savePrompt: PropTypes.func.isRequired,
   triggerGetChatMessagesApi: PropTypes.func.isRequired,
   isPromptRunning: PropTypes.bool.isRequired,
-  chatIntents: PropTypes.array,
-  selectedChatIntent: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
-  setSelectedChatIntent: PropTypes.func.isRequired,
   llmModels: PropTypes.array,
   selectedLlmModel: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
   setSelectedLlmModel: PropTypes.func.isRequired,

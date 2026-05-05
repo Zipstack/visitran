@@ -175,6 +175,10 @@ const ChatAI = memo(
             existing.token_usage_data = msg?.token_usage_data;
           }
 
+          if (msg?.chat_intent_name) {
+            existing.chat_intent_name = msg.chat_intent_name;
+          }
+
           updatedMessages[idx] = existing;
         }
         uuidsToRemove.push(msg?.uuid);

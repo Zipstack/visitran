@@ -38,9 +38,6 @@ const ExistingChat = memo(function ExistingChat({
   isGetChatMessages,
   resetChatMessageIdentifier,
   isPromptRunning,
-  chatIntents,
-  selectedChatIntent,
-  setSelectedChatIntent,
   llmModels,
   selectedLlmModel,
   setSelectedLlmModel,
@@ -236,15 +233,11 @@ const ExistingChat = memo(function ExistingChat({
   };
 
   const lastTransformIndex = useMemo(() => {
-    const intentsMap = chatIntents.reduce((acc, ci) => {
-      acc[ci?.chat_intent_id] = ci?.name;
-      return acc;
-    }, {});
     for (let i = chatMessages.length - 1; i >= 0; i--) {
-      if (intentsMap[chatMessages[i]?.chat_intent] === "TRANSFORM") return i;
+      if (chatMessages[i]?.chat_intent_name === "TRANSFORM") return i;
     }
     return -1;
-  }, [chatMessages, chatIntents]);
+  }, [chatMessages]);
 
   // Check if response is actively streaming (thought chain done, response started)
   const isResponseStreaming = useMemo(() => {
@@ -395,7 +388,6 @@ const ExistingChat = memo(function ExistingChat({
             <Conversation
               key={message.chat_message_id}
               message={message}
-              chatIntents={chatIntents}
               isPromptRunning={isPromptRunning}
               isLastConversation={idx === chatMessages.length - 1}
               selectedChatId={selectedChatId}
@@ -404,7 +396,6 @@ const ExistingChat = memo(function ExistingChat({
               handleSqlRun={handleSqlRun}
               isLatestTransform={idx === lastTransformIndex}
               savePrompt={handleSavePrompt}
-              selectedChatIntent={selectedChatIntent}
             />
           ))}
         </Space>
@@ -462,9 +453,6 @@ const ExistingChat = memo(function ExistingChat({
           savePrompt={handleSavePrompt}
           isPromptRunning={isPromptRunning}
           isResponseStreaming={isResponseStreaming}
-          chatIntents={chatIntents}
-          selectedChatIntent={selectedChatIntent}
-          setSelectedChatIntent={setSelectedChatIntent}
           llmModels={llmModels}
           selectedLlmModel={selectedLlmModel}
           setSelectedLlmModel={setSelectedLlmModel}
@@ -499,9 +487,6 @@ ExistingChat.propTypes = {
   isGetChatMessages: PropTypes.bool.isRequired,
   resetChatMessageIdentifier: PropTypes.func.isRequired,
   isPromptRunning: PropTypes.bool.isRequired,
-  chatIntents: PropTypes.array.isRequired,
-  selectedChatIntent: PropTypes.string,
-  setSelectedChatIntent: PropTypes.func.isRequired,
   llmModels: PropTypes.array,
   selectedLlmModel: PropTypes.string,
   setSelectedLlmModel: PropTypes.func.isRequired,

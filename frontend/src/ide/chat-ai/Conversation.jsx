@@ -14,7 +14,6 @@ import ModelGenerationProgress from "./ModelGenerationProgress";
 const Conversation = memo(function Conversation({
   savePrompt,
   message,
-  chatIntents,
   isPromptRunning,
   isLastConversation,
   selectedChatId,
@@ -22,7 +21,6 @@ const Conversation = memo(function Conversation({
   triggerRetryTransform,
   handleSqlRun,
   isLatestTransform,
-  selectedChatIntent,
 }) {
   const userDetails = useUserStore((state) => state.userDetails);
   const [detectedAction, setDetectedAction] = useState(null);
@@ -36,9 +34,9 @@ const Conversation = memo(function Conversation({
   const handleTroubleshoot = useCallback(
     (errorMessage) => {
       const prompt = `There was an error encountered. We have the detailed error message below. Please see how we can fix this:\n\n${errorMessage}`;
-      savePrompt(prompt, selectedChatIntent);
+      savePrompt(prompt);
     },
-    [savePrompt, selectedChatIntent]
+    [savePrompt]
   );
 
   // Create UI action object based on detected action
@@ -80,14 +78,18 @@ const Conversation = memo(function Conversation({
   }, [message?.transformation_status]);
 
   /** --------------------------------------------------------------------
-   *  Derive the intent once; re-computes only when its deps change.
+   *  Derive the intent from the message itself (auto-detected by AI server,
+   *  surfaced via chat_intent_name on the serialized chat message).
    * ------------------------------------------------------------------- */
   const intent = useMemo(
     () =>
-      chatIntents.find(
-        ({ chat_intent_id }) => chat_intent_id === message?.chat_intent
-      ),
-    [chatIntents, message?.chat_intent]
+      message?.chat_intent_name
+        ? {
+            chat_intent_id: message?.chat_intent,
+            name: message.chat_intent_name,
+          }
+        : null,
+    [message?.chat_intent, message?.chat_intent_name]
   );
 
   // Memoize errorDetails to prevent unnecessary re-renders of PromptInfo
@@ -161,7 +163,6 @@ const Conversation = memo(function Conversation({
             handleSqlRun={handleSqlRun}
             isLatestTransform={isLatestTransform}
             savePrompt={savePrompt}
-            selectedChatIntent={selectedChatIntent}
             uiAction={uiAction}
           />
         )}
@@ -188,7 +189,6 @@ const Conversation = memo(function Conversation({
 Conversation.propTypes = {
   savePrompt: PropTypes.func.isRequired,
   message: PropTypes.object.isRequired,
-  chatIntents: PropTypes.array.isRequired,
   isPromptRunning: PropTypes.bool.isRequired,
   isLastConversation: PropTypes.bool.isRequired,
   selectedChatId: PropTypes.string.isRequired,
@@ -196,7 +196,6 @@ Conversation.propTypes = {
   triggerRetryTransform: PropTypes.bool.isRequired,
   handleSqlRun: PropTypes.func.isRequired,
   isLatestTransform: PropTypes.bool.isRequired,
-  selectedChatIntent: PropTypes.string,
 };
 
 Conversation.displayName = "Conversation";

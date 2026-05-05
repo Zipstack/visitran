@@ -47,8 +47,6 @@ const Body = function Body({
   onSendButtonClick,
 }) {
   const [isGetChatMessages, setIsGetChatMessages] = useState(false);
-  const [chatIntents, setChatIntents] = useState([]);
-  const [selectedChatIntent, setSelectedChatIntent] = useState(null);
   const [llmModels, setLlmModels] = useState([]);
   const [selectedLlmModel, setSelectedLlmModel] = useState(null);
   const [selectedCoderLlmModel, setSelectedCoderLlmModel] = useState(null);
@@ -75,8 +73,7 @@ const Body = function Body({
   const explorerData = useExplorerStore((state) => state.explorerData);
   const dbExplorerData = useExplorerStore((state) => state.dbExplorerData);
 
-  const { postChatPrompt, getChatIntents, getChatLlmModels } =
-    useChatAIService();
+  const { postChatPrompt, getChatLlmModels } = useChatAIService();
   const { notify } = useNotificationService();
 
   useEffect(() => {
@@ -99,19 +96,6 @@ const Body = function Body({
       setPendingChannel(null);
     }
   }, [pendingChannel, isConnected, createChannel]);
-
-  useEffect(() => {
-    if (!projectId || chatIntents?.length > 0 || !isChatDrawerOpen) return;
-
-    getChatIntents()
-      .then((data) => {
-        setChatIntents(data);
-      })
-      .catch((error) => {
-        console.error(error);
-        notify({ error });
-      });
-  }, [projectId, isChatDrawerOpen]);
 
   useEffect(() => {
     if (!projectId || llmModels?.length > 0 || !isChatDrawerOpen) return;
@@ -234,55 +218,9 @@ const Body = function Body({
     setIsGetChatMessages(false);
   }, []);
 
-  // Auto-select intent based on onboarding step mode
-  useEffect(() => {
-    if (!isOnboardingMode || !currentOnboardingStep || !chatIntents.length)
-      return;
-
-    const step = currentOnboardingStep;
-    let targetIntentName;
-
-    // Map onboarding mode to intent name
-    switch (step.mode) {
-      case "transform":
-        targetIntentName = "TRANSFORM";
-        break;
-      case "sql":
-        targetIntentName = "SQL";
-        break;
-      case "chat":
-        targetIntentName = "INFO";
-        break;
-      default:
-        return;
-    }
-
-    // Find the intent with the matching name
-    const targetIntent = chatIntents.find(
-      (intent) => intent?.name === targetIntentName
-    );
-
-    if (targetIntent && selectedChatIntent !== targetIntent.chat_intent_id) {
-      setSelectedChatIntent(targetIntent.chat_intent_id);
-
-      // Add a visual animation hint
-      setTimeout(() => {
-        // You could add a toast notification here if needed
-        // notify({ message: `Switched to ${targetIntentName} mode for this step` });
-      }, 100);
-    }
-  }, [
-    isOnboardingMode,
-    currentOnboardingStep,
-    chatIntents,
-    selectedChatIntent,
-    setSelectedChatIntent,
-  ]);
-
   const savePrompt = useCallback(
     (
       prompt,
-      selectedChatIntent,
       isNewChat = false,
       discussionStatus = null,
       chatMessageId = null
@@ -290,9 +228,8 @@ const Body = function Body({
       postChatPrompt({
         prompt,
         llm_model_architect: selectedLlmModel,
-        llm_model_developer: selectedCoderLlmModel,
+        llm_model_developer: selectedCoderLlmModel || selectedLlmModel,
         chatId: selectedChatId,
-        chatIntentId: selectedChatIntent,
         discussionStatus,
         chatMessageId,
       })
@@ -376,9 +313,6 @@ const Body = function Body({
         isGetChatMessages={isGetChatMessages}
         resetChatMessageIdentifier={resetChatMessageIdentifier}
         isPromptRunning={isPromptRunning}
-        chatIntents={chatIntents}
-        selectedChatIntent={selectedChatIntent}
-        setSelectedChatIntent={setSelectedChatIntent}
         llmModels={llmModels}
         selectedLlmModel={selectedLlmModel}
         setSelectedLlmModel={setSelectedLlmModel}
@@ -421,9 +355,6 @@ const Body = function Body({
       savePrompt={savePrompt}
       triggerGetChatMessagesApi={triggerGetChatMessagesApi}
       isPromptRunning={isPromptRunning}
-      chatIntents={chatIntents}
-      selectedChatIntent={selectedChatIntent}
-      setSelectedChatIntent={setSelectedChatIntent}
       llmModels={llmModels}
       selectedLlmModel={selectedLlmModel}
       setSelectedLlmModel={setSelectedLlmModel}

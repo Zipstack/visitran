@@ -25,7 +25,6 @@ const INFO_APPROVED =
 const ActionButtons = memo(function ActionButtons({
   chatMessageId,
   savePrompt,
-  selectedChatIntent,
   isLatestTransform,
   uiAction,
   message,
@@ -101,12 +100,12 @@ const ActionButtons = memo(function ActionButtons({
       setTimeout(() => setIsOperationInProgress(false), 3000);
 
       if (value === "GENERATE") {
-        savePrompt?.(label, selectedChatIntent, false, value, chatMessageId);
+        savePrompt?.(label, false, value, chatMessageId);
         return;
       }
-      savePrompt?.(label, selectedChatIntent, false, value);
+      savePrompt?.(label, false, value);
     },
-    [savePrompt, selectedChatIntent, chatMessageId, isOperationInProgress]
+    [savePrompt, chatMessageId, isOperationInProgress]
   );
 
   const onApplyClick = useCallback(() => {
@@ -321,7 +320,6 @@ ActionButtons.displayName = "ActionButtons";
 ActionButtons.propTypes = {
   chatMessageId: PropTypes.string.isRequired,
   savePrompt: PropTypes.func,
-  selectedChatIntent: PropTypes.string,
   isLatestTransform: PropTypes.bool.isRequired,
   uiAction: PropTypes.object,
   message: PropTypes.object,

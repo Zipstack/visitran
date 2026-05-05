@@ -48,7 +48,6 @@ export function useChatAIService() {
     llm_model_architect,
     llm_model_developer,
     chatId = null,
-    chatIntentId = null,
     discussionStatus = null,
     chatMessageId = null,
   }) => {
@@ -60,7 +59,6 @@ export function useChatAIService() {
         llm_model_architect,
         llm_model_developer,
         chat_id: chatId,
-        chat_intent_id: chatIntentId,
         discussion_status: discussionStatus,
         final_discussion_id: chatMessageId,
       },

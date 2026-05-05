@@ -1,15 +1,8 @@
 import { memo, useCallback, useEffect, useMemo } from "react";
-import { Space, Typography, Select, Switch, Segmented, Tooltip } from "antd";
-import {
-  ConsoleSqlOutlined,
-  DatabaseOutlined,
-  MessageOutlined,
-  RetweetOutlined,
-  WalletOutlined,
-} from "@ant-design/icons";
+import { Space, Typography, Select, Switch } from "antd";
+import { DatabaseOutlined, WalletOutlined } from "@ant-design/icons";
 import PropTypes from "prop-types";
 
-import { CHAT_INTENTS } from "./helper";
 import CircularTokenDisplay from "./CircularTokenDisplay";
 import InfoChip from "./InfoChip";
 import { useTokenStore } from "../../store/token-store";
@@ -18,35 +11,14 @@ import { useProjectStore } from "../../store/project-store";
 import { explorerService } from "../explorer/explorer-service";
 import { useNotificationService } from "../../service/notification-service";
 
-// Define hidden intents and a fixed order array
-const HIDDEN_CHAT_INTENTS = ["AUTO", "NOTA", "INFO"];
-const CHAT_INTENTS_ORDER = ["TRANSFORM", "SQL"];
-
-const CHAT_INTENTS_ICONS = {
-  TRANSFORM: <RetweetOutlined rotate={90} />,
-  SQL: <ConsoleSqlOutlined />,
-  INFO: <MessageOutlined />,
-};
-const DEFAULT_CHAT_INTENT = "TRANSFORM";
-
 const HIDE_EDITOR_SELECTOR = true;
-
-const IS_MODELS_UNIFIED = true; // Use the same model for both Architect and Coder
 
 const PromptActions = memo(function PromptActions({
   useMonaco,
   onUseMonacoSwitch,
-  chatIntents,
-  selectedChatIntent,
-  setSelectedChatIntent,
   llmModels = [],
   selectedLlmModel,
   setSelectedLlmModel,
-  selectedCoderLlmModel,
-  setSelectedCoderLlmModel,
-  selectedChatId,
-  selectedChatIntentName,
-  isNewChat = false,
   isOnboardingMode = false,
   isTypingPrompt = false,
   onBuyTokens,
@@ -100,46 +72,12 @@ const PromptActions = memo(function PromptActions({
     }
   }, [llmModels, selectedLlmModel]);
 
-  // If there's no selected LLM, pick the default
-  useEffect(() => {
-    if (selectedCoderLlmModel || !llmModels.length) return;
-    const defaultModel = llmModels.find((m) => m.default);
-    if (defaultModel?.model) {
-      setSelectedCoderLlmModel(defaultModel.model);
-    }
-  }, [llmModels, selectedCoderLlmModel]);
-
-  // If there's no selected Chat Intent, pick the default
-  useEffect(() => {
-    if (selectedChatIntent || !chatIntents.length) return;
-    const defaultChatIntent = chatIntents.find(
-      (intent) => intent.name === DEFAULT_CHAT_INTENT
-    );
-    if (defaultChatIntent?.chat_intent_id) {
-      setSelectedChatIntent(defaultChatIntent.chat_intent_id);
-    }
-  }, [chatIntents, selectedChatIntent]);
-
-  // Filter out hidden intents, then sort by CHAT_INTENTS_ORDER
-  const filteredAndSortedIntents = useMemo(() => {
-    return chatIntents
-      .filter((intent) => !HIDDEN_CHAT_INTENTS.includes(intent.name))
-      .sort(
-        (a, b) =>
-          CHAT_INTENTS_ORDER.indexOf(a.name) -
-          CHAT_INTENTS_ORDER.indexOf(b.name)
-      );
-  }, [chatIntents]);
-
   return (
     <div className="chat-ai-prompt-actions-container">
       <Space>
         <Space size={0}>
           <Typography.Text type="secondary" className="font-size-12">
-            {selectedChatIntentName === CHAT_INTENTS.TRANSFORM &&
-            !IS_MODELS_UNIFIED
-              ? "Architect:"
-              : "Model:"}
+            Model:
           </Typography.Text>
           <Select
             showSearch
@@ -154,27 +92,6 @@ const PromptActions = memo(function PromptActions({
             className="chat-ai-prompt-actions-model-select"
           />
         </Space>
-
-        {selectedChatIntentName === CHAT_INTENTS.TRANSFORM &&
-          !IS_MODELS_UNIFIED && (
-            <Space size={0}>
-              <Typography.Text type="secondary" className="font-size-12">
-                Coder:
-              </Typography.Text>
-              <Select
-                showSearch
-                size="small"
-                placeholder="LLM model"
-                optionFilterProp="label"
-                options={llmOptions}
-                value={selectedCoderLlmModel}
-                onChange={setSelectedCoderLlmModel}
-                variant="borderless"
-                dropdownClassName="small-font-dropdown"
-                className="chat-ai-prompt-actions-model-select"
-              />
-            </Space>
-          )}
       </Space>
 
       <Space>
@@ -223,33 +140,8 @@ const PromptActions = memo(function PromptActions({
         )}
       </Space>
 
-      <div>
-        <Tooltip
-          title={
-            selectedChatId &&
-            "Chat intent is locked for this conversation. Please start a new chat to use a different intent."
-          }
-        >
-          <Segmented
-            className="chat-ai-custom-segmented"
-            size="small"
-            shape="round"
-            value={selectedChatIntent}
-            onChange={setSelectedChatIntent}
-            disabled={selectedChatId}
-            options={filteredAndSortedIntents.map((intent) => ({
-              label: (
-                <Typography.Text className="chat-ai-prompt-actions-monaco-font-size-10">
-                  {intent.display_name}
-                </Typography.Text>
-              ),
-              value: intent.chat_intent_id,
-              icon: CHAT_INTENTS_ICONS[intent.name],
-            }))}
-          />
-        </Tooltip>
-
-        {!HIDE_EDITOR_SELECTOR && (
+      {!HIDE_EDITOR_SELECTOR && (
+        <div>
           <Space size={5}>
             <Switch
               size="small"
@@ -267,8 +159,8 @@ const PromptActions = memo(function PromptActions({
               Use Editor
             </Typography.Text>
           </Space>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 });
@@ -276,17 +168,9 @@ const PromptActions = memo(function PromptActions({
 PromptActions.propTypes = {
   useMonaco: PropTypes.bool.isRequired,
   onUseMonacoSwitch: PropTypes.func.isRequired,
-  chatIntents: PropTypes.array.isRequired,
-  selectedChatIntent: PropTypes.string,
-  setSelectedChatIntent: PropTypes.func.isRequired,
   llmModels: PropTypes.array,
   selectedLlmModel: PropTypes.string,
   setSelectedLlmModel: PropTypes.func.isRequired,
-  selectedCoderLlmModel: PropTypes.string,
-  setSelectedCoderLlmModel: PropTypes.func.isRequired,
-  selectedChatId: PropTypes.string,
-  selectedChatIntentName: PropTypes.string,
-  isNewChat: PropTypes.bool,
   isOnboardingMode: PropTypes.bool,
   isTypingPrompt: PropTypes.bool,
   onBuyTokens: PropTypes.func,

@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useRef, useEffect, useMemo } from "react";
+import { memo, useState, useCallback, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import { Space } from "antd";
 
@@ -11,9 +11,6 @@ const InputPrompt = memo(function InputPrompt({
   isNewChat = false,
   isPromptRunning,
   isResponseStreaming = false,
-  chatIntents,
-  selectedChatIntent,
-  setSelectedChatIntent,
   llmModels = [],
   selectedLlmModel,
   setSelectedLlmModel,
@@ -65,14 +62,6 @@ const InputPrompt = memo(function InputPrompt({
     window.localStorage.setItem("useMonaco", useMonaco);
   }, [useMonaco]);
 
-  const selectedChatIntentName = useMemo(() => {
-    if (!selectedChatIntent) return null;
-
-    return chatIntents.find(
-      (intent) => intent?.chat_intent_id === selectedChatIntent
-    )?.name;
-  }, [chatIntents, selectedChatIntent]);
-
   const handleUseMonacoSwitch = useCallback(
     (checked) => {
       // Disable monaco switch during onboarding mode when typing
@@ -87,14 +76,14 @@ const InputPrompt = memo(function InputPrompt({
   const handleSubmit = useCallback(
     (prompt) => {
       setValue("");
-      savePrompt(prompt, selectedChatIntent, isNewChat);
+      savePrompt(prompt, isNewChat);
       if (useMonaco) setEditorHeight(100);
       // Stop send button animation when clicked during onboarding
       if (onSendButtonClick) {
         onSendButtonClick();
       }
     },
-    [savePrompt, isNewChat, selectedChatIntent, useMonaco, onSendButtonClick]
+    [savePrompt, isNewChat, useMonaco, onSendButtonClick]
   );
 
   const handleStop = useCallback(() => {
@@ -232,16 +221,12 @@ const InputPrompt = memo(function InputPrompt({
         useMonaco={useMonaco}
         isNewChat={isNewChat}
         onUseMonacoSwitch={handleUseMonacoSwitch}
-        chatIntents={chatIntents}
-        selectedChatIntent={selectedChatIntent}
-        setSelectedChatIntent={setSelectedChatIntent}
         llmModels={llmModels}
         selectedLlmModel={selectedLlmModel}
         setSelectedLlmModel={setSelectedLlmModel}
         selectedCoderLlmModel={selectedCoderLlmModel}
         setSelectedCoderLlmModel={setSelectedCoderLlmModel}
         selectedChatId={selectedChatId}
-        selectedChatIntentName={selectedChatIntentName}
         isOnboardingMode={isOnboardingMode}
         isTypingPrompt={isTypingPrompt}
         onBuyTokens={onBuyTokens}
@@ -255,9 +240,6 @@ InputPrompt.propTypes = {
   isNewChat: PropTypes.bool,
   isPromptRunning: PropTypes.bool.isRequired,
   isResponseStreaming: PropTypes.bool,
-  chatIntents: PropTypes.array.isRequired,
-  selectedChatIntent: PropTypes.string,
-  setSelectedChatIntent: PropTypes.func.isRequired,
   llmModels: PropTypes.array,
   selectedLlmModel: PropTypes.string,
   setSelectedLlmModel: PropTypes.func.isRequired,

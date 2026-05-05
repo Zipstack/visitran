@@ -17,7 +17,6 @@ const ResponseFooter = memo(
     handleSqlRun,
     isLatestTransform,
     savePrompt,
-    selectedChatIntent,
     uiAction,
   }) => {
     if (!intent) return null;
@@ -72,7 +71,6 @@ const ResponseFooter = memo(
               chatMessageId={message?.chat_message_id}
               uiAction={uiAction}
               savePrompt={savePrompt}
-              selectedChatIntent={selectedChatIntent}
               isLatestTransform={isLatestTransform}
               message={message}
               selectedChatId={selectedChatId}
@@ -137,7 +135,6 @@ ResponseFooter.propTypes = {
   handleSqlRun: PropTypes.func.isRequired,
   isLatestTransform: PropTypes.bool.isRequired,
   savePrompt: PropTypes.func.isRequired,
-  selectedChatIntent: PropTypes.string,
   uiAction: PropTypes.object,
 };
 

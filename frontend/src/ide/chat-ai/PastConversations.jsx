@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useCallback, useMemo } from "react";
+import { memo, useState, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import { Space, Typography, Tag } from "antd";
 
@@ -12,9 +12,7 @@ const PastConversations = memo(function PastConversations({
   isChatDrawerOpen,
   setSelectedChatId,
   setChatName,
-  chatIntents,
   triggerGetChatMessagesApi,
-  setSelectedChatIntent,
   setSelectedLlmModel,
   setSelectedCoderLlmModel,
 }) {
@@ -39,17 +37,6 @@ const PastConversations = memo(function PastConversations({
     };
     fetchChats();
   }, [projectId, isChatDrawerOpen]);
-
-  const chatIntentMap = useMemo(() => {
-    if (!chatIntents?.length) return {};
-
-    return chatIntents.reduce((acc, intent) => {
-      if (intent?.chat_intent_id && intent?.display_name) {
-        acc[intent.chat_intent_id] = intent.display_name;
-      }
-      return acc;
-    }, {});
-  }, [chatIntents]);
 
   const handleShowAll = useCallback(() => {
     setShowAll((prev) => !prev);
@@ -92,7 +79,6 @@ const PastConversations = memo(function PastConversations({
       triggerGetChatMessagesApi();
       setSelectedChatId(conversation.chat_id);
       setChatName(conversation.chat_name || "");
-      setSelectedChatIntent(conversation.chat_intent);
       setSelectedLlmModel(conversation.llm_model_architect);
       setSelectedCoderLlmModel(conversation.llm_model_developer);
     },
@@ -100,7 +86,6 @@ const PastConversations = memo(function PastConversations({
       triggerGetChatMessagesApi,
       setSelectedChatId,
       setChatName,
-      setSelectedChatIntent,
       setSelectedLlmModel,
       setSelectedCoderLlmModel,
     ]
@@ -138,9 +123,9 @@ const PastConversations = memo(function PastConversations({
                       >
                         {conversation.chat_name}
                       </Typography.Text>
-                      {chatIntentMap?.[conversation?.chat_intent] && (
+                      {conversation?.chat_intent_name && (
                         <Tag className="past-conversations-intent-chip">
-                          {chatIntentMap[conversation.chat_intent]}
+                          {conversation.chat_intent_name}
                         </Tag>
                       )}
                     </div>
@@ -181,9 +166,7 @@ PastConversations.propTypes = {
   isChatDrawerOpen: PropTypes.bool.isRequired,
   setSelectedChatId: PropTypes.func.isRequired,
   setChatName: PropTypes.func.isRequired,
-  chatIntents: PropTypes.array.isRequired,
   triggerGetChatMessagesApi: PropTypes.func.isRequired,
-  setSelectedChatIntent: PropTypes.func.isRequired,
   setSelectedLlmModel: PropTypes.func.isRequired,
   setSelectedCoderLlmModel: PropTypes.func.isRequired,
 };
