@@ -263,6 +263,7 @@ def send_socket_message(sid, channel_id, **kwargs):
         "is_retry_transform",
         "discussion_status",
         "token_usage_data",  # Add token usage data
+        "chat_intent_name",
     ]
 
     unsupported_args = [arg for arg in kwargs.keys() if arg not in allowed_args]

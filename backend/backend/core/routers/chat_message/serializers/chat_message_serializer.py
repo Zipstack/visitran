@@ -11,6 +11,7 @@ class UserMinimalSerializer(serializers.ModelSerializer):
 
 class ChatMessageSerializer(serializers.ModelSerializer):
     user = UserMinimalSerializer(read_only=True)
+    chat_intent_name = serializers.CharField(source='chat_intent.name', read_only=True, default=None)
 
     class Meta:
         model = ChatMessage
@@ -29,6 +30,7 @@ class ChatMessageSerializer(serializers.ModelSerializer):
             'transformation_status',
             'transformation_error_message',
             'chat_intent',
+            'chat_intent_name',
             'llm_model_architect',
             'llm_model_developer',
             'created_at',

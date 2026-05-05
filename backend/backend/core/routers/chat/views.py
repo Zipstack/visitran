@@ -128,7 +128,6 @@ class ChatView(RequestHandlingMixin, viewsets.ViewSet):
         data = request.data
         chat_id = data.get("chat_id")
         prompt = data.get("prompt")
-        chat_intent_id = data.get("chat_intent_id")
         llm_model_architect = data.get("llm_model_architect")
         llm_model_developer = data.get("llm_model_developer")
         discussion_type = data.get('discussion_status')
@@ -139,26 +138,19 @@ class ChatView(RequestHandlingMixin, viewsets.ViewSet):
         if discussion_type == "GENERATE":
             generated_chat_res_id = data.get('final_discussion_id')
 
-        # Check token balance before processing the request
+        # Check token balance before processing the request.
+        # Intent is auto-detected by the AI service, so we don't know it yet —
+        # check against the worst-case (TRANSFORM) cost to avoid letting through
+        # a request the org can't afford.
         try:
             project = ProjectDetails.objects.get(project_uuid=project_id)
             organization = project.organization
-
-            # Determine chat intent name for token calculation
-            chat_intent_name = "INFO"  # Default
-            if chat_intent_id:
-                from backend.core.models.chat_intent import ChatIntent
-                try:
-                    chat_intent = ChatIntent.objects.get(chat_intent_id=chat_intent_id)
-                    chat_intent_name = chat_intent.name
-                except ChatIntent.DoesNotExist:
-                    pass
 
             self.fetch_token_balance(
                 llm_model_architect=llm_model_architect,
                 llm_model_developer=llm_model_developer,
                 organization=organization,
-                chat_intent_name=chat_intent_name
+                chat_intent_name="TRANSFORM"
             )
 
         except ProjectDetails.DoesNotExist:
@@ -172,7 +164,6 @@ class ChatView(RequestHandlingMixin, viewsets.ViewSet):
         chat_message = chat_message_context.persist_prompt(
             prompt=prompt,
             chat_id=chat_id,
-            chat_intent_id=chat_intent_id,
             llm_model_architect=llm_model_architect,
             llm_model_developer=llm_model_developer,
             discussion_type=discussion_type,

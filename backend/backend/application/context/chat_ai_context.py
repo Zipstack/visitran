@@ -326,9 +326,18 @@ class ChatAiContext(TokenCostService):
         # On successful completion, Closing the event thread
         raise StopIteration
 
+    def _process_chat_intent(self, *args, **kwargs):
+        send_socket_message(
+            sid=kwargs["sid"],
+            channel_id=kwargs["channel_id"],
+            chat_id=kwargs["chat_id"],
+            chat_message_id=kwargs["chat_message_id"],
+            chat_intent_name=kwargs.get("chat_intent"),
+        )
+
     def process_event(self, *args, **kwargs):
         supported_events = ["thought_chain", "prompt_response",
-                            "summary", "chat_name", "completed"]
+                            "summary", "chat_name", "completed", "chat_intent"]
         event_type = kwargs.get("event_type")
         if event_type not in supported_events:
             raise ValueError(f"Unsupported event type: {event_type}")

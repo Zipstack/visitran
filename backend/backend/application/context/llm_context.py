@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any
+from typing import Any, Optional
 
 import eventlet
 import redis
@@ -52,16 +52,48 @@ class LLMServerContext(ChatAiContext):
             else:
                 raise
 
+    def _resolve_chat_intent(self, chat_message_id: str, data: dict, content: Any) -> Optional[str]:
+        """
+        Pull the AI-detected chat_intent out of the inbound payload and persist it
+        to ChatMessage.chat_intent the first time we see it for a given message.
+        Subsequent events re-use the cached value.
+        """
+        if not hasattr(self, "_chat_intent_by_msg"):
+            self._chat_intent_by_msg = {}
+
+        cached = self._chat_intent_by_msg.get(chat_message_id)
+        if cached:
+            return cached
+
+        intent_name = data.get("chat_intent")
+        if not intent_name and isinstance(content, dict):
+            intent_name = content.get("chat_intent")
+        if not intent_name:
+            return None
+
+        try:
+            from backend.core.models.chat_intent import ChatIntent
+            from backend.core.models.chat_message import ChatMessage
+            chat_intent = ChatIntent.objects.get(name=intent_name)
+            chat_message = ChatMessage.objects.get(chat_message_id=chat_message_id)
+            chat_message.chat_intent = chat_intent
+            chat_message.save(update_fields=["chat_intent"])
+        except Exception as e:
+            logging.error(f"Failed to persist chat_intent={intent_name}: {e}")
+
+        self._chat_intent_by_msg[chat_message_id] = intent_name
+        return intent_name
+
     def process_message(
         self,
         sid: str,
         channel_id: str,
         chat_id: str,
-        chat_intent: str,
         payload: dict[str, Any],
         discussion_status: str
     ):
         data = json.loads(payload["data"])
+        print("\n=============\n", data, "\n==========\n")
         if payload.get("type") == "status" and payload.get("status") == "failed":
             payload = json.loads(payload["data"])
             if payload and "error_message" in payload:
@@ -75,6 +107,7 @@ class LLMServerContext(ChatAiContext):
             2: "summary",
             3: "chat_name",
             4: "completed",
+            5: "chat_intent",
             99: "stop",
         }
 
@@ -82,6 +115,8 @@ class LLMServerContext(ChatAiContext):
         logging.info(f"Processing event for {event_type}")
         chat_message_id = data["chat_message_id"]
         content = data["content"]
+
+        chat_intent = self._resolve_chat_intent(chat_message_id, data, content)
 
         if event_type == "chat_name":
             self.chat_name = data["content"]
@@ -120,7 +155,7 @@ class LLMServerContext(ChatAiContext):
         )
         return messages
 
-    def _handle_redis_message(self, sid, channel_id, chat_id, chat_intent, group_id, messages, discussion_status: str):
+    def _handle_redis_message(self, sid, channel_id, chat_id, group_id, messages, discussion_status: str):
         for _, msg_list in messages:
             for message_id, payload in msg_list:
                 logging.info(f" === Message ID: {message_id} ===")
@@ -129,7 +164,6 @@ class LLMServerContext(ChatAiContext):
                         sid=sid,
                         channel_id=channel_id,
                         chat_id=chat_id,
-                        chat_intent=chat_intent,
                         payload=payload,
                         discussion_status=discussion_status
                     )
@@ -138,7 +172,7 @@ class LLMServerContext(ChatAiContext):
                     self.redis_client.xack(channel_id, group_id, message_id)
 
     def __stream_listener(
-        self, sid: str, channel_id: str, chat_id: str, chat_message_id: str, chat_intent: str, group_id: str, discussion_status: str
+        self, sid: str, channel_id: str, chat_id: str, chat_message_id: str, group_id: str, discussion_status: str
     ):
 
         while True:
@@ -148,7 +182,7 @@ class LLMServerContext(ChatAiContext):
                 if not messages:
                     continue
 
-                self._handle_redis_message(sid, channel_id, chat_id, chat_intent, group_id, messages, discussion_status)
+                self._handle_redis_message(sid, channel_id, chat_id, group_id, messages, discussion_status)
 
             except redis.exceptions.RedisError as e:
                 logging.error(f"[REDIS ERROR] {e}")
@@ -196,15 +230,15 @@ class LLMServerContext(ChatAiContext):
                 )
                 break
 
-    def listen_to_redis_stream(self, sid: str, channel_id: str, chat_id: str, chat_message_id: str, chat_intent: str, discussion_status: str):
+    def listen_to_redis_stream(self, sid: str, channel_id: str, chat_id: str, chat_message_id: str, discussion_status: str):
         """Listens to the Redis stream from llm server and processes the messages."""
         group_id = f"group_{chat_id}_{chat_message_id}"
         self.create_redis_xgroup(channel_id, group_id)
-        self.__stream_listener(sid, channel_id, chat_id, chat_message_id, chat_intent, group_id, discussion_status)
+        self.__stream_listener(sid, channel_id, chat_id, chat_message_id, group_id, discussion_status)
 
-    def stream_prompt_response(self, sid: str, channel_id: str, chat_id: str, chat_message_id: str, chat_intent: str, discussion_status: str):
+    def stream_prompt_response(self, sid: str, channel_id: str, chat_id: str, chat_message_id: str, discussion_status: str):
         """Starts a background thread to listen redis pubsub channel from AI server"""
-        args = (sid, channel_id, chat_id, chat_message_id, chat_intent, discussion_status)
+        args = (sid, channel_id, chat_id, chat_message_id, discussion_status)
         try:
             sio.start_background_task(self.listen_to_redis_stream, *args)
         except Exception as e:
@@ -237,12 +271,10 @@ class LLMServerContext(ChatAiContext):
                 "GENERATE": ChatMessageStatus.GENERATE,
             }
             if is_retry:
-                chat_intent = ChatMessageStatus.TRANSFORM_RETRY
                 prompt = (
                     f"Faulty yaml:{chat_message.technical_content} \n Error:{chat_message.transformation_error_message}"
                 )
             else:
-                chat_intent = chat_message.chat_intent.name
                 prompt = chat_message.prompt
 
             if discussion_status in DISCUSSION_STATUS_MAP:
@@ -311,7 +343,6 @@ class LLMServerContext(ChatAiContext):
                 "db_map": db_metadata,
                 "visitran_model": visitran_models,
                 "chat_name": chat_name,
-                "chat_intent": chat_intent,
                 "db_type": self.project_instance.database_type,
                 "llm_model_architect": chat_message.llm_model_architect,
                 "llm_model_developer": chat_message.llm_model_developer,
@@ -335,7 +366,6 @@ class LLMServerContext(ChatAiContext):
                     channel_id=channel_id,
                     chat_id=chat_id,
                     chat_message_id=chat_message_id,
-                    chat_intent=chat_intent,
                     discussion_status=chat_message.discussion_type,
                 )
 
@@ -347,10 +377,9 @@ class LLMServerContext(ChatAiContext):
                     channel_id=channel_id,
                     chat_id=chat_id,
                     chat_message_id=chat_message_id,
-                    chat_intent=chat_intent,
                     discussion_status=chat_message.discussion_type,
                 )
-            logging.info(f"process_prompt: chat_intent={chat_intent}, sid={sid}, channel_id={channel_id}")
+            logging.info(f"process_prompt: sid={sid}, channel_id={channel_id}")
             chat_message = self._get_chat_message(chat_id=chat_id, chat_message_id=chat_message_id)
 
             return chat_message

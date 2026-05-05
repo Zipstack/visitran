@@ -144,37 +144,30 @@ class ChatMessageContext(ApplicationContext):
         llm_model_architect: str,
         llm_model_developer: str,
         generated_chat_res_id: str = None,
-        chat_intent_id: str = None,
         chat_id: str = None,
         user=None,
     ) -> ChatMessage:
         """
         Create a new prompt within a Chat. If chat_id is None, create a new Chat.
         Return the chat_message_id of the newly created ChatMessage.
+        chat_intent is left null here; the AI service auto-detects it and the
+        backend persists it on the message when the response arrives.
         """
         if not prompt.strip():
             raise InvalidChatPrompt()
 
-        chat_intent = None
         transformation_type = 'TRANSFORM' if  discussion_type == 'GENERATE' else 'DISCUSSION'
-        if chat_intent_id:
-            try:
-                chat_intent = ChatIntent.objects.get(chat_intent_id=chat_intent_id)
-            except ChatIntent.DoesNotExist:
-                chat_intent = None
 
         if not chat_id:
             chat = Chat.objects.create(
                 project=self.project_instance,
                 chat_name="Untitled Chat",
-                chat_intent=chat_intent,
                 llm_model_architect=llm_model_architect,
                 llm_model_developer=llm_model_developer,
                 user=user,
             )
         else:
             chat = self._get_chat_or_raise(chat_id=chat_id, must_be_active=True)
-            chat.chat_intent = chat_intent
             chat.llm_model_architect = llm_model_architect
             chat.llm_model_developer = llm_model_developer
             chat.discussion_type = discussion_type
@@ -185,7 +178,6 @@ class ChatMessageContext(ApplicationContext):
         chat_message = ChatMessage.objects.create(
             chat=chat,
             prompt=prompt,
-            chat_intent=chat_intent,
             llm_model_architect=llm_model_architect,
             llm_model_developer=llm_model_developer,
             discussion_type= discussion_type,
