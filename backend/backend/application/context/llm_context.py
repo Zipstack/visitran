@@ -78,6 +78,10 @@ class LLMServerContext(ChatAiContext):
             chat_message = ChatMessage.objects.get(chat_message_id=chat_message_id)
             chat_message.chat_intent = chat_intent
             chat_message.save(update_fields=["chat_intent"])
+            # Mirror the pre-PR behavior where Chat.chat_intent tracked the
+            # latest message's intent (used by PastConversations badge).
+            chat_message.chat.chat_intent = chat_intent
+            chat_message.chat.save(update_fields=["chat_intent"])
         except Exception as e:
             logging.error(f"Failed to persist chat_intent={intent_name}: {e}")
 
@@ -93,7 +97,6 @@ class LLMServerContext(ChatAiContext):
         discussion_status: str
     ):
         data = json.loads(payload["data"])
-        print("\n=============\n", data, "\n==========\n")
         if payload.get("type") == "status" and payload.get("status") == "failed":
             payload = json.loads(payload["data"])
             if payload and "error_message" in payload:
