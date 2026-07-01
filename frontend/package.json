@@ -27,7 +27,7 @@
     "monaco-editor": "^0.52.2",
     "papaparse": "^5.5.3",
     "posthog-js": "^1.235.0",
-    "react": "^18.2.0",
+    "react": "^19.2.7",
     "react-beautiful-dnd": "^13.1.1",
     "react-datasheet": "^1.4.12",
     "react-dom": "^18.2.0",
