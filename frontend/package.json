@@ -15,7 +15,7 @@
     "ansi-to-html": "^0.7.2",
     "antd": "^5.24.2",
     "axios": "1.8.4",
-    "cronstrue": "^3.0.0",
+    "cronstrue": "^3.24.0",
     "crypto-js": "^4.2.0",
     "dagre": "^0.8.5",
     "dompurify": "^3.3.3",
