@@ -65,7 +65,7 @@ jobs:
         run: uv run python ci/increment_version.py
 
 
-      - uses: stefanzweifel/git-auto-commit-action@v4
+      - uses: stefanzweifel/git-auto-commit-action@v7
         with:
           # Optional. Commit message for the created commit.
           # Defaults to "Apply automatic changes"
